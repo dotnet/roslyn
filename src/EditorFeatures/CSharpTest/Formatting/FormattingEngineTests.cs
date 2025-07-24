@@ -37,8 +37,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
     public void FormatDocumentCommandHandler()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -57,12 +56,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
     public void FormatDocumentPasteCommandHandler()
-    {
-        AssertFormatWithPasteOrReturn("""
+        => AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -81,12 +78,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, allowDocumentChanges: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547261")]
     public void FormatDocumentReadOnlyWorkspacePasteCommandHandler()
-    {
-        AssertFormatWithPasteOrReturn("""
+        => AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -105,12 +100,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, allowDocumentChanges: false);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void DoNotFormatUsingStatementOnReturn()
-    {
-        AssertFormatWithPasteOrReturn("""
+        => AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -129,12 +122,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, allowDocumentChanges: true, isPaste: false);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void FormatUsingStatementWhenTypingCloseParen()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -153,12 +144,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void FormatNotUsingStatementOnReturn()
-    {
-        AssertFormatWithPasteOrReturn("""
+        => AssertFormatWithPasteOrReturn("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -177,12 +166,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, allowDocumentChanges: true, isPaste: false);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
     public void DoNotFormatRangeOrFormatTokenOnOpenBraceOnSameLine()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class C
                 {
                     public void M()
@@ -199,12 +186,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/14491")]
     public void DoNotFormatRangeButFormatTokenOnOpenBraceOnNextLine()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class C
                 {
                     public void M()
@@ -223,12 +208,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
     public void FormatPragmaWarningInbetweenDelegateDeclarationStatement()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -257,12 +240,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
     public void FormatHashRegion()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -283,12 +264,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
     public void FormatHashEndRegion()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -311,7 +290,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
     public async Task FormatSpansIndividuallyWithoutCollapsing()
@@ -410,8 +388,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044118")]
     public void SemicolonInCommentOnLastLineDoesNotFormat()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 using System;
 
                 class Program
@@ -432,13 +409,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
                 // ;
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineRegularComment_1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               //        {$$
@@ -457,13 +432,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineRegularComment_2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               //        {$$   
@@ -482,13 +455,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(int          a/*         {$$       */, int b)
@@ -505,13 +476,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(int          a/*         {$$
@@ -530,13 +499,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_3()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(int          a/*         {$$    
@@ -555,13 +522,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineDocComment_1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               ///        {$$
@@ -580,13 +545,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineDocComment_2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               ///        {$$   
@@ -605,13 +568,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               /**        {$$   **/
@@ -630,13 +591,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               /**        {$$   
@@ -657,13 +616,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_3()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                               /**        {$$
@@ -684,13 +641,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideInactiveCode()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                                                         #if false
@@ -715,13 +670,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideStringLiteral()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -738,13 +691,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideCharLiteral()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -761,13 +712,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideCommentsOfPreprocessorDirectives()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                        #region
@@ -788,13 +737,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInSwitchCase()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -819,13 +766,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInDefaultSwitchCase()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -852,12 +797,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/9097")]
     public void ColonInPatternSwitchCase01()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main()
@@ -880,13 +823,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInLabeledStatement()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -903,13 +844,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInTargetAttribute()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 using System;
                 [method    :$$    C]
                 class C : Attribute
@@ -922,13 +861,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 {
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInBaseList()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class C   :$$   Attribute
                 {
                 }
@@ -937,13 +874,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 {
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInThisConstructor()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Goo
                 {
                     Goo(int s)   :$$   this()
@@ -966,13 +901,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInConditionalOperator()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -989,13 +922,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInArgument()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -1012,13 +943,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInTypeParameter()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program<T>
                 {
                     class C1<U>
@@ -1037,7 +966,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
     public void DoNotSmartFormatBracesOnSmartIndentNone()
@@ -1152,8 +1080,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
     public void DoNotKeepTabsInCommentsWhenFormattingIsOn()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     static void Main()
@@ -1170,7 +1097,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
@@ -1231,8 +1157,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4435")]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void OpenCurlyNotFormattedIfNotAtStartOfLine()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class C
                 {
                     public  int     P   {$$
@@ -1243,13 +1168,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     public  int     P   {
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4435")]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void OpenCurlyFormattedIfAtStartOfLine()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class C
                 {
                     public  int     P
@@ -1262,12 +1185,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     {
                 }
                 """);
-    }
 
     [WpfFact]
     public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1288,12 +1209,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1310,12 +1229,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly3()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1332,12 +1249,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1356,12 +1271,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                             get { return true; }
                 }
                 """);
-    }
 
     [WpfFact]
     public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1376,12 +1289,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                         static bool Property { get { return true; }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1404,12 +1315,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                             }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 namespace ConsoleApplication1
                 {
                     class Program
@@ -1432,12 +1341,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                             }
                         }
                 """);
-    }
 
     [WpfFact]
     public void DoNotFormatCompleteBlockOnSingleLineIfTypingSemicolon()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 public class Class1
                 {
                     void M()
@@ -1458,12 +1365,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatCompleteBlockOnSingleLineIfTypingCloseCurlyOnLaterLine()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 public class Class1
                 {
                     void M()
@@ -1488,12 +1393,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
     public void FormatLockStatementWithEmbeddedStatementOnSemicolonDifferentLine()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class C
                 {
                     private object _l = new object();
@@ -1514,12 +1417,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
     public void FormatLockStatementWithEmbeddedStatementOnSemicolonSameLine()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class C
                 {
                     private object _l = new object();
@@ -1538,7 +1439,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11642")]
     public void FormatArbitraryNodeParenthesizedLambdaExpression()
@@ -1662,8 +1562,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1682,12 +1581,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1706,12 +1603,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff3()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1728,12 +1623,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff4()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1750,12 +1643,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff5()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1774,12 +1665,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff6()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1796,12 +1685,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff7()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1814,12 +1701,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     {
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff1()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1840,12 +1725,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff2()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1864,12 +1747,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff3()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M()
@@ -1884,12 +1765,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
     public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff4()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 class Program
                 {
                     void M() {
@@ -1902,7 +1781,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, SmartIndentButDoNotFormatWhileTyping());
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31907")]
     public Task NullableReferenceTypes()
@@ -2072,8 +1950,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_KeepMultipleLinesBetweenGroups()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 using System.A;
                 using System.B;
@@ -2090,12 +1967,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using MS.A;
                 using MS.B;
                 """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 namespace N;
 
@@ -2116,12 +1991,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using MS.A;
                 using MS.B;
                 """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_DoNotGroupIfNotSorted()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 using System.B;
                 using System.A;
@@ -2134,12 +2007,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using MS.B;
                 using MS.A;
                 """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_GroupIfSorted()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 using System.A;
                 using System.B;
@@ -2153,12 +2024,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using MS.A;
                 using MS.B;
                 """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 using MS.A;
                 using MS.B;
@@ -2172,12 +2041,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using System.A;
                 using System.B;
                 """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/58157")]
     public void FormatImplicitObjectCollection()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -2200,7 +2067,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49492")]
     public void PreserveAnnotationsOnMultiLineTrivia()
@@ -2236,8 +2102,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
 
     [WpfFact]
     public void FormatUserDefinedOperator()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2253,12 +2118,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatUserDefinedUnaryOperator()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2274,12 +2137,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCastOperator()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2295,12 +2156,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatUserDefinedOperatorOnType()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator + ( I1 x, I1 y);$$
@@ -2311,12 +2170,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract static I1 operator +(I1 x, I1 y);
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatUserDefinedUnaryOperatorOnType()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator ++ ( I1 x);$$
@@ -2327,12 +2184,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract static I1 operator ++(I1 x);
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCastOperatorOnType()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 interface I1<T> where T : I1<T>
                 {
                     abstract static explicit operator string ( T x);$$
@@ -2343,12 +2198,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract static explicit operator string(T x);
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatUserDefinedCheckedOperator()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2364,12 +2217,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void FormatUserDefinedCheckedUnaryOperator()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2385,12 +2236,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCheckedCastOperator()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2406,12 +2255,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void FormatUserDefinedCheckedOperatorOnType()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator checked + ( I1 x, I1 y);$$
@@ -2422,12 +2269,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract static I1 operator checked +(I1 x, I1 y);
                 }
                 """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void FormatUserDefinedCheckedUnaryOperatorOnType()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator checked ++ ( I1 x);$$
@@ -2438,12 +2283,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract static I1 operator checked ++(I1 x);
                 }
                 """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void FormatUserDefinedExplicitCheckedCastOperatorOnType()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 interface I1<T> where T : I1<T>
                 {
                     abstract static explicit operator checked string ( T x);$$
@@ -2454,12 +2297,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract static explicit operator checked string(T x);
                 }
                 """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [WpfFact]
     public void FormatUnsignedRightShift()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 class C
                 {
@@ -2475,13 +2316,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceIncrementOperator([CombinatorialValues("++", "--")] string op)
-    {
-        AssertFormatWithView($$$"""
+        => AssertFormatWithView($$$"""
                 $$
                 class C
                 {
@@ -2497,13 +2336,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceIncrementOperator_Checked([CombinatorialValues("++", "--")] string op)
-    {
-        AssertFormatWithView($$$"""
+        => AssertFormatWithView($$$"""
                 $$
                 class C
                 {
@@ -2519,13 +2356,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceCompoundAssignmentOperator([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
-    {
-        AssertFormatWithView($$$"""
+        => AssertFormatWithView($$$"""
                 $$
                 class C
                 {
@@ -2541,13 +2376,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceCompoundAssignmentOperator_Checked([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
-    {
-        AssertFormatWithView($$$"""
+        => AssertFormatWithView($$$"""
                 $$
                 class C
                 {
@@ -2563,24 +2396,20 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatCollectionExpressionAfterEquals()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 $$
                 var v = [1, 2, 3];
                 """, """
                 $$
                 var   v  =   [  1  , 2  , 3  ]  ;
                 """);
-    }
 
     [WpfFact]
     public void FormatCollectionExpressionAfterEquals2()
-    {
-        AssertFormatWithView("""
+        => AssertFormatWithView("""
                 class C
                 {
                     void M()
@@ -2597,12 +2426,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """);
-    }
 
     [WpfFact]
     public void FormatUnsignedRightShiftOnType()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
                 interface I1
                 {
                     abstract static I1 operator >>> ( I1 x, I1 y);$$
@@ -2613,13 +2440,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract static I1 operator >>>(I1 x, I1 y);
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceIncrementOperatorOnType([CombinatorialValues("++", "--")] string op)
-    {
-        AssertFormatAfterTypeChar($$$"""
+        => AssertFormatAfterTypeChar($$$"""
                 interface I1
                 {
                     abstract void operator{{{op}}} ( );$$
@@ -2630,13 +2455,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract void operator {{{op}}}();
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceIncrementOperatorOnType_Checked([CombinatorialValues("++", "--")] string op)
-    {
-        AssertFormatAfterTypeChar($$$"""
+        => AssertFormatAfterTypeChar($$$"""
                 interface I1
                 {
                     abstract void operator  checked{{{op}}} ( );$$
@@ -2647,13 +2470,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract void operator checked {{{op}}}();
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceCompoundAssignmentOperatorOnType([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
-    {
-        AssertFormatAfterTypeChar($$$"""
+        => AssertFormatAfterTypeChar($$$"""
                 interface I1
                 {
                     abstract void operator{{{op}}} ( I1 x );$$
@@ -2664,13 +2485,11 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract void operator {{{op}}}(I1 x);
                 }
                 """);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FormatInstanceCompoundAssignmentOperatorOnType_Checked([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
-    {
-        AssertFormatAfterTypeChar($$$"""
+        => AssertFormatAfterTypeChar($$$"""
                 interface I1
                 {
                     abstract void operator  checked{{{op}}} ( I1 x );$$
@@ -2681,12 +2500,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     abstract void operator checked {{{op}}}(I1 x);
                 }
                 """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13981")]
     public void FormatLabeledStatementAfterColon()
-    {
-        AssertFormatAfterTypeChar("""
+        => AssertFormatAfterTypeChar("""
             class C
             {
                 void M()
@@ -2703,7 +2520,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
             }
             """);
-    }
 
     private static void AssertFormatAfterTypeChar(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,

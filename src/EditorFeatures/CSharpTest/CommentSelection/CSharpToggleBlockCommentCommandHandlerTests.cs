@@ -22,8 +22,7 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
 {
     [WpfFact]
     public void AddComment_CommentMarkerStringBeforeSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -44,12 +43,10 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_DirectiveWithCommentInsideSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -74,12 +71,10 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_MarkerInsideSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -100,12 +95,10 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CloseCommentMarkerStringInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -126,12 +119,10 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CommentMarkerStringAfterSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -152,12 +143,10 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CommentMarkerStringNearSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -180,12 +169,10 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CommentMarkerStringInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -202,7 +189,6 @@ public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggle
                 }
             }
             """);
-    }
 
     internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace)
     {
