@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -68,26 +69,6 @@ internal static partial class Extensions
 
         void LogReason(string message)
             => log?.Write($"Project '{project.GetLogDisplay()}' doesn't support EnC: {message}");
-
-        return true;
-    }
-
-    /// <summary>
-    /// True if project settings are compatible with Edit and Continue.
-    /// </summary>
-    public static bool ProjectSettingsSupportEditAndContinue(this Project project, TraceLog? log = null)
-    {
-        Contract.ThrowIfFalse(project.SupportsEditAndContinue());
-        Contract.ThrowIfNull(project.CompilationOptions);
-
-        if (project.CompilationOptions.OptimizationLevel != OptimizationLevel.Debug)
-        {
-            LogReason(nameof(ProjectSettingKind.OptimizationLevel), project.CompilationOptions.OptimizationLevel.ToString());
-            return false;
-        }
-
-        void LogReason(string settingName, string value)
-            => log?.Write($"Project '{project.GetLogDisplay()}' setting '{settingName}' value '{value}' is not compatible with EnC");
 
         return true;
     }

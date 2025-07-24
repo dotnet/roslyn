@@ -21,7 +21,11 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
 public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelper logger = null)
-    : AbstractUserDiagnosticTest_NoEditor(logger)
+    : AbstractUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
     protected abstract int CodeActionIndex { get; }
     protected virtual bool IncludeSuppressedDiagnostics => false;
@@ -29,7 +33,7 @@ public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelp
     protected virtual bool IncludeNoLocationDiagnostics => true;
 
     protected Task TestAsync(string initial, string expected, ParseOptions parseOptions = null)
-        => TestAsync(initial, expected, parseOptions, index: CodeActionIndex);
+        => TestAsync(initial, expected, new TestParameters(parseOptions, index: CodeActionIndex));
 
     internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 

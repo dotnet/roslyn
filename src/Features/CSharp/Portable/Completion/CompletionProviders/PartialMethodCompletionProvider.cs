@@ -16,21 +16,15 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(OverrideCompletionProvider))]
-[Shared]
-internal sealed partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class PartialMethodCompletionProvider() : AbstractPartialMethodCompletionProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public PartialMethodCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     protected override bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken)
@@ -75,7 +69,7 @@ internal sealed partial class PartialMethodCompletionProvider : AbstractPartialM
 
     public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
         => text[characterPosition] == ' ' ||
-           options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
+           (options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition));
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 

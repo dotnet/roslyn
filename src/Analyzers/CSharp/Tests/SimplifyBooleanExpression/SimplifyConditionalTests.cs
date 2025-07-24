@@ -24,7 +24,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSimpleCase()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -56,7 +56,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestSimpleNegatedCase()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -124,7 +124,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWithTrueTrue()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -156,7 +156,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWithFalseFalse()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -188,7 +188,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWhenTrueIsTrueAndWhenFalseIsUnknown()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -220,7 +220,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
     public Task TestWhenTrueIsTrueAndWhenFalseIsUnknown_A()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -254,7 +254,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWhenTrueIsFalseAndWhenFalseIsUnknown()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -286,7 +286,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
     public Task TestWhenTrueIsFalseAndWhenFalseIsUnknown_A()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -320,7 +320,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWhenTrueIsUnknownAndWhenFalseIsTrue()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -352,7 +352,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
     public Task TestWhenTrueIsUnknownAndWhenFalseIsTrue_A()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -386,7 +386,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact]
     public Task TestWhenTrueIsUnknownAndWhenFalseIsFalse()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -418,7 +418,7 @@ public sealed partial class SimplifyConditionalTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71418")]
     public Task TestWhenTrueIsUnknownAndWhenFalseIsFalse_A()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

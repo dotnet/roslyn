@@ -471,7 +471,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
         this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public override void CloseDocument(DocumentId documentId)

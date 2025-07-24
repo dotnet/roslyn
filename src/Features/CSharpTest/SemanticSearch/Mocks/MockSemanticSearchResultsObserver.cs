@@ -22,25 +22,25 @@ internal sealed class MockSemanticSearchResultsObserver() : ISemanticSearchResul
     public ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken)
     {
         AddItemsImpl?.Invoke(itemCount);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken)
     {
         ItemsCompletedImpl?.Invoke(itemCount);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask OnSymbolFoundAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
         OnDefinitionFoundImpl?.Invoke(symbol);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
     {
         OnUserCodeExceptionImpl?.Invoke(exception);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
 

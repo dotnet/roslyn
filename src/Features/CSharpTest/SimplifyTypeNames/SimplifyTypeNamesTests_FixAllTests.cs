@@ -117,7 +117,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     </Document>
                 </Project>
             </Workspace>
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -221,7 +221,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     </Document>
                 </Project>
             </Workspace>
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -325,7 +325,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     </Document>
                 </Project>
             </Workspace>
-            """, options: PreferIntrinsicTypeEverywhere);
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]

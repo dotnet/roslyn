@@ -69,7 +69,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     private const string DelegateDefinition = @"public delegate void TestDelegate();";
 
     private TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
-        => new(options: new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
+        => new(options: new(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
 
     private Task TestDiagnosticMissingAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
@@ -93,7 +93,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
         };
         return TestInRegularAndScriptAsync(
-            initialMarkup, expectedMarkup, options: options, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+            initialMarkup, expectedMarkup, new(options: options, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)));
     }
 
     #region Test Preserve
@@ -653,6 +653,44 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
 
             namespace N1
             {
+            }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
+    public Task WhenOutsidePreferred_AliasToLocalType_FileScopedNamespace()
+    {
+        return TestInRegularAndScriptAsync("""
+            namespace Goo;
+
+            [|using Alias = C;|]
+
+            class C;
+            """, """
+
+            {|Warning:using Alias = Goo.C;|}
+
+            namespace Goo;
+            class C;
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
+    public Task WhenOutsidePreferred_AliasToLocalType_BlockNamespace()
+    {
+        return TestInRegularAndScriptAsync("""
+            namespace Goo
+            {
+                [|using Alias = C;|]
+
+                class C;
+            }
+            """, """
+            {|Warning:using Alias = Goo.C;|}
+
+            namespace Goo
+            {
+                class C;
             }
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
     }

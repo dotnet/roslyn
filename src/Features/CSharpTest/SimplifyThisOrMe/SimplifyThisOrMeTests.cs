@@ -434,6 +434,6 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                 </Project>
             </Workspace>
             """,
-            options: options);
+            new(options: options));
     }
 }

@@ -27,7 +27,7 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
         => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 
     private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
-        => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+        => TestInRegularAndScriptAsync(initialMarkup, expected, parameters: new TestParameters(options: options));
 
     [Fact]
     public Task TestArithmeticPrecedence()
@@ -732,7 +732,7 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                     }
                 }
             }
-            """, options: RequireAllParenthesesForClarity);
+            """, new(options: RequireAllParenthesesForClarity));
 
     [Fact]
     public Task TestFixAll3()
@@ -769,5 +769,5 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                     int x = 1 + (2 * 3) == 1 + (2 * 3);
                 }
             }
-            """, options: RequireAllParenthesesForClarity);
+            """, new(options: RequireAllParenthesesForClarity));
 }

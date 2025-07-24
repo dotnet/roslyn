@@ -27,7 +27,7 @@ public sealed class OrderModifiersCompilerErrorTests : AbstractCSharpDiagnosticP
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30352")]
     public Task PartialAtTheEnd()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
 @"[|partial|] public class C { }",
 @"public partial class C { }");
 }

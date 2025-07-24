@@ -470,7 +470,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         }
                     }
                     """;
-                var parameters = new TestParameters();
+                var parameters = TestParameters.Default;
                 using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
                 var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer()]);
