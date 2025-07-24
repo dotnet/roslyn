@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                // PROTOTYPE: Share logic with Cci.ITypeMemberReference.GetContainingType implementation?
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : code quality, share logic with Cci.ITypeMemberReference.GetContainingType implementation?
                 if (AdaptedPropertySymbol.GetIsNewExtensionMember())
                 {
                     var containingType = AdaptedPropertySymbol.ContainingType;
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            // PROTOTYPE: Share logic with Cci.ITypeMemberReference.GetContainingType implementation in MethodSymbolAdapter?
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : code quality, share logic with Cci.ITypeMemberReference.GetContainingType implementation in MethodSymbolAdapter?
             if (AdaptedPropertySymbol.GetIsNewExtensionMember())
             {
                 var containingType = AdaptedPropertySymbol.ContainingType;

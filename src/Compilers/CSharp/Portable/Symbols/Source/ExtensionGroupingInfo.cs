@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var sourceNamedType = (SourceNamedTypeSymbol)type;
-                var groupingMetadataName = sourceNamedType.GetExtensionGroupingMetadataName();
+                var groupingMetadataName = sourceNamedType.ExtensionGroupingName;
 
                 MultiDictionary<string, SourceNamedTypeSymbol>? markerMap;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     groupingMap.Add(groupingMetadataName, markerMap);
                 }
 
-                markerMap.Add(sourceNamedType.GetExtensionMarkerMetadataName(), sourceNamedType);
+                markerMap.Add(sourceNamedType.ExtensionMarkerName, sourceNamedType);
             }
 
             _groupingMap = groupingMap;
@@ -80,13 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetCorrespondingMarkerType((SourceNamedTypeSymbol)markerMethod.ContainingType);
         }
 
-        private ExtensionMarkerType GetCorrespondingMarkerType(SourceNamedTypeSymbol type)
+        private ExtensionMarkerType GetCorrespondingMarkerType(SourceNamedTypeSymbol extension)
         {
+            Debug.Assert(extension.IsExtension);
             GetGroupingTypes();
 
-            // PROTOTYPE: Optimize lookup with side dictionaries?
-            var groupingName = type.GetExtensionGroupingMetadataName();
-            var markerName = type.GetExtensionMarkerMetadataName();
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize lookup with side dictionaries?
+            var groupingName = extension.ExtensionGroupingName;
+            var markerName = extension.ExtensionMarkerName;
 
             foreach (var groupingType in _lazyGroupingTypes)
             {
@@ -140,12 +141,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public Cci.ITypeDefinition GetCorrespondingGroupingType(SourceNamedTypeSymbol type)
+        public Cci.ITypeDefinition GetCorrespondingGroupingType(SourceNamedTypeSymbol extension)
         {
+            Debug.Assert(extension.IsExtension);
             GetGroupingTypes();
 
-            // PROTOTYPE: Optimize lookup with a side dictionary?
-            var groupingName = type.GetExtensionGroupingMetadataName();
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize lookup with a side dictionary?
+            var groupingName = extension.ExtensionGroupingName;
 
             foreach (var groupingType in _lazyGroupingTypes)
             {
@@ -156,6 +158,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             throw ExceptionUtilities.Unreachable();
+        }
+
+        internal ImmutableArray<SourceNamedTypeSymbol> GetMatchingExtensions(SourceNamedTypeSymbol extension)
+        {
+            Debug.Assert(extension.IsExtension);
+            return GetCorrespondingMarkerType(extension).UnderlyingExtensions;
+        }
+
+        // Returns all the extension blocks but grouped/merged by equivalency (ie. same marker name)
+        internal IEnumerable<ArrayBuilder<SourceNamedTypeSymbol>> EnumerateMergedExtensionBlocks()
+        {
+            Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>> groupingMap = this._groupingMap;
+            ArrayBuilder<string> groupingNames = sortStrings(groupingMap.Keys);
+
+            foreach (var groupName in groupingNames)
+            {
+                MultiDictionary<string, SourceNamedTypeSymbol> markerMap = groupingMap[groupName];
+                ArrayBuilder<string> markerNames = sortStrings(markerMap.Keys);
+
+                foreach (var markerName in markerNames)
+                {
+                    ArrayBuilder<SourceNamedTypeSymbol> extensions = sortSourceNamedTypeSymbols(markerMap[markerName]);
+                    yield return extensions;
+
+                    extensions.Free();
+                }
+
+                markerNames.Free();
+            }
+
+            groupingNames.Free();
+
+            static ArrayBuilder<string> sortStrings(IReadOnlyCollection<string> groupingMapKeys)
+            {
+                var groupingNamesBuilder = ArrayBuilder<string>.GetInstance(groupingMapKeys.Count);
+                groupingNamesBuilder.AddRange(groupingMapKeys);
+                groupingNamesBuilder.Sort(StringComparer.Ordinal);
+                return groupingNamesBuilder;
+            }
+
+            static ArrayBuilder<SourceNamedTypeSymbol> sortSourceNamedTypeSymbols(IEnumerable<SourceNamedTypeSymbol> extensions)
+            {
+                var groupingNamesBuilder = ArrayBuilder<SourceNamedTypeSymbol>.GetInstance();
+                groupingNamesBuilder.AddRange(extensions);
+                groupingNamesBuilder.Sort(LexicalOrderSymbolComparer.Instance);
+                return groupingNamesBuilder;
+            }
         }
 
         private abstract class ExtensionGroupingOrMarkerType : Cci.INestedTypeDefinition
@@ -368,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var pair in extensionMarkerTypes)
                 {
-                    builder.Add(new ExtensionMarkerType(this, pair.Key, pair.Value));
+                    builder.Add(new ExtensionMarkerType(this, name: pair.Key, extensions: pair.Value));
                 }
 
                 builder.Sort();
@@ -393,7 +442,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override bool IsSealed => true;
 
-            protected override ITypeDefinition ContainingTypeDefinition => ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType!.GetCciAdapter();
+            protected override ITypeDefinition ContainingTypeDefinition
+            {
+                get
+                {
+                    Debug.Assert(ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType is not null);
+                    return ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType!.GetCciAdapter();
+                }
+            }
 
             public override string Name => _name;
 

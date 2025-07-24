@@ -59,16 +59,6 @@ public partial class ExtensionTests : CompilingTestBase
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
     }
 
-    private static void VerifyTypeIL(CompilationVerifier compilation, string typeName, string expected)
-    {
-        // .Net Core has different assemblies for the same standard library types as .Net Framework, meaning that that the emitted output will be different to the expected if we run them .Net Core
-        // Since we do not expect there to be any meaningful differences between output for .Net Core and .Net Framework, we will skip these tests on .Net Framework
-        if (ExecutionConditionUtil.IsCoreClr)
-        {
-            compilation.VerifyTypeIL(typeName, expected);
-        }
-    }
-
     private static void AssertEqualAndNoDuplicates(string[] expected, string[] actual)
     {
         Assert.True(expected.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(expected)}'");
@@ -142,23 +132,23 @@ public static class Extensions
         comp.VerifyEmitDiagnostics();
 
         var verifier = CompileAndVerify(comp);
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -166,7 +156,7 @@ public static class Extensions
                     object ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -177,7 +167,7 @@ public static class Extensions
         } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
     } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -240,23 +230,23 @@ public static class Extensions
         comp.VerifyEmitDiagnostics();
 
         var verifier = CompileAndVerify(comp);
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$01CE3801593377B4E240F33E20D30D50'<T>
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -264,7 +254,7 @@ public static class Extensions
                     !T ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -275,7 +265,7 @@ public static class Extensions
         } // end of class <Marker>$01CE3801593377B4E240F33E20D30D50
     } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -328,23 +318,23 @@ public static class Extensions
         comp.VerifyEmitDiagnostics();
 
         var verifier = CompileAndVerify(comp);
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BCF902721DDD961E5243C324D8379E5C'<valuetype .ctor ([netstandard]System.ValueType) $T0>
-        extends [netstandard]System.Object
+    .class nested public auto ansi sealed specialname '<Extension>$BCF902721DDD961E5243C324D8379E5C'<valuetype .ctor ([mscorlib]System.ValueType) $T0>
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93'<valuetype .ctor ([netstandard]System.ValueType) T>
-            extends [netstandard]System.Object
+        .class nested public auto ansi abstract sealed specialname '<Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93'<valuetype .ctor ([mscorlib]System.ValueType) T>
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -352,7 +342,7 @@ public static class Extensions
                     !T ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -363,7 +353,7 @@ public static class Extensions
         } // end of class <Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93
     } // end of class <Extension>$BCF902721DDD961E5243C324D8379E5C
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -610,23 +600,23 @@ public static class Extensions
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         var verifier = CompileAndVerify(comp);
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$C7A07C3975E80DE5DBC93B5392C6C922'<T>
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             .param type T
                 .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
@@ -641,7 +631,7 @@ public static class Extensions
                 .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
                     01 00 01 00 00
                 )
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x209d
@@ -652,7 +642,7 @@ public static class Extensions
         } // end of class <Marker>$C7A07C3975E80DE5DBC93B5392C6C922
     } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -869,23 +859,23 @@ public static partial class Extensions
         comp.VerifyEmitDiagnostics();
 
         var verifier = CompileAndVerify(comp);
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -893,7 +883,7 @@ public static partial class Extensions
                     object ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -904,7 +894,7 @@ public static partial class Extensions
         } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
     } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[reverseOrder ? 1 : 0];
         var model = comp.GetSemanticModel(tree);
@@ -1172,133 +1162,132 @@ public static class Extensions
             Info: 
             """, expectedReturnCode: 0, trimOutput: false);
 
-        VerifyTypeIL(verifier, "Extensions",
-            """
-            .class public auto ansi abstract sealed beforefieldinit Extensions
-                extends [netstandard]System.Object
+        verifier.VerifyTypeIL("Extensions", """
+.class public auto ansi abstract sealed beforefieldinit Extensions
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class [mscorlib]System.Text.StringBuilder ''
+                ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Nested Types
-                .class nested public auto ansi sealed specialname '<Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
-                    extends [netstandard]System.Object
-                {
-                    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Nested Types
-                    .class nested public auto ansi abstract sealed specialname '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
-                        extends [netstandard]System.Object
-                    {
-                        // Methods
-                        .method public hidebysig specialname static 
-                            void '<Extension>$' (
-                                class [netstandard]System.Text.StringBuilder ''
-                            ) cil managed 
-                        {
-                            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                            // Method begins at RVA 0x20de
-                            // Code size 1 (0x1)
-                            .maxstack 8
-                            IL_0000: ret
-                        } // end of method '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::'<Extension>$'
-                    } // end of class <Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
-                    // Methods
-                    .method public hidebysig static 
-                        class [netstandard]System.Text.StringBuilder Inspect (
-                            class [netstandard]System.Text.StringBuilder sb
-                        ) cil managed 
-                    {
-                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                            01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 44 32 39
-                            45 37 30 45 30 44 43 41 35 42 42 46 43 46 41 43
-                            37 43 32 42 45 46 33 43 35 43 39 39 00 00
-                        )
-                        // Method begins at RVA 0x20a5
-                        // Code size 2 (0x2)
-                        .maxstack 8
-                        IL_0000: ldnull
-                        IL_0001: throw
-                    } // end of method '<Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::Inspect
-                } // end of class <Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
-                .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
-                    extends [netstandard]System.Object
-                {
-                    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Fields
-                    .field public class [netstandard]System.Text.StringBuilder sb
-                    // Methods
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
-                    {
-                        // Method begins at RVA 0x2079
-                        // Code size 7 (0x7)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
-                        IL_0006: ret
-                    } // end of method '<>c__DisplayClass1_0'::.ctor
-                    .method assembly hidebysig 
-                        instance void '<Inspect>b__0' () cil managed 
-                    {
-                        // Method begins at RVA 0x20a8
-                        // Code size 42 (0x2a)
-                        .maxstack 2
-                        .locals init (
-                            [0] string,
-                            [1] int32
-                        )
-                        IL_0000: ldarg.0
-                        IL_0001: ldfld class [netstandard]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
-                        IL_0006: callvirt instance string [netstandard]System.Object::ToString()
-                        IL_000b: stloc.0
-                        IL_000c: ldc.i4.0
-                        IL_000d: stloc.1
-                        IL_000e: br.s IL_0020
-                        // loop start (head: IL_0020)
-                            IL_0010: ldloc.0
-                            IL_0011: ldloc.1
-                            IL_0012: callvirt instance char [netstandard]System.String::get_Chars(int32)
-                            IL_0017: call void [netstandard]System.Console::Write(char)
-                            IL_001c: ldloc.1
-                            IL_001d: ldc.i4.1
-                            IL_001e: add
-                            IL_001f: stloc.1
-                            IL_0020: ldloc.1
-                            IL_0021: ldloc.0
-                            IL_0022: callvirt instance int32 [netstandard]System.String::get_Length()
-                            IL_0027: blt.s IL_0010
-                        // end loop
-                        IL_0029: ret
-                    } // end of method '<>c__DisplayClass1_0'::'<Inspect>b__0'
-                } // end of class <>c__DisplayClass1_0
-                // Methods
-                .method public hidebysig static 
-                    class [netstandard]System.Text.StringBuilder Inspect (
-                        class [netstandard]System.Text.StringBuilder sb
-                    ) cil managed 
-                {
-                    // Method begins at RVA 0x2081
-                    // Code size 35 (0x23)
-                    .maxstack 8
-                    IL_0000: newobj instance void Extensions/'<>c__DisplayClass1_0'::.ctor()
-                    IL_0005: dup
-                    IL_0006: ldarg.0
-                    IL_0007: stfld class [netstandard]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
-                    IL_000c: dup
-                    IL_000d: ldftn instance void Extensions/'<>c__DisplayClass1_0'::'<Inspect>b__0'()
-                    IL_0013: newobj instance void [netstandard]System.Action::.ctor(object, native int)
-                    IL_0018: callvirt instance void [netstandard]System.Action::Invoke()
-                    IL_001d: ldfld class [netstandard]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
-                    IL_0022: ret
-                } // end of method Extensions::Inspect
-            } // end of class Extensions
-            """);
+                // Method begins at RVA 0x20de
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::'<Extension>$'
+        } // end of class <Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
+        // Methods
+        .method public hidebysig static 
+            class [mscorlib]System.Text.StringBuilder Inspect (
+                class [mscorlib]System.Text.StringBuilder sb
+            ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 44 32 39
+                45 37 30 45 30 44 43 41 35 42 42 46 43 46 41 43
+                37 43 32 42 45 46 33 43 35 43 39 39 00 00
+            )
+            // Method begins at RVA 0x20a5
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::Inspect
+    } // end of class <Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public class [mscorlib]System.Text.StringBuilder sb
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2079
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass1_0'::.ctor
+        .method assembly hidebysig 
+            instance void '<Inspect>b__0' () cil managed 
+        {
+            // Method begins at RVA 0x20a8
+            // Code size 42 (0x2a)
+            .maxstack 2
+            .locals init (
+                [0] string,
+                [1] int32
+            )
+            IL_0000: ldarg.0
+            IL_0001: ldfld class [mscorlib]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
+            IL_0006: callvirt instance string [mscorlib]System.Object::ToString()
+            IL_000b: stloc.0
+            IL_000c: ldc.i4.0
+            IL_000d: stloc.1
+            IL_000e: br.s IL_0020
+            // loop start (head: IL_0020)
+                IL_0010: ldloc.0
+                IL_0011: ldloc.1
+                IL_0012: callvirt instance char [mscorlib]System.String::get_Chars(int32)
+                IL_0017: call void [mscorlib]System.Console::Write(char)
+                IL_001c: ldloc.1
+                IL_001d: ldc.i4.1
+                IL_001e: add
+                IL_001f: stloc.1
+                IL_0020: ldloc.1
+                IL_0021: ldloc.0
+                IL_0022: callvirt instance int32 [mscorlib]System.String::get_Length()
+                IL_0027: blt.s IL_0010
+            // end loop
+            IL_0029: ret
+        } // end of method '<>c__DisplayClass1_0'::'<Inspect>b__0'
+    } // end of class <>c__DisplayClass1_0
+    // Methods
+    .method public hidebysig static 
+        class [mscorlib]System.Text.StringBuilder Inspect (
+            class [mscorlib]System.Text.StringBuilder sb
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2081
+        // Code size 35 (0x23)
+        .maxstack 8
+        IL_0000: newobj instance void Extensions/'<>c__DisplayClass1_0'::.ctor()
+        IL_0005: dup
+        IL_0006: ldarg.0
+        IL_0007: stfld class [mscorlib]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
+        IL_000c: dup
+        IL_000d: ldftn instance void Extensions/'<>c__DisplayClass1_0'::'<Inspect>b__0'()
+        IL_0013: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+        IL_0018: callvirt instance void [mscorlib]System.Action::Invoke()
+        IL_001d: ldfld class [mscorlib]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
+        IL_0022: ret
+    } // end of method Extensions::Inspect
+} // end of class Extensions
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1350,134 +1339,132 @@ public static class IntExt
 
             """, expectedReturnCode: 0, trimOutput: false);
 
-        VerifyTypeIL(verifier, "IntExt",
-            """
-            .class public auto ansi abstract sealed beforefieldinit IntExt
-                extends [netstandard]System.Object
+        verifier.VerifyTypeIL("IntExt", """
+.class public auto ansi abstract sealed beforefieldinit IntExt
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 ''
+                ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Nested Types
-                .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-                    extends [netstandard]System.Object
-                {
-                    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Nested Types
-                    .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-                        extends [netstandard]System.Object
-                    {
-                        // Methods
-                        .method public hidebysig specialname static 
-                            void '<Extension>$' (
-                                int32 ''
-                            ) cil managed 
-                        {
-                            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                            // Method begins at RVA 0x20ef
-                            // Code size 1 (0x1)
-                            .maxstack 8
-                            IL_0000: ret
-                        } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
-                    } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
-                    // Methods
-                    .method public hidebysig static 
-                        class [netstandard]System.Action DoSomething () cil managed 
-                    {
-                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                            01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                            43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                            30 36 32 46 35 39 45 44 34 44 36 39 00 00
-                        )
-                        // Method begins at RVA 0x20bc
-                        // Code size 2 (0x2)
-                        .maxstack 8
-                        IL_0000: ldnull
-                        IL_0001: throw
-                    } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
-                } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
-                .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
-                    extends [netstandard]System.Object
-                {
-                    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Fields
-                    .field public int32 b
-                    // Methods
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
-                    {
-                        // Method begins at RVA 0x2073
-                        // Code size 7 (0x7)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
-                        IL_0006: ret
-                    } // end of method '<>c__DisplayClass1_0'::.ctor
-                    .method assembly hidebysig 
-                        instance void '<DoSomething>b__0' () cil managed 
-                    {
-                        // Method begins at RVA 0x20c0
-                        // Code size 35 (0x23)
-                        .maxstack 3
-                        .locals init (
-                            [0] int32
-                        )
-                        IL_0000: ldc.i4.s 123
-                        IL_0002: call void [netstandard]System.Console::WriteLine(int32)
-                        IL_0007: ldarg.0
-                        IL_0008: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                        IL_000d: stloc.0
-                        IL_000e: ldarg.0
-                        IL_000f: ldloc.0
-                        IL_0010: ldc.i4.1
-                        IL_0011: add
-                        IL_0012: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                        IL_0017: ldarg.0
-                        IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                        IL_001d: call void [netstandard]System.Console::WriteLine(int32)
-                        IL_0022: ret
-                    } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
-                } // end of class <>c__DisplayClass1_0
-                // Methods
-                .method public hidebysig static 
-                    class [netstandard]System.Action DoSomething () cil managed 
-                {
-                    // Method begins at RVA 0x207c
-                    // Code size 52 (0x34)
-                    .maxstack 3
-                    .locals init (
-                        [0] class [netstandard]System.Action,
-                        [1] int32
-                    )
-                    IL_0000: newobj instance void IntExt/'<>c__DisplayClass1_0'::.ctor()
-                    IL_0005: dup
-                    IL_0006: ldc.i4.7
-                    IL_0007: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                    IL_000c: dup
-                    IL_000d: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>b__0'()
-                    IL_0013: newobj instance void [netstandard]System.Action::.ctor(object, native int)
-                    IL_0018: stloc.0
-                    IL_0019: ldstr "Some data"
-                    IL_001e: call void [netstandard]System.Console::WriteLine(string)
-                    IL_0023: dup
-                    IL_0024: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                    IL_0029: ldc.i4.1
-                    IL_002a: add
-                    IL_002b: stloc.1
-                    IL_002c: ldloc.1
-                    IL_002d: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                    IL_0032: ldloc.0
-                    IL_0033: ret
-                } // end of method IntExt::DoSomething
-            } // end of class IntExt
-            """
-        );
+                // Method begins at RVA 0x20ef
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
+        } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+        // Methods
+        .method public hidebysig static 
+            class [mscorlib]System.Action DoSomething () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            // Method begins at RVA 0x20bc
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
+    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public int32 b
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2073
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass1_0'::.ctor
+        .method assembly hidebysig 
+            instance void '<DoSomething>b__0' () cil managed 
+        {
+            // Method begins at RVA 0x20c0
+            // Code size 35 (0x23)
+            .maxstack 3
+            .locals init (
+                [0] int32
+            )
+            IL_0000: ldc.i4.s 123
+            IL_0002: call void [mscorlib]System.Console::WriteLine(int32)
+            IL_0007: ldarg.0
+            IL_0008: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+            IL_000d: stloc.0
+            IL_000e: ldarg.0
+            IL_000f: ldloc.0
+            IL_0010: ldc.i4.1
+            IL_0011: add
+            IL_0012: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+            IL_0017: ldarg.0
+            IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+            IL_001d: call void [mscorlib]System.Console::WriteLine(int32)
+            IL_0022: ret
+        } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
+    } // end of class <>c__DisplayClass1_0
+    // Methods
+    .method public hidebysig static 
+        class [mscorlib]System.Action DoSomething () cil managed 
+    {
+        // Method begins at RVA 0x207c
+        // Code size 52 (0x34)
+        .maxstack 3
+        .locals init (
+            [0] class [mscorlib]System.Action,
+            [1] int32
+        )
+        IL_0000: newobj instance void IntExt/'<>c__DisplayClass1_0'::.ctor()
+        IL_0005: dup
+        IL_0006: ldc.i4.7
+        IL_0007: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+        IL_000c: dup
+        IL_000d: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>b__0'()
+        IL_0013: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+        IL_0018: stloc.0
+        IL_0019: ldstr "Some data"
+        IL_001e: call void [mscorlib]System.Console::WriteLine(string)
+        IL_0023: dup
+        IL_0024: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+        IL_0029: ldc.i4.1
+        IL_002a: add
+        IL_002b: stloc.1
+        IL_002c: ldloc.1
+        IL_002d: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+        IL_0032: ldloc.0
+        IL_0033: ret
+    } // end of method IntExt::DoSomething
+} // end of class IntExt
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1529,131 +1516,129 @@ public static class IntExt
 
             """, expectedReturnCode: 0, trimOutput: false);
 
-        VerifyTypeIL(verifier, "IntExt",
-            """
-            .class public auto ansi abstract sealed beforefieldinit IntExt
-                extends [netstandard]System.Object
+        verifier.VerifyTypeIL("IntExt", """
+.class public auto ansi abstract sealed beforefieldinit IntExt
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 ''
+                ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Nested Types
-                .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-                    extends [netstandard]System.Object
-                {
-                    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Nested Types
-                    .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-                        extends [netstandard]System.Object
-                    {
-                        // Methods
-                        .method public hidebysig specialname static 
-                            void '<Extension>$' (
-                                int32 ''
-                            ) cil managed 
-                        {
-                            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                            // Method begins at RVA 0x20ef
-                            // Code size 1 (0x1)
-                            .maxstack 8
-                            IL_0000: ret
-                        } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
-                    } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
-                    // Methods
-                    .method public hidebysig static 
-                        class [netstandard]System.Action DoSomething () cil managed 
-                    {
-                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                            01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                            43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                            30 36 32 46 35 39 45 44 34 44 36 39 00 00
-                        )
-                        // Method begins at RVA 0x20ba
-                        // Code size 2 (0x2)
-                        .maxstack 8
-                        IL_0000: ldnull
-                        IL_0001: throw
-                    } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
-                } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
-                .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
-                    extends [netstandard]System.Object
-                {
-                    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Fields
-                    .field public int32 b
-                    // Methods
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
-                    {
-                        // Method begins at RVA 0x2073
-                        // Code size 7 (0x7)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
-                        IL_0006: ret
-                    } // end of method '<>c__DisplayClass1_0'::.ctor
-                    .method assembly hidebysig 
-                        instance void '<DoSomething>g__Do|0' () cil managed 
-                    {
-                        // Method begins at RVA 0x20c0
-                        // Code size 35 (0x23)
-                        .maxstack 3
-                        .locals init (
-                            [0] int32
-                        )
-                        IL_0000: ldc.i4.s 123
-                        IL_0002: call void [netstandard]System.Console::WriteLine(int32)
-                        IL_0007: ldarg.0
-                        IL_0008: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                        IL_000d: stloc.0
-                        IL_000e: ldarg.0
-                        IL_000f: ldloc.0
-                        IL_0010: ldc.i4.1
-                        IL_0011: add
-                        IL_0012: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                        IL_0017: ldarg.0
-                        IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                        IL_001d: call void [netstandard]System.Console::WriteLine(int32)
-                        IL_0022: ret
-                    } // end of method '<>c__DisplayClass1_0'::'<DoSomething>g__Do|0'
-                } // end of class <>c__DisplayClass1_0
-                // Methods
-                .method public hidebysig static 
-                    class [netstandard]System.Action DoSomething () cil managed 
-                {
-                    // Method begins at RVA 0x207c
-                    // Code size 50 (0x32)
-                    .maxstack 3
-                    .locals init (
-                        [0] int32
-                    )
-                    IL_0000: newobj instance void IntExt/'<>c__DisplayClass1_0'::.ctor()
-                    IL_0005: dup
-                    IL_0006: ldc.i4.7
-                    IL_0007: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                    IL_000c: ldstr "Some data"
-                    IL_0011: call void [netstandard]System.Console::WriteLine(string)
-                    IL_0016: dup
-                    IL_0017: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                    IL_001c: ldc.i4.1
-                    IL_001d: add
-                    IL_001e: stloc.0
-                    IL_001f: dup
-                    IL_0020: ldloc.0
-                    IL_0021: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                    IL_0026: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>g__Do|0'()
-                    IL_002c: newobj instance void [netstandard]System.Action::.ctor(object, native int)
-                    IL_0031: ret
-                } // end of method IntExt::DoSomething
-            } // end of class IntExt
-            """
-        );
+                // Method begins at RVA 0x20ef
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
+        } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+        // Methods
+        .method public hidebysig static 
+            class [mscorlib]System.Action DoSomething () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            // Method begins at RVA 0x20ba
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
+    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public int32 b
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2073
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c__DisplayClass1_0'::.ctor
+        .method assembly hidebysig 
+            instance void '<DoSomething>g__Do|0' () cil managed 
+        {
+            // Method begins at RVA 0x20c0
+            // Code size 35 (0x23)
+            .maxstack 3
+            .locals init (
+                [0] int32
+            )
+            IL_0000: ldc.i4.s 123
+            IL_0002: call void [mscorlib]System.Console::WriteLine(int32)
+            IL_0007: ldarg.0
+            IL_0008: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+            IL_000d: stloc.0
+            IL_000e: ldarg.0
+            IL_000f: ldloc.0
+            IL_0010: ldc.i4.1
+            IL_0011: add
+            IL_0012: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+            IL_0017: ldarg.0
+            IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+            IL_001d: call void [mscorlib]System.Console::WriteLine(int32)
+            IL_0022: ret
+        } // end of method '<>c__DisplayClass1_0'::'<DoSomething>g__Do|0'
+    } // end of class <>c__DisplayClass1_0
+    // Methods
+    .method public hidebysig static 
+        class [mscorlib]System.Action DoSomething () cil managed 
+    {
+        // Method begins at RVA 0x207c
+        // Code size 50 (0x32)
+        .maxstack 3
+        .locals init (
+            [0] int32
+        )
+        IL_0000: newobj instance void IntExt/'<>c__DisplayClass1_0'::.ctor()
+        IL_0005: dup
+        IL_0006: ldc.i4.7
+        IL_0007: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+        IL_000c: ldstr "Some data"
+        IL_0011: call void [mscorlib]System.Console::WriteLine(string)
+        IL_0016: dup
+        IL_0017: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+        IL_001c: ldc.i4.1
+        IL_001d: add
+        IL_001e: stloc.0
+        IL_001f: dup
+        IL_0020: ldloc.0
+        IL_0021: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+        IL_0026: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>g__Do|0'()
+        IL_002c: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+        IL_0031: ret
+    } // end of method IntExt::DoSomething
+} // end of class IntExt
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1834,23 +1819,23 @@ public static class Extensions
 
         var verifier = CompileAndVerify(comp);
 
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method assembly hidebysig specialname static 
@@ -1858,7 +1843,7 @@ public static class Extensions
                     object o
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -1889,7 +1874,7 @@ public static class Extensions
             object o
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Method begins at RVA 0x2067
@@ -1898,7 +1883,7 @@ public static class Extensions
         IL_0000: ret
     } // end of method Extensions::M
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1954,23 +1939,23 @@ public static class Extensions
 
         var verifier = CompileAndVerify(comp);
 
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -1978,7 +1963,7 @@ public static class Extensions
                     object ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -2013,7 +1998,7 @@ public static class Extensions
         IL_0000: ret
     } // end of method Extensions::M
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -2092,23 +2077,23 @@ public static class Extensions
 
         var verifier = CompileAndVerify(comp);
 
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -2116,7 +2101,7 @@ public static class Extensions
                     object o
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206b
@@ -2192,7 +2177,7 @@ public static class Extensions
         IL_0000: ret
     } // end of method Extensions::set_Property
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -2283,23 +2268,23 @@ public static class Extensions
 
         var verifier = CompileAndVerify(comp);
 
-        VerifyTypeIL(verifier, "Extensions", """
+        verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -2307,7 +2292,7 @@ public static class Extensions
                     object ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206b
@@ -2380,7 +2365,7 @@ public static class Extensions
         IL_0000: ret
     } // end of method Extensions::set_Property
 } // end of class Extensions
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -33415,6 +33400,31 @@ public static class Extensions
             );
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79043")]
+    public void MemberNameAndSignatureConflict_35()
+    {
+        var src = """
+new object().M();
+
+int i = 42;
+i.M();
+
+public static class C
+{
+    extension<T>(T inst) where T : class
+    {
+        public void M() { System.Console.Write("ran1 "); }
+    }
+    extension<T>(ref T inst) where T : struct
+    {
+        public void M() { System.Console.Write("ran2"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran1 ran2").VerifyDiagnostics();
+    }
+
     [Fact]
     public void MethodInvocation_01()
     {
@@ -41750,23 +41760,23 @@ static class E
 """;
         var verifier = CompileAndVerify(source).VerifyDiagnostics();
         // Note: skeleton methods have "throw" bodies and lack pinvokeimpl/preservesig. Implementation methods have pinvokeimpl/preservesig and no body.
-        VerifyTypeIL(verifier, "E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -41774,7 +41784,7 @@ static class E
                     int32 ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206a
@@ -41856,7 +41866,7 @@ static class E
     {
     } // end of method E::set_P
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -41883,23 +41893,23 @@ static class E
 """;
         var comp = CreateCompilation(source);
         var verifier = CompileAndVerify(source).VerifyDiagnostics();
-        VerifyTypeIL(verifier, "E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -41907,7 +41917,7 @@ static class E
                     int32 i
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206a
@@ -41979,7 +41989,7 @@ static class E
             int32 i
         ) cil managed preservesig 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
     } // end of method E::M
@@ -41997,7 +42007,7 @@ static class E
     {
     } // end of method E::set_P
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         source = """
 using System.Runtime.InteropServices;
@@ -42034,23 +42044,23 @@ static class E
 }
 """;
         var verifier = CompileAndVerify(source).VerifyDiagnostics();
-        VerifyTypeIL(verifier, "E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -42058,7 +42068,7 @@ static class E
                     int32 ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206a
@@ -42140,7 +42150,7 @@ static class E
     {
     } // end of method E::set_P
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -42174,23 +42184,23 @@ static class E
             //         extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 29));
 
-        VerifyTypeIL(verifier, "E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -42198,7 +42208,7 @@ static class E
                     int32 i
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206a
@@ -42270,7 +42280,7 @@ static class E
             int32 i
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
     } // end of method E::M
@@ -42288,7 +42298,7 @@ static class E
     {
     } // end of method E::set_P
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         source = """
 class C
@@ -42306,9 +42316,9 @@ class C
             //     extern void M();
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("C.M()").WithLocation(3, 17));
 
-        VerifyTypeIL(verifier, "C", """
+        verifier.VerifyTypeIL("C", """
 .class private auto ansi beforefieldinit C
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
     // Methods
     .method private hidebysig 
@@ -42322,11 +42332,11 @@ class C
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldarg.0
-        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
         IL_0006: ret
     } // end of method C::.ctor
 } // end of class C
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -42360,23 +42370,23 @@ static class E
             //         static extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 36));
 
-        VerifyTypeIL(verifier, "E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -42384,7 +42394,7 @@ static class E
                     int32 i
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206a
@@ -42466,7 +42476,7 @@ static class E
     {
     } // end of method E::set_P
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -42516,23 +42526,23 @@ static class E
 
         // Note: skeleton methods have "throw" bodies and lack internalcall. Implementation methods have internalcall and no body.
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
-        VerifyTypeIL(verifier, "E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -42540,7 +42550,7 @@ static class E
                     int32 i
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206a
@@ -42622,7 +42632,7 @@ static class E
     {
     } // end of method E::set_P
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -42650,23 +42660,23 @@ static class E
         var comp = CreateCompilation(source);
 
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
-        VerifyTypeIL(verifier, "E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -42674,7 +42684,7 @@ static class E
                     int32 i
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206a
@@ -42746,7 +42756,7 @@ static class E
             int32 i
         ) cil managed internalcall 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
     } // end of method E::M
@@ -42764,7 +42774,7 @@ static class E
     {
     } // end of method E::set_P
 } // end of class E
-""");
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -43117,10 +43127,10 @@ static class E
             // error CS1555: Could not find 'E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69' specified for Main method
             Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69").WithLocation(1, 1));
 
-        AssertEx.Equal("<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionName);
+        AssertEx.Equal("<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionGroupingName);
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
-        Assert.Null(comp.GetTypeByMetadataName("E+<>E__0"));
+        Assert.Null(comp.GetTypeByMetadataName("E+<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
     }
 
     [Fact]
@@ -47880,9 +47890,9 @@ static class E
 """, e.GetDocumentationCommentXml());
 
         var extension = e.GetTypeMembers().Single();
-        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
         AssertEx.Equal("""
-<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB">
+<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -47934,7 +47944,13 @@ static class E
         <member name="T:E">
             <summary>Summary for E</summary>
         </member>
-        <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB">
+        <member name="M:E.M``2(``0,``1)">
+            <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+        </member>
+        <member name="M:E.get_P``1(``0)">
+            <inheritdoc cref="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+        </member>
+        <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>Summary for extension block</summary>
             <typeparam name="T">Description for T</typeparam>
             <param name="t">Description for t</param>
@@ -47946,12 +47962,6 @@ static class E
         </member>
         <member name="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P">
             <summary>Summary for P</summary>
-        </member>
-        <member name="M:E.M``2(``0,``1)">
-            <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
-        </member>
-        <member name="M:E.get_P``1(``0)">
-            <inheritdoc cref="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
         </member>
     </members>
 </doc>
@@ -48031,7 +48041,7 @@ static class E
 
         var extension = e.GetTypeMembers().Single();
         AssertEx.Equal("""
-<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB">
+<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -48169,6 +48179,559 @@ static class E
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
+    }
+
+    [Fact]
+    public void XmlDoc_05()
+    {
+        // Merging docs on extension blocks
+        var src = """
+static class E
+{
+    /// <summary>First summary for extension block</summary>
+    /// <typeparam name="T">First description for T</typeparam>
+    /// <param name="t">First description for t</param>
+    extension<T>(T t)
+    {
+        /// <summary>First method</summary>
+        public static void M(int i) => throw null!;
+    }
+
+    /// <summary>Second summary for extension block</summary>
+    /// <typeparam name="T">Second description for T</typeparam>
+    /// <param name="t">Second description for t</param>
+    extension<T>(T t)
+    {
+        /// <summary>Second method</summary>
+        public static void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+
+        var extensions = e.GetTypeMembers().ToArray();
+        var extension1 = e.GetTypeMembers()[0];
+        AssertEx.Equal("""
+<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+    <summary>First summary for extension block</summary>
+    <typeparam name="T">First description for T</typeparam>
+    <param name="t">First description for t</param>
+    <summary>Second summary for extension block</summary>
+    <typeparam name="T">Second description for T</typeparam>
+    <param name="t">Second description for t</param>
+</member>
+
+""", extension1.GetDocumentationCommentXml());
+
+        var extension2 = e.GetTypeMembers()[1];
+        AssertEx.Equal("""
+<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+    <summary>First summary for extension block</summary>
+    <typeparam name="T">First description for T</typeparam>
+    <param name="t">First description for t</param>
+    <summary>Second summary for extension block</summary>
+    <typeparam name="T">Second description for T</typeparam>
+    <param name="t">Second description for t</param>
+</member>
+
+""", extension2.GetDocumentationCommentXml());
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="M:E.M``1(System.Int32)">
+            <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
+        </member>
+        <member name="M:E.M``1(System.String)">
+            <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)"/>
+        </member>
+        <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>First summary for extension block</summary>
+            <typeparam name="T">First description for T</typeparam>
+            <param name="t">First description for t</param>
+            <summary>Second summary for extension block</summary>
+            <typeparam name="T">Second description for T</typeparam>
+            <param name="t">Second description for t</param>
+        </member>
+        <member name="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+            <summary>First method</summary>
+        </member>
+        <member name="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)">
+            <summary>Second method</summary>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_06()
+    {
+        // Merging docs on extension blocks
+        var src = """
+static class E
+{
+    /// <summary>First summary for extension block</summary>
+    extension<T>(T t)
+    {
+        public static void M(int i) => throw null!;
+    }
+
+    /// <summary>Second summary for extension block</summary>
+    extension<T>(T t)
+    {
+        public static void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extensions = e.GetTypeMembers().ToArray();
+        foreach (var extension in extensions)
+        {
+            AssertEx.Equal("""
+<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+    <summary>First summary for extension block</summary>
+    <summary>Second summary for extension block</summary>
+</member>
+
+""", extension.GetDocumentationCommentXml());
+        }
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>First summary for extension block</summary>
+            <summary>Second summary for extension block</summary>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_07()
+    {
+        // nested extension
+        var src = """
+static class E
+{
+    extension(object)
+    {
+        /// <summary>First summary for extension block</summary>
+        extension<T>(T t)
+        {
+            /// <summary>method</summary>
+            public static void M(int i) => throw null!;
+        }
+
+        /// <summary>Second summary for extension block</summary>
+        extension<T>(T t)
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS9282: This member is not allowed in an extension block
+            //         extension<T>(T t)
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(6, 9),
+            // (13,9): error CS9282: This member is not allowed in an extension block
+            //         extension<T>(T t)
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(13, 9));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var nestedExtension = e.GetTypeMembers().Single().GetTypeMembers().First();
+        AssertEx.Equal("T:E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F",
+            nestedExtension.GetDocumentationCommentId());
+
+        // PROTOTYPE should we be merging these nested extension blocks instead?
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="T:E.&lt;Extension&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>First summary for extension block</summary>
+            <summary>Second summary for extension block</summary>
+        </member>
+        <member name="M:E.&lt;Extension&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+            <summary>method</summary>
+        </member>
+        <member name="T:E.&lt;Extension&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>First summary for extension block</summary>
+            <summary>Second summary for extension block</summary>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_08()
+    {
+        // nested extension
+        var src = """
+static class E1
+{
+    static class E2
+    {
+        /// <summary>First summary for extension block</summary>
+        extension<T>(T t)
+        {
+            /// <summary>method</summary>
+            public static void M(int i) => throw null!;
+        }
+
+        /// <summary>Second summary for extension block</summary>
+        extension<T>(T t)
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //         extension<T>(T t)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(6, 9),
+            // (13,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //         extension<T>(T t)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(13, 9));
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="M:E1.E2.M``1(System.Int32)">
+            <inheritdoc cref="M:E1.E2.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
+        </member>
+        <member name="T:E1.E2.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>First summary for extension block</summary>
+            <summary>Second summary for extension block</summary>
+        </member>
+        <member name="M:E1.E2.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+            <summary>method</summary>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_09()
+    {
+        // top-level extension
+        var src = """
+/// <summary>First summary for extension block</summary>
+extension<T>(T t)
+{
+    /// <summary>method</summary>
+    public static void M(int i) => throw null!;
+}
+
+/// <summary>Second summary for extension block</summary>
+extension<T>(T t)
+{
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(T t)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1),
+            // (9,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(T t)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(9, 1));
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="T:&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>First summary for extension block</summary>
+        </member>
+        <member name="M:&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+            <summary>method</summary>
+        </member>
+        <member name="T:&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>Second summary for extension block</summary>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_10()
+    {
+        // xml error in a merged extension block
+        var src = """
+static class E
+{
+    /// <summary>First summary for extension block</summary>
+    extension(int)
+    {
+        /// <summary>Summary for M</summary>
+        public static void M() { }
+    }
+
+    /// <summary>ERROR
+    extension(int)
+    {
+    }
+
+    /// <summary>Other summary for extension block</summary>
+    extension(int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        comp.VerifyEmitDiagnostics(
+            // (11,1): warning CS1570: XML comment has badly formed XML -- 'Expected an end tag for element 'summary'.'
+            //     extension(int)
+            Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary").WithLocation(11, 1));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension1 = e.GetTypeMembers().First();
+        AssertEx.Equal("""
+<!-- Badly formed XML comment ignored for member "T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69" -->
+
+""", extension1.GetDocumentationCommentXml());
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="M:E.M">
+            <inheritdoc cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69" -->
+        <member name="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M">
+            <summary>Summary for M</summary>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_11()
+    {
+        // merged extension blocks without comments
+        var src = """
+static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+
+    extension(int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension1 = e.GetTypeMembers().First();
+        AssertEx.Equal("""
+
+""", extension1.GetDocumentationCommentXml());
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_12()
+    {
+        // include
+        var xml = """
+<root>
+    <target stuff="things" />
+</root>
+""";
+        var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(xml);
+        string xmlFilePath = xmlFile.Path;
+
+        var source = $$"""
+static class E
+{
+    /// <include file='{{xmlFilePath}}' path='//target'/>
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(
+            source,
+            options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
+            parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
+            assemblyName: "test");
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = e.GetTypeMembers().Single();
+        AssertEx.Equal($$"""
+<member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+    <include file='{{xmlFilePath}}' path='//target'/>
+</member>
+
+""", extension.GetDocumentationCommentXml());
+
+        AssertEx.Equal("""
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+            <target stuff="things" />
+        </member>
+    </members>
+</doc>
+""", GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_13()
+    {
+        // include on merged extension block
+        var xml = """
+<root>
+    <target1 stuff="things1" />
+    <target2 stuff="things2" />
+</root>
+""";
+        var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(xml);
+        string xmlFilePath = xmlFile.Path;
+
+        var source = $$"""
+static class E
+{
+    /// <include file='{{xmlFilePath}}' path='//target1'/>
+    extension(int)
+    {
+        public static void M() { }
+    }
+
+    /// <include file='{{xmlFilePath}}' path='//target2'/>
+    extension(int)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(
+            source,
+            options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
+            parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
+            assemblyName: "test");
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = e.GetTypeMembers().First();
+        AssertEx.Equal($$"""
+<member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+    <include file='{{xmlFilePath}}' path='//target1'/>
+    <include file='{{xmlFilePath}}' path='//target2'/>
+</member>
+
+""", extension.GetDocumentationCommentXml());
+
+        AssertEx.Equal("""
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+            <target1 stuff="things1" />
+            <target2 stuff="things2" />
+        </member>
+    </members>
+</doc>
+""", GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_14()
+    {
+        // DocID for PE symbol
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int P => 0;
+    }
+}
+""";
+        var libComp = CreateCompilation(src);
+        libComp.VerifyEmitDiagnostics();
+
+        var extension = libComp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Debug.Assert(extension.IsExtension);
+        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+
+        var p = extension.GetMember<PropertySymbol>("P");
+        AssertEx.Equal("P:E.<Extension>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
+
+        var comp = CreateCompilation("", references: [libComp.EmitToImageReference()]);
+
+        extension = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Debug.Assert(extension.IsExtension);
+        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+
+        p = extension.GetMember<PropertySymbol>("P");
+        AssertEx.Equal("P:E.<Extension>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
     }
 
     [Fact]
@@ -48430,6 +48993,61 @@ static class E
             // (5,15): warning CS1712: Type parameter 'T' has no matching typeparam tag in the XML comment on 'E.extension<T>(T)' (but other type parameters do)
             //     extension<T>(T t)
             Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "T").WithArguments("T", "E.extension<T>(T)").WithLocation(5, 15));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_06()
+    {
+        // type parameter documented in different parts
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T">Description for T</typeparam>
+    extension<T, U>(C<T, U> c)
+    {
+    }
+
+    /// <typeparam name="U">Description for U</typeparam>
+    extension<T, U>(C<T, U> c)
+    {
+    }
+}
+
+class C<T, U> { }
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_07()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T1">Description for T1</typeparam>
+    extension<T1, U>(C<T1, U> c)
+    {
+    }
+
+    /// <typeparam name="T2">Description for T2</typeparam>
+    extension<T2, U>(C<T2, U> c)
+    {
+    }
+}
+
+class C<T, U> { }
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,19): warning CS1712: Type parameter 'U' has no matching typeparam tag in the XML comment on 'E.extension<T1, U>(C<T1, U>)' (but other type parameters do)
+            //     extension<T1, U>(C<T1, U> c)
+            Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "U").WithArguments("U", "E.extension<T1, U>(C<T1, U>)").WithLocation(5, 19),
+            // (10,19): warning CS1712: Type parameter 'U' has no matching typeparam tag in the XML comment on 'E.extension<T2, U>(C<T2, U>)' (but other type parameters do)
+            //     extension<T2, U>(C<T2, U> c)
+            Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "U").WithArguments("U", "E.extension<T2, U>(C<T2, U>)").WithLocation(10, 19));
     }
 
     [Fact]

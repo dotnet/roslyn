@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.GetIsNewExtensionMember())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).GetExtensionMarkerMetadataName()));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
             }
         }
 

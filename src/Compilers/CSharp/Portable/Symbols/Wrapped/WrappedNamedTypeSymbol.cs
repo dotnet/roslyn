@@ -95,11 +95,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override string ExtensionName
+        internal override string ExtensionGroupingName
         {
             get
             {
-                return _underlyingType.ExtensionName;
+                return _underlyingType.ExtensionGroupingName;
+            }
+        }
+
+        internal override string ExtensionMarkerName
+        {
+            get
+            {
+                return _underlyingType.ExtensionMarkerName;
             }
         }
 

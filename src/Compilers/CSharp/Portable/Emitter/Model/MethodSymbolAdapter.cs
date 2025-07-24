@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
                 }
 
-                // PROTOTYPE: Share logic with Cci.ITypeMemberReference.GetContainingType implementation?
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : code quality, share logic with Cci.ITypeMemberReference.GetContainingType implementation?
                 if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
                 {
                     return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);

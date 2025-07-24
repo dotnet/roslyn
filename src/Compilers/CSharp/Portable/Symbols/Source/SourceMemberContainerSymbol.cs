@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyContainsExtensionMethods;
         private ThreeState _lazyAnyMemberHasAttributes;
 
-        // PROTOTYPE: Move some fields into "uncommon" class field?
+        // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
         private ExtensionGroupingInfo? _lazyExtensionGroupingInfo;
 
         #region Construction
@@ -2190,7 +2190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 method2 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying2 } &&
                 underlying1.IsStatic == underlying2.IsStatic &&
                 ((object)underlying1.ContainingType == underlying2.ContainingType ||
-                ((SourceNamedTypeSymbol)underlying1.ContainingType).GetExtensionGroupingMetadataName() == ((SourceNamedTypeSymbol)underlying2.ContainingType).GetExtensionGroupingMetadataName()) &&
+                ((SourceNamedTypeSymbol)underlying1.ContainingType).ExtensionGroupingName == ((SourceNamedTypeSymbol)underlying2.ContainingType).ExtensionGroupingName) &&
                 diagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(
                     static (d, arg) =>
                         (d.Code is (int)ErrorCode.ERR_OverloadRefKind or (int)ErrorCode.ERR_MemberAlreadyExists or
@@ -2387,7 +2387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkMemberNameConflictsInExtensions(BindingDiagnosticBag diagnostics)
             {
-                IEnumerable<IGrouping<string, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => ((SourceNamedTypeSymbol)t).GetExtensionGroupingMetadataName());
+                IEnumerable<IGrouping<string, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => ((SourceNamedTypeSymbol)t).ExtensionGroupingName);
 
                 foreach (var grouping in extensionsByReceiverType)
                 {
