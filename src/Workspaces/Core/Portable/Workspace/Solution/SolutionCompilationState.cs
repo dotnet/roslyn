@@ -1232,11 +1232,11 @@ internal sealed partial class SolutionCompilationState
             tracker = RoslynImmutableInterlocked.GetOrAdd(
                 ref _projectIdToTrackerMap,
                 projectId,
-                static (id, solutionState) => CreateCompilationTracker(id, solutionState).WithDoNotCreateCreationPolicy(),
+                static (id, solutionState) => CreateCompilationTracker(id, solutionState).WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy(),
                 SolutionState);
         }
 
-        Debug.Assert(tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateRequired);
+        Debug.Assert(tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateOnlyRequired);
         return this;
     }
 
@@ -1613,9 +1613,9 @@ internal sealed partial class SolutionCompilationState
                     updatedIdToTrackerMapBuilder[projectId] = oldTracker;
                 }
 
-                // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
-                // perf hit on either of those at all for our clients.
-                var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
+                // Since we're freezing, set generators to run only required and skeletons to not be created.
+                // We don't want to take any perf hit on either of those at all for our clients.
+                var newTracker = oldTracker.WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
                 if (oldTracker == newTracker)
                     continue;
 

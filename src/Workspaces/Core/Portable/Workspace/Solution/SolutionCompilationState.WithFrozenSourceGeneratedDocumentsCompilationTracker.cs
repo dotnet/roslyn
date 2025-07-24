@@ -87,9 +87,9 @@ internal sealed partial class SolutionCompilationState
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
-        public ICompilationTracker WithDoNotCreateCreationPolicy()
+        public ICompilationTracker WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy()
         {
-            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy();
+            var underlyingTracker = this.UnderlyingTracker.WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
