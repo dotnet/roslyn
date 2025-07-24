@@ -222,7 +222,7 @@ internal sealed class SymbolicRenameInfo
                 var solution = document.Project.Solution;
                 var sourceDocument = solution.GetRequiredDocument(location.SourceTree);
 
-                if (!includeSourceGenerated && sourceDocument is SourceGeneratedDocument)
+                if (sourceDocument is SourceGeneratedDocument && !sourceDocument.IsRazorSourceGeneratedDocument())
                 {
                     // The file is generated so doesn't count towards valid spans 
                     // we can edit.
