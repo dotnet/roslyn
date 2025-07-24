@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle;
@@ -224,13 +225,14 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
             .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
     }
 
-    private static SyntaxNode GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
+    private static TypeSyntax GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
     {
         // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
         // that would defeat the purpose of this refactoring entirely).
         var newTypeSyntax = newTypeSymbol
-                     .GenerateTypeSyntax(allowVar: false)
-                     .WithTriviaFrom(typeSyntax);
+            .GenerateTypeSyntax(allowVar: false)
+            .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
+            .WithTriviaFrom(typeSyntax);
 
         return newTypeSyntax;
     }
