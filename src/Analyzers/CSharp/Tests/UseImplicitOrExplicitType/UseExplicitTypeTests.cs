@@ -2672,11 +2672,13 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             }
             """;
         var after = """
+            using System;
+
             class Program
             {
                 void Method()
                 {
-                    System.Func<int, string> x = (int i) => i.ToString();
+                    Func<int, string> x = (int i) => i.ToString();
                 }
             }
             """;
