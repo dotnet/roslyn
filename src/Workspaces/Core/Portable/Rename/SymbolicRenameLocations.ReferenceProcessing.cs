@@ -159,7 +159,7 @@ internal sealed partial class SymbolicRenameLocations
         /// Given a ISymbol, returns the renameable locations for a given symbol.
         /// </summary>
         public static async Task<ImmutableArray<RenameLocation>> GetRenamableDefinitionLocationsAsync(
-            ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+            ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, CancellationToken cancellationToken)
         {
             var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, false, cancellationToken).ConfigureAwait(false);
             if (!shouldIncludeSymbol)
@@ -243,7 +243,7 @@ internal sealed partial class SymbolicRenameLocations
         }
 
         internal static async Task<IEnumerable<RenameLocation>> GetRenamableReferenceLocationsAsync(
-            ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+            ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, CancellationToken cancellationToken)
         {
             // We won't try to update references in source generated files; we'll assume the generator will rerun
             // and produce an updated document with the new name.

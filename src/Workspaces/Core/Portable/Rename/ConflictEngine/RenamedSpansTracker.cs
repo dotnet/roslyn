@@ -148,7 +148,6 @@ internal sealed class RenamedSpansTracker
         IEnumerable<DocumentId> documentIds,
         bool replacementTextValid,
         AnnotationTable<RenameAnnotation> renameAnnotations,
-        SymbolRenameOptions options,
         CancellationToken cancellationToken)
     {
         foreach (var documentId in documentIds)

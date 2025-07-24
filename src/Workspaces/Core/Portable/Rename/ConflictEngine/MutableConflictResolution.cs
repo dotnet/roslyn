@@ -22,8 +22,7 @@ internal sealed class MutableConflictResolution(
     Solution oldSolution,
     RenamedSpansTracker renamedSpansTracker,
     string replacementText,
-    bool replacementTextValid,
-    SymbolRenameOptions options)
+    bool replacementTextValid)
 {
     // List of All the Locations that were renamed and conflict-complexified
     public readonly List<RelatedLocation> RelatedLocations = [];
@@ -48,8 +47,6 @@ internal sealed class MutableConflictResolution(
     /// The solution snapshot as it is being updated with specific rename steps.
     /// </summary>
     public Solution CurrentSolution { get; private set; } = oldSolution;
-
-    private readonly SymbolRenameOptions _options = options;
 
     private (DocumentId documentId, string newName) _renamedDocument;
 
@@ -176,15 +173,13 @@ internal sealed class MutableConflictResolution(
     /// work before calling the normal WithDocumentSyntaxRoot method. If the option is not set, there should be no source generated
     /// documents, and the method will complete synchronously.
     /// </remarks>
-    internal async ValueTask<Solution> WithDocumentSyntaxRootAsync(Solution solution, DocumentId documentId, SyntaxNode newRoot, CancellationToken cancellationToken)
+    internal static async ValueTask<Solution> WithDocumentSyntaxRootAsync(Solution solution, DocumentId documentId, SyntaxNode newRoot, CancellationToken cancellationToken)
     {
         // In a source generated document, we have to ensure we've realized the "old" tree in the modified solution or WithDocumentSyntaxRoot
         // won't work. Performing a rename in a source generated document is opt-in, so we can assume that we only hit this condition in
         // scenarios that wanted it.
         if (documentId.IsSourceGenerated)
         {
-            Contract.ThrowIfFalse(_options.RenameInSourceGeneratedDocuments);
-
             _ = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
         }
 
