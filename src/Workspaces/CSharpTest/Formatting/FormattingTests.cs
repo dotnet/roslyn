@@ -6358,51 +6358,12 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797278")]
     public async Task TestSpacingOptionAroundControlFlow()
     {
-        const string code = """
+        var optionSet = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceBetweenParentheses, SpaceBetweenParentheses.DefaultValue.WithFlagValue( SpacePlacementWithinParentheses.ControlFlowStatements, true) },
+        };
 
-            class Program
-            {
-                public void goo()
-                {
-                    int i;
-                    for(i=0; i<10; i++)
-                    {}
-
-                    foreach(i in new[] {1,2,3})
-                    {}
-
-                    if (i==10)
-                    {}
-
-                    while(i==10)
-                    {}
-
-                    switch(i)
-                    {
-                        default: break;
-                    }
-
-                    do {} while (true);
-
-                    try
-                    { }
-                    catch (System.Exception)
-                    { }
-                    catch (System.Exception e) when (true)
-                    { }
-
-                    using(somevar)
-                    { }
-
-                    lock(somevar)
-                    { }
-
-                    fixed(char* p = str)
-                    { }
-                }
-            }
-            """;
-        const string expected = """
+        await AssertFormatAsync("""
 
             class Program
             {
@@ -6445,13 +6406,50 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     { }
                 }
             }
-            """;
-        var optionSet = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceBetweenParentheses, SpaceBetweenParentheses.DefaultValue.WithFlagValue( SpacePlacementWithinParentheses.ControlFlowStatements, true) },
-        };
+            """, """
 
-        await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
+            class Program
+            {
+                public void goo()
+                {
+                    int i;
+                    for(i=0; i<10; i++)
+                    {}
+
+                    foreach(i in new[] {1,2,3})
+                    {}
+
+                    if (i==10)
+                    {}
+
+                    while(i==10)
+                    {}
+
+                    switch(i)
+                    {
+                        default: break;
+                    }
+
+                    do {} while (true);
+
+                    try
+                    { }
+                    catch (System.Exception)
+                    { }
+                    catch (System.Exception e) when (true)
+                    { }
+
+                    using(somevar)
+                    { }
+
+                    lock(somevar)
+                    { }
+
+                    fixed(char* p = str)
+                    { }
+                }
+            }
+            """, changedOptionSet: optionSet);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37031")]
@@ -7512,28 +7510,24 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     [Fact]
     public async Task ArrayDeclarationShouldFollowEmptySquareBrackets()
     {
-        const string code = """
-
-            class Program
-            {
-               var t = new Goo(new[ ] { "a", "b" });
-            }
-            """;
-
-        const string expected = """
-
-            class Program
-            {
-                var t = new Goo(new[] { "a", "b" });
-            }
-            """;
-
         var options = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.SpaceWithinSquareBrackets, true },
             { CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets, false }
         };
-        await AssertFormatAsync(expected, code, changedOptionSet: options);
+        await AssertFormatAsync("""
+
+            class Program
+            {
+                var t = new Goo(new[] { "a", "b" });
+            }
+            """, """
+
+            class Program
+            {
+               var t = new Goo(new[ ] { "a", "b" });
+            }
+            """, changedOptionSet: options);
     }
 
     [Fact]
@@ -8284,9 +8278,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62")]
-    public async Task SpaceAfterWhenInExceptionFilter()
-    {
-        const string expected = """
+    public Task SpaceAfterWhenInExceptionFilter()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -8304,9 +8297,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }
             }
-            """;
-
-        const string code = """
+            """, """
             class C
             {
                 void M()
@@ -8323,29 +8314,12 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }
             }
-            """;
-        await AssertFormatAsync(expected, code);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
-    public async Task FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
-    {
-        const string code = """
-            class MyClass
-            {
-                static void Main(string[] args)
-                {
-            #if false
-
-                        #
-
-            #endif
-                }
-            }
-            """;
-
-        const string expected = """
+    public Task FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
+        => AssertFormatAsync("""
             class MyClass
             {
                 static void Main(string[] args)
@@ -8357,29 +8331,24 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             #endif
                 }
             }
-            """;
-        await AssertFormatAsync(expected, code);
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
-    public async Task FormatHashElseToZeroColumnAnywhereInsideIfDef()
-    {
-        const string code = """
+            """, """
             class MyClass
             {
                 static void Main(string[] args)
                 {
             #if false
 
-                        #else
-                    Appropriate indentation should be here though #
+                        #
+
             #endif
                 }
             }
-            """;
+            """);
 
-        const string expected = """
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
+    public Task FormatHashElseToZeroColumnAnywhereInsideIfDef()
+        => AssertFormatAsync("""
             class MyClass
             {
                 static void Main(string[] args)
@@ -8391,15 +8360,37 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             #endif
                 }
             }
-            """;
-        await AssertFormatAsync(expected, code);
-    }
+            """, """
+            class MyClass
+            {
+                static void Main(string[] args)
+                {
+            #if false
+
+                        #else
+                    Appropriate indentation should be here though #
+            #endif
+                }
+            }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
-    public async Task FormatHashsToZeroColumnAnywhereInsideIfDef()
-    {
-        const string code = """
+    public Task FormatHashsToZeroColumnAnywhereInsideIfDef()
+        => AssertFormatAsync("""
+            class MyClass
+            {
+                static void Main(string[] args)
+                {
+            #if false
+
+            #else
+            #
+
+            #endif
+                }
+            }
+            """, """
             class MyClass
             {
                 static void Main(string[] args)
@@ -8412,24 +8403,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             #endif
                 }
             }
-            """;
-
-        const string expected = """
-            class MyClass
-            {
-                static void Main(string[] args)
-                {
-            #if false
-
-            #else
-            #
-
-            #endif
-                }
-            }
-            """;
-        await AssertFormatAsync(expected, code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1118")]
     public void DoNotAssumeCertainNodeAreAlwaysParented()
@@ -8484,22 +8458,13 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     [Fact]
     public async Task SpacingInMethodCallArguments_True()
     {
-        const string code = """
-
-            [Bar(A=1,B=2)]
-            class Program
-            {
-                public void goo()
-                {
-                    var a = typeof(A);
-                    var b = M(a);
-                    var c = default(A);
-                    var d = sizeof(A);
-                    M();
-                }
-            }
-            """;
-        const string expected = """
+        var optionSet = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true },
+            { CSharpFormattingOptions2.SpaceAfterMethodCallName, true },
+            { CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, true },
+        };
+        await AssertFormatAsync("""
 
             [Bar ( A = 1, B = 2 )]
             class Program
@@ -8513,14 +8478,21 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     M ( );
                 }
             }
-            """;
-        var optionSet = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true },
-            { CSharpFormattingOptions2.SpaceAfterMethodCallName, true },
-            { CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, true },
-        };
-        await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
+            """, """
+
+            [Bar(A=1,B=2)]
+            class Program
+            {
+                public void goo()
+                {
+                    var a = typeof(A);
+                    var b = M(a);
+                    var c = default(A);
+                    var d = sizeof(A);
+                    M();
+                }
+            }
+            """, changedOptionSet: optionSet);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1298")]

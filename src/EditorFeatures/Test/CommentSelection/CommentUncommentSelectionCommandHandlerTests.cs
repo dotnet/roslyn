@@ -67,29 +67,21 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
 
     [Fact]
     public void Create()
-    {
-        Assert.NotNull(
+        => Assert.NotNull(
             new MockCommentSelectionService(
                 supportsBlockComment: true));
-    }
 
     [WpfFact]
     public void Comment_EmptyLine()
-    {
-        CommentSelection(@"|start||end|", [], supportBlockComments: true);
-    }
+        => CommentSelection(@"|start||end|", [], supportBlockComments: true);
 
     [WpfFact]
     public void Comment_NoSelectionAtEndOfLine()
-    {
-        CommentSelection(@"Some text on a line|start||end|", new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, supportBlockComments: true);
-    }
+        => CommentSelection(@"Some text on a line|start||end|", new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, supportBlockComments: true);
 
     [WpfFact]
     public void Comment_Whitespace()
-    {
-        CommentSelection(@"  |start|   |end|   ", [], supportBlockComments: true);
-    }
+        => CommentSelection(@"  |start|   |end|   ", [], supportBlockComments: true);
 
     [WpfFact]
     public void Comment_SingleLineBlockWithBlockSelection()
@@ -119,9 +111,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
 
     [WpfFact]
     public void Comment_SingleLineBlockWithNoBlockSelection()
-    {
-        CommentSelection(@"this is |start| some |end| text", new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, supportBlockComments: false);
-    }
+        => CommentSelection(@"this is |start| some |end| text", new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, supportBlockComments: false);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563915")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530300")]
@@ -307,9 +297,7 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
 
     [WpfFact]
     public void Uncomment_NoSelection()
-    {
-        UncommentSelection(@"//Goo|start||end|Bar", new[] { new TextChange(new TextSpan(0, 2), string.Empty) }, Span.FromBounds(0, 6), supportBlockComments: true);
-    }
+        => UncommentSelection(@"//Goo|start||end|Bar", new[] { new TextChange(new TextSpan(0, 2), string.Empty) }, Span.FromBounds(0, 6), supportBlockComments: true);
 
     [WpfFact]
     public void Uncomment_MatchesBlockComment()
@@ -414,14 +402,11 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530300")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563924")]
     public void Comment_NoSelectionAtStartOfLine()
-    {
-        CommentSelection(@"|start||end|using System;", new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, new[] { new Span(0, 15) }, supportBlockComments: true);
-    }
+        => CommentSelection(@"|start||end|using System;", new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, new[] { new Span(0, 15) }, supportBlockComments: true);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
     public void Uncomment_NoSelectionInBlockComment()
-    {
-        UncommentSelection(@"using /* Sy|start||end|stem.*/IO;",
+        => UncommentSelection(@"using /* Sy|start||end|stem.*/IO;",
             expectedChanges: new[]
             {
                 new TextChange(new TextSpan(6, 2), string.Empty),
@@ -429,12 +414,10 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             },
             expectedSelectedSpan: new Span(6, 8),
             supportBlockComments: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
     public void Uncomment_BlockCommentWithPreviousBlockComment()
-    {
-        UncommentSelection(@"/* comment */using /* Sy|start||end|stem.*/IO;",
+        => UncommentSelection(@"/* comment */using /* Sy|start||end|stem.*/IO;",
             expectedChanges: new[]
             {
                 new TextChange(new TextSpan(19, 2), string.Empty),
@@ -442,12 +425,10 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             },
             expectedSelectedSpan: new Span(19, 8),
             supportBlockComments: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
     public void Uncomment_InsideEndOfBlockComment()
-    {
-        UncommentSelection(@"/*using System;*|start||end|/",
+        => UncommentSelection(@"/*using System;*|start||end|/",
             expectedChanges: new[]
             {
                 new TextChange(new TextSpan(0, 2), string.Empty),
@@ -455,12 +436,10 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             },
             expectedSelectedSpan: new Span(0, 13),
             supportBlockComments: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
     public void Uncomment_AtBeginningOfEndOfBlockComment()
-    {
-        UncommentSelection(@"/*using System;|start||end|*/",
+        => UncommentSelection(@"/*using System;|start||end|*/",
             expectedChanges: new[]
             {
                 new TextChange(new TextSpan(0, 2), string.Empty),
@@ -468,19 +447,14 @@ public sealed class CommentUncommentSelectionCommandHandlerTests
             },
             expectedSelectedSpan: new Span(0, 13),
             supportBlockComments: true);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
     public void Uncomment_AtEndOfBlockComment()
-    {
-        UncommentSelection(@"/*using System;*/|start||end|", [], new Span(17, 0), supportBlockComments: true);
-    }
+        => UncommentSelection(@"/*using System;*/|start||end|", [], new Span(17, 0), supportBlockComments: true);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
     public void Uncomment_BlockCommentWithNoEnd()
-    {
-        UncommentSelection(@"/*using |start||end|System;", [], new Span(8, 0), supportBlockComments: true);
-    }
+        => UncommentSelection(@"/*using |start||end|System;", [], new Span(8, 0), supportBlockComments: true);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31669")]
     public void Uncomment_BlockWithSingleInside()
