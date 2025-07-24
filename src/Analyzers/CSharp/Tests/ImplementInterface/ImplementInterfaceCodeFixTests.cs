@@ -5369,9 +5369,8 @@ class B : IGoo
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545736")]
-    public async Task TestCastedOptionalParameter1()
-    {
-        await TestWithAllCodeStyleOptionsOffAsync("""
+    public Task TestCastedOptionalParameter1()
+        => TestWithAllCodeStyleOptionsOffAsync("""
             using System;
             interface I
             {
@@ -5396,7 +5395,6 @@ class B : IGoo
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545737")]
     public Task TestCastedEnumValue()

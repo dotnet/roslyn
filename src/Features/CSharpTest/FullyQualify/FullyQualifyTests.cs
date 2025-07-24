@@ -1586,9 +1586,8 @@ class C
 @"using M = System.Math", new(testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-    public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">using System.ComponentModel;
@@ -1617,12 +1616,10 @@ class C
                 }
             }
             """, new TestParameters(testHost: testHost));
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-    public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
-    {
-        await TestMissingAsync("""
+    public Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
+        => TestMissingAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">
@@ -1648,12 +1645,10 @@ class C
                 </Project>
             </Workspace>
             """, new TestParameters(testHost: testHost));
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-    public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">
@@ -1685,7 +1680,6 @@ class C
                 }
             }
             """, new TestParameters(testHost: testHost));
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
@@ -1719,9 +1713,8 @@ class C
             testHost: testHost));
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
-    public async Task TestFullyQualifyWithSourceGeneratedFile(TestHost testHost)
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFullyQualifyWithSourceGeneratedFile(TestHost testHost)
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <Document FilePath="Program.cs">using Goo;
@@ -1754,5 +1747,4 @@ class C
                 class Something { }
             }
             """, new TestParameters(testHost: testHost));
-    }
 }

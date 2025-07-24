@@ -574,9 +574,8 @@ public sealed class TypeConversionAllocationAnalyzerTests
     }
 
     [Fact]
-    public async Task TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithoutBoxingAsync()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithoutBoxingAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -586,7 +585,6 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 object Obj => 1.ToString();
             }
             """);
-    }
 
     [Fact]
     public async Task TypeConversionAllocation_ExpressionBodiedPropertyDelegateAsync()
@@ -676,9 +674,8 @@ public sealed class TypeConversionAllocationAnalyzerTests
             VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(11, 22));
 
     [Fact]
-    public async Task TypeConversionAllocation_NoDiagnosticWhenPassingDelegateAsArgumentAsync()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TypeConversionAllocation_NoDiagnosticWhenPassingDelegateAsArgumentAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -696,12 +693,10 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TypeConversionAllocation_ReportBoxingAllocationForPassingStructInstanceMethodForDelegateConstructorAsync()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TypeConversionAllocation_ReportBoxingAllocationForPassingStructInstanceMethodForDelegateConstructorAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -726,12 +721,10 @@ public sealed class TypeConversionAllocationAnalyzerTests
             """,
             // Test0.cs(11,54): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
             VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(10, 54, 10, 64));
-    }
 
     [Fact]
-    public async Task TypeConversionAllocation_DoNotReportBoxingAllocationForPassingStructStaticMethodForDelegateConstructorAsync()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TypeConversionAllocation_DoNotReportBoxingAllocationForPassingStructStaticMethodForDelegateConstructorAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -754,12 +747,10 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TypeConversionAllocation_DoNotReportInlineDelegateAsStructInstanceMethodsAsync()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TypeConversionAllocation_DoNotReportInlineDelegateAsStructInstanceMethodsAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using Roslyn.Utilities;
 
@@ -786,5 +777,4 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 }
             }
             """);
-    }
 }

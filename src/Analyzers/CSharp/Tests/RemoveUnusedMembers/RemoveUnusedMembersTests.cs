@@ -3076,9 +3076,8 @@ public sealed class RemoveUnusedMembersTests
                 .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
-    public async Task DoNotWarnForAwaiterMethods()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task DoNotWarnForAwaiterMethods()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -3097,12 +3096,10 @@ public sealed class RemoveUnusedMembersTests
                 public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
-    public async Task WarnForAwaiterMethodsNotImplementingInterface()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task WarnForAwaiterMethodsNotImplementingInterface()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -3126,7 +3123,6 @@ public sealed class RemoveUnusedMembersTests
                 public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57470")]
     public Task TestForeach()

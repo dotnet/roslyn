@@ -2516,9 +2516,8 @@ new TestParameters(parseOptions: GetScriptOptions()));
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsWithExternAlias(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsWithExternAlias(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace ProjectLib
@@ -2558,13 +2557,11 @@ new TestParameters(parseOptions: GetScriptOptions()));
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsWithPreExistingExternAlias(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsWithPreExistingExternAlias(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace ProjectLib
@@ -2615,13 +2612,11 @@ new TestParameters(parseOptions: GetScriptOptions()));
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace ProjectLib;
@@ -2670,13 +2665,11 @@ new TestParameters(parseOptions: GetScriptOptions()));
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsNoExtern(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsNoExtern(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace AnotherNS
@@ -2716,13 +2709,11 @@ new TestParameters(parseOptions: GetScriptOptions()));
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace AnotherNS;
@@ -2759,7 +2750,6 @@ new TestParameters(parseOptions: GetScriptOptions()));
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
@@ -3499,9 +3489,8 @@ new TestParameters(parseOptions: GetScriptOptions()));
             """, testHost);
 
     [Fact]
-    public async Task TestInaccessibleExtensionMethod()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInaccessibleExtensionMethod()
+        => TestMissingInRegularAndScriptAsync("""
             namespace N1
             {
                 public static class C
@@ -3524,7 +3513,6 @@ new TestParameters(parseOptions: GetScriptOptions()));
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
@@ -6280,9 +6268,8 @@ class C
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
-    public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">using System.ComponentModel;
@@ -6313,13 +6300,11 @@ class C
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
-    public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
-    {
-        await TestMissingAsync("""
+    public Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
+        => TestMissingAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">
@@ -6345,13 +6330,11 @@ class C
                 </Project>
             </Workspace>
             """, new TestParameters(testHost: testHost));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
-    public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">imports System.ComponentModel
@@ -6383,7 +6366,6 @@ class C
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
@@ -6624,9 +6606,8 @@ class C
             """, testHost);
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
-    public async Task TestAddUsingsWithSourceGeneratedFile(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestAddUsingsWithSourceGeneratedFile(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <Document FilePath="Program.cs">using Goo;
@@ -6660,5 +6641,4 @@ class C
                 class Something { }
             }
             """, testHost);
-    }
 }

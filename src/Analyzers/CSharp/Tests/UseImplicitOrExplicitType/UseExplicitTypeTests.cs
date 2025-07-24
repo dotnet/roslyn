@@ -1046,9 +1046,8 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47038")]
-    public async Task NotNullableType_ForeachVarDeconstruction2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task NotNullableType_ForeachVarDeconstruction2()
+        => TestInRegularAndScriptAsync("""
             #nullable enable
 
             class C
@@ -1087,7 +1086,6 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40477")]
     public async Task NotNullableType_ForeachDeconstruction()

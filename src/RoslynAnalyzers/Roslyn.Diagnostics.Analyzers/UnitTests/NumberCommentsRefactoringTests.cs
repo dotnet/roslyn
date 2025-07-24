@@ -12,9 +12,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class NumberCommentsRefactoringTests
     {
         [Fact]
-        public async Task TestAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task TestAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -29,12 +28,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 ";
                 }
                 """);
-        }
 
         [Fact]
-        public async Task TestAsync_RawStringLiteral()
-        {
-            await VerifyCSharp11Async(""""
+        public Task TestAsync_RawStringLiteral()
+            => VerifyCSharp11Async(""""
 public class C
 {
     string s = """
@@ -49,12 +46,10 @@ class D { } // 1
 """;
 }
 """");
-        }
 
         [Fact]
-        public async Task TestAsync_RawStringLiteral_Indented()
-        {
-            await VerifyCSharp11Async(""""
+        public Task TestAsync_RawStringLiteral_Indented()
+            => VerifyCSharp11Async(""""
 public class C
 {
     string s = """
@@ -69,12 +64,10 @@ public class C
         """;
 }
 """");
-        }
 
         [Fact]
-        public async Task TestAsync_RawStringLiteral_Indented_Multiple()
-        {
-            await VerifyCSharp11Async(""""
+        public Task TestAsync_RawStringLiteral_Indented_Multiple()
+            => VerifyCSharp11Async(""""
 public class C
 {
     string s = """
@@ -91,12 +84,10 @@ public class C
         """;
 }
 """");
-        }
 
         [Fact]
-        public async Task CSharp_VerifyFix_WithTriviaAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task CSharp_VerifyFix_WithTriviaAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s =
@@ -113,12 +104,10 @@ public class C
                 " /*after*/ ;
                 }
                 """);
-        }
 
         [Fact]
-        public async Task CSharp_VerifyFix_NonNumberCommentsLeftAloneAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task CSharp_VerifyFix_NonNumberCommentsLeftAloneAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -139,12 +128,10 @@ public class C
                 ";
                 }
                 """);
-        }
 
         [Fact]
-        public async Task CSharp_VerifyFix_MultipleCommasAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task CSharp_VerifyFix_MultipleCommasAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -163,12 +150,10 @@ public class C
                 ";
                 }
                 """);
-        }
 
         [Fact]
-        public async Task CSharp_VerifyFix_LastLineAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task CSharp_VerifyFix_LastLineAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"[||]class D { } //";
@@ -179,12 +164,10 @@ public class C
                     string s = @"class D { } // 1";
                 }
                 """);
-        }
 
         [Fact]
-        public async Task CountOverTenAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task CountOverTenAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -199,12 +182,10 @@ public class C
                 ";
                 }
                 """);
-        }
 
         [Fact]
-        public async Task EmptyNumberIsImproperAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task EmptyNumberIsImproperAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -223,12 +204,10 @@ public class C
                 ";
                 }
                 """);
-        }
 
         [Fact]
-        public async Task EmptyNumberBeforeCommaIsImproperAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task EmptyNumberBeforeCommaIsImproperAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -247,12 +226,10 @@ public class C
                 ";
                 }
                 """);
-        }
 
         [Fact]
-        public async Task EmptyCommentOnEmptyLineIsProperAsync()
-        {
-            await VerifyCS.VerifyRefactoringAsync("""
+        public Task EmptyCommentOnEmptyLineIsProperAsync()
+            => VerifyCS.VerifyRefactoringAsync("""
                 public class C
                 {
                     string s = @"
@@ -277,7 +254,6 @@ public class C
                 ";
                 }
                 """);
-        }
 
         #region Utilities
         private async Task VerifyCSharp11Async(string source, string fixedSource)

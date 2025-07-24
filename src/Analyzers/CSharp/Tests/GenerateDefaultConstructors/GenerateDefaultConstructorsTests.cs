@@ -909,12 +909,13 @@ public sealed class GenerateDefaultConstructorsTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
     public async Task TestMissingInStructWithoutFieldInitializer()
     {
-        await TestCodeFixMissingAsync("""
+        var source = """
             struct [||]S
             {
                 object X;
             }
-            """);
+            """;
+        await TestCodeFixMissingAsync(source);
 
 #if !CODE_STYLE
         await TestRefactoringMissingAsync(source);

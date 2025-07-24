@@ -8278,9 +8278,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62")]
-    public async Task SpaceAfterWhenInExceptionFilter()
-    {
-        await AssertFormatAsync("""
+    public Task SpaceAfterWhenInExceptionFilter()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -8316,13 +8315,11 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
-    public async Task FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
-    {
-        await AssertFormatAsync("""
+    public Task FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
+        => AssertFormatAsync("""
             class MyClass
             {
                 static void Main(string[] args)
@@ -8347,13 +8344,11 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
-    public async Task FormatHashElseToZeroColumnAnywhereInsideIfDef()
-    {
-        await AssertFormatAsync("""
+    public Task FormatHashElseToZeroColumnAnywhereInsideIfDef()
+        => AssertFormatAsync("""
             class MyClass
             {
                 static void Main(string[] args)
@@ -8378,13 +8373,11 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/285")]
-    public async Task FormatHashsToZeroColumnAnywhereInsideIfDef()
-    {
-        await AssertFormatAsync("""
+    public Task FormatHashsToZeroColumnAnywhereInsideIfDef()
+        => AssertFormatAsync("""
             class MyClass
             {
                 static void Main(string[] args)
@@ -8411,7 +8404,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1118")]
     public void DoNotAssumeCertainNodeAreAlwaysParented()

@@ -15,8 +15,7 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
 {
     [Fact]
     public void GenericType_NotMissingWithMissingTypeArgument()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -31,12 +30,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void GenericType_MissingWithNonMissingTypeArgument()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             using System.Collections.Generic;
 
             namespace N
@@ -53,12 +50,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void GenericType_MissingWithMissingTypeArgument()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             using System.Collections.Generic;
 
             namespace N
@@ -71,12 +66,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void Tuple_MissingTypes()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -87,12 +80,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void Tuple_NonMissingTypes()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -107,12 +98,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void Array_MissingElementType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -123,12 +112,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void Array_NonMissingElementType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -143,12 +130,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void Pointer_MissingType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -159,12 +144,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void Pointer_NonMissingType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -179,12 +162,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void NestedType_MissingInGenericContainer()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             using System.Collections.Generic;
 
             namespace N
@@ -197,12 +178,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void NestedType_MissingInNonGenericContainer()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             using System.Diagnostics;
 
             namespace N
@@ -215,12 +194,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.M"));
-    }
 
     [Fact]
     public void Method_MissingReturnType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -232,12 +209,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.Create"));
-    }
 
     [Fact]
     public void Method_MissingParameterType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -249,12 +224,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.Create"));
-    }
 
     [Fact]
     public void Constructor_MissingParameterType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             public class C
             {
                 public C(string x)
@@ -262,12 +235,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("C..ctor"));
-    }
 
     [Fact]
     public void Indexer_MissingParameterType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -280,12 +251,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.this[]"));
-    }
 
     [Fact]
     public void Indexer_MissingReturnType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -298,12 +267,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.this[]"));
-    }
 
     [Fact]
     public void Property_MissingReturnType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -316,12 +283,10 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.P"));
-    }
 
     [Fact]
     public void EventField_MissingReturnType()
-    {
-        VerifyResolution("""
+        => VerifyResolution("""
             namespace N
             {
                 public class C
@@ -330,7 +295,6 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
                 }
             }
             """, c => c.GetMember("N.C.E"));
-    }
 
     private static void VerifyResolution(string source, Func<Compilation, ISymbol> symbolToResolve)
     {

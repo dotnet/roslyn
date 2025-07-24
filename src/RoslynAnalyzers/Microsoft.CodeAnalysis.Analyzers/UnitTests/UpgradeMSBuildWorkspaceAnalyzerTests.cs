@@ -41,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
             }.RunAsync();
 
         [Fact]
-        public async Task CSharp_VerifyWithMSBuildWorkspaceAsync()
-        {
-            await VerifyCSharpAsync("""
+        public Task CSharp_VerifyWithMSBuildWorkspaceAsync()
+            => VerifyCSharpAsync("""
                 using Microsoft.CodeAnalysis.MSBuild;
 
                 class Usage
@@ -54,12 +53,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                     }
                 }
                 """, s_withMSBuildWorkspaces);
-        }
 
         [Fact]
-        public async Task CSharp_VerifyWithoutMSBuildWorkspaceAsync()
-        {
-            await VerifyCSharpAsync("""
+        public Task CSharp_VerifyWithoutMSBuildWorkspaceAsync()
+            => VerifyCSharpAsync("""
                 using Microsoft.CodeAnalysis.{|CS0234:MSBuild|};
 
                 class Usage
@@ -70,12 +67,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                     }
                 }
                 """, s_withDesktopWorkspaces);
-        }
 
         [Fact]
-        public async Task VisualBasic_VerifyWithMSBuildWorkspaceAsync()
-        {
-            await VerifyVisualBasicAsync("""
+        public Task VisualBasic_VerifyWithMSBuildWorkspaceAsync()
+            => VerifyVisualBasicAsync("""
                 Imports Microsoft.CodeAnalysis.MSBuild
 
                 Class Usage
@@ -84,12 +79,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                     End Sub
                 End Class
                 """, s_withMSBuildWorkspaces);
-        }
 
         [Fact]
-        public async Task VisualBasic_VerifyWithoutMSBuildWorkspaceAsync()
-        {
-            await VerifyVisualBasicAsync("""
+        public Task VisualBasic_VerifyWithoutMSBuildWorkspaceAsync()
+            => VerifyVisualBasicAsync("""
                 Imports Microsoft.CodeAnalysis.MSBuild
 
                 Class Usage
@@ -98,6 +91,5 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
                     End Sub
                 End Class
                 """, s_withDesktopWorkspaces);
-        }
     }
 }

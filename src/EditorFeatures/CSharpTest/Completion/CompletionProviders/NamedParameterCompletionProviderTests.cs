@@ -41,9 +41,8 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     }
 
     [Fact]
-    public async Task CommitCharacterTest()
-    {
-        await VerifyCommonCommitCharactersAsync("""
+    public Task CommitCharacterTest()
+        => VerifyCommonCommitCharactersAsync("""
             class Goo
             {
                 public Goo(int a = 42)
@@ -55,7 +54,6 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, textTypedSoFar: "");
-    }
 
     [Fact]
     public Task InObjectCreation()

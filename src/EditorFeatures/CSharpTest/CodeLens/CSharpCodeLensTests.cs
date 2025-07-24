@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeLens;
 public sealed class CSharpCodeLensTests : AbstractCodeLensTest
 {
     [Fact]
-    public async Task TestCount()
-    {
-        await RunCountTest("""
+    public Task TestCount()
+        => RunCountTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -44,12 +43,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestCapping()
-    {
-        await RunCountTest("""
+    public Task TestCapping()
+        => RunCountTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -75,12 +72,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """, 1);
-    }
 
     [Fact]
-    public async Task TestLinkedFiles()
-    {
-        await RunReferenceTest("""
+    public Task TestLinkedFiles()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -121,12 +116,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestDisplay()
-    {
-        await RunReferenceTest("""
+    public Task TestDisplay()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -152,12 +145,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestMethodReferences()
-    {
-        await RunMethodReferenceTest("""
+    public Task TestMethodReferences()
+        => RunMethodReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -183,12 +174,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestMethodReferencesWithDocstrings()
-    {
-        await RunMethodReferenceTest("""
+    public Task TestMethodReferencesWithDocstrings()
+        => RunMethodReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -217,7 +206,6 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Theory]
     [InlineData("class")]
@@ -258,9 +246,8 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
-    public async Task TestExplicitParameterlessConstructor()
-    {
-        await RunReferenceTest("""
+    public Task TestExplicitParameterlessConstructor()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -280,12 +267,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
-    public async Task TestExplicitParameterlessConstructor_TwoCalls()
-    {
-        await RunReferenceTest("""
+    public Task TestExplicitParameterlessConstructor_TwoCalls()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -306,12 +291,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
-    public async Task TestImplicitParameterlessConstructor()
-    {
-        await RunReferenceTest("""
+    public Task TestImplicitParameterlessConstructor()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -330,12 +313,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
-    public async Task TestImplicitParameterlessConstructor_TwoCalls()
-    {
-        await RunReferenceTest("""
+    public Task TestImplicitParameterlessConstructor_TwoCalls()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -355,12 +336,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51633")]
-    public async Task TestMethodRefSourceGeneratedDocument()
-    {
-        await RunMethodReferenceTest("""
+    public Task TestMethodRefSourceGeneratedDocument()
+        => RunMethodReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="Program.cs"><![CDATA[
@@ -386,12 +365,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64592")]
-    public async Task TestFileScopedTypes()
-    {
-        await RunReferenceTest("""
+    public Task TestFileScopedTypes()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="File1.cs"><![CDATA[
@@ -435,12 +412,10 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67956")]
-    public async Task TestConstructorReferencesInOtherProject()
-    {
-        await RunReferenceTest("""
+    public Task TestConstructorReferencesInOtherProject()
+        => RunReferenceTest("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                     <Document FilePath="Class1.cs"><![CDATA[
@@ -471,5 +446,4 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
-    }
 }
