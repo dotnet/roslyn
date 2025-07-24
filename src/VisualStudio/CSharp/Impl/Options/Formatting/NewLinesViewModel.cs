@@ -20,187 +20,213 @@ internal sealed class NewLinesViewModel : AbstractOptionPreviewViewModel
 {
     private static readonly Conversions<NewLineBeforeOpenBracePlacement, int> s_newLinesForBracesConversions = new(v => (int)v, v => (NewLineBeforeOpenBracePlacement)v);
 
-    private const string s_previewText = @"//[
-class C {
-}
-//]";
+    private const string s_previewText = """
+        //[
+        class C {
+        }
+        //]
+        """;
 
-    private const string s_methodPreview = @"class c {
-//[
-    void Goo(){
-        Console.WriteLine();
+    private const string s_methodPreview = """
+        class c {
+        //[
+            void Goo(){
+                Console.WriteLine();
 
-        int LocalFunction(int x) {
-            return 2 * x;
+                int LocalFunction(int x) {
+                    return 2 * x;
+                }
+
+                Console.ReadLine();
+            }
+        //]
+        }
+        """;
+
+    private const string s_propertyPreview = """
+        class c {
+        //[
+            public int Property {
+                get {
+                    return 42;
+                }
+                set {
+                }
+            }
+        //]
+        }
+        """;
+
+    private const string s_tryCatchFinallyPreview = """
+        using System;
+        class C {
+            void Goo() {
+        //[
+                try {
+                }
+                catch (Exception e) {
+                }
+                finally {
+                }
+        //]
+            }
+        }
+        """;
+
+    private const string s_ifElsePreview = """
+        class C {
+            void Goo() {
+        //[
+                if (false) {
+                }
+                else {
+                }
+        //]
+            }
+        }
+        """;
+
+    private const string s_forBlockPreview = """
+        class C {
+            void Goo() {
+        //[
+                for (int i; i < 10; i++){
+                }
+        //]
+            }
+        }
+        """;
+
+    private const string s_lambdaPreview = """
+        using System;
+        class C {
+            void Goo() {
+        //[
+                Func<int, int> f = x => {
+                    return 2 * x;
+                };
+        //]
+            }
+        }
+        """;
+    private const string s_anonymousMethodPreview = """
+        using System;
+
+        delegate int D(int x);
+
+        class C {
+            void Goo() {
+        //[
+                D d = delegate(int x) {
+                    return 2 * x;
+                };
+            //]
+            }
+        }
+        """;
+
+    private const string s_anonymousTypePreview = """
+        using System;
+        class C {
+            void Goo() {
+        //[
+                var z = new {
+                    A = 3, B = 4
+                };
+        //]
+            }
+        }
+        """;
+    private const string s_InitializerPreviewTrue = """
+        using System;
+        using System.Collections.Generic;
+
+        class C {
+            void Goo() {
+        //[
+                var z = new B()
+                {
+                    A = 3, B = 4
+                };
+
+                // During Brace Completion or Only if Empty Body 
+                var collectionVariable = new List<int> 
+                {
+                }
+
+                // During Brace Completion
+                var arrayVariable = new int[] 
+                {
+                }
+        //]
+            }
         }
 
-        Console.ReadLine();
-    }
-//]
-}";
-
-    private const string s_propertyPreview = @"class c {
-//[
-    public int Property {
-        get {
-            return 42;
+        class B {
+            public int A { get; set; }
+            public int B { get; set; }
         }
-        set {
-        }
-    }
-//]
-}";
+        """;
+    private const string s_InitializerPreviewFalse = """
+        using System;
+        using System.Collections.Generic;
 
-    private const string s_tryCatchFinallyPreview = @"using System;
-class C {
-    void Goo() {
-//[
-        try {
-        }
-        catch (Exception e) {
-        }
-        finally {
-        }
-//]
-    }
-}";
+        class C {
+            void Goo() {
+        //[
+                var z = new B() {
+                    A = 3, B = 4
+                };
 
-    private const string s_ifElsePreview = @"class C {
-    void Goo() {
-//[
-        if (false) {
-        }
-        else {
-        }
-//]
-    }
-}";
+                // During Brace Completion or Only if Empty Body 
+                var collectionVariable = new List<int> {
+                }
 
-    private const string s_forBlockPreview = @"class C {
-    void Goo() {
-//[
-        for (int i; i < 10; i++){
-        }
-//]
-    }
-}";
-
-    private const string s_lambdaPreview = @"using System;
-class C {
-    void Goo() {
-//[
-        Func<int, int> f = x => {
-            return 2 * x;
-        };
-//]
-    }
-}";
-    private const string s_anonymousMethodPreview = @"using System;
-
-delegate int D(int x);
-
-class C {
-    void Goo() {
-//[
-        D d = delegate(int x) {
-            return 2 * x;
-        };
-    //]
-    }
-}";
-
-    private const string s_anonymousTypePreview = @"using System;
-class C {
-    void Goo() {
-//[
-        var z = new {
-            A = 3, B = 4
-        };
-//]
-    }
-}";
-    private const string s_InitializerPreviewTrue = @"using System;
-using System.Collections.Generic;
-
-class C {
-    void Goo() {
-//[
-        var z = new B()
-        {
-            A = 3, B = 4
-        };
-
-        // During Brace Completion or Only if Empty Body 
-        var collectionVariable = new List<int> 
-        {
+                // During Brace Completion
+                var arrayVariable = new int[] {
+                }
+        //]
+            }
         }
 
-        // During Brace Completion
-        var arrayVariable = new int[] 
-        {
+        class B {
+            public int A { get; set; }
+            public int B { get; set; }
         }
-//]
-    }
-}
-
-class B {
-    public int A { get; set; }
-    public int B { get; set; }
-}";
-    private const string s_InitializerPreviewFalse = @"using System;
-using System.Collections.Generic;
-
-class C {
-    void Goo() {
-//[
-        var z = new B() {
-            A = 3, B = 4
-        };
-
-        // During Brace Completion or Only if Empty Body 
-        var collectionVariable = new List<int> {
+        """;
+    private const string s_objectInitializerPreview = """
+        using System;
+        class C {
+            void Goo() {
+        //[
+                var z = new B() {
+                    A = 3, B = 4
+                };
+        //]
+            }
         }
 
-        // During Brace Completion
-        var arrayVariable = new int[] {
+        class B {
+            public int A { get; set; }
+            public int B { get; set; }
         }
-//]
-    }
-}
-
-class B {
-    public int A { get; set; }
-    public int B { get; set; }
-}";
-    private const string s_objectInitializerPreview = @"using System;
-class C {
-    void Goo() {
-//[
-        var z = new B() {
-            A = 3, B = 4
-        };
-//]
-    }
-}
-
-class B {
-    public int A { get; set; }
-    public int B { get; set; }
-}";
-    private const string s_queryExpressionPreview = @"using System;
-using System.Linq;
-using System.Collections.Generic;
-class C {
-    void Goo(IEnumerable<int> e) {
-//[
-        var q = from a in e from b in e
-                select a * b;
-//]
-}
-class B {
-    public int A { get; set; }
-    public int B { get; set; }
-}";
+        """;
+    private const string s_queryExpressionPreview = """
+        using System;
+        using System.Linq;
+        using System.Collections.Generic;
+        class C {
+            void Goo(IEnumerable<int> e) {
+        //[
+                var q = from a in e from b in e
+                        select a * b;
+        //]
+        }
+        class B {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+        """;
 
     public NewLinesViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
     {

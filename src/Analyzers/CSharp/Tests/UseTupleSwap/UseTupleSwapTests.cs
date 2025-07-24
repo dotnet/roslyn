@@ -22,9 +22,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseTupleSwapTests
 {
     [Fact]
-    public async Task TestMissingBeforeCSharp7()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingBeforeCSharp7()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -39,12 +38,10 @@ public sealed class UseTupleSwapTests
             """,
             LanguageVersion = LanguageVersion.CSharp6,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingWithFeatureOff()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithFeatureOff()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -62,12 +59,10 @@ public sealed class UseTupleSwapTests
                 { CSharpCodeStyleOptions.PreferTupleSwap, false, CodeStyle.NotificationOption2.Silent }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestBasicCase()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestBasicCase()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -88,12 +83,10 @@ public sealed class UseTupleSwapTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithRef()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithRef()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -107,12 +100,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestArbitraryParens()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestArbitraryParens()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -133,12 +124,10 @@ public sealed class UseTupleSwapTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTrivia1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -161,12 +150,10 @@ public sealed class UseTupleSwapTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTrivia2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -187,12 +174,10 @@ public sealed class UseTupleSwapTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleAssignment1()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleAssignment1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -206,12 +191,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleAssignment2()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleAssignment2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -225,12 +208,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotSwap1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotSwap1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -244,12 +225,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotSwap2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotSwap2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -263,12 +242,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotSwap3()
-    {
-        await new VerifyCS.Test
+    public Task TestNotSwap3()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -282,12 +259,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotSwap4()
-    {
-        await new VerifyCS.Test
+    public Task TestNotSwap4()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -301,12 +276,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotSwap5()
-    {
-        await new VerifyCS.Test
+    public Task TestNotSwap5()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -320,12 +293,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInSwitch()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestInSwitch()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -356,12 +327,10 @@ public sealed class UseTupleSwapTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -392,12 +361,10 @@ public sealed class UseTupleSwapTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithMultipleVariables()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithMultipleVariables()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -411,12 +378,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58759")]
-    public async Task TestTopLevelStatements()
-    {
-        await new VerifyCS.Test
+    public Task TestTopLevelStatements()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             LanguageVersion = LanguageVersion.CSharp9,
@@ -437,12 +402,10 @@ public sealed class UseTupleSwapTests
 
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66427")]
-    public async Task NotOnRefStruct()
-    {
-        await new VerifyCS.Test
+    public Task NotOnRefStruct()
+        => new VerifyCS.Test
         {
             TestCode = """
             ref struct S { }
@@ -461,12 +424,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66427")]
-    public async Task OnNormalStruct()
-    {
-        await new VerifyCS.Test
+    public Task OnNormalStruct()
+        => new VerifyCS.Test
         {
             TestCode = """
             struct S { }
@@ -499,12 +460,10 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66427")]
-    public async Task NotOnPointer()
-    {
-        await new VerifyCS.Test
+    public Task NotOnPointer()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -518,5 +477,4 @@ public sealed class UseTupleSwapTests
             }
             """,
         }.RunAsync();
-    }
 }

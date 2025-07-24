@@ -145,7 +145,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         // EnterBreakStateAsync
 
-        mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
+        mockEncService.BreakStateOrCapabilitiesChangedImpl = inBreakState =>
         {
             Assert.True(inBreakState);
         };
@@ -210,8 +210,9 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                         ])
                 ],
                 SyntaxError = syntaxError,
-                ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
+                ProjectsToRebuild = [projectId],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(projectId, []),
+                ProjectsToRedeploy = [projectId],
             };
         };
 
@@ -276,6 +277,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                 SyntaxError = null,
                 ProjectsToRebuild = [],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+                ProjectsToRedeploy = [],
             };
         };
 
@@ -345,9 +347,6 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
     public async Task DefaultPdbMatchingSourceTextProvider()
     {
         var source1 = "class C1 { void M() { System.Console.WriteLine(\"a\"); } }";
-        var source2 = "class C1 { void M() { System.Console.WriteLine(\"b\"); } }";
-        var source3 = "class C1 { void M() { System.Console.WriteLine(\"c\"); } }";
-
         var dir = Temp.CreateDirectory();
         var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
 
@@ -376,14 +375,14 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
         var document1 = solution.GetRequiredDocument(documentId);
         _ = await document1.GetTextAsync(CancellationToken.None);
 
-        File.WriteAllText(sourceFile.Path, source2, Encoding.UTF8);
+        File.WriteAllText(sourceFile.Path, "class C1 { void M() { System.Console.WriteLine(\"b\"); } }", Encoding.UTF8);
 
         await languageService.StartSessionAsync(CancellationToken.None);
         await languageService.EnterBreakStateAsync(CancellationToken.None);
 
         workspace.OnDocumentOpened(documentId, new TestSourceTextContainer()
         {
-            Text = SourceText.From(source3, Encoding.UTF8, SourceHashAlgorithm.Sha1)
+            Text = SourceText.From("class C1 { void M() { System.Console.WriteLine(\"c\"); } }", Encoding.UTF8, SourceHashAlgorithm.Sha1)
         });
 
         await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();

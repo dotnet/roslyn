@@ -2418,45 +2418,42 @@ z();
 
 public class C
 {
-    public void M(C c) { } // ignored
+    public void M(C c) { } // ignored for unique signature
 }
 
 public static class E
 {
-    public static void M(this C c) { } // ignored
+    public static void M(this C c) { } // ignored for unique signature
 }
 """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            verify(comp);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            verify(comp);
+
+            source = """
+System.Action x = C.M;
+x();
+
+var z = C.M;
+z();
+
+public class C
+{
+    public void M() { } // ignored for unique signature
+}
+""";
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'C.M()'
+                // System.Action x = C.M;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("C.M()").WithLocation(1, 19),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = C.M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9));
+
+            static void verify(CSharpCompilation comp)
             {
-                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-                comp.VerifyDiagnostics(
-                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
-                    // System.Action x = C.M;
-                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
-                    // (4,9): error CS8917: The delegate type could not be inferred.
-                    // var z = C.M;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9));
-
-                var tree = comp.SyntaxTrees[0];
-                var model = comp.GetSemanticModel(tree);
-                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
-                var typeInfo1 = model.GetTypeInfo(memberAccess1);
-                Assert.Null(typeInfo1.Type);
-                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
-                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
-                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
-
-                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
-                var typeInfo2 = model.GetTypeInfo(memberAccess2);
-                Assert.Null(typeInfo2.Type);
-                Assert.True(typeInfo2.ConvertedType!.IsErrorType());
-                Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
-                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
-            }
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : instead of finding the extension method and reporting an error on its receiver,
-            // we should instead discard it as a candidate early like we do for instance methods in OverloadResolution.RemoveStaticInstanceMismatches
-            {
-                var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
                 comp.VerifyDiagnostics(
                     // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
                     // System.Action x = C.M;
@@ -2498,40 +2495,17 @@ public class C { }
 
 public static class E
 {
-    public static void M(this C c) { } // ignored
+    public static void M(this C c) { } // ignored for unique signature
 }
 """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
             {
-                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-                comp.VerifyDiagnostics(
-                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
-                    // System.Action x = C.M;
-                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
-                    // (4,9): error CS8917: The delegate type could not be inferred.
-                    // var z = C.M;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9));
-
-                var tree = comp.SyntaxTrees[0];
-                var model = comp.GetSemanticModel(tree);
-                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
-                var typeInfo1 = model.GetTypeInfo(memberAccess1);
-                Assert.Null(typeInfo1.Type);
-                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
-                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
-                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
-
-                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
-                var typeInfo2 = model.GetTypeInfo(memberAccess2);
-                Assert.Null(typeInfo2.Type);
-                Assert.True(typeInfo2.ConvertedType!.IsErrorType());
-                Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
-                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
-            }
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : instead of finding the extension method and reporting an error on its receiver,
-            // we should instead discard it as a candidate early like we do for instance methods in OverloadResolution.RemoveStaticInstanceMismatches
-            {
-                var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
                 comp.VerifyDiagnostics(
                     // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
                     // System.Action x = C.M;

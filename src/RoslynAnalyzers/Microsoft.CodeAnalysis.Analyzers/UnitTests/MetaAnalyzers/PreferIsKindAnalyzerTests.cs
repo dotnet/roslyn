@@ -23,40 +23,35 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData("!=")]
         public async Task TestSimpleReturn_CSAsync(string @operator)
         {
-            var source =
-$@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-class C
-{{
-    bool Method(SyntaxNode node)
-    {{
-        return [|node.Kind()|] {@operator} SyntaxKind.None;
-    }}
-}}
-";
-
             var prefix = @operator switch
             {
                 "==" => "",
                 "!=" => "!",
                 _ => throw new InvalidOperationException(),
             };
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-            var fixedSource =
-$@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return [|node.Kind()|] {{@operator}} SyntaxKind.None;
+                    }
+                }
+                """, $$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{{
-    bool Method(SyntaxNode node)
-    {{
-        return {prefix}node.IsKind(SyntaxKind.None);
-    }}
-}}
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return {{prefix}}node.IsKind(SyntaxKind.None);
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -64,137 +59,117 @@ class C
         [InlineData("<>")]
         public async Task TestSimpleReturn_VBAsync(string @operator)
         {
-            var source =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
-
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return [|node.Kind()|] {@operator} SyntaxKind.None
-    End Function
-End Class
-";
-
             var prefix = @operator switch
             {
                 "=" => "",
                 "<>" => "Not ",
                 _ => throw new InvalidOperationException(),
             };
+            await VerifyVB.VerifyCodeFixAsync($"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-            var fixedSource =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return [|node.Kind()|] {@operator} SyntaxKind.None
+                    End Function
+                End Class
+                """, $"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return {prefix}node.IsKind(SyntaxKind.None)
-    End Function
-End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return {prefix}node.IsKind(SyntaxKind.None)
+                    End Function
+                End Class
+                """);
         }
 
         [Fact]
-        public async Task TestCompoundExpression_CSAsync()
-        {
-            var source =
-@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+        public Task TestCompoundExpression_CSAsync()
+            => VerifyCS.VerifyCodeFixAsync("""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{
-    bool Method(SyntaxNode node)
-    {
-        return [|node.Kind()|] != SyntaxKind.None && [|node.Kind()|] != SyntaxKind.TrueKeyword;
-    }
-}
-";
-            var fixedSource =
-@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return [|node.Kind()|] != SyntaxKind.None && [|node.Kind()|] != SyntaxKind.TrueKeyword;
+                    }
+                }
+                """, """
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{
-    bool Method(SyntaxNode node)
-    {
-        return !node.IsKind(SyntaxKind.None) && !node.IsKind(SyntaxKind.TrueKeyword);
-    }
-}
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return !node.IsKind(SyntaxKind.None) && !node.IsKind(SyntaxKind.TrueKeyword);
+                    }
+                }
+                """);
 
         [Fact]
-        public async Task TestCompoundExpression_VBAsync()
-        {
-            var source =
-@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+        public Task TestCompoundExpression_VBAsync()
+            => VerifyVB.VerifyCodeFixAsync("""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return [|node.Kind()|] <> SyntaxKind.None AndAlso [|node.Kind()|] <> SyntaxKind.TrueKeyword
-    End Function
-End Class
-";
-            var fixedSource =
-@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return [|node.Kind()|] <> SyntaxKind.None AndAlso [|node.Kind()|] <> SyntaxKind.TrueKeyword
+                    End Function
+                End Class
+                """, """
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return Not node.IsKind(SyntaxKind.None) AndAlso Not node.IsKind(SyntaxKind.TrueKeyword)
-    End Function
-End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
-        }
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return Not node.IsKind(SyntaxKind.None) AndAlso Not node.IsKind(SyntaxKind.TrueKeyword)
+                    End Function
+                End Class
+                """);
 
         [Theory]
         [InlineData("==")]
         [InlineData("!=")]
         public async Task TestCompoundExpression2_CSAsync(string @operator)
         {
-            var source =
-$@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-class C
-{{
-    bool Method(SyntaxNode node)
-    {{
-        return [|node.Kind()|] {@operator} SyntaxKind.None &&
-            [|node.Kind()|] {@operator} SyntaxKind.TrueKeyword;
-    }}
-}}
-";
-
             var prefix = @operator switch
             {
                 "==" => "",
                 "!=" => "!",
                 _ => throw new InvalidOperationException(),
             };
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-            var fixedSource =
-$@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return [|node.Kind()|] {{@operator}} SyntaxKind.None &&
+                            [|node.Kind()|] {{@operator}} SyntaxKind.TrueKeyword;
+                    }
+                }
+                """, $$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{{
-    bool Method(SyntaxNode node)
-    {{
-        return {prefix}node.IsKind(SyntaxKind.None) &&
-            {prefix}node.IsKind(SyntaxKind.TrueKeyword);
-    }}
-}}
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return {{prefix}}node.IsKind(SyntaxKind.None) &&
+                            {{prefix}}node.IsKind(SyntaxKind.TrueKeyword);
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -202,38 +177,33 @@ class C
         [InlineData("<>")]
         public async Task TestCompoundExpression2_VBAsync(string @operator)
         {
-            var source =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
-
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return [|node.Kind()|] {@operator} SyntaxKind.None AndAlso
-            [|node.Kind()|] {@operator} SyntaxKind.TrueKeyword
-    End Function
-End Class
-";
-
             var prefix = @operator switch
             {
                 "=" => "",
                 "<>" => "Not ",
                 _ => throw new InvalidOperationException(),
             };
+            await VerifyVB.VerifyCodeFixAsync($"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-            var fixedSource =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return [|node.Kind()|] {@operator} SyntaxKind.None AndAlso
+                            [|node.Kind()|] {@operator} SyntaxKind.TrueKeyword
+                    End Function
+                End Class
+                """, $"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return {prefix}node.IsKind(SyntaxKind.None) AndAlso
-            {prefix}node.IsKind(SyntaxKind.TrueKeyword)
-    End Function
-End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return {prefix}node.IsKind(SyntaxKind.None) AndAlso
+                            {prefix}node.IsKind(SyntaxKind.TrueKeyword)
+                    End Function
+                End Class
+                """);
         }
 
         [Theory]
@@ -249,31 +219,33 @@ End Class
             };
 
             var fixedSource =
-$@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+                $$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{{
-    bool Method(SyntaxNode node)
-    {{
-        return {prefix}Microsoft.CodeAnalysis.CSharp.CSharpExtensions.{{|#0:IsKind|}}(node, SyntaxKind.None);
-    }}
-}}
-";
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return {{prefix}}Microsoft.CodeAnalysis.CSharp.CSharpExtensions.{|#0:IsKind|}(node, SyntaxKind.None);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
-                TestCode = $@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+                TestCode = $$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{{
-    bool Method(SyntaxNode node)
-    {{
-        return [|Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(node)|] {@operator} SyntaxKind.None;
-    }}
-}}
-",
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return [|Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(node)|] {{@operator}} SyntaxKind.None;
+                    }
+                }
+                """,
                 FixedState =
                 {
                     Sources = { fixedSource },
@@ -299,27 +271,29 @@ class C
             };
 
             var fixedSource =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                $$"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return {prefix}{{|#0:Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.IsKind|}}(node, SyntaxKind.None)
-    End Function
-End Class
-";
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return {{prefix}}{|#0:Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.IsKind|}(node, SyntaxKind.None)
+                    End Function
+                End Class
+                """;
 
             await new VerifyVB.Test
             {
-                TestCode = $@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                TestCode = $"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return [|Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(node)|] {@operator} SyntaxKind.None
-    End Function
-End Class
-",
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return [|Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(node)|] {@operator} SyntaxKind.None
+                    End Function
+                End Class
+                """,
                 FixedState =
                 {
                     Sources = { fixedSource },
@@ -337,60 +311,56 @@ End Class
         [InlineData("<>")]
         public async Task TestVBWithoutParensAsync(string @operator)
         {
-            var source =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
-
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return [|node.Kind|] {@operator} SyntaxKind.None
-    End Function
-End Class
-";
-
             var prefix = @operator switch
             {
                 "=" => "",
                 "<>" => "Not ",
                 _ => throw new InvalidOperationException(),
             };
+            await VerifyVB.VerifyCodeFixAsync($"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-            var fixedSource =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return [|node.Kind|] {@operator} SyntaxKind.None
+                    End Function
+                End Class
+                """, $"""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return {prefix}node.IsKind(SyntaxKind.None)
-    End Function
-End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return {prefix}node.IsKind(SyntaxKind.None)
+                    End Function
+                End Class
+                """);
         }
 
         [Fact]
         public async Task TestSwitchStatement_CSAsync()
         {
             var source =
-@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+                """
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{
-    void Method(SyntaxNode node)
-    {
-        switch (node.Kind())
-        {
-            case SyntaxKind.NewKeyword:
-                break;
+                class C
+                {
+                    void Method(SyntaxNode node)
+                    {
+                        switch (node.Kind())
+                        {
+                            case SyntaxKind.NewKeyword:
+                                break;
 
-            case SyntaxKind.None:
-                break;
-        }
-    }
-}
-";
+                            case SyntaxKind.None:
+                                break;
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
@@ -399,100 +369,92 @@ class C
         public async Task TestSwitchStatement_VBAsync()
         {
             var source =
-@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                """
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Sub Method(node As SyntaxNode)
-        Select Case node.Kind()
-            Case SyntaxKind.NewKeyword
-                Return
-            Case Else
-                Return
-        End Select
-    End Sub
-End Class
-";
+                Class C
+                    Sub Method(node As SyntaxNode)
+                        Select Case node.Kind()
+                            Case SyntaxKind.NewKeyword
+                                Return
+                            Case Else
+                                Return
+                        End Select
+                    End Sub
+                End Class
+                """;
 
             await VerifyVB.VerifyCodeFixAsync(source, source);
         }
 
         [Fact]
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
-        public async Task TestSingleNullConditionalAccess_CSAsync()
-        {
-            var source =
-@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+        public Task TestSingleNullConditionalAccess_CSAsync()
+            => VerifyCS.VerifyCodeFixAsync("""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{
-    bool Method(SyntaxNode node)
-    {
-        return [|node?.Kind()|] == SyntaxKind.None;
-    }
-}
-";
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return [|node?.Kind()|] == SyntaxKind.None;
+                    }
+                }
+                """, """
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-            var fixedSource =
-@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-class C
-{
-    bool Method(SyntaxNode node)
-    {
-        return node.IsKind(SyntaxKind.None);
-    }
-}
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                class C
+                {
+                    bool Method(SyntaxNode node)
+                    {
+                        return node.IsKind(SyntaxKind.None);
+                    }
+                }
+                """);
 
         [Fact]
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
-        public async Task TestSingleNullConditionalAccess_VBAsync()
-        {
-            var source =
-@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+        public Task TestSingleNullConditionalAccess_VBAsync()
+            => VerifyVB.VerifyCodeFixAsync("""
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return [|node?.Kind()|] = SyntaxKind.None
-    End Function
-End Class
-";
-            var fixedSource =
-@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return [|node?.Kind()|] = SyntaxKind.None
+                    End Function
+                End Class
+                """, """
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return node.IsKind(SyntaxKind.None)
-    End Function
-End Class
-";
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
-        }
+                Class C
+                    Function Method(node As SyntaxNode) As Boolean
+                        Return node.IsKind(SyntaxKind.None)
+                    End Function
+                End Class
+                """);
 
         [Fact]
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
         public async Task TestSingleNullConditionalAccess_SyntaxToken_CSAsync()
         {
             var source =
-@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+                """
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
 
-class C
-{
-    bool Method(SyntaxToken? token)
-    {
-        return token?.Kind() == SyntaxKind.None;
-    }
-}
-";
+                class C
+                {
+                    bool Method(SyntaxToken? token)
+                    {
+                        return token?.Kind() == SyntaxKind.None;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
@@ -502,15 +464,16 @@ class C
         public async Task TestSingleNullConditionalAccess_SyntaxToken_VBAsync()
         {
             var source =
-@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
+                """
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-Class C
-    Function Method(token As SyntaxToken?) As Boolean
-        Return token?.Kind() = SyntaxKind.None
-    End Function
-End Class
-";
+                Class C
+                    Function Method(token As SyntaxToken?) As Boolean
+                        Return token?.Kind() = SyntaxKind.None
+                    End Function
+                End Class
+                """;
             await VerifyVB.VerifyCodeFixAsync(source, source);
         }
     }

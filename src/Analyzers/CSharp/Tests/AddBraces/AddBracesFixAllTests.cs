@@ -13,9 +13,8 @@ public sealed partial class AddBracesTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument1()
-    {
-        var input = """
+    public Task TestFixAllInDocument1()
+        => TestInRegularAndScriptAsync("""
             class Program1
             {
                 static void Main()
@@ -23,9 +22,7 @@ public sealed partial class AddBracesTests
                     {|FixAllInDocument:if|} (true) if (true) return;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program1
             {
                 static void Main()
@@ -39,16 +36,12 @@ public sealed partial class AddBracesTests
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument2()
-    {
-        var input = """
+    public Task TestFixAllInDocument2()
+        => TestInRegularAndScriptAsync("""
             class Program1
             {
                 static void Main()
@@ -56,9 +49,7 @@ public sealed partial class AddBracesTests
                     if (true) {|FixAllInDocument:if|} (true) return;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program1
             {
                 static void Main()
@@ -72,16 +63,12 @@ public sealed partial class AddBracesTests
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        var input = """
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -116,9 +103,7 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -160,16 +145,12 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        var input = """
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -203,9 +184,7 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -245,16 +224,12 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        var input = """
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -288,9 +263,7 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -333,16 +306,12 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingMember()
-    {
-        var input = """
+    public Task TestFixAllInContainingMember()
+        => TestInRegularAndScriptAsync("""
             class Program1
             {
                 static void Main()
@@ -365,9 +334,7 @@ public sealed partial class AddBracesTests
                     if (true) if (true) return;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program1
             {
                 static void Main()
@@ -402,16 +369,12 @@ public sealed partial class AddBracesTests
                     if (true) if (true) return;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingType_AcrossSingleFile()
-    {
-        var input = """
+    public Task TestFixAllInContainingType_AcrossSingleFile()
+        => TestInRegularAndScriptAsync("""
             class Program1
             {
                 static void Main()
@@ -434,9 +397,7 @@ public sealed partial class AddBracesTests
                     if (true) if (true) return;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program1
             {
                 static void Main()
@@ -477,16 +438,12 @@ public sealed partial class AddBracesTests
                     if (true) if (true) return;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingType_AcrossMultipleFiles()
-    {
-        var input = """
+    public Task TestFixAllInContainingType_AcrossMultipleFiles()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -525,9 +482,7 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -590,10 +545,7 @@ public sealed partial class AddBracesTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Theory]
     [InlineData("FixAllInContainingMember")]
@@ -601,9 +553,8 @@ public sealed partial class AddBracesTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingMemberAndType_TopLevelStatements(string fixAllScope)
-    {
-        var input = $$"""
+    public Task TestFixAllInContainingMemberAndType_TopLevelStatements(string fixAllScope)
+        => TestInRegularAndScriptAsync($$"""
             {|{{fixAllScope}}:if|} (true) if (true) return;
 
             if (false) if (false) return;
@@ -615,9 +566,7 @@ public sealed partial class AddBracesTests
                     if (true) if (true) return;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             if (true)
             {
                 if (true)
@@ -641,18 +590,14 @@ public sealed partial class AddBracesTests
                     if (true) if (true) return;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Theory]
     [InlineData("FixAllInContainingMember")]
     [InlineData("FixAllInContainingType")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingMemberAndType_TopLevelStatements_02(string fixAllScope)
-    {
-        var input = $$"""
+    public Task TestFixAllInContainingMemberAndType_TopLevelStatements_02(string fixAllScope)
+        => TestInRegularAndScriptAsync($$"""
             using System;
 
             {|{{fixAllScope}}:if|} (true) if (true) return;
@@ -669,9 +614,7 @@ public sealed partial class AddBracesTests
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
 
             if (true)
@@ -700,19 +643,14 @@ public sealed partial class AddBracesTests
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Theory]
     [InlineData("FixAllInContainingMember")]
     [InlineData("FixAllInContainingType")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingMemberAndType_TopLevelStatements_ErrorCase(string fixAllScope)
-    {
-        // Error case: Global statements should precede non-global statements.
-        var input = $$"""
+    public Task TestFixAllInContainingMemberAndType_TopLevelStatements_ErrorCase(string fixAllScope)
+        => TestMissingInRegularAndScriptAsync($$"""
             class OtherType
             {
                 void OtherMethod()
@@ -724,8 +662,5 @@ public sealed partial class AddBracesTests
             {|{{fixAllScope}}:if|} (true) if (true) return;
 
             if (false) if (false) return;
-            """;
-
-        await TestMissingInRegularAndScriptAsync(input);
-    }
+            """);
 }

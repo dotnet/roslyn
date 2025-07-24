@@ -11,6 +11,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>$(LanguageServicesExtensionInstallationFolder)\Core</ExtensionInstallationFolder>
+    <DeployExtension>true</DeployExtension>
 
     <!-- VS Insertion -->
     <!--

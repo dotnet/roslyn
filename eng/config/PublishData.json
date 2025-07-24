@@ -176,6 +176,15 @@
       "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
     },
+    "release/dev-next": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Validation]",
+      "insertionCreateDraftPR": true
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -192,7 +201,7 @@
       ],
       "vsBranch": "main",
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.15 P1]"
+      "insertionTitlePrefix": "[dNext]"
     }
   }
 }

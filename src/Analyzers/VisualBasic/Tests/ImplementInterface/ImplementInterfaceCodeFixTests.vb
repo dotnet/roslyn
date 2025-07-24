@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-    Partial Public Class ImplementInterfaceTests
+    Partial Public Class ImplementInterfaceCodeFixTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -820,7 +820,7 @@ End Namespace",
         End Sub
     End Class
 End Namespace",
-parseOptions:=Nothing) ' Namespaces not supported in script
+New TestParameters(parseOptions:=Nothing)) ' Namespaces not supported in script
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541078")>
@@ -1835,7 +1835,7 @@ Namespace N
         End Sub
     End Class
 End Namespace",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545679"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
@@ -4503,7 +4503,7 @@ End Namespace")
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13932")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/5898")>
         Public Async Function TestAutoProperties() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "interface IInterface
     readonly property ReadOnlyProp as integer
     property ReadWriteProp as integer

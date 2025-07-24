@@ -29,15 +29,15 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41584")]
         public async Task TestClassWithFactAsync()
         {
-            var code = @"
-using System.Threading.Tasks;
-using Xunit;
+            var code = """
+                using System.Threading.Tasks;
+                using Xunit;
 
-public class SomeClass {
-[Fact]
-public async Task [|TestMethod|]() { }
-}
-";
+                public class SomeClass {
+                [Fact]
+                public async Task [|TestMethod|]() { }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -57,14 +57,14 @@ public async Task [|TestMethod|]() { }
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41584")]
         public async Task TestClassWithTheoryAsync()
         {
-            var code = @"
-using Xunit;
+            var code = """
+                using Xunit;
 
-public class [|SomeClass|] {
-[Theory, InlineData(0)]
-public void TestMethod(int arg) { }
-}
-";
+                public class [|SomeClass|] {
+                [Theory, InlineData(0)]
+                public void TestMethod(int arg) { }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -84,15 +84,15 @@ public void TestMethod(int arg) { }
         [Fact]
         public async Task TestAlreadyHasAsyncSuffixAsync()
         {
-            var code = @"
-using System.Threading.Tasks;
-using Xunit;
+            var code = """
+                using System.Threading.Tasks;
+                using Xunit;
 
-public class SomeClass {
-[Fact]
-public async Task TestMethodAsync() { }
-}
-";
+                public class SomeClass {
+                [Fact]
+                public async Task TestMethodAsync() { }
+                }
+                """;
 
             await new VerifyCS.Test
             {

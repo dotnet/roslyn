@@ -199,7 +199,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
             return VSConstants.E_INVALIDARG;
         }
 
-        pData[0].hImageList = this.LibraryManager.ImageListPtr;
+        // Just return zero for the hImageList, which allows the object browser to use the default image list with no DPI issues.
+        pData[0].hImageList = IntPtr.Zero;
         GetDisplayData(index, ref pData[0]);
 
         return VSConstants.S_OK;

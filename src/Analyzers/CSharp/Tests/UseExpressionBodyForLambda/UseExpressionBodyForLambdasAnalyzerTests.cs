@@ -30,9 +30,8 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
 
     [Fact]
-    public async Task UseExpressionBodyInMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyInMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -57,13 +56,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, string> f = x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task TestMissingWhenAlreadyAndExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWhenAlreadyAndExpressionBody()
+        => TestMissingAsync(
             """
             using System;
 
@@ -75,12 +72,10 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                 }
             }
             """, new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task UseBlockBodyInMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyInMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -105,13 +100,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task MissingWhenAlreadyHasBlockBody()
-    {
-        await TestMissingAsync(
+    public Task MissingWhenAlreadyHasBlockBody()
+        => TestMissingAsync(
             """
             using System;
 
@@ -123,12 +116,10 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                 }
             }
             """, new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task UseExpressionBodyInArgument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyInArgument()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -157,13 +148,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
 
                 void TargetMethod(Func<int, string> targetParam) { }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyInArgument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyInArgument()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -192,13 +181,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
 
                 void TargetMethod(Func<int, string> targetParam) { }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyFromReturnKeyword()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseExpressionBodyFromReturnKeyword()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -213,12 +200,10 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                 }
             }
             """, new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task UseExpressionBodyFromLambdaOpeningBrace()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseExpressionBodyFromLambdaOpeningBrace()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -233,12 +218,10 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                 }
             }
             """, new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task UseExpressionBodyFromLambdaClosingBrace()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseExpressionBodyFromLambdaClosingBrace()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -253,12 +236,10 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                 }
             }
             """, new TestParameters(options: UseExpressionBody));
-    }
 
     [Fact]
-    public async Task UseExpressionBodyThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -283,13 +264,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, string> f = x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -314,13 +293,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithVoidReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithVoidReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -345,13 +322,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithVoidReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithVoidReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -376,13 +351,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyWithVoidReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithVoidReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -407,13 +380,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseBlockBodyWithVoidReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithVoidReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -438,13 +409,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithAsyncVoidReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithAsyncVoidReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -469,13 +438,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = async x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithAsyncVoidReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithAsyncVoidReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -500,13 +467,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Action<int> f = async x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyWithAsyncVoidReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithAsyncVoidReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -531,13 +496,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseBlockBodyWithAsyncVoidReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithAsyncVoidReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -562,13 +525,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithTaskReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithTaskReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -595,13 +556,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = () => Task.CompletedTask;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithTaskReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithTaskReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -628,13 +587,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = () => throw null;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyWithTaskReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithTaskReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -661,13 +618,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseBlockBodyWithTaskReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithTaskReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -694,13 +649,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithAsyncTaskReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithAsyncTaskReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -727,13 +680,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = async () => await Task.CompletedTask;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithAsyncTaskReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithAsyncTaskReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -760,13 +711,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<Task> f = async () => throw null;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyWithAsyncTaskReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithAsyncTaskReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -793,13 +742,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseBlockBodyWithAsyncTaskReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithAsyncTaskReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -826,13 +773,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithTaskTReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithTaskTReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -859,13 +804,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = x => Task.FromResult(x.ToString());
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithTaskTReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithTaskTReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -892,13 +835,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyWithTaskTReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithTaskTReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -925,13 +866,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseBlockBodyWithTaskTReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithTaskTReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -958,13 +897,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithAsyncTaskTReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithAsyncTaskTReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -991,13 +928,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = async x => await Task.FromResult(x.ToString());
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithAsyncTaskTReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithAsyncTaskTReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1024,13 +959,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Task<string>> f = async x => throw null;
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyWithAsyncTaskTReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithAsyncTaskTReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1057,13 +990,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseBlockBodyWithAsyncTaskTReturnThrowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithAsyncTaskTReturnThrowing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1090,13 +1021,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithPrecedingComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithPrecedingComment()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1126,13 +1055,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                         x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyWithEndingComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyWithEndingComment()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1159,13 +1086,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, string> f = x => x.ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyWithEndingComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyWithEndingComment()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1192,13 +1117,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     }; // Comment
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseExpressionBodyInMethod_FixAll1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyInMethod_FixAll1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1226,13 +1149,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = x => y => (x + y).ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseExpressionBodyInMethod_FixAll2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseExpressionBodyInMethod_FixAll2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1260,13 +1181,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = x => y => (x + y).ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task UseBlockBodyInMethod_FixAll1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyInMethod_FixAll1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1294,13 +1213,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task UseBlockBodyInMethod_FixAll2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseBlockBodyInMethod_FixAll2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1328,13 +1245,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task FixAllNested1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllNested1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1362,13 +1277,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = a => b => b.ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task FixAllNested2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllNested2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1396,13 +1309,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     Func<int, Func<int, string>> f = a => b => b.ToString();
                 }
             }
-            """, options: UseExpressionBody);
-    }
+            """, new(options: UseExpressionBody));
 
     [Fact]
-    public async Task FixAllNested3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllNested3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1430,13 +1341,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact]
-    public async Task FixAllNested4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllNested4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1464,13 +1373,11 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                     };
                 }
             }
-            """, options: UseBlockBody);
-    }
+            """, new(options: UseBlockBody));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76645")]
-    public async Task TestMethodOverloadResolutionChange()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMethodOverloadResolutionChange()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1488,5 +1395,4 @@ public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper l
                 void Execute(Func<int> function) { }
             }
             """, new(options: UseExpressionBody));
-    }
 }

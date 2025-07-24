@@ -188,9 +188,7 @@ public sealed class ObjectSerializationTests
 
     [Fact]
     public void TestValueInt32()
-    {
-        TestRoundTripValue(123);
-    }
+        => TestRoundTripValue(123);
 
     [Fact]
     public void TestInt32TypeCodes()
@@ -402,9 +400,7 @@ public sealed class ObjectSerializationTests
 
     [Fact]
     public void TestPrimitiveAPIs()
-    {
-        TestRoundTrip(w => TestWritingPrimitiveAPIs(w), r => TestReadingPrimitiveAPIs(r));
-    }
+        => TestRoundTrip(w => TestWritingPrimitiveAPIs(w), r => TestReadingPrimitiveAPIs(r));
 
     private static void TestWritingPrimitiveAPIs(ObjectWriter writer)
     {
@@ -456,9 +452,7 @@ public sealed class ObjectSerializationTests
 
     [Fact]
     public void TestPrimitivesValue()
-    {
-        TestRoundTrip(w => TestWritingPrimitiveValues(w), r => TestReadingPrimitiveValues(r));
-    }
+        => TestRoundTrip(w => TestWritingPrimitiveValues(w), r => TestReadingPrimitiveValues(r));
 
     private static void TestWritingPrimitiveValues(ObjectWriter writer)
     {
@@ -495,6 +489,7 @@ public sealed class ObjectSerializationTests
             writer.WriteInt64((long)ELong.Value);
             writer.WriteInt64((long)EULong.Value);
         }
+
         writer.WriteScalarValue(_testNow);
     }
 
@@ -638,11 +633,6 @@ public sealed class ObjectSerializationTests
     private static void TestRoundTripStringCharacter(ushort code)
     {
         TestRoundTripString(new String((char)code, 1));
-    }
-
-    private static void TestRoundTripArray<T>(T[] values)
-    {
-        TestRoundTripValue(values);
     }
 
     public static IEnumerable<object[]> GetEncodingTestCases()

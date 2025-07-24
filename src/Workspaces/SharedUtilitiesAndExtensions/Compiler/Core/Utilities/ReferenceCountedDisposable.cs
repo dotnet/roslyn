@@ -117,7 +117,7 @@ internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposabl
     /// it returns after any code invokes <see cref="Dispose"/>.</para>
     /// </remarks>
     /// <value>The target object.</value>
-    public T Target => _instance ?? throw new ObjectDisposedException(nameof(ReferenceCountedDisposable<T>));
+    public T Target => _instance ?? throw new ObjectDisposedException(nameof(ReferenceCountedDisposable<>));
 
     /// <summary>
     /// Increments the reference count for the disposable object, and returns a new disposable reference to it.
@@ -186,13 +186,13 @@ internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposabl
     {
         var instanceToDispose = DisposeImpl();
         if (instanceToDispose == null)
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
 
         if (instanceToDispose is IAsyncDisposable asyncDisposable)
             return asyncDisposable.DisposeAsync();
 
         instanceToDispose.Dispose();
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     private T? DisposeImpl()

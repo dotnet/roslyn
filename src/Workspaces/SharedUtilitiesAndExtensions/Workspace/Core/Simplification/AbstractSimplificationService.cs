@@ -172,7 +172,7 @@ internal abstract class AbstractSimplificationService<
         }
         else
         {
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 source: nodesAndTokensToReduce,
                 cancellationToken,
                 ReduceOneNodeOrTokenAsync).ConfigureAwait(false);

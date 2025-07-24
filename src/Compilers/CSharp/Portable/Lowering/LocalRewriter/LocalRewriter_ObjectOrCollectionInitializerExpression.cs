@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? temps = null;
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: false,
                 initializer.Arguments,
                 addMethod,
                 initializer.ArgsToParamsOpt,
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var originalReceiver = rewrittenReceiver;
             ArrayBuilder<LocalSymbol>? constructionTemps = null;
-            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, captureReceiverMode: ReceiverCaptureMode.Default, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, forceReceiverCapturing: false, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
                 storesOpt: null, ref constructionTemps);
 
             if (constructionTemps != null)
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenAccess = GetUnderlyingIndexerOrSliceAccess(
                             implicitIndexer,
                             isLeftOfAssignment: !isRhsNestedInitializer,
-                            isRegularAssignmentOrRegularCompoundAssignment: true,
+                            isRegularAssignment: true,
                             cacheAllArgumentsOnly: true,
                             result, temps);
 

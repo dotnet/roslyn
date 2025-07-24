@@ -18,9 +18,8 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
         => typeof(InitializerExpressionSignatureHelpProvider);
 
     [Fact]
-    public async Task WithSingleParamAddMethods()
-    {
-        var markup = """
+    public Task WithSingleParamAddMethods()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -30,15 +29,11 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                     new List<int> { { $$
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("void List<int>.Add(int item)", currentParameterIndex: 0)]);
-    }
+            """, [new("void List<int>.Add(int item)", currentParameterIndex: 0)]);
 
     [Fact]
-    public async Task ForMultiParamAddMethods()
-    {
-        var markup = """
+    public Task ForMultiParamAddMethods()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -48,15 +43,11 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                     new Dictionary<int, string> { { $$
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
-    }
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
 
     [Fact]
-    public async Task ForSecondParam()
-    {
-        var markup = """
+    public Task ForSecondParam()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -66,15 +57,11 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                     new Dictionary<int, string> { { 0, $$
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 1)]);
-    }
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 1)]);
 
     [Fact]
-    public async Task ForNestedCollectionInitializer()
-    {
-        var markup = """
+    public Task ForNestedCollectionInitializer()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class Bar
@@ -89,15 +76,11 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                     new Bar { D = { { $$
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
-    }
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
 
     [Fact]
-    public async Task WithoutClosingBraces()
-    {
-        var markup = """
+    public Task WithoutClosingBraces()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class Bar
@@ -110,15 +93,11 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 void Goo()
                 {
                     new Bar { D = { { $$
-            """;
-
-        await TestAsync(markup, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
-    }
+            """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
 
     [Fact]
-    public async Task WithMultipleAddMethods()
-    {
-        var markup = """
+    public Task WithMultipleAddMethods()
+        => TestAsync("""
             using System.Collections;
 
             class Bar : IEnumerable
@@ -133,18 +112,14 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 void Goo()
                 {
                     new Bar { { $$
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("void Bar.Add(int i)", currentParameterIndex: 0),
             new("void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true),
             new("void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task DoesNotImplementIEnumerable()
-    {
-        var markup = """
+    public Task DoesNotImplementIEnumerable()
+        => TestAsync("""
             using System.Collections;
 
             class Bar
@@ -159,15 +134,11 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 void Goo()
                 {
                     new Bar { { $$
-            """;
-
-        await TestAsync(markup, expectedOrderedItemsOrNull: []);
-    }
+            """, expectedOrderedItemsOrNull: []);
 
     [Fact]
-    public async Task WithExtensionAddMethods()
-    {
-        var markup = """
+    public Task WithExtensionAddMethods()
+        => TestAsync("""
             using System.Collections;
 
             class Bar : IEnumerable
@@ -186,11 +157,8 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 void Goo()
                 {
                     new Bar { { $$
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i)", currentParameterIndex: 0),
             new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true),
             new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0)], sourceCodeKind: SourceCodeKind.Regular);
-    }
 }

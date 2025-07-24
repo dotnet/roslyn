@@ -25,34 +25,34 @@ namespace Text.Analyzers.UnitTests
         }
 
         public static IEnumerable<object[]> MisspelledMembers
-            => new[]
-            {
+            =>
+            [
                 new object[] { CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: false), "Clazz", "Clazz.Clazz()" },
-                new object[] { CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: true), "Clazz", "Clazz.Clazz()" },
-                new object[] { CreateTypeWithField("Program", "{|#0:_fild|}"), "fild", "Program._fild" },
-                new object[] { CreateTypeWithEvent("Program", "{|#0:Evt|}"), "Evt", "Program.Evt" },
-                new object[] { CreateTypeWithProperty("Program", "{|#0:Naem|}"), "Naem", "Program.Naem" },
-                new object[] { CreateTypeWithMethod("Program", "{|#0:SomeMathod|}"), "Mathod", "Program.SomeMathod()" },
-            };
+                [CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: true), "Clazz", "Clazz.Clazz()"],
+                [CreateTypeWithField("Program", "{|#0:_fild|}"), "fild", "Program._fild"],
+                [CreateTypeWithEvent("Program", "{|#0:Evt|}"), "Evt", "Program.Evt"],
+                [CreateTypeWithProperty("Program", "{|#0:Naem|}"), "Naem", "Program.Naem"],
+                [CreateTypeWithMethod("Program", "{|#0:SomeMathod|}"), "Mathod", "Program.SomeMathod()"],
+            ];
 
         public static IEnumerable<object[]> UnmeaningfulMembers
-            => new[]
-            {
+            =>
+            [
                 new object[] { CreateTypeWithConstructor("A", constructorName: "{|#0:A|}", isStatic: false), "A" },
-                new object[] { CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B" },
-                new object[] { CreateTypeWithField("Program", "{|#0:_c|}"), "c" },
-                new object[] { CreateTypeWithEvent("Program", "{|#0:D|}"), "D" },
-                new object[] { CreateTypeWithProperty("Program", "{|#0:E|}"), "E" },
-                new object[] { CreateTypeWithMethod("Program", "{|#0:F|}"), "F" },
-            };
+                [CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B"],
+                [CreateTypeWithField("Program", "{|#0:_c|}"), "c"],
+                [CreateTypeWithEvent("Program", "{|#0:D|}"), "D"],
+                [CreateTypeWithProperty("Program", "{|#0:E|}"), "E"],
+                [CreateTypeWithMethod("Program", "{|#0:F|}"), "F"],
+            ];
 
         public static IEnumerable<object[]> MisspelledMemberParameters
-            => new[]
-            {
+            =>
+            [
                 new object[] { CreateTypeWithConstructor("Program", parameter: "int {|#0:yourNaem|}", isStatic: false), "Naem", "yourNaem", "Program.Program(int)" },
-                new object[] { CreateTypeWithMethod("Program", "Method", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.Method(int)" },
-                new object[] { CreateTypeWithIndexer("Program", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.this[int]" },
-            };
+                [CreateTypeWithMethod("Program", "Method", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.Method(int)"],
+                [CreateTypeWithIndexer("Program", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.this[int]"],
+            ];
 
         [Theory]
         [InlineData("namespace Bar { }")]
@@ -62,47 +62,41 @@ namespace Text.Analyzers.UnitTests
         [InlineData("class Program { void Member(string name) { } }")]
         [InlineData("class Program { delegate int GetNumber(string name); }")]
         [InlineData("class Program<TResource> { }")]
-        public async Task NoMisspellings_Verify_NoDiagnosticsAsync(string source)
-        {
-            await VerifyCSharpAsync(source);
-        }
+        public Task NoMisspellings_Verify_NoDiagnosticsAsync(string source)
+            => VerifyCSharpAsync(source);
 
         [Fact]
         public async Task MisspellingAllowedByGlobalXmlDictionary_Verify_NoDiagnosticsAsync()
         {
-            var source = "class Clazz { }";
-            var dictionary = CreateXmlDictionary(new[] { "clazz" });
+            var dictionary = CreateXmlDictionary(["clazz"]);
 
-            await VerifyCSharpAsync(source, dictionary);
+            await VerifyCSharpAsync("class Clazz { }", dictionary);
         }
 
         [Fact]
         public async Task MisspellingAllowedByGlobalDicDictionary_Verify_NoDiagnosticsAsync()
         {
-            var source = "class Clazz { }";
-            var dictionary = CreateDicDictionary(new[] { "clazz" });
+            var dictionary = CreateDicDictionary(["clazz"]);
 
-            await VerifyCSharpAsync(source, dictionary);
+            await VerifyCSharpAsync("class Clazz { }", dictionary);
         }
 
         [Fact]
         public async Task MisspellingsAllowedByMultipleGlobalDictionaries_Verify_NoDiagnosticsAsync()
         {
-            var source = @"class Clazz { const string Naem = ""foo""; }";
-            var xmlDictionary = CreateXmlDictionary(new[] { "clazz" });
-            var dicDictionary = CreateDicDictionary(new[] { "naem" });
+            var xmlDictionary = CreateXmlDictionary(["clazz"]);
+            var dicDictionary = CreateDicDictionary(["naem"]);
 
-            await VerifyCSharpAsync(source, new[] { xmlDictionary, dicDictionary });
+            await VerifyCSharpAsync(@"class Clazz { const string Naem = ""foo""; }", [xmlDictionary, dicDictionary]);
         }
 
         [Fact]
         public async Task CorrectWordDisallowedByGlobalXmlDictionary_Verify_EmitsDiagnosticAsync()
         {
-            var source = "class {|#0:Program|} { }";
-            var dictionary = CreateXmlDictionary(null, new[] { "program" });
+            var dictionary = CreateXmlDictionary(null, ["program"]);
 
             await VerifyCSharpAsync(
-                source,
+                "class {|#0:Program|} { }",
                 dictionary,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
                     .WithLocation(0)
@@ -112,17 +106,16 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task MisspellingAllowedByProjectDictionary_Verify_NoDiagnosticsAsync()
         {
-            var source = "class Clazz {}";
-            var dictionary = CreateDicDictionary(new[] { "clazz" });
+            var dictionary = CreateDicDictionary(["clazz"]);
 
-            await VerifyCSharpAsync(source, dictionary);
+            await VerifyCSharpAsync("class Clazz {}", dictionary);
         }
 
         [Fact]
         public async Task MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnosticAsync()
         {
             var source = "class {|#0:Clazz|} {}";
-            var dictionary = CreateDicDictionary(new[] { "clazz" });
+            var dictionary = CreateDicDictionary(["clazz"]);
             var test = new VerifyCS.Test
             {
                 TestState =
@@ -209,28 +202,20 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task NamespaceMisspelled_Verify_EmitsDiagnosticAsync()
-        {
-            var source = "namespace Tests.{|#0:MyNarmspace|} {}";
-
-            await VerifyCSharpAsync(
-                source,
+        public Task NamespaceMisspelled_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "namespace Tests.{|#0:MyNarmspace|} {}",
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.NamespaceRule)
                     .WithLocation(0)
                     .WithArguments("Narmspace", "Tests.MyNarmspace"));
-        }
 
         [Fact]
-        public async Task NamespaceUnmeaningful_Verify_EmitsDiagnosticAsync()
-        {
-            var source = "namespace Tests.{|#0:A|} {}";
-
-            await VerifyCSharpAsync(
-                source,
+        public Task NamespaceUnmeaningful_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "namespace Tests.{|#0:A|} {}",
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.NamespaceMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("A"));
-        }
 
         [Theory]
         [InlineData("namespace MyNamespace { class {|#0:MyClazz|} {} }", "Clazz", "MyNamespace.MyClazz")]
@@ -238,14 +223,12 @@ namespace Text.Analyzers.UnitTests
         [InlineData("namespace MyNamespace { enum {|#0:MyEnim|} {} }", "Enim", "MyNamespace.MyEnim")]
         [InlineData("namespace MyNamespace { interface {|#0:IMyFase|} {} }", "Fase", "MyNamespace.IMyFase")]
         [InlineData("namespace MyNamespace { delegate int {|#0:MyDelegete|}(); }", "Delegete", "MyNamespace.MyDelegete")]
-        public async Task TypeMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string typeName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string typeName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
                     .WithLocation(0)
                     .WithArguments(misspelling, typeName));
-        }
 
         [Theory]
         [InlineData("class {|#0:A|} {}", "A")]
@@ -253,152 +236,133 @@ namespace Text.Analyzers.UnitTests
         [InlineData("enum {|#0:C|} {}", "C")]
         [InlineData("interface {|#0:ID|} {}", "D")]
         [InlineData("delegate int {|#0:E|}();", "E")]
-        public async Task TypeUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments(typeName));
-        }
 
         [Theory]
         [MemberData(nameof(MisspelledMembers))]
-        public async Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
-        {
-            await VerifyCSharpAsync(
+        public Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberRule)
                     .WithLocation(0)
                     .WithArguments(misspelling, memberName));
-        }
 
         [Fact]
-        public async Task MemberOverrideMisspelled_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        abstract class Parent
-        {
-            protected abstract string {|#0:Naem|} { get; }
+        public Task MemberOverrideMisspelled_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                abstract class Parent
+                {
+                    protected abstract string {|#0:Naem|} { get; }
 
-            public abstract int {|#1:Mathod|}();
-        }
+                    public abstract int {|#1:Mathod|}();
+                }
 
-        class Child : Parent
-        {
-            protected override string Naem => ""child"";
+                class Child : Parent
+                {
+                    protected override string Naem => "child";
 
-            public override int Mathod() => 0;
-        }
+                    public override int Mathod() => 0;
+                }
 
-        class Grandchild : Child
-        {
-            protected override string Naem => ""grandchild"";
+                class Grandchild : Child
+                {
+                    protected override string Naem => "grandchild";
 
-            public override int Mathod() => 1;
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+                    public override int Mathod() => 1;
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberRule)
                     .WithLocation(0)
                     .WithArguments("Naem", "Parent.Naem"),
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberRule)
                     .WithLocation(1)
                     .WithArguments("Mathod", "Parent.Mathod()"));
-        }
 
         [Theory]
         [MemberData(nameof(UnmeaningfulMembers))]
-        public async Task MemberUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string memberName)
-        {
-            await VerifyCSharpAsync(
+        public Task MemberUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string memberName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments(memberName));
-        }
 
         [Fact]
-        public async Task VariableMisspelled_Verify_EmitsDiagnosticAsync()
-        {
-            var source = @"
-        class Program
-        {
-            public Program()
-            {
-                var {|#0:myVoriable|} = 5;
-            }
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+        public Task VariableMisspelled_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                """
+                class Program
+                {
+                    public Program()
+                    {
+                        var {|#0:myVoriable|} = 5;
+                    }
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.VariableRule)
                     .WithLocation(0)
                     .WithArguments("Voriable", "myVoriable"));
-        }
 
         [Theory]
         [MemberData(nameof(MisspelledMemberParameters))]
-        public async Task MemberParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string parameterName, string memberName)
-        {
-            await VerifyCSharpAsync(
+        public Task MemberParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string parameterName, string memberName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(0)
                     .WithArguments(memberName, misspelling, parameterName));
-        }
 
         [Fact]
-        public async Task MemberParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
-        {
-            var source = @"
-        class Program
-        {
-            public void Method(string {|#0:a|})
-            {
-            }
+        public Task MemberParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                """
+                class Program
+                {
+                    public void Method(string {|#0:a|})
+                    {
+                    }
 
-            public string this[int {|#1:i|}] => null;
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+                    public string this[int {|#1:i|}] => null;
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("Program.Method(string)", "a"),
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(1)
                     .WithArguments("Program.this[int]", "i"));
-        }
 
         [Fact]
-        public async Task MemberParameterMisspelledInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        interface IProgram
-        {
-            void Method(string {|#0:explaintain|});
+        public Task MemberParameterMisspelledInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                interface IProgram
+                {
+                    void Method(string {|#0:explaintain|});
 
-            string this[int {|#1:indxe|}] { get; }
-        }
+                    string this[int {|#1:indxe|}] { get; }
+                }
 
-        class Program : IProgram
-        {
-            public void Method(string explaintain)
-            {
-            }
+                class Program : IProgram
+                {
+                    public void Method(string explaintain)
+                    {
+                    }
 
-            public string this[int indxe] => null;
+                    public string this[int indxe] => null;
 
-            public void Method2(long {|#2:enviromentId|})
-            {
-            }
+                    public void Method2(long {|#2:enviromentId|})
+                    {
+                    }
 
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(0)
                     .WithArguments("IProgram.Method(string)", "explaintain", "explaintain"),
@@ -408,35 +372,32 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(2)
                     .WithArguments("Program.Method2(long)", "enviroment", "enviromentId"));
-        }
 
         [Fact]
-        public async Task MemberParameterUnmeaningfulInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        interface IProgram
-        {
-            void Method(string {|#0:a|});
+        public Task MemberParameterUnmeaningfulInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                interface IProgram
+                {
+                    void Method(string {|#0:a|});
 
-            string this[int {|#1:i|}] { get; }
-        }
+                    string this[int {|#1:i|}] { get; }
+                }
 
-        class Program : IProgram
-        {
-            public void Method(string a)
-            {
-            }
+                class Program : IProgram
+                {
+                    public void Method(string a)
+                    {
+                    }
 
-            public string this[int i] => null;
+                    public string this[int i] => null;
 
-            public void Method2(long {|#2:x|})
-            {
-            }
+                    public void Method2(long {|#2:x|})
+                    {
+                    }
 
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("IProgram.Method(string)", "a"),
@@ -446,35 +407,32 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(2)
                     .WithArguments("Program.Method2(long)", "x"));
-        }
 
         [Fact]
-        public async Task MemberParameterUnmeaningfulExplicitInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        interface IProgram
-        {
-            void Method(string {|#0:a|});
+        public Task MemberParameterUnmeaningfulExplicitInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                interface IProgram
+                {
+                    void Method(string {|#0:a|});
 
-            string this[int {|#1:i|}] { get; }
-        }
+                    string this[int {|#1:i|}] { get; }
+                }
 
-        class Program : IProgram
-        {
-            void IProgram.Method(string a)
-            {
-            }
+                class Program : IProgram
+                {
+                    void IProgram.Method(string a)
+                    {
+                    }
 
-            string IProgram.this[int i] => null;
+                    string IProgram.this[int i] => null;
 
-            public void Method2(long {|#2:x|})
-            {
-            }
+                    public void Method2(long {|#2:x|})
+                    {
+                    }
 
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("IProgram.Method(string)", "a"),
@@ -484,35 +442,32 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(2)
                     .WithArguments("Program.Method2(long)", "x"));
-        }
 
         [Fact]
-        public async Task MemberParameterMisspelledExplicitInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        interface IProgram
-        {
-            void Method(string {|#0:explaintain|});
+        public Task MemberParameterMisspelledExplicitInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                interface IProgram
+                {
+                    void Method(string {|#0:explaintain|});
 
-            string this[int {|#1:indxe|}] { get; }
-        }
+                    string this[int {|#1:indxe|}] { get; }
+                }
 
-        class Program : IProgram
-        {
-            void IProgram.Method(string explaintain)
-            {
-            }
+                class Program : IProgram
+                {
+                    void IProgram.Method(string explaintain)
+                    {
+                    }
 
-            string IProgram.this[int indxe] => null;
+                    string IProgram.this[int indxe] => null;
 
-            public void Method2(long {|#2:enviromentId|})
-            {
-            }
+                    public void Method2(long {|#2:enviromentId|})
+                    {
+                    }
 
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(0)
                     .WithArguments("IProgram.Method(string)", "explaintain", "explaintain"),
@@ -522,88 +477,80 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(2)
                     .WithArguments("Program.Method2(long)", "enviroment", "enviromentId"));
-        }
 
         [Fact]
-        public async Task MemberParameterMisspelledOverrideImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        public abstract class Base
-        {
-            public abstract void Method(string {|#0:explaintain|});
-        }
+        public Task MemberParameterMisspelledOverrideImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                public abstract class Base
+                {
+                    public abstract void Method(string {|#0:explaintain|});
+                }
 
-        public class Derived : Base
-        {
-            public override void Method(string explaintain)
-            {
-            }
+                public class Derived : Base
+                {
+                    public override void Method(string explaintain)
+                    {
+                    }
 
-            public void Method2(long {|#1:enviromentId|})
-            {
-            }
+                    public void Method2(long {|#1:enviromentId|})
+                    {
+                    }
 
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(0)
                     .WithArguments("Base.Method(string)", "explaintain", "explaintain"),
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(1)
                     .WithArguments("Derived.Method2(long)", "enviroment", "enviromentId"));
-        }
 
         [Fact]
-        public async Task MemberParameterMisspelledOverrideImplementationWithNameMismatch_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        public abstract class Base
-        {
-            public abstract void Method(string {|#0:explaintain|});
-            public abstract void Method2(string {|#1:inupts|});
-        }
+        public Task MemberParameterMisspelledOverrideImplementationWithNameMismatch_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                public abstract class Base
+                {
+                    public abstract void Method(string {|#0:explaintain|});
+                    public abstract void Method2(string {|#1:inupts|});
+                }
 
-        public class Mid : Base
-        {
-            public override void Method(string explaintain)
-            {
-            }
+                public class Mid : Base
+                {
+                    public override void Method(string explaintain)
+                    {
+                    }
 
-            public override void Method2(string {|#2:paarmeter|})
-            {
-            }
-        }
+                    public override void Method2(string {|#2:paarmeter|})
+                    {
+                    }
+                }
 
-        public class Derived : Mid
-        {
-            public override void Method(string explanation)
-            {
-            }
+                public class Derived : Mid
+                {
+                    public override void Method(string explanation)
+                    {
+                    }
 
-            public override void Method2(string {|#3:paarmeterId|})
-            {
-            }
+                    public override void Method2(string {|#3:paarmeterId|})
+                    {
+                    }
 
-        }
+                }
 
-        public class Derived2 : Mid
-        {
-            public override void Method(string {|#4:explaintaing|})
-            {
-            }
+                public class Derived2 : Mid
+                {
+                    public override void Method(string {|#4:explaintaing|})
+                    {
+                    }
 
-            public override void Method2(string {|#5:strValue|})
-            {
-            }
+                    public override void Method2(string {|#5:strValue|})
+                    {
+                    }
 
-        }
-
-";
-
-            await VerifyCSharpAsync(
-                source,
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(0)
                     .WithArguments("Base.Method(string)", "explaintain", "explaintain"),
@@ -622,67 +569,53 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(5)
                     .WithArguments("Derived2.Method2(string)", "str", "strValue"));
-        }
 
         [Fact]
-        public async Task MemberParameterMisspelledIndexerOVerrideWithNameMismatch_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
-        {
-            var source = @"
-        public interface IProgram
-        {
-            string this[int {|#0:indxe|}] { get; }
-        }
+        public Task MemberParameterMisspelledIndexerOVerrideWithNameMismatch_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+            => VerifyCSharpAsync(
+                """
+                public interface IProgram
+                {
+                    string this[int {|#0:indxe|}] { get; }
+                }
 
-        public class Program : IProgram
-        {
-            public virtual string this[int indxe] => null;
-        }
+                public class Program : IProgram
+                {
+                    public virtual string this[int indxe] => null;
+                }
 
-        public class DerivedProgram : Program
-        {
-            public override string this[int indxe] => null;
-        }
+                public class DerivedProgram : Program
+                {
+                    public override string this[int indxe] => null;
+                }
 
-        public class DerivedProgram2 : Program
-        {
-            public override string this[int {|#1:indexe|}] => null;
-        }
-
-";
-
-            await VerifyCSharpAsync(
-                source,
+                public class DerivedProgram2 : Program
+                {
+                    public override string this[int {|#1:indexe|}] => null;
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(0)
                     .WithArguments("IProgram.this[int]", "indxe", "indxe"),
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(1)
                     .WithArguments("DerivedProgram2.this[int]", "indexe", "indexe"));
-        }
 
         [Fact]
-        public async Task DelegateParameterMisspelled_Verify_EmitsDiagnosticAsync()
-        {
-            var source = "delegate void MyDelegate(string {|#0:firstNaem|});";
-
-            await VerifyCSharpAsync(
-                source,
+        public Task DelegateParameterMisspelled_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "delegate void MyDelegate(string {|#0:firstNaem|});",
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.DelegateParameterRule)
                     .WithLocation(0)
                     .WithArguments("MyDelegate", "Naem", "firstNaem"));
-        }
 
         [Fact]
-        public async Task DelegateParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
-        {
-            var source = "delegate void MyDelegate(string {|#0:a|});";
-
-            await VerifyCSharpAsync(
-                source,
+        public Task DelegateParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "delegate void MyDelegate(string {|#0:a|});",
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.DelegateParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("MyDelegate", "a"));
-        }
 
         [Theory]
         [InlineData("class MyClass<TCorrect, {|#0:TWroong|}> { }", "MyClass<TCorrect, TWroong>", "Wroong", "TWroong")]
@@ -690,95 +623,79 @@ namespace Text.Analyzers.UnitTests
         [InlineData("interface IInterface<{|#0:TWroong|}> { }", "IInterface<TWroong>", "Wroong", "TWroong")]
         [InlineData("delegate int MyDelegate<{|#0:TWroong|}>();", "MyDelegate<TWroong>", "Wroong", "TWroong")]
 
-        public async Task TypeTypeParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string typeName, string misspelling, string typeParameterName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeTypeParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string typeName, string misspelling, string typeParameterName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeTypeParameterRule)
                     .WithLocation(0)
                     .WithArguments(typeName, misspelling, typeParameterName));
-        }
 
         [Theory]
         [InlineData("class MyClass<{|#0:A|}> { }", "MyClass<A>", "A")]
         [InlineData("struct MyStructure<{|#0:B|}> { }", "MyStructure<B>", "B")]
         [InlineData("interface IInterface<{|#0:C|}> { }", "IInterface<C>", "C")]
         [InlineData("delegate int MyDelegate<{|#0:D|}>();", "MyDelegate<D>", "D")]
-        public async Task TypeTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName, string typeParameterName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName, string typeParameterName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeTypeParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments(typeName, typeParameterName));
-        }
 
         [Fact]
-        public async Task MethodTypeParameterMisspelled_Verify_EmitsDiagnosticAsync()
-        {
-            var source = @"
-        class Program
-        {
-            void Method<{|#0:TTipe|}>(TTipe item)
-            {
-            }
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+        public Task MethodTypeParameterMisspelled_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                """
+                class Program
+                {
+                    void Method<{|#0:TTipe|}>(TTipe item)
+                    {
+                    }
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MethodTypeParameterRule)
                     .WithLocation(0)
                     .WithArguments("Program.Method<TTipe>(TTipe)", "Tipe", "TTipe"));
-        }
 
         [Fact]
-        public async Task MethodTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
-        {
-            var source = @"
-        class Program
-        {
-            void Method<{|#0:TA|}>(TA parameter)
-            {
-            }
-        }";
-
-            await VerifyCSharpAsync(
-                source,
+        public Task MethodTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                """
+                class Program
+                {
+                    void Method<{|#0:TA|}>(TA parameter)
+                    {
+                    }
+                }
+                """,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MethodTypeParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("Program.Method<TA>(TA)", "TA"));
-        }
 
         [Fact]
-        public async Task MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnosticsAsync()
-        {
-            var source = "class FCCA { }";
-
-            await VerifyCSharpAsync(source);
-        }
+        public Task MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnosticsAsync()
+            => VerifyCSharpAsync("class FCCA { }");
 
         [Theory]
         [InlineData("0x0")]
         [InlineData("0xDEADBEEF")]
-        public async Task MisspellingStartsWithADigit_Verify_NoDiagnosticsAsync(string misspelling)
-        {
-            var source = $"enum Name {{ My{misspelling} }}";
-
-            await VerifyCSharpAsync(source);
-        }
+        public Task MisspellingStartsWithADigit_Verify_NoDiagnosticsAsync(string misspelling)
+            => VerifyCSharpAsync($"enum Name {{ My{misspelling} }}");
 
         [Fact]
         public async Task MalformedXmlDictionary_Verify_EmitsDiagnosticAsync()
         {
-            var contents = @"<?xml version=""1.0"" encoding=""utf-8""?>
-        <Dictionary>
-            <Words>
-                <Recognized>
-                    <Word>okay</Word>
-                    <word>bad</Word> <!-- xml tags are case-sensitive -->
-                </Recognized>
-            </Words>
-        </Dictionary>";
+            var contents = """
+                <?xml version="1.0" encoding="utf-8"?>
+                        <Dictionary>
+                            <Words>
+                                <Recognized>
+                                    <Word>okay</Word>
+                                    <word>bad</Word> <!-- xml tags are case-sensitive -->
+                                </Recognized>
+                            </Words>
+                        </Dictionary>
+                """;
             var dictionary = ("CodeAnalysisDictionary.xml", contents);
 
             await VerifyCSharpAsync(
@@ -794,7 +711,7 @@ namespace Text.Analyzers.UnitTests
             => VerifyCSharpAsync(source, Array.Empty<(string Path, string Text)>(), expected);
 
         private Task VerifyCSharpAsync(string source, (string Path, string Text) additionalText, params DiagnosticResult[] expected)
-            => VerifyCSharpAsync(source, new[] { additionalText }, expected);
+            => VerifyCSharpAsync(source, [additionalText], expected);
 
         private async Task VerifyCSharpAsync(string source, (string Path, string Text)[] additionalTexts, params DiagnosticResult[] expected)
         {
@@ -819,15 +736,15 @@ namespace Text.Analyzers.UnitTests
 
         private static (string Path, string Text) CreateXmlDictionary(string filename, IEnumerable<string>? recognizedWords, IEnumerable<string>? unrecognizedWords = null)
         {
-            var contents = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Dictionary>
-    <Words>
-        <Recognized>{CreateXml(recognizedWords)}</Recognized>
-        <Unrecognized>{CreateXml(unrecognizedWords)}</Unrecognized>
-    </Words>
-</Dictionary>";
-
-            return (filename, contents);
+            return (filename, $"""
+                <?xml version="1.0" encoding="utf-8"?>
+                <Dictionary>
+                    <Words>
+                        <Recognized>{CreateXml(recognizedWords)}</Recognized>
+                        <Unrecognized>{CreateXml(unrecognizedWords)}</Unrecognized>
+                    </Words>
+                </Dictionary>
+                """);
 
             static string CreateXml(IEnumerable<string>? words) =>
                 string.Join(Environment.NewLine, words?.Select(x => $"<Word>{x}</Word>") ?? Enumerable.Empty<string>());
@@ -846,13 +763,14 @@ namespace Text.Analyzers.UnitTests
                 constructorName = typeName;
             }
 
-            return $@"
-#pragma warning disable {IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId}
-class {typeName}
-#pragma warning restore {IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId}
-{{
-    {(isStatic ? "static " : string.Empty)}{constructorName}({parameter}) {{ }}
-}}";
+            return $$"""
+                #pragma warning disable {{IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId}}
+                class {{typeName}}
+                #pragma warning restore {{IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId}}
+                {
+                    {{(isStatic ? "static " : string.Empty)}}{{constructorName}}({{parameter}}) { }
+                }
+                """;
         }
 
         private static string CreateTypeWithMethod(string typeName, string methodName, string parameter = "")
@@ -868,8 +786,10 @@ class {typeName}
             => $"class {typeName} {{ private string {fieldName}; }}";
 
         private static string CreateTypeWithEvent(string typeName, string eventName)
-            => $@"using System;
+            => $$"""
+            using System;
 
-class {typeName} {{ event EventHandler<string> {eventName}; }}";
+            class {{typeName}} { event EventHandler<string> {{eventName}}; }
+            """;
     }
 }
