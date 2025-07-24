@@ -107,8 +107,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void GetBreakpointSequence1()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class C
             {
                 $$void Goo()
@@ -138,12 +137,10 @@ public sealed class BreakpointSpansTests
                 [|}|]
             }
             """);
-    }
 
     [Fact]
     public void GetBreakpointSequence2()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class C
             {
                 $$void Goo()
@@ -165,12 +162,10 @@ public sealed class BreakpointSpansTests
                 [|}|]
             }
             """);
-    }
 
     [Fact]
     public void GetBreakpointSequence3()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class C
             {
                 $$int Goo()
@@ -195,12 +190,10 @@ public sealed class BreakpointSpansTests
                 [|}|]
             }
             """);
-    }
 
     [Fact]
     public void GetBreakpointSequence4()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class C
             {
                 $$IEnumerable<int> Goo()
@@ -220,24 +213,20 @@ public sealed class BreakpointSpansTests
                 [|}|]
             }
             """);
-    }
 
     [Fact]
     public void GetBreakpointSequence5()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class C
             {
                 $$IEnumerable<int> Goo()
                 [|{|][|while(t)|][|{|][|}|][|}|]
             }
             """);
-    }
 
     [Fact]
     public void GetBreakpointSequence6()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class C
             {
                 $$IEnumerable<int> Goo()
@@ -260,36 +249,30 @@ public sealed class BreakpointSpansTests
                 [|}|]
             }
             """);
-    }
 
     [Fact]
     public void GetBreakpointSequence_StaticContructor_NoBody()
-    {
-        VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>("""
             class Class
             {
                 static Clas$$s()
             }
             """);
-    }
 
     [Fact]
     public void GetBreakpointSequence_Method_NoBody()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class Class
             {
                 int F$$unction()
             }
             """);
-    }
 
     #region Switch Expression
 
     [Fact]
     public void SwitchExpression_All()
-    {
-        VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
+        => VerifyAllSpansInDeclaration<MethodDeclarationSyntax>("""
             class C
             {
                 $$IEnumerable<int> Goo()
@@ -308,12 +291,10 @@ public sealed class BreakpointSpansTests
                 [|}|]
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression01()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -328,12 +309,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression02()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -348,12 +327,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression03()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -368,12 +345,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression04()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -388,12 +363,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression05()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -408,12 +381,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression06()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -428,12 +399,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression07()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -448,12 +417,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression08()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -468,12 +435,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression09()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -488,12 +453,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression10()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -508,12 +471,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression11()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -528,12 +489,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void SwitchExpression12()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -548,7 +507,6 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     #endregion
 
@@ -556,8 +514,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void ForStatementInitializer1a()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -569,12 +526,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForStatementInitializer1b()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -586,12 +541,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForStatementInitializer1c()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -603,12 +556,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForStatementInitializer1d()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -622,12 +573,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForStatementInitializer2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -639,7 +588,6 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForStatementInitializer3()
@@ -647,8 +595,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void ForStatementCondition()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -660,12 +607,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForStatementIncrementor1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -677,12 +622,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForStatementIncrementor2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -694,12 +637,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForEachStatementExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -711,12 +652,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ForEachDeconstructionStatementExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -728,7 +667,6 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     #endregion
 
@@ -736,8 +674,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void SimpleLambdaBody()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -747,12 +684,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ParenthesizedLambdaBody()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -762,12 +697,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void AnonymousMethod1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -777,12 +710,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void AnonymousMethod2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -792,7 +723,6 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     #endregion
 
@@ -800,8 +730,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void FirstFromClauseExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -813,12 +742,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SecondFromClauseExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -830,12 +757,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void FromInQueryContinuation1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -849,12 +774,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void FromInQueryContinuation2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -868,12 +791,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void JoinClauseLeftExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -885,12 +806,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void JoinClauseRightExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -902,12 +821,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void LetClauseExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -920,12 +837,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void WhereClauseExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -938,12 +853,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void WhereClauseKeyword()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -955,12 +868,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SimpleOrdering1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -973,12 +884,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SimpleOrdering2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -991,12 +900,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void AscendingOrdering1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1009,12 +916,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void AscendingOrdering2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1027,12 +932,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void DescendingOrdering1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1045,12 +948,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void DescendingOrdering2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1063,7 +964,6 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OrderByKeyword()
@@ -1075,8 +975,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void SelectExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1089,12 +988,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void AnonymousTypeAfterSelect()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1107,12 +1004,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void GroupExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1126,12 +1021,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void GroupByKeyword()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1145,12 +1038,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void GroupByExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1164,12 +1055,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void InFrontOfFirstFromClause()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1186,12 +1075,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void InFrontOfSecondFromClause()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1208,12 +1095,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void InFrontOfLetClause()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1230,12 +1115,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void InFrontOfJoinClause()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1252,12 +1135,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void InFrontOfOrderByClause()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1274,12 +1155,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void InFrontOfGroupByClause()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1295,12 +1174,10 @@ public sealed class BreakpointSpansTests
                     select y.blah();
               }
             """);
-    }
 
     [Fact]
     public void InFrontOfSelectClause()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1316,91 +1193,76 @@ public sealed class BreakpointSpansTests
                 $$   select [|y.blah()|];
               }
             """);
-    }
 
     [Fact]
     public void Select1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               IEnumerable<int> Goo() => from x in new[] { 1 } select [|$$x|];
             }
             """);
-    }
 
     [Fact]
     public void Select_NoLambda1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               IEnumerable<int> Goo() => [|from x in new[] { 1 } where x > 0 select $$x|];
             }
             """);
-    }
 
     [Fact]
     public void Select_NoLambda2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               IEnumerable<int> Goo() => [|from x in new[] { 1 } select x into y orderby y select $$y|];
             }
             """);
-    }
 
     [Fact]
     public void GroupBy1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               IEnumerable<int> Goo() => from x in new[] { 1 } group x by [|$$x|];
             }
             """);
-    }
 
     [Fact]
     public void GroupBy_NoLambda1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               IEnumerable<int> Goo() => [|from x in new[] { 1 } group $$x by x|];
             }
             """);
-    }
 
     [Fact]
     public void GroupBy_NoLambda2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               IEnumerable<int> Goo() => [|from x in new[] { 1 } group $$x by x + 1 into y group y by y.Key + 2|];
             }
             """);
-    }
 
     [Fact]
     public void GroupBy_NoLambda3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               IEnumerable<int> Goo() => [|from x in new[] { 1 } group x by x + 1 into y group $$y by y.Key + 2|];
             }
             """);
-    }
 
     #endregion
 
@@ -1408,44 +1270,37 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void FieldDeclarator_WithoutInitializer_All()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
                 int $$i, j;
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_WithoutInitializer1()
-    {
-        TestMissing(
+        => TestMissing(
             """
             class C
             {
                 int $$i;
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_WithoutInitializer2()
-    {
-        TestMissing(
+        => TestMissing(
             """
             class C
             {
                 pri$$vate int i;
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_SingleVariable_Initializer_All1()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
@@ -1453,12 +1308,10 @@ public sealed class BreakpointSpansTests
                 private int $$i;
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_SingleVariable_Initializer_All2()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
@@ -1466,11 +1319,9 @@ public sealed class BreakpointSpansTests
                 [|int $$i = 0;|]
             }
             """);
-    }
     [Fact]
     public void FieldDeclarator_SingleVariable_Initializer_All3()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
@@ -1478,12 +1329,10 @@ public sealed class BreakpointSpansTests
                 [|private int $$i = 0;|]
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_MultiVariable_Initializer_All1()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
@@ -1491,12 +1340,10 @@ public sealed class BreakpointSpansTests
                 [|private int $$i = 0|], j = 2;
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_MultiVariable_Initializer_All2()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
@@ -1504,12 +1351,10 @@ public sealed class BreakpointSpansTests
                 [|int $$i = 0|], j = 2;
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_MultiVariable_Initializer_All3()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
@@ -1517,36 +1362,30 @@ public sealed class BreakpointSpansTests
                 private int i = 0, [|$$j = 0|];
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_Initializer1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|int $$i = 1;|]
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_Initializer2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|private int $$i = 1;|]
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_Initializer3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1554,31 +1393,26 @@ public sealed class BreakpointSpansTests
                 [|private int $$i = 0;|]
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_Initializer4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|pri$$vate int i = 1;|]
             }
             """);
-    }
 
     [Fact]
     public void FieldDeclarator_Initializer5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
             $$    [|private int i = 3;|]
             }
             """);
-    }
 
     [Fact]
     public void ConstVariableDeclarator0()
@@ -1594,8 +1428,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void ConstFieldVariableDeclarator_All()
-    {
-        VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+        => VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
             """
             class C
             {
@@ -1603,7 +1436,6 @@ public sealed class BreakpointSpansTests
                 private const int i = 0, j, $$k = 0;
             }
             """);
-    }
 
     [Fact]
     public void ConstFieldVariableDeclarator0()
@@ -1623,8 +1455,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void VariableDeclarator1()
-    {
-        TestMissing(
+        => TestMissing(
             """
             class C
             {
@@ -1634,12 +1465,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator2a()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1649,12 +1478,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator2b()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1664,12 +1491,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator2c()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1679,12 +1504,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator3a()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1694,12 +1517,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator3b()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1709,12 +1530,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator3c()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1724,12 +1543,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1739,67 +1556,56 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               [|int $$i = 0;|]
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator6()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               [|int i = 0|], $$j;
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator7()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               private int i = 0, [|j = $$1|];
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator8()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
               [|priv$$ate int i = 0|], j = 1;
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator9()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
             $$  [|private int i = 0|], j = 1;
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator10()
@@ -1807,8 +1613,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void VariableDeclarator_Separators0()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1818,12 +1623,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1833,12 +1636,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1848,12 +1649,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1863,12 +1662,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1878,12 +1675,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1893,12 +1688,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators6()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1908,12 +1701,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators7()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1923,12 +1714,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators8()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1938,12 +1727,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void VariableDeclarator_Separators9()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -1953,103 +1740,86 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
             $$    [|public event EventHandler MyEvent = delegate { };|]
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|pub$$lic event EventHandler MyEvent = delegate { };|]
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|public ev$$ent EventHandler MyEvent = delegate { };|]
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|public event EventHan$$dler MyEvent = delegate { };|]
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|public event EventHandler MyE$$vent = delegate { };|]
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator6()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|public event EventHandler MyEvent $$= delegate { };|]
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator7()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 [|public event EventHandler MyEvent = del$$egate { };|]
             }
             """);
-    }
 
     [Fact]
     public void EventFieldDeclarator8()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public event EventHandler MyEvent = delegate [|{|] $$ };
             }
             """);
-    }
 
     #endregion
 
@@ -2067,8 +1837,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void ElseClauseWithBlock()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2083,12 +1852,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ElseClauseWithStatement()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2102,12 +1869,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void ElseIf()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2121,12 +1886,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void EmptyCatch()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2141,12 +1904,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void CatchWithType()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2161,12 +1922,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void CatchWithTypeInType()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2181,12 +1940,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void CatchWithTypeAndNameInType()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2201,12 +1958,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void CatchWithTypeAndNameInName()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2221,12 +1976,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void Filter1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2241,12 +1994,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void Filter3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2261,12 +2012,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void Filter4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2281,12 +2030,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void Filter5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2301,12 +2048,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SimpleFinally()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2321,12 +2066,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void FinallyWithCatch()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2344,12 +2087,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SwitchLabelWithBlock()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2364,12 +2105,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SwitchLabelWithStatement()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2383,12 +2122,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SwitchLabelWithStatement2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2403,7 +2140,6 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void SwitchLabelWithoutStatement()
@@ -2411,8 +2147,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void MultipleLabelsOnFirstLabel()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2431,12 +2166,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void MultipleLabelsOnSecondLabel()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2455,12 +2188,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void MultipleLabelsOnLabelWithDefault()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2479,12 +2210,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void MultipleLabelsOnDefault()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2503,12 +2232,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void BlockBeforeStartToken()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2518,12 +2245,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void BlockBeforeStartToken2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2533,12 +2258,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void BlockAfterStartToken()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2548,12 +2271,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void BlockAfterStartToken2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2563,12 +2284,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void BlockBeforeEndToken1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2577,12 +2296,10 @@ public sealed class BreakpointSpansTests
               $$[|}|]
             }
             """);
-    }
 
     [Fact]
     public void BlockBeforeEndToken2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2591,12 +2308,10 @@ public sealed class BreakpointSpansTests
               $$ [|}|]
             }
             """);
-    }
 
     [Fact]
     public void BlockAfterEndToken1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2605,12 +2320,10 @@ public sealed class BreakpointSpansTests
               [|}|]$$
             }
             """);
-    }
 
     [Fact]
     public void BlockAfterEndToken2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2619,12 +2332,10 @@ public sealed class BreakpointSpansTests
               [|}|] $$
             }
             """);
-    }
 
     [Fact]
     public void SingleDeclarationOnType()
-    {
-        TestMissing(
+        => TestMissing(
             """
             class C
             {
@@ -2634,12 +2345,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void MultipleDeclarationsOnType()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2649,12 +2358,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void Label()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2665,12 +2372,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void WhileInWhile()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2682,12 +2387,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void WhileInExpr()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2699,12 +2402,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnWhileBlock()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2716,12 +2417,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnDoKeyword()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2734,12 +2433,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnDoBlock()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2752,12 +2449,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnDoWhile()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2770,12 +2465,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnDoWhile_MissingSemicolon()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2788,12 +2481,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnDoExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2806,12 +2497,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForWithDeclaration1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2823,12 +2512,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForWithDeclaration2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2840,12 +2527,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForWithCondition()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2857,12 +2542,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForWithIncrementor1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2874,12 +2557,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForWithIncrementor2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2891,12 +2572,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnEmptyFor()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2908,12 +2587,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachKeyword1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2925,12 +2602,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachKeyword2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2942,12 +2617,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachKeyword3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2960,12 +2633,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachKeyword4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2978,12 +2649,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachKeyword5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -2995,12 +2664,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachType1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3013,12 +2680,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachType2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3030,12 +2695,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachIdentifier()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3047,12 +2710,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachIn1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3064,12 +2725,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachIn2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3082,12 +2741,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachIn3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3101,12 +2758,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachExpr1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3118,12 +2773,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachExpr2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3136,12 +2789,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachExpr3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3155,12 +2806,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachStatement()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3172,12 +2821,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachBlock1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3189,12 +2836,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionKeyword1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3206,12 +2851,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionKeyword2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3223,12 +2866,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionKeyword3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3241,12 +2882,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionKeyword4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3259,12 +2898,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionKeyword5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3276,12 +2913,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionType1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3294,12 +2929,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionType2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3311,12 +2944,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionIdentifier()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3328,12 +2959,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionIn1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3345,12 +2974,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionIn2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3363,12 +2990,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionIn3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3382,12 +3007,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionExpr1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3399,12 +3022,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionExpr2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3417,12 +3038,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionExpr3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3436,12 +3055,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionStatement()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3453,12 +3070,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnForEachDeconstructionBlock1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3470,12 +3085,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithDecl1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3487,12 +3100,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithDecl2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3504,12 +3115,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithDeclType()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3521,12 +3130,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithDeclIdentifier1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3538,12 +3145,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithDeclIdentifier2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3555,12 +3160,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithDeclIdentifier3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3572,12 +3175,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithDeclExpression()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3589,12 +3190,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithExpression1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3606,12 +3205,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUsingWithExpression2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3623,12 +3220,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnFixed1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3640,12 +3235,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnFixed2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3657,12 +3250,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnFixed3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3674,12 +3265,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnFixed4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3691,12 +3280,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnFixed5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3708,12 +3295,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnFixed6()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3725,12 +3310,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnChecked1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3742,12 +3325,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUnchecked1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3759,12 +3340,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnUnsafe1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3776,12 +3355,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnLock1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3793,12 +3370,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnLock2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3810,12 +3385,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnIf1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3827,12 +3400,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnIf2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3844,12 +3415,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnIfBlock()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3861,12 +3430,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnSwitch1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3880,12 +3447,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnSwitch2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3899,12 +3464,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnSwitch3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3918,12 +3481,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnSwitch4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3937,12 +3498,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnTry1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3957,12 +3516,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnTry2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3977,12 +3534,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnGotoStatement1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -3992,12 +3547,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnGotoStatement2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4007,12 +3560,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnGotoCaseStatement1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4026,12 +3577,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnGotoCaseStatement2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4045,12 +3594,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnGotoCaseStatement3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4064,12 +3611,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnGotoDefault1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4083,12 +3628,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnGotoDefault2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4102,12 +3645,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnBreak1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4120,12 +3661,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnContinue1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4138,12 +3677,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnReturn1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4153,12 +3690,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnReturn2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4168,12 +3703,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnReturn3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4183,12 +3716,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnYieldReturn1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4198,12 +3729,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnYieldReturn2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4213,12 +3742,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnYieldReturn3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4228,12 +3755,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnYieldBreak1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4243,12 +3768,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnYieldBreak2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4258,12 +3781,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnThrow1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4273,12 +3794,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnThrow2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4288,12 +3807,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnThrow3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4303,12 +3820,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnThrow4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4318,12 +3833,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnExpressionStatement1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4333,12 +3846,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnEmptyStatement1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4348,12 +3859,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnEmptyStatement2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4366,12 +3875,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnPropertyAccessor1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4383,12 +3890,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnPropertyAccessor2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4398,12 +3903,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnPropertyAccessor3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4419,12 +3922,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnPropertyAccessor4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4434,12 +3935,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48504")]
     public void OnPropertyAccessor5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4449,12 +3948,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnProperty1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4470,12 +3967,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnProperty2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4486,7 +3981,6 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
     public void OnPropertyWithInitializer()
@@ -4534,68 +4028,57 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void OnPropertyExpressionBody1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int Id => [|12$$3|];
             }
             """);
-    }
 
     [Fact]
     public void OnPropertyExpressionBody2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int Id $$=> [|123|];
             }
             """);
-    }
 
     [Fact]
     public void OnPropertyExpressionBody3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 $$public int Id => [|123|];
             }
             """);
-    }
 
     [Fact]
     public void OnPropertyExpressionBody4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int Id => [|123|];   $$
             }
             """);
-    }
 
     [Fact]
     public void OnIndexerExpressionBody1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int this[int a] => [|12$$3|];
             }
             """);
-    }
 
     [Fact]
     public void OnIndexer1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4611,12 +4094,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnIndexer2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4627,60 +4108,50 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void OnIndexerExpressionBody2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int this[int a] $$=> [|123|];
             }
             """);
-    }
 
     [Fact]
     public void OnIndexerExpressionBody3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 $$public int this[int a] => [|123|];
             }
             """);
-    }
 
     [Fact]
     public void OnIndexerExpressionBody4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int this[int a] => [|123|];   $$
             }
             """);
-    }
 
     [Fact]
     public void OnIndexerExpressionBody5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int this[int $$a] => [|123|];   
             }
             """);
-    }
 
     [Fact]
     public void OnMethod1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4689,12 +4160,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnMethod2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4703,12 +4172,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnMethod3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4717,12 +4184,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnMethod4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4731,12 +4196,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnMethod5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4745,81 +4208,68 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnMethodWithExpressionBody1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 v$$oid Goo() => [|123|];
             }
             """);
-    }
 
     [Fact]
     public void OnMethodWithExpressionBody2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 void Goo() =>$$ [|123|];
             }
             """);
-    }
 
     [Fact]
     public void OnMethodWithExpressionBody3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 void Goo() => [|123|]; $$
             }
             """);
-    }
 
     [Fact]
     public void OnMethodWithExpressionBody4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 void Goo() => [|12$$3|]; 
             }
             """);
-    }
 
     [Fact]
     public void MissingOnMethod()
-    {
-        TestMissing(
+        => TestMissing(
             """
             class C
             {
                 void Goo($$);
             }
             """);
-    }
 
     #region Constructors
 
     [Fact]
     public void InstanceConstructor_NoInitializer_BlockBody_All()
-    {
-        VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+        => VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
             """
             class C
             {
                 [Attribute1, Attribute2][Attribute3][|$$public C()|] [|{|] [|}|]
             }
             """);
-    }
 
     [Fact]
     public void InstanceConstructor_NoInitializer_BlockBody()
@@ -4838,27 +4288,23 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void InstanceConstructor_NoBody()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class Class
             {
                 [|Cla$$ss()|]
             }
             """);
-    }
 
     [Fact]
     public void InstanceConstructor_NoInitializer_ExpressionBody_All()
-    {
-        VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+        => VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
             """
             class C
             {
                 [Attribute1, Attribute2][Attribute3][|$$public C()|] => [|x = 1|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void InstanceConstructor_NoInitializer_ExpressionBody1()
@@ -4914,44 +4360,37 @@ public sealed class BreakpointSpansTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void InstanceConstructor_NoInitializer_ExpressionBody5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public C() => [|x =$$ 1|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void InstanceConstructor_NoInitializer_ExpressionBody6()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public C() => [|x = 1|]$$;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void InstanceConstructor_NoInitializer_ExpressionBody7()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public C() => [|x = 1|];$$
             }
             """);
-    }
 
     [Fact]
     public void InstanceConstructor_NoInitializer_Attributes()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -4964,7 +4403,6 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ImplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
@@ -4985,9 +4423,7 @@ public sealed class BreakpointSpansTests
             "class [|C<T>(int a, int b)|] where $$T : notnull;",
             "class [|C<T>(int a, int b)|] where T : notnull$$;",
             "class [|C<T>(int a, int b)|] where T : notnull$$ { }")] string source)
-    {
-        TestSpan(source.Replace("class", keyword));
-    }
+        => TestSpan(source.Replace("class", keyword));
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
@@ -5002,9 +4438,7 @@ public sealed class BreakpointSpansTests
             "class [|C<T>($$int a, int b)|];",
             "class [|C<T>($$[A]int a, int b)|];",
             "class [|C<T>(int a, int b$$)|];")] string source)
-    {
-        TestSpan(source.Replace("class", keyword));
-    }
+        => TestSpan(source.Replace("class", keyword));
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
@@ -5023,9 +4457,7 @@ public sealed class BreakpointSpansTests
             "record C<T>(int a,  $$ [|int b|]);",     // property getter and setter
             "record C<T>(int a, [|params int[] b|]  $$);",     // property getter and setter
             "record C<T>(int a, [|int b|] = default$$);")] string source) // property getter and setter
-    {
-        TestSpan(source.Replace("record", keyword));
-    }
+        => TestSpan(source.Replace("record", keyword));
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ImplicitBaseInitializer_NoBreakpoint(
@@ -5038,9 +4470,7 @@ public sealed class BreakpointSpansTests
             "class C(int a, int b);$$",
             "class C(int a, int b) : B;$$",
             "class C(int a, int b) : B { }$$")] string source)
-    {
-        TestMissing(source.Replace("class", keyword));
-    }
+        => TestMissing(source.Replace("class", keyword));
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ExplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
@@ -5065,9 +4495,7 @@ public sealed class BreakpointSpansTests
             "class C<T>(int a, int b) : [|B()|]  where $$T : notnull;",
             "class C<T>(int a, int b) : [|B()|]  where T : notnull$$;",
             "class C<T>(int a, int b) : [|B()|]  where T : notnull$$ { }")] string source)
-    {
-        TestSpan(source.Replace("class", keyword));
-    }
+        => TestSpan(source.Replace("class", keyword));
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
@@ -5080,9 +4508,7 @@ public sealed class BreakpointSpansTests
             "class C<T>($$int a, int b) : [|B()|];",
             "class C<T>(int a, $$int b) : [|B()|];",
             "class C<T>(int a, int b =$$ 1) : [|B()|];")] string source)
-    {
-        TestSpan(source.Replace("class", keyword));
-    }
+        => TestSpan(source.Replace("class", keyword));
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
@@ -5095,9 +4521,7 @@ public sealed class BreakpointSpansTests
             "record C<T>([|$$int a|], int b) : B();",     // property getter and setter
             "record C<T>(int a, [|$$int b|]) : B();",     // property getter and setter
             "record C<T>(int a, [|$$int b|] = 1) : B();")] string source) // property getter and setter
-    {
-        TestSpan(source.Replace("record", keyword));
-    }
+        => TestSpan(source.Replace("record", keyword));
 
     [Theory, CombinatorialData]
     public void InstanceConstructor_Primary_ExplicitBaseInitializer_NoBreakpoint(
@@ -5108,21 +4532,17 @@ public sealed class BreakpointSpansTests
             "class C(int a, int b) : B() { }$$",
             "class C(int a, int b) : B {$$ }",
             "class C(int a, int b) : B(), I { }$$")] string source)
-    {
-        TestMissing(source.Replace("class", keyword));
-    }
+        => TestMissing(source.Replace("class", keyword));
 
     [Fact]
     public void InstanceConstructor_BaseInitializer_BlockBody_All()
-    {
-        VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+        => VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
             """
             class C
             {
                 [Attribute1, Attribute2][Attribute3]$$public C() : [|base(42)|] [|{|][|}|]
             }
             """);
-    }
 
     [Fact]
     public void InstanceConstructor_BaseInitializer_BlockBody()
@@ -5142,15 +4562,13 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void InstanceConstructor_BaseInitializer_ExpressionBody_All()
-    {
-        VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+        => VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
             """
             class C
             {
                 [Attribute1, Attribute2][Attribute3]$$public C() : [|base(42)|] => [|x = 1|];
             }
             """);
-    }
 
     [Fact]
     public void InstanceConstructor_BaseInitializer_ExpressionBody1()
@@ -5226,20 +4644,17 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void StaticConstructor_BlockBody_All()
-    {
-        VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+        => VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
             """
             class C
             {
                 [Attribute1, Attribute2][Attribute3]$$static public C() [|{|] [|}|]
             }
             """);
-    }
 
     [Fact]
     public void StaticConstructor_BlockBody()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5248,43 +4663,36 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void StaticConstructor_ExpressionBody_All()
-    {
-        VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+        => VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
             """
             class C
             {
                 [Attribute1, Attribute2][Attribute3]$$static public C() => [|x = 1|];
             }
             """);
-    }
 
     [Fact]
     public void StaticConstructor_ExpressionBody()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 static C() => [|$$F()|];
             }
             """);
-    }
 
     [Fact]
     public void StaticConstructor_NoBody()
-    {
-        TestMissing(
+        => TestMissing(
             """
             class Class
             {
                 static Cla$$ss()
             }
             """);
-    }
 
     [Fact]
     public void InstanceConstructorInitializer()
@@ -5320,8 +4728,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void OnStaticConstructor()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5330,14 +4737,12 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     #endregion
 
     [Fact]
     public void OnDestructor()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5346,12 +4751,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnOperator()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5360,60 +4763,50 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnOperatorWithExpressionBody1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static int op$$erator+(C c1, C c2) => [|c1|];
             }
             """);
-    }
 
     [Fact]
     public void OnOperatorWithExpressionBody2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static int operator+(C c1, C c2) =>$$ [|c1|];
             }
             """);
-    }
 
     [Fact]
     public void OnOperatorWithExpressionBody3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static int operator+(C c1, C c2) => [|c1|]; $$
             }
             """);
-    }
 
     [Fact]
     public void OnOperatorWithExpressionBody4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static int operator+(C c1, C c2) => [|c$$1|];
             }
             """);
-    }
 
     [Fact]
     public void OnConversionOperator()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5422,60 +4815,50 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void OnConversionOperatorWithExpressionBody1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static op$$erator DateTime(C c1) => [|DataTime.Now|];
             }
             """);
-    }
 
     [Fact]
     public void OnConversionOperatorWithExpressionBody2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static operator DateTime(C c1) =>$$ [|DataTime.Now|];
             }
             """);
-    }
 
     [Fact]
     public void OnConversionOperatorWithExpressionBody3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static operator DateTime(C c1) => [|DataTime.Now|];$$
             }
             """);
-    }
 
     [Fact]
     public void OnConversionOperatorWithExpressionBody4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public static operator DateTime(C c1) => [|DataTime$$.Now|];
             }
             """);
-    }
 
     [Fact, WorkItem(3557, "DevDiv_Projects/Roslyn")]
     public void InFrontOfAttribute()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5485,23 +4868,19 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
     public void InInactivePPRegion()
-    {
-        TestLine(
+        => TestLine(
             """
             #if blahblah
             $$gooby
             #endif
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
     public void WithIncompleteDeclaration()
-    {
-        TestMissing(
+        => TestMissing(
             """
             clas C
             {
@@ -5511,7 +4890,6 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
     public void OnGetter()
@@ -5595,8 +4973,7 @@ public sealed class BreakpointSpansTests
 
     [Fact]
     public void WhenClause_1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5612,12 +4989,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void WhenClause_2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5633,12 +5008,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void WhenClause_3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5654,12 +5027,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void PatternSwitchCase_1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5676,12 +5047,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void PatternSwitchCase_2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5698,12 +5067,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void PatternSwitchCase_3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5720,12 +5087,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void DeconstructionDeclarationStatement_1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5735,12 +5100,10 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact]
     public void DeconstructionDeclarationStatement_2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5750,168 +5113,140 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int Id { get => [|12$$3|]; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int Id { get $$=> [|123|]; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 $$public int Id { get => [|123|]; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public int Id { get => [|123|];   $$ }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
             $$    public event Action Goo { add => [|123|]; remove => 456; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody6()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public event Action Goo { add => [|123|];$$ remove => 456; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody7()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public event Action Goo { add => 123; $$remove => [|456|]; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnAccessorExpressionBody8()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public event Action Goo { add => 123; remove => [|456|]; }$$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnDtorExpressionBody1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
             $$    public ~C() => [|x = 1|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnDtorExpressionBody2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public ~C() => $$[|x = 1|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnDtorExpressionBody3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public ~C() => [|x =$$ 1|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnDtorExpressionBody4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public ~C() => [|x = 1|]$$;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
     public void OnDtorExpressionBody5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
                 public ~C() => [|x = 1|];$$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
     public void OnLocalFunctionDecl_1()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5924,12 +5259,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
     public void OnLocalFunctionDecl_2()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5942,12 +5275,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
     public void OnLocalFunctionDecl_3()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5960,12 +5291,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
     public void OnLocalFunctionDecl_4()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5975,12 +5304,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
     public void OnLocalFunctionDecl_5()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -5990,12 +5317,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
     public void OnLocalFunctionDecl_6()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -6005,12 +5330,10 @@ public sealed class BreakpointSpansTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
     public void IncompleteExpressionStatement()
-    {
-        TestSpan(
+        => TestSpan(
             """
             class C
             {
@@ -6020,14 +5343,12 @@ public sealed class BreakpointSpansTests
               }
             }
             """);
-    }
 
     #region Top Level Statements
 
     [Fact]
     public void TopLevelStatements()
-    {
-        VerifyAllSpansInDeclaration<CompilationUnitSyntax>("""
+        => VerifyAllSpansInDeclaration<CompilationUnitSyntax>("""
 
             $$[|int d = 5;|]
             [|int a = 1|], [|b = 2|], [|c = 3|];
@@ -6052,7 +5373,6 @@ public sealed class BreakpointSpansTests
                         [|System.Console.WriteLine(c);|]
                 [|}|]
             """);
-    }
 
     #endregion
 }

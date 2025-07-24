@@ -128,8 +128,7 @@ public sealed class CSharpEditAndContinueAnalyzerTests
 
     [Fact]
     public void ErrorSpans_TopLevel()
-    {
-        TestSpans("""
+        => TestSpans("""
             /*<span>*/extern alias A;/*</span>*/
             /*<span>*/using Z = Goo.Bar;/*</span>*/
 
@@ -202,7 +201,6 @@ public sealed class CSharpEditAndContinueAnalyzerTests
 
             }
             """, SyntaxComparer.TopLevel.HasLabel);
-    }
 
     [Fact]
     public void ErrorSpans_StatementLevel_Update()

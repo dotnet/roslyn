@@ -1099,7 +1099,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
     public Task TestOptionalParameters1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1135,7 +1135,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
     public Task TestOptionalParameters2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1171,7 +1171,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
     public Task TestOptionalParameters3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1207,7 +1207,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76562")]
     public Task TestOptionalParameters4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

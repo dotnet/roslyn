@@ -197,13 +197,10 @@ public static class Program
 
     private static void CreateTargetsFile(string language, string outputDir, string targetsFileName)
     {
-        var fileContents =
-$@"<Project>{GetTargetContents(language)}
-</Project>";
-
         var directory = Directory.CreateDirectory(outputDir);
         var fileWithPath = Path.Combine(directory.FullName, targetsFileName);
-        File.WriteAllText(fileWithPath, fileContents);
+        File.WriteAllText(fileWithPath, $@"<Project>{GetTargetContents(language)}
+</Project>");
         return;
 
         static string GetTargetContents(string language)

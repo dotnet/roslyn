@@ -27,8 +27,7 @@ public abstract class StringCopyPasteCommandHandlerKnownSourceTests
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61316")]
     public void TestLineCopyPaste()
-    {
-        TestCopyPaste(
+        => TestCopyPaste(
             """
             Debug.Assert(adjustment != 0, $"Indentation with[||]{|Copy:|} no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
 
@@ -47,5 +46,4 @@ public abstract class StringCopyPasteCommandHandlerKnownSourceTests
 
             """,
             mockCopyPasteService: false);
-    }
 }

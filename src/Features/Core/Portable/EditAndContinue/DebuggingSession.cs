@@ -601,7 +601,8 @@ internal sealed class DebuggingSession : IDisposable
             Diagnostics = solutionUpdate.Diagnostics,
             SyntaxError = solutionUpdate.SyntaxError,
             ProjectsToRestart = solutionUpdate.ProjectsToRestart,
-            ProjectsToRebuild = solutionUpdate.ProjectsToRebuild
+            ProjectsToRebuild = solutionUpdate.ProjectsToRebuild,
+            ProjectsToRedeploy = solutionUpdate.ProjectsToRedeploy,
         };
     }
 
@@ -787,7 +788,8 @@ internal sealed class DebuggingSession : IDisposable
                 var oldProject = LastCommittedSolution.GetProject(projectId);
                 if (oldProject == null)
                 {
-                    // document is in a project that's been added to the solution
+                    // Document is in a project that's been added to the solution
+                    // No need to map the breakpoint from its original (base) location supplied by the debugger to a new one.
                     continue;
                 }
 
@@ -807,7 +809,9 @@ internal sealed class DebuggingSession : IDisposable
                     var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument, cancellationToken).ConfigureAwait(false);
                     if (oldDocument == null)
                     {
-                        // Document is out-of-sync, can't reason about its content with respect to the binaries loaded in the debuggee.
+                        // Document is either
+                        // 1) added -- no need to map the breakpoint from original location to a new one
+                        // 2) out-of-sync, in which case we can't reason about its content with respect to the binaries loaded in the debuggee.
                         continue;
                     }
 
@@ -906,7 +910,7 @@ internal sealed class DebuggingSession : IDisposable
             var oldProject = LastCommittedSolution.GetProject(newProject.Id);
             if (oldProject == null)
             {
-                // TODO: https://github.com/dotnet/roslyn/issues/1204
+                // TODO: https://github.com/dotnet/roslyn/issues/79423
                 // Enumerate all documents of the new project.
                 return [];
             }
@@ -939,7 +943,7 @@ internal sealed class DebuggingSession : IDisposable
                 var (oldUnmappedDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newUnmappedDocument, cancellationToken).ConfigureAwait(false);
                 if (oldUnmappedDocument == null)
                 {
-                    // document out-of-date
+                    // document added or out-of-date 
                     continue;
                 }
 

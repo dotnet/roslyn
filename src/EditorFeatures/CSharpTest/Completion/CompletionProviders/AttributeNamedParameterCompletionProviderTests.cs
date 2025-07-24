@@ -46,9 +46,8 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
     }
 
     [Fact]
-    public async Task CommitCharacterTest()
-    {
-        const string markup = """
+    public Task CommitCharacterTest()
+        => VerifyCommonCommitCharactersAsync("""
             using System;
             class class1
             {
@@ -62,10 +61,7 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
             {
                 public ConsoleColor Color { get; set; }
             }
-            """;
-
-        await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
-    }
+            """, textTypedSoFar: "");
 
     [Fact]
     public Task SimpleAttributeUsage()
