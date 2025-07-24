@@ -1481,8 +1481,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 MergeUseSiteDiagnostics(ref diagnosticInfo, DeriveCompilerFeatureRequiredDiagnostic());
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
 
-                if (diagnosticInfo == null && _containingType.IsExtension &&
-                    TryGetCorrespondingExtensionImplementationMethod() is null)
+                if (_containingType.IsExtension &&
+                    (TryGetCorrespondingExtensionImplementationMethod() is null ||
+                    _containingType.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)) // PROTOTYPE: Cover mismatch in type parameters between grouping and marker method with a test (See usage of MatchesContainingTypeParameters helper).
                 {
                     diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                 }

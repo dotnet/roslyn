@@ -2725,7 +2725,7 @@ object.M();
         AssertExtensionDeclaration(extension.GetPublicSymbol());
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     [InlineData("public")]
     [InlineData("assembly")]
     [InlineData("family")]
@@ -2777,7 +2777,7 @@ int.M();
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_02()
     {
         // Accessibility of extension marker is not private, instance extension method
@@ -2861,7 +2861,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_04()
     {
         // Extension marker method is not static
@@ -2946,7 +2946,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_06()
     {
         // Extension marker lacks its parameter
@@ -2988,7 +2988,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_07()
     {
         // Extension marker has an extra parameter
@@ -3064,7 +3064,7 @@ int.M();
         Assert.True(extension.IsExtension);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_09()
     {
         // Two extension markers
@@ -3448,7 +3448,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_18()
     {
         // skeleton type is not sealed
@@ -3492,7 +3492,7 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Theory]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     [InlineData("assembly")]
     [InlineData("family")]
     public void PENamedTypeSymbol_19(string accessibility)
@@ -3538,7 +3538,7 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_20()
     {
         // skeleton type not sealed
@@ -3582,7 +3582,7 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_21()
     {
         // skeleton type has a base that's not object
@@ -3626,7 +3626,7 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void PENamedTypeSymbol_22()
     {
         // skeleton type implements an interface

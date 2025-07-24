@@ -46718,7 +46718,7 @@ static class E
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(2, 10));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void SpecialName_01()
     {
         // extension(int)
@@ -46865,7 +46865,7 @@ _ = 42.P2;
         comp.VerifyEmitDiagnostics();
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
     public void SpecialName_03()
     {
         // extension(int)

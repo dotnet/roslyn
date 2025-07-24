@@ -180,9 +180,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
 #nullable enable
 
-        private class ExtensionInfo(TypeDefinitionHandle groupingType, MethodDefinitionHandle markerMethod)
+        private class ExtensionInfo(PENamedTypeSymbol markerType, MethodDefinitionHandle markerMethod)
         {
-            public readonly TypeDefinitionHandle GroupingTypeHandle = groupingType;
+            public readonly PENamedTypeSymbol MarkerTypeSymbol = markerType;
+            public PENamedTypeSymbol GroupingTypeSymbol => (PENamedTypeSymbol)MarkerTypeSymbol.ContainingType;
             public readonly MethodDefinitionHandle MarkerMethodHandle = markerMethod;
             public PEMethodSymbol? LazyMarkerMethodSymbol;
             public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (arity == 0)
             {
-                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingNamespace, handle, emittedNamespaceName, groupingType: default, markerMethod: default);
+                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingNamespace, handle, emittedNamespaceName, markerType: null, markerMethod: default);
             }
             else
             {
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     emittedNamespaceName,
                     genericParameterHandles,
                     arity,
-                    groupingType: default,
+                    markerType: null,
                     markerMethod: default);
             }
 
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
             TypeDefinitionHandle handle,
-            TypeDefinitionHandle groupingType = default,
+            PENamedTypeSymbol markerType = null,
             MethodDefinitionHandle markerMethod = default)
         {
             GenericParameterHandleCollection genericParameterHandles;
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (metadataArity == 0)
             {
-                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingType, handle, emittedNamespaceName: null, groupingType, markerMethod);
+                result = new PENamedTypeSymbolNonGeneric(moduleSymbol, containingType, handle, emittedNamespaceName: null, markerType, markerMethod);
             }
             else
             {
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     null,
                     genericParameterHandles,
                     arity,
-                    groupingType,
+                    markerType,
                     markerMethod);
             }
 
@@ -302,15 +303,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeDefinitionHandle handle,
             string emittedNamespaceName,
             ushort arity,
-            TypeDefinitionHandle groupingType,
+            PENamedTypeSymbol markerType,
             MethodDefinitionHandle markerMethod,
             out bool mangleName)
         {
             Debug.Assert(!handle.IsNil);
             Debug.Assert((object)container != null);
             Debug.Assert(arity == 0 || this is PENamedTypeSymbolGeneric);
-            Debug.Assert(groupingType.IsNil == markerMethod.IsNil);
-            Debug.Assert(groupingType.IsNil || container.IsType);
+            Debug.Assert(markerType is null == markerMethod.IsNil);
+            Debug.Assert(markerType is null || container.IsType);
 
             string metadataName;
             bool makeBad = false;
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 makeBad = true;
             }
 
-            if (arity == 0 || !groupingType.IsNil)
+            if (arity == 0 || markerType is not null)
             {
                 _name = metadataName;
                 mangleName = false;
@@ -359,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // this is needed to allow EE to bind to file types from metadata, for example.
             if (container.IsNamespace && GeneratedNameParser.TryParseFileTypeName(_name, out var displayFileName, out var ordinal, out var originalTypeName))
             {
-                Debug.Assert(groupingType.IsNil);
+                Debug.Assert(markerType is null);
 
                 _name = originalTypeName;
                 _lazyUncommonProperties = new UncommonProperties()
@@ -368,11 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyDisplayFileName = displayFileName
                 };
             }
-            else if (!groupingType.IsNil)
+            else if (markerType is not null)
             {
                 _lazyUncommonProperties = new UncommonProperties()
                 {
-                    extensionInfo = new ExtensionInfo(groupingType, markerMethod)
+                    extensionInfo = new ExtensionInfo(markerType, markerMethod)
                 };
             }
 
@@ -2229,12 +2230,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if (marker.HasSpecialName && marker.IsStatic && marker.DeclaredAccessibility == Accessibility.Private &&
                             marker.TypeKind == TypeKind.Class && marker.BaseTypeNoUseSiteDiagnostics.IsObjectType() && marker.Arity == 0 &&
                             marker.InterfacesNoUseSiteDiagnostics().IsEmpty &&
-                            (type.Arity == 0 || (marker is PENamedTypeSymbolGeneric genericMarker && genericMarker.MatchesContainingTypeParameters())))
+                            (type.Arity == 0 || marker is PENamedTypeSymbolGeneric))
                         {
                             // Try to locate the marker method.
                             if (marker.TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
                             {
-                                marker = PENamedTypeSymbol.Create(moduleSymbol, this, markerRid, type.Handle, markerHandle);
+                                marker = PENamedTypeSymbol.Create(moduleSymbol, this, markerRid, marker, markerHandle);
                                 yield return marker;
                             }
                         }
@@ -2355,7 +2356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeHandle : _handle))
+                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.Handle : _handle))
                 {
                     if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
@@ -2389,7 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeHandle : _handle))
+                foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.Handle : _handle))
                 {
                     try
                     {
@@ -2703,18 +2704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     throw ExceptionUtilities.Unreachable();
                 }
 
-                string groupName;
-
-                try
-                {
-                    groupName = ContainingPEModule.Module.GetTypeDefNameOrThrow(_lazyUncommonProperties.extensionInfo.GroupingTypeHandle);
-                }
-                catch (BadImageFormatException)
-                {
-                    groupName = string.Empty;
-                }
-
-                return groupName; // PROTOTYPE: is this the right value to return?
+                return _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.MetadataName; // PROTOTYPE: is this the right value to return?
             }
         }
 
@@ -2964,9 +2954,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 NamespaceOrTypeSymbol container,
                 TypeDefinitionHandle handle,
                 string emittedNamespaceName,
-                TypeDefinitionHandle groupingType,
+                PENamedTypeSymbol markerType,
                 MethodDefinitionHandle markerMethod) :
-                base(moduleSymbol, container, handle, emittedNamespaceName, 0, groupingType, markerMethod, out _)
+                base(moduleSymbol, container, handle, emittedNamespaceName, 0, markerType, markerMethod, out _)
             {
             }
 
@@ -3037,14 +3027,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     string emittedNamespaceName,
                     GenericParameterHandleCollection genericParameterHandles,
                     ushort arity,
-                    TypeDefinitionHandle groupingType,
+                    PENamedTypeSymbol markerType,
                     MethodDefinitionHandle markerMethod)
                 : base(moduleSymbol,
                       container,
                       handle,
                       emittedNamespaceName,
                       arity,
-                      groupingType,
+                      markerType,
                       markerMethod,
                       out bool mangleName)
             {
@@ -3144,6 +3134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
                     }
+                    else if (IsExtension && !((PENamedTypeSymbolGeneric)_lazyUncommonProperties.extensionInfo.MarkerTypeSymbol).MatchesContainingTypeParameters())
+                    {
+                        // PROTOTYPE: Cover this code path with a test.
+                        diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                    }
                 }
 
                 return diagnostic;
@@ -3154,7 +3149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             /// that represent the corresponding type parameters on the containing
             /// types, in fact match the actual type parameters on the containing types.
             /// </summary>
-            internal bool MatchesContainingTypeParameters()
+            private bool MatchesContainingTypeParameters()
             {
                 var container = this.ContainingType;
                 if ((object)container == null)
