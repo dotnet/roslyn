@@ -427,9 +427,8 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
             """, RequireAllParenthesesForClarity);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79286")]
-    public async Task TestCoalescePrecedence4()
-    {
-        await TestMissingAsync(
+    public Task TestCoalescePrecedence4()
+        => TestMissingAsync(
             """
             class C
             {
@@ -439,7 +438,6 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
     public Task TestBitwisePrecedence1()
