@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -131,9 +132,9 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
             FontSize = format.FontRenderingEmSize, // Use same font size as editor for proper baseline alignment
             FontStyle = FontStyles.Normal,
             Foreground = format.ForegroundBrush,
-            // Adds a little bit of padding to the left of the text relative to the border to make the text seem
-            // more balanced in the border
-            Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0)
+            // Add padding on all sides to ensure text with descenders is not cut off
+            // Vertical padding ensures characters like 'g', 'j', 'p', 'q', 'y' are fully visible
+            Padding = new Thickness(left: 2, top: 1, right: 2, bottom: 1)
         };
 
         var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
@@ -154,6 +155,10 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
 
         block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
+        // Calculate proper height to accommodate text with descenders
+        // Use line height which includes space for descenders
+        var lineHeight = format.Typeface.FontFamily.LineSpacing * format.FontRenderingEmSize;
+        
         // Encapsulates the TextBlock within a border. Gets foreground/background colors from the options menu.
         // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
         // left or right side.
@@ -165,31 +170,28 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
             Background = format.BackgroundBrush,
             Child = block,
             CornerRadius = new CornerRadius(2),
-            VerticalAlignment = VerticalAlignment.Bottom,
+            VerticalAlignment = VerticalAlignment.Center, // Center instead of Bottom to prevent clipping
             Margin = new Thickness(left, top: 0, right, bottom: 0),
+            // Add padding to the border itself to ensure proper spacing
+            Padding = new Thickness(1)
         };
 
-        // gets pixel distance of baseline to top of the font height
-        var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
-        var dockPanel = new DockPanel
-        {
-            Height = dockPanelHeight,
-            LastChildFill = false,
-            // VerticalAlignment is set to Top because it will rest to the top relative to the StackPanel
-            VerticalAlignment = VerticalAlignment.Top
-        };
-
-        dockPanel.Children.Add(border);
-        DockPanel.SetDock(border, Dock.Bottom);
-
+        // Calculate container height to properly accommodate the text including descenders
+        // Use the line height plus a small buffer for proper spacing
+        var containerHeight = Math.Max(lineHeight, block.DesiredSize.Height + 2);
+        
         var stackPanel = new StackPanel
         {
-            // Height set to align the baseline of the text within the TextBlock with the baseline of text in the editor
-            Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize)),
-            Orientation = Orientation.Vertical
+            // Set height to accommodate the full line height including descenders
+            Height = containerHeight,
+            Orientation = Orientation.Vertical,
+            VerticalAlignment = VerticalAlignment.Center
         };
 
-        stackPanel.Children.Add(dockPanel);
+        // Center the border within the stack panel
+        border.VerticalAlignment = VerticalAlignment.Center;
+        stackPanel.Children.Add(border);
+        
         // Need to set these properties to avoid unnecessary reformatting because some dependency properties
         // affect layout
         TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
