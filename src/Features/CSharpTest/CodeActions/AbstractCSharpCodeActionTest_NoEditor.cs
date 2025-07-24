@@ -20,12 +20,12 @@ public abstract class AbstractCSharpCodeActionTest_NoEditor : AbstractCodeAction
 
     protected internal override string GetLanguage() => LanguageNames.CSharp;
 
-    internal new Task TestInRegularAndScript1Async(
+    internal new Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         int index = 0,
         TestParameters? parameters = null)
     {
-        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, index, parameters);
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
     }
 }
