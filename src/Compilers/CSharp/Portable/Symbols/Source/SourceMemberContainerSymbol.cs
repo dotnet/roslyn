@@ -5844,7 +5844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtension)
             {
                 // PROTOTYPE: Figure out how to calculate and emit this for extensions. 
-                //            We probably should do that per grouping type. 
+                //            We probably should do that per grouping type. Leaving as is should be fine too, I think.
                 return null;
             }
 
@@ -6003,31 +6003,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_lazyExtensionGroupingInfo is null)
             {
-                var groupingMap = new Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>>(EqualityComparer<string>.Default);
-
-                foreach (var type in this.GetTypeMembers(""))
-                {
-                    if (!type.IsExtension)
-                    {
-                        continue;
-                    }
-
-                    var sourceNamedType = (SourceNamedTypeSymbol)type;
-                    var groupingMetadataName = sourceNamedType.GetExtensionGroupingMetadataName();
-
-                    MultiDictionary<string, SourceNamedTypeSymbol>? markerMap;
-
-                    if (!groupingMap.TryGetValue(groupingMetadataName, out markerMap))
-                    {
-                        markerMap = new MultiDictionary<string, SourceNamedTypeSymbol>(EqualityComparer<string>.Default, ReferenceEqualityComparer.Instance);
-                        groupingMap.Add(groupingMetadataName, markerMap);
-                    }
-
-                    markerMap.Add(sourceNamedType.GetExtensionMarkerMetadataName(), sourceNamedType);
-                }
-
-                // PROTOTYPE: Find the right place and perform checks for conflicting declarations getting into the same group or marker.
-                Interlocked.CompareExchange(ref _lazyExtensionGroupingInfo, new ExtensionGroupingInfo(groupingMap), null);
+                // PROTOTYPE: Find the right place and perform checks for conflicting declarations getting into the same group or marker, and reporting appropriate errors.
+                Interlocked.CompareExchange(ref _lazyExtensionGroupingInfo, new ExtensionGroupingInfo(this), null);
             }
 
             return _lazyExtensionGroupingInfo;

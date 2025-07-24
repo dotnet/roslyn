@@ -272,11 +272,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SourceMemberContainerTypeSymbol.DoOperatorsPair(
-                           x.OriginalDefinition.AsMember(normalize(xExtension)),
-                           y.OriginalDefinition.AsMember(normalize(yExtension)));
+                           x.OriginalDefinition.AsMember(Normalize(xExtension)),
+                           y.OriginalDefinition.AsMember(Normalize(yExtension)));
             }
 
-            private static NamedTypeSymbol normalize(NamedTypeSymbol extension)
+            private static NamedTypeSymbol Normalize(NamedTypeSymbol extension)
             {
                 if (extension.Arity != 0)
                 {
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var groupingKey = ((SourceNamedTypeSymbol)extension).GetExtensionGroupingMetadataName();
                 result = Hash.Combine(result, groupingKey.GetHashCode());
 
-                foreach (var parameter in op.OriginalDefinition.AsMember(normalize(extension)).Parameters)
+                foreach (var parameter in op.OriginalDefinition.AsMember(Normalize(extension)).Parameters)
                 {
                     result = Hash.Combine(result, typeComparer.GetHashCode(parameter.Type));
                 }

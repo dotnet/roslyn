@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType((SourceNamedTypeSymbol)containingType);
             }
-            else if (containingType.IsExtension)
+            else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
             {
                 return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
             }

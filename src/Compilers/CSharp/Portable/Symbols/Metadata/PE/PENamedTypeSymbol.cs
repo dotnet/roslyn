@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private class ExtensionInfo(TypeDefinitionHandle groupingType, MethodDefinitionHandle markerMethod)
         {
-            public readonly TypeDefinitionHandle GroupingType = groupingType;
+            public readonly TypeDefinitionHandle GroupingTypeHandle = groupingType;
             public readonly MethodDefinitionHandle MarkerMethodHandle = markerMethod;
             public PEMethodSymbol? LazyMarkerMethodSymbol;
             public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
@@ -935,6 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (IsExtension)
                 {
                     // We do not recognize any attributes on extension blocks
+                    // PROTOTYPE: Add a test demonstrating the fact that we do not load attributes from grouping and marker types.
                     loadedCustomAttributes = [];
                     requiredHandle = default;
                 }
@@ -2163,6 +2164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (IsExtension)
             {
                 // We do not support type declarations in extension blocks
+                // PROTOTYPE: Add a test demonstrating the fact that we do not load nested types from grouping and marker types.
                 yield break;
             }
 
@@ -2180,8 +2182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 yield break;
             }
 
-            bool checkForExtensonGroup = this.IsStatic && this.ContainingType is null && this.TypeKind == TypeKind.Class &&
-                                         module.HasExtensionAttribute(_handle, ignoreCase: false);
+            // PROTOTYPE: test effect of every condition here
+            bool checkForExtensionGroup = this.IsStatic && this.ContainingType is null && this.TypeKind == TypeKind.Class &&
+                                          module.HasExtensionAttribute(_handle, ignoreCase: false) && !this.IsGenericType;
 
             // Currently, it appears that we must import ALL types, even private ones,
             // in order to maintain language semantics. This is because a class may implement
@@ -2199,7 +2202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var type = PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
 
-                if (checkForExtensonGroup &&
+                // PROTOTYPE: test effect of every condition here
+                if (checkForExtensionGroup &&
                     type.DeclaredAccessibility == Accessibility.Public &&
                     type.HasSpecialName && type.IsSealed && module.HasExtensionAttribute(type.Handle, ignoreCase: false) &&
                     type.TypeKind == TypeKind.Class && type.BaseTypeNoUseSiteDiagnostics.IsObjectType() &&
@@ -2221,9 +2225,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         var marker = PENamedTypeSymbol.Create(moduleSymbol, type, markerRid);
 
+                        // PROTOTYPE: test effect of every condition here
                         if (marker.HasSpecialName && marker.IsStatic && marker.DeclaredAccessibility == Accessibility.Private &&
                             marker.TypeKind == TypeKind.Class && marker.BaseTypeNoUseSiteDiagnostics.IsObjectType() && marker.Arity == 0 &&
-                            marker.InterfacesNoUseSiteDiagnostics().IsEmpty)
+                            marker.InterfacesNoUseSiteDiagnostics().IsEmpty &&
+                            (type.Arity == 0 || (marker is PENamedTypeSymbolGeneric genericMarker && genericMarker.MatchesContainingTypeParameters())))
                         {
                             // Try to locate the marker method.
                             if (marker.TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
@@ -2247,6 +2253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (IsExtension)
             {
+                // PROTOTYPE: Add a test demonstrating the fact that we do not load fields from grouping and marker types.
                 return privateFieldNameToSymbols;
             }
 
@@ -2344,9 +2351,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
             bool isExtension = IsExtension;
 
+            // PROTOTYPE: Add a test demonstrating the fact that we do not load methods from marker types into the extension blocks.
+
             try
             {
-                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingType : _handle))
+                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeHandle : _handle))
                 {
                     if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
@@ -2376,9 +2385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var module = moduleSymbol.Module;
             bool isExtension = IsExtension;
 
+            // PROTOTYPE: Add a test demonstrating the fact that we do not load properties from marker types into extension blocks.
+
             try
             {
-                foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingType : _handle))
+                foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(isExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeHandle : _handle))
                 {
                     try
                     {
@@ -2416,6 +2427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (IsExtension)
             {
                 // We do not support event declarations in extension blocks
+                // PROTOTYPE: Add a test demonstrating the fact that we do not load events from grouping and marker types.
                 return;
             }
 
@@ -2682,7 +2694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override string ExtensionName // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Confirm implementation
+        internal override string ExtensionName
         {
             get
             {
@@ -2695,7 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 try
                 {
-                    groupName = ContainingPEModule.Module.GetTypeDefNameOrThrow(_lazyUncommonProperties.extensionInfo.GroupingType);
+                    groupName = ContainingPEModule.Module.GetTypeDefNameOrThrow(_lazyUncommonProperties.extensionInfo.GroupingTypeHandle);
                 }
                 catch (BadImageFormatException)
                 {
@@ -3142,7 +3154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             /// that represent the corresponding type parameters on the containing
             /// types, in fact match the actual type parameters on the containing types.
             /// </summary>
-            private bool MatchesContainingTypeParameters()
+            internal bool MatchesContainingTypeParameters()
             {
                 var container = this.ContainingType;
                 if ((object)container == null)

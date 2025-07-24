@@ -384,11 +384,9 @@ namespace Roslyn.Utilities
 
             var builder = ArrayBuilder<TResult>.GetInstance();
 
-            int index = 0;
             foreach (var element in source)
             {
                 builder.Add(selector(element, arg));
-                index++;
             }
 
             return builder.ToImmutableAndFree();

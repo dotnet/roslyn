@@ -20,12 +20,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class ExtensionGroupingInfo
     {
+        /// <summary>
+        /// Extension block symbols declared in a class are grouped by their corresponding grouping type metadata name (top level key),
+        /// then grouped by their corresponding extension marker type metadata name (the secondary key used by MultiDictionary).
+        /// <see cref="SourceNamedTypeSymbol"/>s are the extension blocks.
+        /// </summary>
         private readonly Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>> _groupingMap;
         private ImmutableArray<ExtensionGroupingType> _lazyGroupingTypes;
 
-        public ExtensionGroupingInfo(Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>> grouping)
+        public ExtensionGroupingInfo(SourceMemberContainerTypeSymbol container)
         {
-            _groupingMap = grouping;
+            var groupingMap = new Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>>(EqualityComparer<string>.Default);
+
+            foreach (var type in container.GetTypeMembers(""))
+            {
+                if (!type.IsExtension)
+                {
+                    continue;
+                }
+
+                var sourceNamedType = (SourceNamedTypeSymbol)type;
+                var groupingMetadataName = sourceNamedType.GetExtensionGroupingMetadataName();
+
+                MultiDictionary<string, SourceNamedTypeSymbol>? markerMap;
+
+                if (!groupingMap.TryGetValue(groupingMetadataName, out markerMap))
+                {
+                    markerMap = new MultiDictionary<string, SourceNamedTypeSymbol>(EqualityComparer<string>.Default, ReferenceEqualityComparer.Instance);
+                    groupingMap.Add(groupingMetadataName, markerMap);
+                }
+
+                markerMap.Add(sourceNamedType.GetExtensionMarkerMetadataName(), sourceNamedType);
+            }
+
+            _groupingMap = groupingMap;
         }
 
         public ImmutableArray<Cci.INestedTypeDefinition> GetGroupingTypes()
@@ -296,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly string _name;
             public readonly ImmutableArray<ExtensionMarkerType> ExtensionMarkerTypes;
-            private readonly ImmutableArray<ExtensionGroupingTypeParameter> _typeParameters;
+            private readonly ImmutableArray<ExtensionGroupingTypeTypeParameter> _typeParameters;
 
             public ExtensionGroupingType(string name, MultiDictionary<string, SourceNamedTypeSymbol> extensionMarkerTypes)
             {
@@ -313,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ExtensionMarkerTypes = builder.ToImmutableAndFree();
 
                 _typeParameters = ExtensionMarkerTypes[0].UnderlyingExtensions[0].Arity != 0 ?
-                    ((INestedTypeDefinition)ExtensionMarkerTypes[0].UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new ExtensionGroupingTypeParameter(@this, p), this) :
+                    ((INestedTypeDefinition)ExtensionMarkerTypes[0].UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new ExtensionGroupingTypeTypeParameter(@this, p), this) :
                     [];
             }
 
@@ -393,9 +421,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private class ExtensionGroupingTypeParameter : InheritedTypeParameter
+        private sealed class ExtensionGroupingTypeTypeParameter : InheritedTypeParameter
         {
-            internal ExtensionGroupingTypeParameter(ExtensionGroupingType inheritingType, IGenericTypeParameter parentParameter) :
+            internal ExtensionGroupingTypeTypeParameter(ExtensionGroupingType inheritingType, IGenericTypeParameter parentParameter) :
                 base(parentParameter.Index, inheritingType, parentParameter)
             {
             }
@@ -405,9 +433,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
             {
                 // Drop all attributes from constraints, they are about C# specific semantics.
-                foreach (var constrint in base.GetConstraints(context))
+                foreach (var constraint in base.GetConstraints(context))
                 {
-                    yield return new TypeReferenceWithAttributes(constrint.TypeRef);
+                    yield return new TypeReferenceWithAttributes(constraint.TypeRef);
                 }
             }
 
@@ -428,12 +456,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (attribute is SynthesizedAttributeData synthesized &&
                                 synthesized.AttributeConstructor == unmanagedCtor)
                             {
-                                yield return synthesized;
-                                break;
+                                return [synthesized];
                             }
                         }
                     }
                 }
+
+                return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
             }
         }
 
