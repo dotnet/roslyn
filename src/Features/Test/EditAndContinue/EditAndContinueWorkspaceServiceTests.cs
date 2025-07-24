@@ -296,7 +296,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             }
             """));
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
 
@@ -629,7 +629,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             return null;
         };
 
-        var results = await EmitSolutionUpdateAsync(debuggingSession, solution, allowPartialUpdate: true);
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
         Assert.Empty(results.Diagnostics);
@@ -2541,8 +2541,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 .AddTestDocument(sourceB1, path: sourceFileB.Path, out var documentBId).Project.Solution
            .AddProjectReference(projectAId, new ProjectReference(projectBId));
 
-        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty
-            .Add(projectAId, new RunningProjectInfo() { AllowPartialUpdate = true, RestartWhenChangesHaveNoEffect = false });
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty
+            .Add(projectAId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
 
         var results = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
 
@@ -2582,8 +2582,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // Add project reference A -> B
         solution = solution.AddProjectReference(projectAId, new ProjectReference(projectBId));
 
-        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty
-            .Add(projectAId, new RunningProjectInfo() { AllowPartialUpdate = true, RestartWhenChangesHaveNoEffect = false });
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty
+            .Add(projectAId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
 
         var results = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
 

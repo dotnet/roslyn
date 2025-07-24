@@ -469,7 +469,7 @@ public sealed class EmitSolutionUpdateResultsTests
             CreateValidUpdates(c),
             CreateProjectRudeEdits(blocking: [b], noEffect: []),
             addedUnbuiltProjects: [],
-            CreateRunningProjects([(a, noEffectRestarts: false)], allowPartialUpdate: true),
+            CreateRunningProjects([(a, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
@@ -500,7 +500,7 @@ public sealed class EmitSolutionUpdateResultsTests
             CreateValidUpdates(c),
             CreateProjectRudeEdits(blocking: [], noEffect: []),
             addedUnbuiltProjects: [b],
-            CreateRunningProjects([(a, noEffectRestarts: false)], allowPartialUpdate: true),
+            CreateRunningProjects([(a, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
@@ -527,7 +527,7 @@ public sealed class EmitSolutionUpdateResultsTests
             CreateValidUpdates(c),
             CreateProjectRudeEdits(blocking: [], noEffect: []),
             addedUnbuiltProjects: [b],
-            CreateRunningProjects([(a, noEffectRestarts: false), (e, noEffectRestarts: false)], allowPartialUpdate: true),
+            CreateRunningProjects([(a, noEffectRestarts: false), (e, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
