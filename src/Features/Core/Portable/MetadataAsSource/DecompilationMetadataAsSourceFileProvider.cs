@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DecompiledSource;
@@ -20,8 +17,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
