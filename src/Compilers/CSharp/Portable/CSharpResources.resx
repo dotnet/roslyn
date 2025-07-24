@@ -6575,9 +6575,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TopLevelStatementAfterNamespaceOrType" xml:space="preserve">
     <value>Top-level statements must precede namespace and type declarations.</value>
   </data>
-  <data name="ERR_SimpleProgramDisallowsMainType" xml:space="preserve">
-    <value>Cannot specify /main if there is a compilation unit with top-level statements.</value>
-  </data>
   <data name="ERR_SimpleProgramNotAnExecutable" xml:space="preserve">
     <value>Program using top-level statements must be an executable.</value>
   </data>
