@@ -216,7 +216,13 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             };
         };
 
-        var updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        var runningProjectInfo = new DebuggerContracts.RunningProjectInfo()
+        {
+            ProjectInstanceId = new DebuggerContracts.ProjectInstanceId(project.FilePath, "net9.0"),
+            RestartAutomatically = false,
+        };
+
+        var updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
@@ -281,7 +287,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             };
         };
 
-        updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
