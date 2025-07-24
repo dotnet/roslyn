@@ -4514,7 +4514,7 @@ public static class Extensions
         } // end of class <Marker>$4D270477BCDFAB12B9E9B1A79213B9FB
     } // end of class <Extension>$C3CD11E70DE99F353AE602995BB874BF
 } // end of class Extensions
-""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));;
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
