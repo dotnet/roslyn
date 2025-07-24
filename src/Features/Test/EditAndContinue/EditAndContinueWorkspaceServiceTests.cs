@@ -1739,6 +1739,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     {
         var source0 = "class C1 { void M() { System.Console.WriteLine(0); } }";
         var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
+        var source2 = "class C1 { void M<T>() { System.Console.WriteLine(1); } }"; // rude edit
         var dir = Temp.CreateDirectory();
         var sourceFile = dir.CreateFile("a.cs");
 
@@ -1767,7 +1768,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         }
 
         // change the source (rude edit):
-        solution = solution.WithDocumentText(documentId, CreateText("class C1 { void M<T>() { System.Console.WriteLine(1); } }"));
+        solution = solution.WithDocumentText(documentId, CreateText(source2));
         var document2 = solution.GetDocument(documentId);
 
         // no Rude Edits, since the document is out-of-sync
@@ -1782,6 +1783,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // project is stale:
         Assert.True(debuggingSession.LastCommittedSolution.StaleProjects.ContainsKey(projectId));
 
+        // the solution snapshot was moved forward since here are not changes to apply:
+        var committedText = await debuggingSession.LastCommittedSolution.GetRequiredProject(documentId.ProjectId).GetRequiredDocument(documentId).GetTextAsync();
+        Assert.Equal(source2, committedText.ToString());
+
         // TODO: warning reported https://github.com/dotnet/roslyn/issues/78125
         // AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(results.Diagnostics));
 
@@ -1791,16 +1796,21 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         docDiagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(docDiagnostics);
 
-        // rebuild triggers reload of out-of-sync file content:
         moduleId = EmitAndLoadLibraryToDebuggee(projectId, source0, sourceFilePath: sourceFile.Path);
 
+        // no changes in the stale project since last commit
         results = await EmitSolutionUpdateAsync(debuggingSession, solution);
-
-        // project has been unstaled:
-        Assert.False(debuggingSession.LastCommittedSolution.StaleProjects.ContainsKey(projectId));
-
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
+        Assert.True(debuggingSession.LastCommittedSolution.StaleProjects.ContainsKey(projectId));
+
+        // make a change:
+        solution = solution.WithDocumentText(documentId, CreateText(source1));
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+
+        Assert.False(debuggingSession.LastCommittedSolution.StaleProjects.ContainsKey(projectId));
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.NotEmpty(results.ModuleUpdates.Updates);
         Assert.Empty(results.Diagnostics);
 
         if (breakMode)
