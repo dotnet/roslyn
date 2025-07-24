@@ -28,4 +28,12 @@ public abstract class AbstractCSharpCodeActionTest_NoEditor : AbstractCodeAction
     {
         return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
     }
+
+    internal new Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        TestParameters parameters)
+    {
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parameters);
+    }
 }
