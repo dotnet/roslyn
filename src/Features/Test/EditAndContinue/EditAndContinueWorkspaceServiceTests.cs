@@ -1733,7 +1733,8 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EndDebuggingSession(debuggingSession);
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/79589")]
+    [CombinatorialData]
     public async Task RudeEdits_DocumentOutOfSync(bool breakMode)
     {
         var source0 = "class C1 { void M() { System.Console.WriteLine(0); } }";
