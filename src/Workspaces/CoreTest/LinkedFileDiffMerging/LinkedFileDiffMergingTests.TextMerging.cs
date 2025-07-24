@@ -13,48 +13,39 @@ public partial class LinkedFileDiffMergingTests
 {
     [Fact]
     public void TestIdenticalChanges()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             "x",
             ["y", "y"],
             @"y",
             LanguageNames.CSharp);
-    }
 
     [Fact]
     public void TestChangesInOnlyOneFile()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             "a b c d e",
             ["a b c d e", "a z c z e"],
             @"a z c z e",
             LanguageNames.CSharp);
-    }
 
     [Fact]
     public void TestIsolatedChangesInBothFiles()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             "a b c d e",
             ["a z c d e", "a b c z e"],
             @"a z c z e",
             LanguageNames.CSharp);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     public void TestIdenticalEditAfterIsolatedChanges()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             "a; b; c; d; e;",
             ["a; zzz; c; xx; e;", "a; b; c; xx; e;"],
             @"a; zzz; c; xx; e;",
             LanguageNames.CSharp);
-    }
 
     [Fact]
     public void TestOneConflict()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             "a b c d e",
             ["a b y d e", "a b z d e"],
             $"""
@@ -67,12 +58,10 @@ public partial class LinkedFileDiffMergingTests
             a b y d e
             """,
             LanguageNames.CSharp);
-    }
 
     [Fact]
     public void TestTwoConflictsOnSameLine()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             "a b c d e",
             ["a q1 c z1 e", "a q2 c z2 e"],
             $"""
@@ -85,12 +74,10 @@ public partial class LinkedFileDiffMergingTests
             a q1 c z1 e
             """,
             LanguageNames.CSharp);
-    }
 
     [Fact]
     public void TestTwoConflictsOnAdjacentLines()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             """
             One
             Two
@@ -126,12 +113,10 @@ public partial class LinkedFileDiffMergingTests
             Four
             """,
             LanguageNames.CSharp);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     public void TestTwoConflictsOnSeparatedLines()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             """
             One;
             Two;
@@ -175,12 +160,10 @@ public partial class LinkedFileDiffMergingTests
             Five;
             """,
             LanguageNames.CSharp);
-    }
 
     [Fact]
     public void TestManyLinkedFilesWithOverlappingChange()
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             @"A",
             [
                 @"A",
@@ -203,14 +186,12 @@ public partial class LinkedFileDiffMergingTests
             B
             """,
             LanguageNames.CSharp);
-    }
 
     [Theory]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
     public void TestCommentsAddedCode(string language)
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             @"",
             [
                 @"A",
@@ -225,14 +206,12 @@ public partial class LinkedFileDiffMergingTests
             A
             """,
             language);
-    }
 
     [Theory]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
     public void TestCommentsRemovedCode(string language)
-    {
-        TestLinkedFileSet(
+        => TestLinkedFileSet(
             @"A",
             [
                 @"B",
@@ -247,5 +226,4 @@ public partial class LinkedFileDiffMergingTests
             B
             """,
             language);
-    }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
 internal sealed class GlassTestsHotReloadService
 {
     private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-       (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+       (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly IManagedHotReloadService _debuggerService;
 

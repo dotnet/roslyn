@@ -40,7 +40,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
     private static IEnumerable<object[]> CombineWithReferenceTypeData(IEnumerable<List<object>> data)
     {
-        foreach (var refKind in Enum.GetValues(typeof(ReferenceType)))
+        foreach (var refKind in Enum.GetValues<ReferenceType>())
         {
             foreach (var d in data)
             {

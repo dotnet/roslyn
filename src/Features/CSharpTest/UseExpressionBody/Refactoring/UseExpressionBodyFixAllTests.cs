@@ -32,7 +32,7 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
 
     [Fact]
     public Task FixAllInDocument()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -58,7 +58,7 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
 
     [Fact]
     public Task FixAllInProject()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -133,7 +133,7 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
 
     [Fact]
     public Task FixAllInSolution()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -205,7 +205,7 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
 
     [Fact]
     public Task FixAllInContainingMember()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -250,7 +250,7 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
 
     [Fact]
     public Task FixAllInContainingType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -339,7 +339,7 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
             """;
         var fixedCode = forMethods ? fixedCodeForMethods : fixedCodeForProperties;
 
-        await TestInRegularAndScript1Async($$"""
+        await TestInRegularAndScriptAsync($$"""
             class C
             {
                 void M1()

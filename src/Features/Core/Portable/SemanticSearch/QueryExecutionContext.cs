@@ -25,14 +25,8 @@ internal sealed class QueryExecutionContext(
     SourceText queryText,
     MethodInfo method,
     ISemanticSearchResultsObserver resultsObserver,
-    OptionsProvider<ClassificationOptions> classificationOptions,
     TraceSource traceSource)
 {
-    private static readonly FindReferencesSearchOptions s_findReferencesSearchOptions = new()
-    {
-        DisplayAllDefinitions = true,
-    };
-
     private const int StackDisplayDepthLimit = 32;
 
     private long _executionTime;
@@ -154,10 +148,7 @@ internal sealed class QueryExecutionContext(
 
                     try
                     {
-                        var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
-                            classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
-
-                        await resultsObserver.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                        await resultsObserver.OnSymbolFoundAsync(project.Solution, symbol, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                     {

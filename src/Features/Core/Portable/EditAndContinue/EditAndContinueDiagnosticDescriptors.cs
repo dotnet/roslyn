@@ -78,6 +78,16 @@ internal static class EditAndContinueDiagnosticDescriptors
         void AddGeneralDiagnostic(EditAndContinueErrorCode code, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error, bool noEffect = false)
             => Add(GetDescriptorIndex(code), GeneralDiagnosticIdPrefix, (int)code, resourceName, s_encLocString, severity, noEffect);
 
+        void AddProjectRudeEdit(ProjectSettingKind kind)
+        {
+            var code = EditAndContinueErrorCode.ChangingProjectSettingBase + (int)kind;
+            var resourceName = nameof(FeaturesResources.Changing_project_setting_0_from_1_to_2_requires_restarting_the_application);
+            var noEffect = kind.IsWarning();
+            var severity = noEffect ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
+
+            Add(GetDescriptorIndex(code), GeneralDiagnosticIdPrefix, (int)code, resourceName, s_encLocString, severity, noEffect);
+        }
+
         //
         // rude edits
         //
@@ -189,6 +199,16 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddGeneralDiagnostic(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired, nameof(FeaturesResources.ChangesRequiredSynthesizedType));
         AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning, noEffect: true);
 
+        // Project setting rude edits. Defines a distinct error code per setting to simplify telemetry tracking even though some errors share the same message.
+
+        AddGeneralDiagnostic(EditAndContinueErrorCode.ChangingMultiVersionReferences, nameof(FeaturesResources.Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application));
+        AddGeneralDiagnostic(EditAndContinueErrorCode.ChangingReference, nameof(FeaturesResources.Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application));
+
+        foreach (var value in Enum.GetValues<ProjectSettingKind>())
+        {
+            AddProjectRudeEdit(value);
+        }
+
         s_descriptors = builder.ToImmutable();
         s_noEffectDiagnosticIds = noEffectDiagnosticIds.ToImmutable();
     }
@@ -197,6 +217,9 @@ internal static class EditAndContinueDiagnosticDescriptors
         => s_descriptors.WhereAsArray(d => d != null);
 
     internal static DiagnosticDescriptor GetDescriptor(RudeEditKind kind)
+        => s_descriptors[GetDescriptorIndex(kind)];
+
+    internal static DiagnosticDescriptor GetDescriptor(ProjectSettingKind kind)
         => s_descriptors[GetDescriptorIndex(kind)];
 
     internal static DiagnosticDescriptor GetDescriptor(EditAndContinueErrorCode errorCode)
@@ -235,6 +258,9 @@ internal static class EditAndContinueDiagnosticDescriptors
 
     private static int GetDescriptorIndex(RudeEditKind kind)
         => (int)kind;
+
+    private static int GetDescriptorIndex(ProjectSettingKind kind)
+        => GetDescriptorIndex(EditAndContinueErrorCode.ChangingProjectSettingBase + (int)kind);
 
     private static int GetDescriptorIndex(EditAndContinueErrorCode errorCode)
         => s_generalDiagnosticBaseIndex + (int)errorCode;

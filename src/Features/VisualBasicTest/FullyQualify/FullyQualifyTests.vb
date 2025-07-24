@@ -33,7 +33,7 @@ End Module",
 "Module Program
     Sub Main(args As String(), f As System.IO.FileMode)
     End Sub
-End Module", testHost:=testHost)
+End Module", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -52,7 +52,7 @@ End Class
 Namespace SomeNamespace
     Public Class SomeClass1
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -72,7 +72,7 @@ End Class
 Namespace SomeNamespace
     Public Class SomeClass1
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -113,7 +113,7 @@ End Class"
 End Class",
 "Class Class1
     Dim v As System.Threading.Thread
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -130,7 +130,7 @@ End Class",
     End Class
 End Namespace
 Class SomeClass(Of x As SomeNamespace.Base)
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -157,7 +157,7 @@ Class Goo
     Sub Method1()
         Dim q As GenericClass(Of SomeNamespace.SomeClass)
     End Sub
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -178,7 +178,7 @@ End Namespace
 Class Goo
     Sub Method1(Of T As SomeNamespace.SomeClass)
     End Sub
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -205,7 +205,7 @@ Class Goo
     Sub Method2()
         Method1(Of SomeNamespace.SomeClass)
     End Sub
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -226,7 +226,7 @@ Namespace SomeNamespace
     Class SomethingAttribute
         Inherits System.Attribute
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -257,7 +257,7 @@ Namespace SomeNamespace
     Class SomethingAttribute
         Inherits Attribute
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -286,7 +286,7 @@ Namespace SomeNamespace
     Class SomethingAttribute
         Inherits System.Attribute
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -305,7 +305,7 @@ End Class
 Namespace [Namespace]
     Class Something
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
@@ -328,7 +328,7 @@ Namespace Outer
         Class Something
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
@@ -347,7 +347,7 @@ Namespace SomeNamespace
         Class SomeClass
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -400,7 +400,7 @@ Namespace SomeNamespace
         Class SomeClass
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
@@ -419,7 +419,7 @@ End Class
 Namespace SomeNamespace
     Class SomeClass
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -432,7 +432,7 @@ End Class",
 "Class Goo
     Function F() As System.Collections.IDictionary
     End Function
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -446,7 +446,7 @@ End Class",
     Function F() As System.Collections.Generic.IDictionary
     End Function
 End Class",
-index:=1, testHost:=testHost)
+index:=1, New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -459,7 +459,7 @@ End Class",
 "Class Goo
     Function F() As System.Collections.Generic.List
     End Function
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -472,7 +472,7 @@ End Class",
 "Class Goo
     Function F() As System.Collections.Generic.List(Of Integer)
     End Function
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -496,7 +496,7 @@ End Class",
     Sub Test()
         Dim x As New System.Collections.Generic.List(Of Integer)
     End Sub
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -511,7 +511,7 @@ End Class",
     Sub Test()
         Dim x As New List(Of System.Int32)
     End Sub
-End Class", testHost:=testHost)
+End Class", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -532,7 +532,7 @@ Namespace NS
             Dim x As New Collections.Generic.List(Of Integer)
         End Sub
     End Class
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData>
@@ -545,7 +545,7 @@ End Module",
 "Imports System
 Module Program
     Dim q As Collections.Generic.List(Of Integer)
-End Module", testHost:=testHost)
+End Module", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
@@ -568,7 +568,7 @@ Namespace Outer
         Class Something
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
@@ -591,7 +591,7 @@ Namespace [Namespace]
         Class Something
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
@@ -614,7 +614,7 @@ Namespace Outer
         Class [Namespace]
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
@@ -633,7 +633,7 @@ Namespace SomeNamespace
         Class SomeClass
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
@@ -660,7 +660,7 @@ Namespace SomeNamespace
         Class SomeClass
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
@@ -726,7 +726,7 @@ Namespace OUTER
         Friend Class GOO
         End Class
     End Namespace
-End Namespace", testHost:=testHost)
+End Namespace", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
@@ -743,7 +743,7 @@ Module Program
     Sub Main(args As String())
         Dim x As IO.Stream
     End Sub
-End Module", testHost:=testHost)
+End Module", New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
@@ -785,7 +785,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
     &lt;System.Obsolete&gt;
     Sub Main(args As String())
     End Sub
-End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
+End Module</Text>.Value.Replace(vbLf, vbCrLf), New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
@@ -805,7 +805,7 @@ Module Program
     Sub Main(args As String())
         Dim x As Generic.IEnumerable(Of Integer)
     End Sub
-End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
+End Module</Text>.Value.Replace(vbLf, vbCrLf), New TestParameters(testHost:=testHost))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
@@ -846,7 +846,7 @@ End Namespace
 Namespace N2
     Class A
     End Class
-End Namespace</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
+End Namespace</Text>.Value.Replace(vbLf, vbCrLf), New TestParameters(testHost:=testHost))
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

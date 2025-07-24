@@ -4638,8 +4638,7 @@ public sealed class StatementEditingTests : EditingTestBase
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Partial()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 partial class C
@@ -4672,7 +4671,6 @@ public sealed class StatementEditingTests : EditingTestBase
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_ParameterDelete()

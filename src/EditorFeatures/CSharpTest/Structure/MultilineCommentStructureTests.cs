@@ -264,11 +264,7 @@ public sealed class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaS
             Region("span1", "/* Comment in constructor ...", autoCollapse: true));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16186")]
-    public async Task TestInvalidComment()
-    {
-        const string code = @"$${|span:/*/|}";
-
-        await VerifyBlockSpansAsync(code,
+    public Task TestInvalidComment()
+        => VerifyBlockSpansAsync(@"$${|span:/*/|}",
             Region("span", "/* / ...", autoCollapse: true));
-    }
 }

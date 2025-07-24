@@ -522,8 +522,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
 
                 Assert.False(result.HasChanges)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -554,8 +555,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 Assert.False(result.HasChanges)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -578,8 +580,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
 
                 Assert.False(result.HasChanges)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -612,8 +615,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 ' no declaration errors (error in method body is only reported when emitting)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -645,8 +649,9 @@ End Class
 
                 ' No errors reported: EnC analyzer is resilient against semantic errors.
                 ' They will be reported by 1) compiler diagnostic analyzer 2) when emitting delta - if still present.
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 

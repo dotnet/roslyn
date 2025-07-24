@@ -175,7 +175,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { }
             """,
-@"[MyAttribute]")),
+            @"[MyAttribute]")),
 @"[global::MyAttribute]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -183,7 +183,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(object value) { } }
             """,
-@"[MyAttribute(null)]")),
+            @"[MyAttribute(null)]")),
 @"[global::MyAttribute(null)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -191,7 +191,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(int value) { } }
             """,
-@"[MyAttribute(123)]")),
+            @"[MyAttribute(123)]")),
 @"[global::MyAttribute(123)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -199,7 +199,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(double value) { } }
             """,
-@"[MyAttribute(12.3)]")),
+            @"[MyAttribute(12.3)]")),
 @"[global::MyAttribute(12.3)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -207,7 +207,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(string value) { } }
             """,
-@"[MyAttribute(""value"")]")),
+            @"[MyAttribute(""value"")]")),
 @"[global::MyAttribute(""value"")]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -216,7 +216,7 @@ public sealed class SyntaxGeneratorTests
             public enum E { A, B, C }
             public class MyAttribute : Attribute { public MyAttribute(E value) { } }
             """,
-@"[MyAttribute(E.A)]")),
+            @"[MyAttribute(E.A)]")),
 @"[global::MyAttribute(global::E.A)]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -224,7 +224,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(Type value) { } }
             """,
-@"[MyAttribute(typeof (MyAttribute))]")),
+            @"[MyAttribute(typeof (MyAttribute))]")),
 @"[global::MyAttribute(typeof(global::MyAttribute))]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -232,7 +232,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }
             """,
-@"[MyAttribute(new [] {1, 2, 3})]")),
+            @"[MyAttribute(new [] {1, 2, 3})]")),
 @"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
         VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
@@ -240,7 +240,7 @@ public sealed class SyntaxGeneratorTests
             using System; 
             public class MyAttribute : Attribute { public int Value {get; set;} }
             """,
-@"[MyAttribute(Value = 123)]")),
+            @"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
 
         var attributes = Generator.GetAttributes(Generator.AddAttributes(
@@ -521,19 +521,15 @@ public sealed class SyntaxGeneratorTests
 
     [Fact]
     public void TestAddHandlerExpressions()
-    {
-        VerifySyntax<AssignmentExpressionSyntax>(
+        => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.AddEventHandler(Generator.IdentifierName("@event"), Generator.IdentifierName("handler")),
             "@event += (handler)");
-    }
 
     [Fact]
     public void TestSubtractHandlerExpressions()
-    {
-        VerifySyntax<AssignmentExpressionSyntax>(
+        => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.RemoveEventHandler(Generator.IdentifierName("@event"),
             Generator.IdentifierName("handler")), "@event -= (handler)");
-    }
 
     [Fact]
     public void TestAwaitExpressions()
@@ -674,11 +670,9 @@ public sealed class SyntaxGeneratorTests
 
     [Fact]
     public void TestLockStatements()
-    {
-        VerifySyntax<LockStatementSyntax>(
+        => VerifySyntax<LockStatementSyntax>(
             Generator.LockStatement(Generator.IdentifierName("x"), [Generator.IdentifierName("y")]),
             "lock (x)\r\n{\r\n    y;\r\n}");
-    }
 
     [Fact]
     public void TestTryCatchStatements()
@@ -2258,8 +2252,7 @@ public sealed class SyntaxGeneratorTests
 
     [Fact]
     public void TestInterfaceDeclarationWithEventFromSymbol()
-    {
-        VerifySyntax<InterfaceDeclarationSyntax>(
+        => VerifySyntax<InterfaceDeclarationSyntax>(
             Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
             """
             public interface INotifyPropertyChanged
@@ -2267,12 +2260,10 @@ public sealed class SyntaxGeneratorTests
                 event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
     public void TestUnsafeFieldDeclarationFromSymbol()
-    {
-        VerifySyntax<MethodDeclarationSyntax>(
+        => VerifySyntax<MethodDeclarationSyntax>(
             Generator.Declaration(
                 _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
             """
@@ -2280,12 +2271,10 @@ public sealed class SyntaxGeneratorTests
             {
             }
             """);
-    }
 
     [Fact]
     public void TestEnumDeclarationFromSymbol()
-    {
-        VerifySyntax<EnumDeclarationSyntax>(
+        => VerifySyntax<EnumDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
                 """
@@ -2296,12 +2285,10 @@ public sealed class SyntaxGeneratorTests
                     Local = 2
                 }
                 """);
-    }
 
     [Fact]
     public void TestEnumWithUnderlyingTypeFromSymbol()
-    {
-        VerifySyntax<EnumDeclarationSyntax>(
+        => VerifySyntax<EnumDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
                 """
@@ -2312,7 +2299,6 @@ public sealed class SyntaxGeneratorTests
                     Level2 = 2
                 }
                 """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66381")]
     public void TestDelegateDeclarationFromSymbol()
@@ -2914,6 +2900,30 @@ public sealed class SyntaxGeneratorTests
                 static virtual void operator +();
             }
             """);
+    }
+
+    [Fact]
+    public void TestMultipleMembersIntoClass()
+    {
+        using var workspace = new AdhocWorkspace();
+        var node = Generator.AddMembers(Generator.ClassDeclaration("C"),
+            [
+                Generator.MethodDeclaration("M1", returnType: Generator.TypeExpression(SpecialType.System_Void), accessibility: Accessibility.Public),
+                Generator.PropertyDeclaration("P1", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.Public)
+            ]);
+
+        AssertEx.EqualOrDiff(
+            """
+            class C
+            {
+                public void M1()
+                {
+                }
+
+                public int P1 { get; set; }
+            }
+            """,
+            Formatter.Format(node, workspace).ToFullString());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65932")]
@@ -5073,63 +5083,52 @@ public sealed class SyntaxGeneratorTests
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestNamespaceModifiers()
-    {
-        TestModifiersAsync(DeclarationModifiers.None,
+        => TestModifiersAsync(DeclarationModifiers.None,
             """
             [|namespace N1
             {
             }|]
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestFileScopedNamespaceModifiers()
-    {
-        TestModifiersAsync(DeclarationModifiers.None,
+        => TestModifiersAsync(DeclarationModifiers.None,
             """
             [|namespace N1;|]
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestClassModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Static,
+        => TestModifiersAsync(DeclarationModifiers.Static,
             """
             [|static class C
             {
             }|]
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestMethodModifiers()
-    {
-        TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
+        => TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
             """
             class C
             {
                 [|public sealed override void M() { }|]
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66170")]
     public void TestMethodModifiers2()
-    {
-        TestModifiersAsync(DeclarationModifiers.ReadOnly,
+        => TestModifiersAsync(DeclarationModifiers.ReadOnly,
             """
             struct S
             {
                 [|public readonly void M() { }|]
             }
             """);
-    }
 
     [Fact]
     public void TestAsyncMethodModifier()
-    {
-        TestModifiersAsync(DeclarationModifiers.Async,
+        => TestModifiersAsync(DeclarationModifiers.Async,
             """
             using System.Threading.Tasks;
             class C
@@ -5137,78 +5136,65 @@ public sealed class SyntaxGeneratorTests
                 [|public async Task DoAsync() { await Task.CompletedTask; }|]
             }
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestPropertyModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
+        => TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
             """
             class C
             {
                 [|public virtual int X => 0;|]
             }
             """);
-    }
 
     [Fact]
     public void TestPropertyModifiers2()
-    {
-        TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
+        => TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
             """
             class C
             {
                 [|public required int X => 0;|]
             }
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestFieldModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Static,
+        => TestModifiersAsync(DeclarationModifiers.Static,
             """
             class C
             {
                 public static int [|X|];
             }
             """);
-    }
 
     [Fact]
     public void TestFieldModifiers2()
-    {
-        TestModifiersAsync(DeclarationModifiers.Required,
+        => TestModifiersAsync(DeclarationModifiers.Required,
             """
             class C
             {
                 public required int [|X|];
             }
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestEvent1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Virtual,
+        => TestModifiersAsync(DeclarationModifiers.Virtual,
             """
             class C
             {
                 public virtual event System.Action [|X|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65834")]
     public void TestStructModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
+        => TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
             """
             public readonly struct [|S|]
             {
             }
             """);
-    }
 
     [Fact]
     public void TestStructModifiers2()

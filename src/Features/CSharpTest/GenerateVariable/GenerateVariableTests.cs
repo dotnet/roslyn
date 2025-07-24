@@ -2161,7 +2161,7 @@ public sealed class GenerateVariableTests(ITestOutputHelper logger)
 
             C.i ++ ;
             """,
-            parseOptions: Options.Script);
+            new(parseOptions: Options.Script));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
     public Task BugFix5565()
@@ -2391,7 +2391,7 @@ public sealed class GenerateVariableTests(ITestOutputHelper logger)
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
     public Task TestReferenceTypeParameter1()
@@ -2553,7 +2553,7 @@ public sealed class GenerateVariableTests(ITestOutputHelper logger)
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541549")]
     public Task TestDelegateInvoke()
@@ -2916,13 +2916,13 @@ public sealed class GenerateVariableTests(ITestOutputHelper logger)
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540595")]
     public Task TestGeneratePropertyInScript()
         => TestAsync(
-@"[|Goo|]",
-"""
-object Goo { get; private set; }
+            @"[|Goo|]",
+            """
+            object Goo { get; private set; }
 
-Goo
-""",
-parseOptions: Options.Script);
+            Goo
+            """,
+            new(parseOptions: Options.Script));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542535")]
     public async Task TestConstantInParameterValue()
@@ -3041,7 +3041,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility2_InternalProtected()
@@ -3074,7 +3074,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility3_InternalInternal()
@@ -3107,7 +3107,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility4_InternalProtectedInternal()
@@ -3140,7 +3140,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility5_InternalPublic()
@@ -3173,7 +3173,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility6_PublicInternal()
@@ -3206,7 +3206,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility7_PublicProtectedInternal()
@@ -3239,7 +3239,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility8_PublicProtected()
@@ -3272,7 +3272,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility9_PublicPrivate()
@@ -3305,7 +3305,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility10_PrivatePrivate()
@@ -3344,7 +3344,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility11_PrivateProtected()
@@ -3383,7 +3383,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility12_PrivateProtectedInternal()
@@ -3422,7 +3422,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility13_PrivateInternal()
@@ -3461,7 +3461,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility14_ProtectedPrivate()
@@ -3500,7 +3500,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility15_ProtectedInternal()
@@ -3539,7 +3539,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility16_ProtectedInternalProtected()
@@ -3578,7 +3578,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
     public Task TestMinimalAccessibility17_ProtectedInternalInternal()
@@ -3617,7 +3617,7 @@ class C
                 }
             }
             """,
-            parseOptions: null);
+            new(parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543153")]
     public Task TestAnonymousObjectInitializer1()
@@ -4510,7 +4510,7 @@ class C
                 }
             }
             """,
-            index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+            new(index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
     public Task TestGenerateLocalNameSimplification()
@@ -4868,7 +4868,7 @@ class C
                 }
             }
             """,
-            index: PropertyIndex, options: ImplicitTypingEverywhere());
+            index: PropertyIndex, new(options: ImplicitTypingEverywhere()));
 
     [Fact]
     public Task TestFuncAssignment()
@@ -4984,7 +4984,7 @@ class C
             #line default
             #line hidden
             }
-            """, options: ImplicitTypingEverywhere());
+            """, new(options: ImplicitTypingEverywhere()));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
@@ -7957,7 +7957,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
     public Task TestWithMatchingTypeName1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7985,7 +7985,7 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
     public Task TestWithMatchingTypeName2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -9342,7 +9342,7 @@ class C
                     public (int y, int z) X { get; internal set; }
                 }
             }
-            """ + TestResources.NetFX.ValueTuple.tuplelib_cs, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact]
     public Task TestConstantPatternInPropertyPattern()
@@ -9384,7 +9384,7 @@ class C
                 {
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact]
     public Task TestConstantPatternInExtendedPropertyPattern()
@@ -9428,7 +9428,7 @@ class C
                 {
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
     public Task TestPropertyPatternInIsPattern9()

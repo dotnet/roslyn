@@ -29,7 +29,7 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
 
     private async Task TestAllowUnsafeEnabledIfDisabledAsync(string initialMarkup)
     {
-        var parameters = new TestParameters();
+        var parameters = TestParameters.Default;
         using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
         {
             var (_, action) = await GetCodeActionsAsync(workspace, parameters);
