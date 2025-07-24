@@ -386,15 +386,8 @@ public static class E
     }
 }
 """;
-        try
-        {
-            var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition]);
-            // Tracked by https://github.com/dotnet/roslyn/issues/78828 : assertion in NullableWalker
-            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
     }
 
     [Fact]
@@ -2299,7 +2292,7 @@ class C
                         item = null;
                     }
 
-                    var list = M2(item); // List<string?>
+                    var list = M2(item)/*T:System.Collections.Generic.List<string?>!*/;
                     if (list is { First: var first })
                     {
                         first.ToString(); // 1
@@ -2319,6 +2312,7 @@ class C
             """;
 
         var comp = CreateCompilation(source);
+        comp.VerifyTypes();
         comp.VerifyEmitDiagnostics(
             // (17,13): warning CS8602: Dereference of a possibly null reference.
             //             first.ToString(); // 1
@@ -2342,7 +2336,7 @@ class C
                         item = null;
                     }
 
-                    var list = M2(item); // List<string?>
+                    var list = M2(item)/*T:System.Collections.Generic.List<string?>!*/;
                     if (list is { First: var first }) // 1
                     {
                         first.ToString();
@@ -2362,6 +2356,7 @@ class C
             """;
 
         var comp = CreateCompilation(source);
+        comp.VerifyTypes();
         comp.VerifyEmitDiagnostics(
             // (15,23): warning CS8620: Argument of type 'List<string?>' cannot be used for parameter 'list' of type 'List<string>' in 'extension(List<string>)' due to differences in the nullability of reference types.
             //         if (list is { First: var first }) // 1
@@ -2385,7 +2380,7 @@ class C
                         item = null;
                     }
 
-                    var list = M2(item); // List<string?>
+                    var list = M2(item)/*T:System.Collections.Generic.List<string?>!*/;
                     if (list is { First: var first }) // 1
                     {
                         first.ToString(); // 2
@@ -2406,6 +2401,7 @@ class C
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         var comp = CreateCompilation(source);
+        comp.VerifyTypes();
         comp.VerifyEmitDiagnostics(
             // (15,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'ListExtensions.extension<T>(List<T>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
             //         if (list is { First: var first }) // 1
