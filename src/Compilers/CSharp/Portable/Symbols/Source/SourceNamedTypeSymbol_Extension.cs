@@ -1072,11 +1072,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyExtensionInfo.LazyImplementationMap.GetValueOrDefault(method);
         }
 
-        protected sealed override MethodSymbol? CreateSynthesizedExtensionMarker()
-        {
-            return TryGetOrCreateExtensionMarker();
-        }
-
         [MemberNotNull(nameof(_lazyExtensionInfo))]
         internal MethodSymbol? TryGetOrCreateExtensionMarker()
         {

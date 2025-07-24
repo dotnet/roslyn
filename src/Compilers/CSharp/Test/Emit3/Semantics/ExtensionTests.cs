@@ -801,7 +801,7 @@ public static class Extensions
         var nestedExtensionSymbol = model.GetDeclaredSymbol(nestedExtension);
         AssertExtensionDeclaration(nestedExtensionSymbol);
         AssertEx.Equal("Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object)", "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()", "Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$34505F560D9EACF86A87F3ED1F85E448"], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()", "Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$34505F560D9EACF86A87F3ED1F85E448"], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2203,7 +2203,6 @@ public static class Extensions
         AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
 
         AssertEx.Equal([
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object o)",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
             "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set"],
@@ -2237,7 +2236,6 @@ public static class Extensions
         AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
 
         AssertEx.Equal([
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object o)",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Property>k__BackingField",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
@@ -2418,7 +2416,6 @@ public static class Extensions
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["Property"], symbol.MemberNames);
         AssertEx.SequenceEqual([
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object)",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Property>k__BackingField",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
@@ -2455,7 +2452,6 @@ public static class Extensions
         AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i] { get; set; }", symbol.GetMember("this[]").ToTestDisplayString());
 
         AssertEx.Equal([
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object o)",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i] { get; set; }",
             "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i].get",
             "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i].set"],
@@ -2524,7 +2520,7 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Empty(symbol.MemberNames);
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object)", "Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested"], symbol.GetMembers().ToTestDisplayStrings());
         AssertEx.SequenceEqual(["Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested"], symbol.GetTypeMembers().ToTestDisplayStrings());
         AssertEx.Equal("Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested", symbol.GetTypeMember("Nested").ToTestDisplayString());
     }
@@ -2643,7 +2639,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         AssertEx.SequenceEqual(["Finalize"], symbol.MemberNames);
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object)", "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Finalize()"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Finalize()"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2677,7 +2673,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         AssertEx.SequenceEqual(["field"], symbol.MemberNames);
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object o)", "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.field"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.field"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2703,7 +2699,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         AssertEx.SequenceEqual(["i"], symbol.MemberNames);
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$(System.Object)", "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.i"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.i"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]

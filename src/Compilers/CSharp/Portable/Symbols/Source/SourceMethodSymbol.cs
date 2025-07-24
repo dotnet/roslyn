@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ));
             }
 
-            if (target.GetIsNewExtensionMember() && target is not SynthesizedExtensionMarker)
+            if (target.GetIsNewExtensionMember())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(target, ((SourceNamedTypeSymbol)target.ContainingType).GetExtensionMarkerMetadataName()));
             }

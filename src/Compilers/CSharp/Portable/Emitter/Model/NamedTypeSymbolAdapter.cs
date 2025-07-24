@@ -631,9 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)method != null);
 
-                // PROTOTYPE: SynthesizedExtensionMarker should not be added as a member of the extension type.
-                //            Temporarily filtering it out here.
-                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || (method is not SynthesizedExtensionMarker && method.GetCciAdapter().ShouldInclude(context)))
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.GetCciAdapter().ShouldInclude(context))
                 {
                     yield return method.GetCciAdapter();
                 }

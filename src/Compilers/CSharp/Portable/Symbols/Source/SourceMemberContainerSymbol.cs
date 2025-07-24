@@ -611,6 +611,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.Members:
                         this.GetMembersByName();
+
+                        if (this.IsExtension)
+                        {
+                            ((SourceNamedTypeSymbol)this).TryGetOrCreateExtensionMarker();
+                        }
                         break;
 
                     case CompletionPart.TypeMembers:
@@ -640,6 +645,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.MembersCompletedChecksStarted:
                     case CompletionPart.MembersCompleted:
                         {
+                            if (this.IsExtension)
+                            {
+                                ((SourceNamedTypeSymbol)this).TryGetOrCreateExtensionMarker()?.ForceComplete(locationOpt, filter: null, cancellationToken);
+                            }
+
                             ImmutableArray<Symbol> members = this.GetMembersUnordered();
 
                             bool allCompleted = true;
@@ -2026,8 +2036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (symbol.Kind == SymbolKind.NamedType ||
                         symbol.IsAccessor() ||
-                        symbol.IsIndexer() ||
-                        symbol.OriginalDefinition is SynthesizedExtensionMarker)
+                        symbol.IsIndexer())
                     {
                         continue;
                     }
@@ -2406,8 +2415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var extension = item;
                     Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByNameToMerge = ((SourceMemberContainerTypeSymbol)extension).GetMembersByName();
 
-                    if (membersByNameToMerge.Count == 0 ||
-                        (membersByNameToMerge.Count == 1 && membersByNameToMerge.Values.Single() is [SynthesizedExtensionMarker]))
+                    if (membersByNameToMerge.Count == 0)
                     {
                         continue; // This is an optimization
                     }
@@ -2486,6 +2494,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckSpecialMemberErrors(BindingDiagnosticBag diagnostics)
         {
             var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
+
+            if (this.IsExtension)
+            {
+                ((SourceNamedTypeSymbol)this).TryGetOrCreateExtensionMarker()?.AfterAddingTypeMembersChecks(conversions, diagnostics);
+            }
+
             foreach (var member in this.GetMembersUnordered())
             {
                 member.AfterAddingTypeMembersChecks(conversions, diagnostics);
@@ -3797,10 +3811,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
-                case TypeKind.Extension:
-                    AddSynthesizedExtensionMarker(builder, declaredMembersAndInitializers);
-                    break;
-
                 default:
                     break;
             }
@@ -3824,20 +3834,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-        }
-
-        private void AddSynthesizedExtensionMarker(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers)
-        {
-            var marker = CreateSynthesizedExtensionMarker();
-            if (marker is not null)
-            {
-                builder.AddNonTypeMember(this, marker, declaredMembersAndInitializers);
-            }
-        }
-
-        protected virtual MethodSymbol? CreateSynthesizedExtensionMarker()
-        {
-            throw ExceptionUtilities.Unreachable();
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
@@ -5845,6 +5841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // PROTOTYPE: Figure out how to calculate and emit this for extensions. 
                 //            We probably should do that per grouping type. Leaving as is should be fine too, I think.
+                //            Otherwise, marker method should be processed explicitly because it is not among members.
                 return null;
             }
 
