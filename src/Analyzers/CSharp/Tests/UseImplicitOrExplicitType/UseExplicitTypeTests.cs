@@ -2653,7 +2653,9 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/24034")]
     public async Task WithNormalFuncSynthesizedLambdaType()
     {
         var before = """
@@ -2666,11 +2668,13 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             }
             """;
         var after = """
+            using System;
+
             class Program
             {
                 void Method()
                 {
-                    System.Func<int, string> x = (int i) => i.ToString();
+                    Func<int, string> x = (int i) => i.ToString();
                 }
             }
             """;
