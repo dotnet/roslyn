@@ -40,6 +40,7 @@ internal sealed class ReferenceEqualityComparer : IEqualityComparer<object?>, IE
     /// </remarks>
     public new bool Equals(object? x, object? y) => ReferenceEquals(x, y);
 
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix - this works around cref not correctly resolving RuntimeHelpers as SCI also has an internal version without GetHashCode.
     /// <summary>
     /// Returns a hash code for the specified object. The returned hash code is based on the object
     /// identity, not on the contents of the object.
@@ -47,9 +48,10 @@ internal sealed class ReferenceEqualityComparer : IEqualityComparer<object?>, IE
     /// <param name="obj">The object for which to retrieve the hash code.</param>
     /// <returns>A hash code for the identity of <paramref name="obj"/>.</returns>
     /// <remarks>
-    /// This API is a wrapper around <see cref="RuntimeHelpers.GetHashCode(object)"/>.
+    /// This API is a wrapper around <see cref="M:System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(object)"/>.
     /// It is not necessarily equivalent to calling <see cref="object.GetHashCode()"/>.
     /// </remarks>
+#pragma warning restore CA1200
     public int GetHashCode(object? obj)
     {
         // Depending on target framework, RuntimeHelpers.GetHashCode might not be annotated

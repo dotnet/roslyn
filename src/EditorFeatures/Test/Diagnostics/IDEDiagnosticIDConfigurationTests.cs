@@ -174,8 +174,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
     [Fact]
     public void CSharp_VerifyIDEDiagnosticSeveritiesAreConfigurable()
-    {
-        VerifyConfigureSeverityCore("""
+        => VerifyConfigureSeverityCore("""
             # IDE0001
             dotnet_diagnostic.IDE0001.severity = %value%
 
@@ -539,12 +538,10 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # JSON002
             dotnet_diagnostic.JSON002.severity = %value%
             """, LanguageNames.CSharp);
-    }
 
     [Fact]
     public void VisualBasic_VerifyIDEDiagnosticSeveritiesAreConfigurable()
-    {
-        VerifyConfigureSeverityCore("""
+        => VerifyConfigureSeverityCore("""
             # IDE0001
             dotnet_diagnostic.IDE0001.severity = %value%
 
@@ -704,7 +701,6 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # JSON002
             dotnet_diagnostic.JSON002.severity = %value%
             """, LanguageNames.VisualBasic);
-    }
 
     private static void VerifyConfigureCodeStyleOptionsCore((string diagnosticId, string optionName, string optionValue)[] expected, string languageName)
     {

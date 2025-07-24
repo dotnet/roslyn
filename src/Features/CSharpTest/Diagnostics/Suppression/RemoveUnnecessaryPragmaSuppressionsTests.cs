@@ -136,7 +136,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
             {
                 get
                 {
-                    var errorCodes = Enum.GetValues(typeof(ErrorCode));
+                    var errorCodes = Enum.GetValues<ErrorCode>();
                     var supported = ((CSharpCompilerDiagnosticAnalyzer)OtherAnalyzers[0]).GetSupportedErrorCodes();
                     using var _ = ArrayBuilder<string>.GetInstance(out var builder);
                     foreach (int errorCode in errorCodes)
