@@ -111,6 +111,7 @@ internal abstract partial class AbstractSymbolDisplayService
         protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
         protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
         protected abstract string? GetNavigationHint(ISymbol? symbol);
+        protected abstract string GetCommentText(SyntaxTrivia trivia);
 
         protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
         protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -194,43 +195,47 @@ internal abstract partial class AbstractSymbolDisplayService
 
             var startIndex = leadingTrivia.Count;
 
-            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var comments);
-
+            // Consume any directly leading contiguous comments right before the statement.
+            using var _1 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var commentsAndNewLines);
             while (true)
             {
+                // Skip indentation if present.
+                if (syntaxFacts.IsWhitespaceTrivia(GetTrivia(startIndex - 1)))
+                    startIndex--;
 
-                if (syntaxFacts.IsWhitespaceTrivia(GetTrivia(startIndex - 1)) &&
-                    syntaxFacts.IsEndOfLineTrivia(GetTrivia(startIndex - 2)) &&
-                    syntaxFacts.IsRegularComment(GetTrivia(startIndex - 3)))
+                if (!syntaxFacts.IsEndOfLineTrivia(GetTrivia(--startIndex)) ||
+                    !syntaxFacts.IsSingleLineCommentTrivia(GetTrivia(--startIndex)))
                 {
-                    comments.Add(GetTrivia(startIndex - 3));
-                    startIndex -= 3;
-                    continue;
+                    break;
                 }
 
-                // Comment on non-indented local.
-                if (syntaxFacts.IsEndOfLineTrivia(GetTrivia(startIndex - 1)) &&
-                    syntaxFacts.IsRegularComment(GetTrivia(startIndex - 2)))
-                {
-                    comments.Add(GetTrivia(startIndex - 2));
-                    startIndex -= 2;
-                    continue;
-                }
-
-                break;
+                commentsAndNewLines.Add(GetTrivia(startIndex));
+                commentsAndNewLines.Add(GetTrivia(startIndex + 1));
             }
 
-            if (comments.Count == 0)
+            if (commentsAndNewLines.Count == 0)
                 return DocumentationComment.Empty;
+
+            // Remove the last trivia, as it's always an end of line trivia.
+            commentsAndNewLines.Count--;
+
+            var text = commentsAndNewLines.Select((t, i) => i % 2 == 0 ? GetCommentText(t) : t.ToFullString()).Join("");
+            var docComment = DocumentationComment.FromXmlFragment(text);
+            if (docComment.HadXmlParseError)
+            {
+                // try again, this type escaping `<` and `>` characters so that they don't cause XML parse errors.
+                var escapedDocComment = DocumentationComment.FromXmlFragment(text.Replace("<", "&lt;").Replace(">", "&gt;"));
+                if (!escapedDocComment.HadXmlParseError)
+                    return escapedDocComment;
+            }
+
+            return docComment;
 
             SyntaxTrivia GetTrivia(int index)
                 => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
-    }
 
-
-
-    private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
+        private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
         {
             var formatter = LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
             var format = ISymbolExtensions2.CrefFormat;

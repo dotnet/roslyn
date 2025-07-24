@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
