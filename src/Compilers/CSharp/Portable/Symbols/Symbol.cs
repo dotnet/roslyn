@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         string ISymbolInternal.MetadataName => this.MetadataName;
 
-        public Cci.TypeMemberVisibility MetadataVisibility
+        public virtual Cci.TypeMemberVisibility MetadataVisibility
         {
             get
             {

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected LambdaCapturedVariable(SynthesizedClosureEnvironment frame, TypeWithAnnotations type, string fieldName, bool isThisParameter)
             : base(frame,
                    fieldName,
-                   isPublic: true,
+                   DeclarationModifiers.Public,
                    isReadOnly: false,
                    isStatic: false)
         {

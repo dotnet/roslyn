@@ -157,11 +157,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -255,11 +255,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$01CE3801593377B4E240F33E20D30D50'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$01CE3801593377B4E240F33E20D30D50'<T>
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T ''
                 ) cil managed 
@@ -343,11 +343,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93'<valuetype .ctor ([netstandard]System.ValueType) T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93'<valuetype .ctor ([netstandard]System.ValueType) T>
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T ''
                 ) cil managed 
@@ -625,7 +625,7 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C7A07C3975E80DE5DBC93B5392C6C922'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C7A07C3975E80DE5DBC93B5392C6C922'<T>
             extends [netstandard]System.Object
         {
             .param type T
@@ -633,7 +633,7 @@ public static class Extensions
                     01 00 01 00 00
                 )
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T ''
                 ) cil managed 
@@ -884,11 +884,11 @@ public static partial class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -1188,11 +1188,11 @@ public static class Extensions
                         01 00 00 00
                     )
                     // Nested Types
-                    .class nested private auto ansi abstract sealed specialname '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
+                    .class nested public auto ansi abstract sealed specialname '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
                         extends [netstandard]System.Object
                     {
                         // Methods
-                        .method private hidebysig specialname static 
+                        .method public hidebysig specialname static 
                             void '<Extension>$' (
                                 class [netstandard]System.Text.StringBuilder ''
                             ) cil managed 
@@ -1366,11 +1366,11 @@ public static class IntExt
                         01 00 00 00
                     )
                     // Nested Types
-                    .class nested private auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+                    .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
                         extends [netstandard]System.Object
                     {
                         // Methods
-                        .method private hidebysig specialname static 
+                        .method public hidebysig specialname static 
                             void '<Extension>$' (
                                 int32 ''
                             ) cil managed 
@@ -1545,11 +1545,11 @@ public static class IntExt
                         01 00 00 00
                     )
                     // Nested Types
-                    .class nested private auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+                    .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
                         extends [netstandard]System.Object
                     {
                         // Methods
-                        .method private hidebysig specialname static 
+                        .method public hidebysig specialname static 
                             void '<Extension>$' (
                                 int32 ''
                             ) cil managed 
@@ -1849,11 +1849,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -1969,11 +1969,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -2107,11 +2107,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -2298,11 +2298,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -4464,7 +4464,57 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp).VerifyDiagnostics();
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("Extensions", """
+.class public auto ansi abstract sealed beforefieldinit Extensions
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested private auto ansi beforefieldinit C
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [netstandard]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method C::.ctor
+    } // end of class C
+    .class nested public auto ansi sealed specialname '<Extension>$C3CD11E70DE99F353AE602995BB874BF'
+        extends [netstandard]System.Object
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<Marker>$4D270477BCDFAB12B9E9B1A79213B9FB'
+            extends [netstandard]System.Object
+        {
+            // Methods
+            .method private hidebysig specialname static 
+                void '<Extension>$' (
+                    class Extensions/C x
+                ) cil managed 
+            {
+                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$4D270477BCDFAB12B9E9B1A79213B9FB'::'<Extension>$'
+        } // end of class <Marker>$4D270477BCDFAB12B9E9B1A79213B9FB
+    } // end of class <Extension>$C3CD11E70DE99F353AE602995BB874BF
+} // end of class Extensions
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));;
     }
 
     [Fact]
@@ -5093,11 +5143,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -5226,11 +5276,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -5609,11 +5659,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -5803,11 +5853,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -6005,11 +6055,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -6420,11 +6470,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -6734,11 +6784,11 @@ public class C<T>(string v)
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     class C`1<!T> o
                 ) cil managed 
@@ -6989,11 +7039,11 @@ public class C<T>(string val)
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     class C`1<!T> o
                 ) cil managed 
@@ -7278,11 +7328,11 @@ public class C<T>(string val)
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     class C`1<!T> o
                 ) cil managed 
@@ -7551,11 +7601,11 @@ public class C<T>(string val)
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     class C`1<!T> o
                 ) cil managed 
@@ -7954,11 +8004,11 @@ public class C<T>(string val)
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     class C`1<!T> o
                 ) cil managed 
@@ -8285,11 +8335,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object _
                 ) cil managed 
@@ -8780,11 +8830,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object _
                 ) cil managed 
@@ -8932,11 +8982,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object _
                 ) cil managed 
@@ -8950,11 +9000,11 @@ public static class Extensions
                 IL_0000: ret
             } // end of method '<Marker>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
         } // end of class <Marker>$3D34838CB2C73A4E406AE3905787D97D
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -9192,11 +9242,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object _
                 ) cil managed 
@@ -9392,11 +9442,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object _
                 ) cil managed 
@@ -9771,11 +9821,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object _
                 ) cil managed 
@@ -10075,11 +10125,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -10383,11 +10433,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -10613,11 +10663,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -10781,11 +10831,11 @@ class C1
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
                 ) cil managed 
@@ -10946,11 +10996,11 @@ class C1
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
                 ) cil managed 
@@ -11107,11 +11157,11 @@ class C1
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -11261,11 +11311,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
                 ) cil managed 
@@ -11417,11 +11467,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -11580,11 +11630,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
                 ) cil managed 
@@ -11787,11 +11837,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
                 ) cil managed 
@@ -11964,11 +12014,11 @@ public static class Extensions
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -28779,11 +28829,11 @@ public static partial class C
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -32305,7 +32355,125 @@ public static class Extensions1
 class C<T, S> {}
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp).VerifyDiagnostics();
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("Extensions1", """
+.class public auto ansi abstract sealed beforefieldinit Extensions1
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<Extension>$373395272A45479DE48E8BB1CCB2C42B'<$T0, $T1>
+        extends [netstandard]System.Object
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<Marker>$80D5112A03B26C94C628316C4DA793B2'<T, S>
+            extends [netstandard]System.Object
+        {
+            // Methods
+            .method assembly hidebysig specialname static 
+                void '<Extension>$' (
+                    class C`2<!T, !S> c
+                ) cil managed 
+            {
+                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$80D5112A03B26C94C628316C4DA793B2'::'<Extension>$'
+        } // end of class <Marker>$80D5112A03B26C94C628316C4DA793B2
+        // Methods
+        .method private hidebysig 
+            instance void M1 () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 38 30 44 35
+                31 31 32 41 30 33 42 32 36 43 39 34 43 36 32 38
+                33 31 36 43 34 44 41 37 39 33 42 32 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<Extension>$373395272A45479DE48E8BB1CCB2C42B'::M1
+    } // end of class <Extension>$373395272A45479DE48E8BB1CCB2C42B
+    .class nested public auto ansi sealed specialname '<Extension>$6D4255504AB27A230E5AB4858D9E46EB'<$T0, $T1>
+        extends [netstandard]System.Object
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A'<T, S>
+            extends [netstandard]System.Object
+        {
+            // Methods
+            .method assembly hidebysig specialname static 
+                void '<Extension>$' (
+                    class C`2<!S, !T> c
+                ) cil managed 
+            {
+                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A'::'<Extension>$'
+        } // end of class <Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A
+        // Methods
+        .method private hidebysig 
+            instance void M1 () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 32 32 33 37
+                45 38 35 32 44 32 45 39 46 34 38 45 30 43 43 36
+                42 46 32 46 44 35 32 38 44 41 32 41 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<Extension>$6D4255504AB27A230E5AB4858D9E46EB'::M1
+    } // end of class <Extension>$6D4255504AB27A230E5AB4858D9E46EB
+    // Methods
+    .method private hidebysig static 
+        void M1<T, S> (
+            class C`2<!!T, !!S> c
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2067
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method Extensions1::M1
+    .method private hidebysig static 
+        void M1<T, S> (
+            class C`2<!!S, !!T> c
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2067
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method Extensions1::M1
+} // end of class Extensions1
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Theory]
@@ -40960,11 +41128,11 @@ static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 ''
                 ) cil managed 
@@ -41093,11 +41261,11 @@ static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -41244,11 +41412,11 @@ static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 ''
                 ) cil managed 
@@ -41384,11 +41552,11 @@ static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -41570,11 +41738,11 @@ static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -41726,11 +41894,11 @@ static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -41860,11 +42028,11 @@ static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [netstandard]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -44536,11 +44704,11 @@ public static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$FCD10F86264A5A381A31E52427E53CAB'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$FCD10F86264A5A381A31E52427E53CAB'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -44557,11 +44725,11 @@ public static class E
                 IL_0000: ret
             } // end of method '<Marker>$FCD10F86264A5A381A31E52427E53CAB'::'<Extension>$'
         } // end of class <Marker>$FCD10F86264A5A381A31E52427E53CAB
-        .class nested private auto ansi abstract sealed specialname '<Marker>$FB03ECDF5D1B3883A99E213C2D618E82'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$FB03ECDF5D1B3883A99E213C2D618E82'
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -45767,11 +45935,11 @@ public static class E
             01 00 00 00
         )
         // Nested Types
-        .class nested private auto ansi abstract sealed specialname '<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB'
             extends [System.Runtime]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     bool b
                 ) cil managed 
@@ -45789,11 +45957,11 @@ public static class E
                 IL_0000: ret
             } // end of method '<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB'::'<Extension>$'
         } // end of class <Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB
-        .class nested private auto ansi abstract sealed specialname '<Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7'
+        .class nested public auto ansi abstract sealed specialname '<Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7'
             extends [System.Runtime]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     bool b
                 ) cil managed 

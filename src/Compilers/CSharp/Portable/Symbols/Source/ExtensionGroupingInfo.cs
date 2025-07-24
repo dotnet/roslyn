@@ -176,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected abstract ITypeDefinition ContainingTypeDefinition { get; }
 
-            TypeMemberVisibility ITypeDefinitionMember.Visibility => Visibility;
-
-            protected abstract TypeMemberVisibility Visibility { get; }
+            TypeMemberVisibility ITypeDefinitionMember.Visibility => TypeMemberVisibility.Public;
 
             bool IDefinition.IsEncDeleted => false;
 
@@ -361,8 +359,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override ITypeDefinition ContainingTypeDefinition => ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType!.GetCciAdapter();
 
-            protected override TypeMemberVisibility Visibility => TypeMemberVisibility.Public;
-
             public override string Name => _name;
 
             protected override ITypeReference? ObjectType => ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingAssembly.GetSpecialType(SpecialType.System_Object).GetCciAdapter();
@@ -501,8 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override bool IsSealed => true;
 
             protected override ITypeDefinition ContainingTypeDefinition => GroupingType;
-
-            protected override TypeMemberVisibility Visibility => TypeMemberVisibility.Private;
 
             public override string Name => _name;
 
