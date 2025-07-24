@@ -16,6 +16,9 @@ public readonly struct SolutionChanges
     private readonly Solution _newSolution;
     private readonly Solution _oldSolution;
 
+    internal Solution OldSolution => _oldSolution;
+    internal Solution NewSolution => _newSolution;
+
     internal SolutionChanges(Solution newSolution, Solution oldSolution)
     {
         _newSolution = newSolution;
