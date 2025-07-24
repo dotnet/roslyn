@@ -52,9 +52,9 @@ internal static class ReferenceLocationExtensions
     {
         foreach (var reference in references)
         {
-            // Filter out references in string literals, nameof expressions, and typeof expressions
+            // Filter out references in nameof expressions and typeof expressions
             // This fixes the most common Call Hierarchy false positives
-            if (IsTokenInStringLiteralNameofOrTypeof(reference))
+            if (IsTokenInNameofOrTypeof(reference))
                 continue;
             
             var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
@@ -72,10 +72,10 @@ internal static class ReferenceLocationExtensions
     }
 
     /// <summary>
-    /// Checks if a reference location is in a string literal, nameof expression, or typeof expression.
-    /// These are the most common false positives in Call Hierarchy.
+    /// Checks if a reference location is in a nameof expression or typeof expression.
+    /// These are common false positives in Call Hierarchy.
     /// </summary>
-    private static bool IsTokenInStringLiteralNameofOrTypeof(ReferenceLocation reference)
+    private static bool IsTokenInNameofOrTypeof(ReferenceLocation reference)
     {
         if (!reference.Location.IsInSource)
             return false;
@@ -90,66 +90,30 @@ internal static class ReferenceLocationExtensions
         var document = reference.Document;
         var syntaxFacts = document.GetRequiredLanguageService<Microsoft.CodeAnalysis.LanguageService.ISyntaxFactsService>();
 
-        // Check if the token itself is a string literal
-        if (syntaxFacts.IsStringLiteralOrInterpolatedStringLiteral(token))
-            return true;
-
-        // Walk up the tree to check for string literals, nameof expressions, or typeof expressions
+        // Walk up the tree to check for nameof expressions or typeof expressions
         var current = token.Parent;
         while (current != null)
         {
-            // Check if current node is a string literal expression
-            if (syntaxFacts.IsLiteralExpression(current))
+            // Quick check for typeof expressions using direct RawKind comparison
+            if (current.RawKind == syntaxFacts.SyntaxKinds.TypeOfExpression)
+                return true;
+
+            // Check for nameof expressions (invocation where expression is "nameof")
+            if (current.RawKind == syntaxFacts.SyntaxKinds.InvocationExpression)
             {
-                var literalToken = syntaxFacts.GetTokenOfLiteralExpression(current);
-                if (syntaxFacts.IsStringLiteralOrInterpolatedStringLiteral(literalToken))
-                    return true;
+                syntaxFacts.GetPartsOfInvocationExpression(current, out var expression, out _);
+                if (syntaxFacts.IsSimpleName(expression))
+                {
+                    var identifier = syntaxFacts.GetIdentifierOfSimpleName(expression);
+                    if (identifier.ValueText == "nameof")
+                        return true;
+                }
             }
-
-            // Check for nameof expressions
-            if (IsNameofExpression(syntaxFacts, current))
-                return true;
-
-            // Check for typeof expressions
-            if (IsTypeOfExpression(syntaxFacts, current))
-                return true;
 
             current = current.Parent;
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Checks if a node is a nameof expression.
-    /// </summary>
-    private static bool IsNameofExpression(Microsoft.CodeAnalysis.LanguageService.ISyntaxFactsService syntaxFacts, SyntaxNode node)
-    {
-        try
-        {
-            syntaxFacts.GetPartsOfInvocationExpression(node, out var expression, out var argumentList);
-            
-            if (syntaxFacts.IsSimpleName(expression))
-            {
-                var identifier = syntaxFacts.GetIdentifierOfSimpleName(expression);
-                return identifier.ValueText == "nameof";
-            }
-        }
-        catch
-        {
-            // If GetPartsOfInvocationExpression throws, this is not an invocation expression
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Checks if a node is a typeof expression.
-    /// </summary>
-    private static bool IsTypeOfExpression(Microsoft.CodeAnalysis.LanguageService.ISyntaxFactsService syntaxFacts, SyntaxNode node)
-    {
-        // Check if this is a typeof expression using the syntax kinds
-        return node?.RawKind == syntaxFacts.SyntaxKinds.TypeOfExpression;
     }
 
     private static ISymbol? GetEnclosingMethodOrPropertyOrField(
