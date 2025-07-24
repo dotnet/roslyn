@@ -216,20 +216,31 @@ internal abstract partial class AbstractSymbolDisplayService
             if (commentsAndNewLines.Count == 0)
                 return DocumentationComment.Empty;
 
-            // Remove the last trivia, as it's always an end of line trivia.
+            // Remove the last trivia, as it's always an end of line trivia.  Then reverse the array since we placed
+            // the elements in reverse order as we walked backwards.
             commentsAndNewLines.Count--;
+            commentsAndNewLines.ReverseContents();
 
+            // Concatenate the comment text and new lines into a single string.
+            // The even items are the comments, and the odd items are the new lines.
             var text = commentsAndNewLines.Select((t, i) => i % 2 == 0 ? GetCommentText(t) : t.ToFullString()).Join("");
-            var docComment = DocumentationComment.FromXmlFragment(text);
-            if (docComment.HadXmlParseError)
-            {
-                // try again, this type escaping `<` and `>` characters so that they don't cause XML parse errors.
-                var escapedDocComment = DocumentationComment.FromXmlFragment(text.Replace("<", "&lt;").Replace(">", "&gt;"));
-                if (!escapedDocComment.HadXmlParseError)
-                    return escapedDocComment;
-            }
 
-            return docComment;
+            // Try seeing if the text is actually just an real xml doc comment written by the user.
+            var docComment = DocumentationComment.FromXmlFragment(text);
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            // Otherwise, try wrapping with <summary> tags to make it a valid doc comment.
+            docComment = DocumentationComment.FromXmlFragment($"<summary>{text}</summary>");
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            // Try one final time, this type escaping `<` and `>` characters so that they don't cause XML parse errors.
+            docComment = DocumentationComment.FromXmlFragment($"<summary>{text.Replace("<", "&lt;").Replace(">", "&gt;")}</summary>");
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            return DocumentationComment.Empty;
 
             SyntaxTrivia GetTrivia(int index)
                 => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
@@ -490,7 +501,7 @@ internal abstract partial class AbstractSymbolDisplayService
             }
         }
 
-        private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
+        private Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
         {
             var includeNavigationHints = Options.QuickInfoOptions.IncludeNavigationHintsInQuickInfo;
 
