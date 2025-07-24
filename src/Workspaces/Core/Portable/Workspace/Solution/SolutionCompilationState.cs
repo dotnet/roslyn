@@ -1235,8 +1235,13 @@ internal sealed partial class SolutionCompilationState
                 static (id, solutionState) => CreateCompilationTracker(id, solutionState).WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy(),
                 SolutionState);
         }
-
+        else
+        {
+            // we already have a tracker, so we want to transition to the requested state, and perform further work on the transitioned state
+            tracker = tracker.WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
+        }
         Debug.Assert(tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateOnlyRequired);
+
         return this;
     }
 
