@@ -9815,4 +9815,99 @@ AnonymousTypes(
             }
             """,
             MainDescription($"Extensions.extension(System.String)"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment1()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Comment on i
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment on i"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment2()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Comment unrelated to i
+
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment3()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Multi
+                    // line
+                    // comment for i
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Multi line comment for i"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment4()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Comment for i.  It is > 0
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment for i. It is > 0"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment5()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            // Comment for i.  It is > 0
+            int i;
+            Console.WriteLine($$i);
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment for i. It is > 0"));
+
+    [Fact]
+    public Task TestLocalVariableComment6()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            // <summary>Comment for i. 
+            // It is &gt; 0</summary>
+            int i;
+            Console.WriteLine($$i);
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment for i. It is > 0"));
 }
