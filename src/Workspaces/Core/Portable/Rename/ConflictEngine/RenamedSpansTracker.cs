@@ -158,7 +158,7 @@ internal sealed class RenamedSpansTracker
                 // It's possible that rename will have found locations in generated documents, so we have to make sure to allow that. We assume that the
                 // entry point to rename will only process source generated documents if it needed to.
                 var document = await solution.GetRequiredDocumentAsync(
-                    documentId, options.RenameInSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                    documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                 if (replacementTextValid)
                 {

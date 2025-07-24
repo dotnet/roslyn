@@ -73,7 +73,7 @@ internal sealed class MutableConflictResolution(
             if (renamedSpansTracker.IsDocumentChanged(documentId))
             {
                 var document = await CurrentSolution.GetRequiredDocumentAsync(
-                    documentId, _options.RenameInSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                    documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // For the computeReplacementToken and computeReplacementNode functions, use 
@@ -185,7 +185,7 @@ internal sealed class MutableConflictResolution(
         {
             Contract.ThrowIfFalse(_options.RenameInSourceGeneratedDocuments);
 
-            _ = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: _options.RenameInSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+            _ = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
         }
 
         return solution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
