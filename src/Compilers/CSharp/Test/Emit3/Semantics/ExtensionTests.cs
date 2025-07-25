@@ -21899,6 +21899,7 @@ static class E
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_ReceiverParameter_ByRef(bool useMetadataRef)
     {
@@ -21930,20 +21931,70 @@ static class E
             """;
 
         var exeSource = """
-            int i = 1;
-            i.M($"");
-            System.Console.Write(i);
-            i = 4;
-            E.M(ref i, $"");
-            System.Console.Write(i);
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 1;
+                    Test1(ref i);
+                    System.Console.Write(i);
+                    i = 4;
+                    Test2(ref i);
+                    System.Console.Write(i);
+                }
+
+                static void Test1(ref int i)
+                {
+                    i.M($"");
+                }
+            
+                static void Test2(ref int i)
+                {
+                    E.M(ref i, $"");
+                }
+            }
             """;
 
-        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "123423" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var expectedOutput = "123423";
+        var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput).VerifyDiagnostics();
 
-        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        verifier.VerifyIL("Program.Test1", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  4
+              .locals init (int& V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloc.0
+              IL_0003:  ldc.i4.0
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldloc.0
+              IL_0006:  newobj     "InterpolationHandler..ctor(int, int, ref int)"
+              IL_000b:  call       "void E.M(ref int, InterpolationHandler)"
+              IL_0010:  ret
+            }
+            """);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify)
+        verifier.VerifyIL("Program.Test2", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  4
+              .locals init (int& V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloc.0
+              IL_0003:  ldc.i4.0
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldloc.0
+              IL_0006:  newobj     "InterpolationHandler..ctor(int, int, ref int)"
+              IL_000b:  call       "void E.M(ref int, InterpolationHandler)"
+              IL_0010:  ret
+            }
+            """);
+
+        var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], expectedOutput: expectedOutput)
             .VerifyDiagnostics();
     }
 
@@ -21993,15 +22044,116 @@ static class E
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
-    public void InterpolationHandler_ReceiverParameter_ByIn_WithConstantReceiver(bool useMetadataRef)
+    public void InterpolationHandler_ReceiverParameter_Generic_ByRef(bool useMetadataRef)
     {
         var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler<TR>
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, ref TR i)
+                {
+                    System.Console.Write(i);
+                    i = (TR)(object)2;
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension<T>(ref T i) where T : struct
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler<T> h)
+                    {
+                        System.Console.Write(i);
+                        i = (T)(object)3;
+                    }
+                }
+            }
+            """;
+
+        var exeSource = """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 1;
+                    Test1(ref i);
+                    System.Console.Write(i);
+                    i = 4;
+                    Test2(ref i);
+                    System.Console.Write(i);
+                }
+
+                static void Test1<T>(ref T i) where T : struct
+                {
+                    i.M($"");
+                }
+            
+                static void Test2<T>(ref T i) where T : struct
+                {
+                    E.M(ref i, $"");
+                }
+            }
+            """;
+
+        var expectedOutput = "123423";
+        var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  4
+              .locals init (T& V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloc.0
+              IL_0003:  ldc.i4.0
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldloc.0
+              IL_0006:  newobj     "InterpolationHandler<T>..ctor(int, int, ref T)"
+              IL_000b:  call       "void E.M<T>(ref T, InterpolationHandler<T>)"
+              IL_0010:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Program.Test2<T>", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  4
+              .locals init (T& V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloc.0
+              IL_0003:  ldc.i4.0
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldloc.0
+              IL_0006:  newobj     "InterpolationHandler<T>..ctor(int, int, ref T)"
+              IL_000b:  call       "void E.M<T>(ref T, InterpolationHandler<T>)"
+              IL_0010:  ret
+            }
+            """);
+
+        var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_ByIn_WithConstantReceiver(bool useMetadataRef, [CombinatorialValues("ref readonly", "in")] string refkind)
+    {
+        var src = $$$"""
             [System.Runtime.CompilerServices.InterpolatedStringHandler]
             public struct InterpolationHandler
             {
 
-                public InterpolationHandler(int literalLength, int formattedCount, in int i)
+                public InterpolationHandler(int literalLength, int formattedCount, {{{refkind}}} int i)
                 {
                     System.Console.Write(i);
                     System.Runtime.CompilerServices.Unsafe.AsRef(in i)++;
@@ -22012,7 +22164,7 @@ static class E
 
             public static class E
             {
-                extension(in int i)
+                extension({{{refkind}}} int i)
                 {
                     public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h)
                     {
@@ -22023,12 +22175,64 @@ static class E
             """;
 
         var exeSource = """
-            1.M($"");
-            E.M(3, $"");
+            #pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+
+            class Program
+            {
+                static void Main()
+                {
+                    Test1();
+                    Test2();
+                }
+            
+                static void Test1()
+                {
+                    1.M($"");
+                }
+            
+                static void Test2()
+                {
+                    E.M(3, $"");
+                } 
+            }
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1234" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+            {
+              // Code size       19 (0x13)
+              .maxstack  4
+              .locals init (int V_0)
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldc.i4.0
+              IL_0006:  ldloca.s   V_0
+              IL_0008:  newobj     "InterpolationHandler..ctor(int, int, {{{refkind}}} int)"
+              IL_000d:  call       "void E.M({{{refkind}}} int, InterpolationHandler)"
+              IL_0012:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Program.Test2", $$$"""
+            {
+              // Code size       19 (0x13)
+              .maxstack  4
+              .locals init (int V_0)
+              IL_0000:  ldc.i4.3
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldc.i4.0
+              IL_0006:  ldloca.s   V_0
+              IL_0008:  newobj     "InterpolationHandler..ctor(int, int, {{{refkind}}} int)"
+              IL_000d:  call       "void E.M({{{refkind}}} int, InterpolationHandler)"
+              IL_0012:  ret
+            }
+            """);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -22335,6 +22539,7 @@ static class E
     }
 
     [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_StructReceiverParameter_ByValueThroughField(bool useMetadataRef)
     {
@@ -22379,44 +22584,476 @@ static class E
             int Increment() => E.field.i++;
             """;
 
-        // Should be 0033, https://github.com/dotnet/roslyn/issues/79379
-        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1033" : null;
-        var verifier = CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify)
+        var expectedOutput = "0033";
+        var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
             .VerifyDiagnostics();
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
             {
-              // Code size       61 (0x3d)
+              // Code size       51 (0x33)
               .maxstack  5
-              .locals init (MyStruct& V_0,
-                            MyStruct V_1)
-              IL_0000:  ldsflda    "MyStruct E.field"
+              .locals init (MyStruct V_0)
+              IL_0000:  ldsfld     "MyStruct E.field"
               IL_0005:  stloc.0
               IL_0006:  ldloc.0
-              IL_0007:  ldobj      "MyStruct"
-              IL_000c:  call       "int Program.<<Main>$>g__Increment|0_0()"
-              IL_0011:  ldc.i4.0
-              IL_0012:  ldc.i4.0
-              IL_0013:  ldloc.0
-              IL_0014:  ldobj      "MyStruct"
-              IL_0019:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
-              IL_001e:  call       "void E.M(MyStruct, int, InterpolationHandler)"
-              IL_0023:  ldsfld     "MyStruct E.field"
-              IL_0028:  stloc.1
-              IL_0029:  ldloc.1
-              IL_002a:  call       "int Program.<<Main>$>g__Increment|0_0()"
-              IL_002f:  ldc.i4.0
-              IL_0030:  ldc.i4.0
-              IL_0031:  ldloc.1
-              IL_0032:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
-              IL_0037:  call       "void E.M(MyStruct, int, InterpolationHandler)"
-              IL_003c:  ret
+              IL_0007:  call       "int Program.<<Main>$>g__Increment|0_0()"
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  ldloc.0
+              IL_000f:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
+              IL_0014:  call       "void E.M(MyStruct, int, InterpolationHandler)"
+              IL_0019:  ldsfld     "MyStruct E.field"
+              IL_001e:  stloc.0
+              IL_001f:  ldloc.0
+              IL_0020:  call       "int Program.<<Main>$>g__Increment|0_0()"
+              IL_0025:  ldc.i4.0
+              IL_0026:  ldc.i4.0
+              IL_0027:  ldloc.0
+              IL_0028:  newobj     "InterpolationHandler..ctor(int, int, MyStruct)"
+              IL_002d:  call       "void E.M(MyStruct, int, InterpolationHandler)"
+              IL_0032:  ret
             }
             """);
 
-        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify)
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
+    [CombinatorialData]
+    public void InterpolationHandler_StructReceiverParameter_Generic_ByValueThroughField(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler<TR>
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, TR s)
+                {
+                    System.Console.Write(((MyStruct)(object)s).i);
+                    E<MyStruct>.field.i++;
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public struct MyStruct
+            {
+                public int i;
+            }
+
+            public static class E
+            {
+                extension<T>(T s)
+                {
+                    public void M(int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler<T> h)
+                    {
+                        System.Console.Write(((MyStruct)(object)s).i);
+                        E<MyStruct>.field.i++;
+                    }
+                }
+            }
+
+            public static class E<T>
+            {
+                public static T field;
+            }            
+            """;
+
+        var exeSource = """
+            class Porgram
+            {
+                static void Main()
+                {
+                    Test1<MyStruct>();
+                    Test2<MyStruct>();
+                    Test3<MyStruct>();
+                    Test4<MyStruct>();
+                }
+
+                static void Test1<T>()
+                {
+                    E<T>.field.M(Increment(), $"");
+                }
+
+                static void Test2<T>()
+                {
+                    E.M(E<T>.field, Increment(), $"");
+                }
+            
+                static void Test3<T>() where T : struct
+                {
+                    E<T>.field.M(Increment(), $"");
+                }
+            
+                static void Test4<T>() where T : struct
+                {
+                    E.M(E<T>.field, Increment(), $"");
+                }
+                            
+                static int Increment() => E<MyStruct>.field.i++;
+            }
+            """;
+
+        var expectedOutput = "00336699";
+        var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+
+        var expectedIL = """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  5
+              .locals init (T V_0)
+              IL_0000:  ldsfld     "T E<T>.field"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  call       "int Porgram.Increment()"
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  ldloc.0
+              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
+              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
+              IL_0019:  ret
+            }
+            """;
+
+        verifier.VerifyIL("Porgram.Test1<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test2<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test3<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test4<T>", expectedIL);
+
+        var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
+    [CombinatorialData]
+    public void InterpolationHandler_StructReceiverParameter_GenericStruct_ByValueThroughField(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler<TR>
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, TR s)
+                {
+                    System.Console.Write(((MyStruct)(object)s).i);
+                    E<MyStruct>.field.i++;
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public struct MyStruct
+            {
+                public int i;
+            }
+
+            public static class E
+            {
+                extension<T>(T s) where T : struct
+                {
+                    public void M(int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler<T> h)
+                    {
+                        System.Console.Write(((MyStruct)(object)s).i);
+                        E<MyStruct>.field.i++;
+                    }
+                }
+            }
+
+            public static class E<T>
+            {
+                public static T field;
+            }            
+            """;
+
+        var exeSource = """
+            class Porgram
+            {
+                static void Main()
+                {
+                    Test3<MyStruct>();
+                    Test4<MyStruct>();
+                }
+
+                static void Test3<T>() where T : struct
+                {
+                    E<T>.field.M(Increment(), $"");
+                }
+            
+                static void Test4<T>() where T : struct
+                {
+                    E.M(E<T>.field, Increment(), $"");
+                }
+                            
+                static int Increment() => E<MyStruct>.field.i++;
+            }
+            """;
+
+        var expectedOutput = "0033";
+        var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+
+        var expectedIL = """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  5
+              .locals init (T V_0)
+              IL_0000:  ldsfld     "T E<T>.field"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  call       "int Porgram.Increment()"
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  ldloc.0
+              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
+              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
+              IL_0019:  ret
+            }
+            """;
+
+        verifier.VerifyIL("Porgram.Test3<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test4<T>", expectedIL);
+
+        var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
+    [CombinatorialData]
+    public void InterpolationHandler_ClassReceiverParameter_GenericClass_ByValueThroughField(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler<TR>
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, TR s)
+                {
+                    System.Console.Write(((MyClass)(object)s).i);
+                    E<MyClass>.field = new MyClass() { i = E<MyClass>.field.i + 1 };
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public class MyClass
+            {
+                public int i;
+            }
+
+            public static class E
+            {
+                extension<T>(T s)
+                {
+                    public void M(int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler<T> h)
+                    {
+                        System.Console.Write(((MyClass)(object)s).i);
+                        E<MyClass>.field = new MyClass() { i = E<MyClass>.field.i + 1 };
+                    }
+                }
+            }
+
+            public static class E<T>
+            {
+                public static T field;
+            }            
+            """;
+
+        var exeSource = """
+            class Porgram
+            {
+                static void Main()
+                {
+                    E<MyClass>.field = new MyClass();
+                    Test1<MyClass>();
+                    Test2<MyClass>();
+                    Test3<MyClass>();
+                    Test4<MyClass>();
+                }
+
+                static void Test1<T>()
+                {
+                    E<T>.field.M(Increment(), $"");
+                }
+
+                static void Test2<T>()
+                {
+                    E.M(E<T>.field, Increment(), $"");
+                }
+            
+                static void Test3<T>() where T : class
+                {
+                    E<T>.field.M(Increment(), $"");
+                }
+            
+                static void Test4<T>() where T : class
+                {
+                    E.M(E<T>.field, Increment(), $"");
+                }
+                            
+                static int Increment() => (E<MyClass>.field = new MyClass() { i = E<MyClass>.field.i + 1 }).i;
+            }
+            """;
+
+        var expectedOutput = "00336699";
+        var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+
+        var expectedIL = """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  5
+              .locals init (T V_0)
+              IL_0000:  ldsfld     "T E<T>.field"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  call       "int Porgram.Increment()"
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  ldloc.0
+              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
+              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
+              IL_0019:  ret
+            }
+            """;
+
+        verifier.VerifyIL("Porgram.Test1<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test2<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test3<T>", expectedIL);
+
+        verifier.VerifyIL("Porgram.Test4<T>", expectedIL);
+
+        var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
+    [CombinatorialData]
+    public void InterpolationHandler_ClassReceiverParameter_Generic_ByValueThroughField(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler<TR>
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, TR s)
+                {
+                    System.Console.Write(((MyClass)(object)s).i);
+                    E<MyClass>.field = new MyClass() { i = E<MyClass>.field.i + 1 };
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public class MyClass
+            {
+                public int i;
+            }
+
+            public static class E
+            {
+                extension<T>(T s) where T : class
+                {
+                    public void M(int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler<T> h)
+                    {
+                        System.Console.Write(((MyClass)(object)s).i);
+                        E<MyClass>.field = new MyClass() { i = E<MyClass>.field.i + 1 };
+                    }
+                }
+            }
+
+            public static class E<T>
+            {
+                public static T field;
+            }            
+            """;
+
+        var exeSource = """
+            class Porgram
+            {
+                static void Main()
+                {
+                    E<MyClass>.field = new MyClass();
+                    Test3<MyClass>();
+                    Test4<MyClass>();
+                }
+
+                static void Test3<T>() where T : class
+                {
+                    E<T>.field.M(Increment(), $"");
+                }
+            
+                static void Test4<T>() where T : class
+                {
+                    E.M(E<T>.field, Increment(), $"");
+                }
+                            
+                static int Increment() => (E<MyClass>.field = new MyClass() { i = E<MyClass>.field.i + 1 }).i;
+            }
+            """;
+
+        var expectedOutput = "0033";
+        var verifier = CompileAndVerify([exeSource, src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], expectedOutput: expectedOutput)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Porgram.Test3<T>", """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  5
+              .locals init (T V_0)
+              IL_0000:  ldsfld     "T E<T>.field"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  call       "int Porgram.Increment()"
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  ldloc.0
+              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
+              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
+              IL_0019:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Porgram.Test4<T>", """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  5
+              .locals init (T V_0)
+              IL_0000:  ldsfld     "T E<T>.field"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  call       "int Porgram.Increment()"
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  ldloc.0
+              IL_000f:  newobj     "InterpolationHandler<T>..ctor(int, int, T)"
+              IL_0014:  call       "void E.M<T>(T, int, InterpolationHandler<T>)"
+              IL_0019:  ret
+            }
+            """);
+
+        var comp1 = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], expectedOutput: expectedOutput)
             .VerifyDiagnostics();
     }
 

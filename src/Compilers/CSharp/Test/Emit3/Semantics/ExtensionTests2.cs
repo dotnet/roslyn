@@ -5567,6 +5567,1390 @@ static class E
     }
 
     [Fact]
+    public void PropertyAccess_Set_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this.P1 = Program.Get1();
+    }
+
+    public int P2
+    {
+        get
+        {
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+
+    public void Test2()
+    {
+        this.P2 = Program.Get1();
+    }
+
+    public void Test3()
+    {
+        E.set_P1(this, Program.Get1()); 
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test3();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1 = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124:123124", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  stloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""void E.set_P1(S1, int)""
+  IL_0017:  nop
+  IL_0018:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void E.set_P1(S1, int)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1).P1 = 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1).P1 = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+            );
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this.P1 = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1 = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1(" + refKind + @" S1, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  call       ""void E.set_P1(" + refKind + @" S1, int)""
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1).P1 = 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        switch (refKind)
+        {
+            case "ref":
+                comp2.VerifyDiagnostics(
+                    // (15,9): error CS1510: A ref or out value must be an assignable variable
+                    //         default(S1).P1 = 1;
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9)
+                    );
+                break;
+            case "ref readonly":
+                comp2.VerifyDiagnostics(
+                    // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         default(S1).P1 = 1;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
+                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1 = 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    );
+                break;
+            case "in":
+                comp2.VerifyDiagnostics(
+                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         default(S1).P1 = 1;
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    );
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(refKind);
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1(C1, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void PropertyAccess_Set_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<S1>.F = new S1 { F1 = 123 };
+        //await Test3<S1>();
+        //System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    Program<T>.F.P1 = await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<S1>.F.F1++;
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void E.set_P1<T>(T, int)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(T x) where T : struct
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T).P1 = 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T).P1 = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T).P1").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F.P1 = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  call       ""void E.set_P1<T>(ref T, int)""
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int P1 { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T).P1 = 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T).P1 = 1;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void PropertyAccess_Set_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<C1>.F = new C1 { F1 = 123 };
+        //await Test3<C1>();
+        //System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    Program<T>.F.P1 = await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  call       ""void E.set_P1<T>(T, int)""
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_07()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>().P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>().P1 = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_08()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(":");
+
+        Test2<C1>();
+
+        System.Console.Write(":");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>().P1 = Get1();
+    }
+
+    static void Test2<T>() where T : class
+    {
+        GetT<T>().P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>().P1 = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123:123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void PropertyAccess_Set_ReadonlyReceiver_040()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.Increment();
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static readonly T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Initialize();
+        Test1<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Initialize();
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static unsafe void Initialize()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            *f1 = 123;
+        }
+    }
+
+    public static unsafe void Increment()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            (*f1)++;
+        }
+    }
+
+    static void Test1<T>()
+    {
+        Program<T>.F.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Increment();
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Increment();
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (T V_0,
+            T& V_1,
+            int V_2,
+            T V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""T Program<T>.F""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  initobj    ""T""
+  IL_000f:  ldloc.3
+  IL_0010:  box        ""T""
+  IL_0015:  brtrue.s   IL_0022
+  IL_0017:  ldloc.1
+  IL_0018:  ldobj      ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  br.s       IL_0023
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""int Program.Get1()""
+  IL_0028:  stloc.2
+  IL_0029:  ldobj      ""T""
+  IL_002e:  ldloc.2
+  IL_002f:  call       ""void E.set_P1<T>(T, int)""
+  IL_0034:  nop
+  IL_0035:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_ReadonlyReceiver_041(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_ReadonlyReceiver_061(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+");
+    }
+
+    [Fact]
     public void PropertyAccess_CompoundAssignment_01()
     {
         var src = """
@@ -6348,6 +7732,339 @@ class Program
   IL_0013:  call       ""void E.set_P1<T>(T, int)""
   IL_0018:  nop
   IL_0019:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_ReadonlyReceiver_040()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program.Increment();
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static readonly T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Initialize();
+        Test1<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Initialize();
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static unsafe void Initialize()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            *f1 = 123;
+        }
+    }
+
+    public static unsafe void Increment()
+    {
+        fixed (int* f1 = &Program<S1>.F.F1)
+        {
+            (*f1)++;
+        }
+    }
+
+    static void Test1<T>()
+    {
+        Program<T>.F.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Increment();
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Increment();
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (T V_0,
+            T& V_1,
+            T V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""T Program<T>.F""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  initobj    ""T""
+  IL_000f:  ldloc.2
+  IL_0010:  box        ""T""
+  IL_0015:  brtrue.s   IL_0022
+  IL_0017:  ldloc.1
+  IL_0018:  ldobj      ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  br.s       IL_0023
+  IL_0022:  ldloc.1
+  IL_0023:  dup
+  IL_0024:  ldobj      ""T""
+  IL_0029:  call       ""int E.get_P1<T>(T)""
+  IL_002e:  call       ""int Program.Get1()""
+  IL_0033:  add
+  IL_0034:  stloc.3
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.3
+  IL_003b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0040:  nop
+  IL_0041:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_ReadonlyReceiver_041(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int E.get_P1<T>(T)""
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  add
+  IL_0030:  stloc.3
+  IL_0031:  ldobj      ""T""
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""void E.set_P1<T>(T, int)""
+  IL_003c:  nop
+  IL_003d:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_ReadonlyReceiver_061(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int E.get_P1<T>(T)""
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  add
+  IL_0030:  stloc.3
+  IL_0031:  ldobj      ""T""
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""void E.set_P1<T>(T, int)""
+  IL_003c:  nop
+  IL_003d:  ret
 }
 ");
     }
@@ -10071,6 +11788,7940 @@ class Program
   IL_000e:  call       ""void E.set_P1<T>(T, int)""
   IL_0013:  nop
   IL_0014:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get2()] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Get2()] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+
+    public static int Get2()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get2()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldobj      ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""int E.get_Item(S1, int)""
+  IL_0018:  call       ""int Program.Get1()""
+  IL_001d:  add
+  IL_001e:  stloc.1
+  IL_001f:  ldobj      ""S1""
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  call       ""void E.set_Item(S1, int, int)""
+  IL_002b:  nop
+  IL_002c:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  call       ""int Program.Get2()""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Item(S1, int)""
+  IL_0013:  call       ""int Program.Get1()""
+  IL_0018:  add
+  IL_0019:  stloc.1
+  IL_001a:  ldarg.0
+  IL_001b:  ldobj      ""S1""
+  IL_0020:  ldloc.0
+  IL_0021:  ldloc.1
+  IL_0022:  call       ""void E.set_Item(S1, int, int)""
+  IL_0027:  nop
+  IL_0028:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0] += 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
+            );
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get2()] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Get2()] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+
+    public static int Get2()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get2()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.1
+  IL_0011:  call       ""int E.get_Item(" + refKind + @" S1, int)""
+  IL_0016:  call       ""int Program.Get1()""
+  IL_001b:  add
+  IL_001c:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
+  IL_0021:  nop
+  IL_0022:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""int Program.Get2()""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldloc.0
+  IL_000b:  call       ""int E.get_Item(" + refKind + @" S1, int)""
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  add
+  IL_0016:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0] += 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Get2()] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+
+    static int Get2()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (C1 V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get2()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.1
+  IL_0011:  call       ""int E.get_Item(C1, int)""
+  IL_0016:  call       ""int Program.Get1()""
+  IL_001b:  add
+  IL_001c:  call       ""void E.set_Item(C1, int, int)""
+  IL_0021:  nop
+  IL_0022:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[0] += Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[0] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F[0] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  ldc.i4.0
+  IL_0026:  call       ""int E.get_Item<T>(T, int)""
+  IL_002b:  call       ""int Program.Get1()""
+  IL_0030:  add
+  IL_0031:  stloc.3
+  IL_0032:  ldobj      ""T""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_003e:  nop
+  IL_003f:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  ldobj      ""T""
+  IL_0008:  ldc.i4.0
+  IL_0009:  call       ""int E.get_Item<T>(T, int)""
+  IL_000e:  call       ""int Program.Get1()""
+  IL_0013:  add
+  IL_0014:  stloc.0
+  IL_0015:  ldobj      ""T""
+  IL_001a:  ldc.i4.0
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0021:  nop
+  IL_0022:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(T x) where T : struct
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0] += 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[0] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F[0] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  4
+  .locals init (T& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  call       ""int E.get_Item<T>(ref T, int)""
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  add
+  IL_0012:  call       ""void E.set_Item<T>(ref T, int, int)""
+  IL_0017:  nop
+  IL_0018:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0] += 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[0] += Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f[0] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F[0] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.2
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  ldc.i4.0
+  IL_0026:  call       ""int E.get_Item<T>(T, int)""
+  IL_002b:  call       ""int Program.Get1()""
+  IL_0030:  add
+  IL_0031:  stloc.3
+  IL_0032:  ldobj      ""T""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_003e:  nop
+  IL_003f:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  4
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  call       ""int E.get_Item<T>(T, int)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  add
+  IL_0017:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001c:  nop
+  IL_001d:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_07()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[0] += Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>()[0] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       ""int E.get_Item<T>(T, int)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_08()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(":");
+
+        Test2<C1>();
+
+        System.Console.Write(":");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[0] += Get1();
+    }
+
+    static void Test2<T>() where T : class
+    {
+        GetT<T>()[0] += Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>()[0] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       ""int E.get_Item<T>(T, int)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  add
+  IL_0016:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get1(), $""] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Program.Get1(), $""] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124125127127:124125127127", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       63 (0x3f)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1,
+            InterpolationHandler V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldobj      ""S1""
+  IL_0015:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_001a:  stloc.2
+  IL_001b:  ldloc.0
+  IL_001c:  ldobj      ""S1""
+  IL_0021:  ldloc.1
+  IL_0022:  ldloc.2
+  IL_0023:  call       ""int E.get_Item(S1, int, InterpolationHandler)""
+  IL_0028:  call       ""int Program.Get1()""
+  IL_002d:  add
+  IL_002e:  stloc.3
+  IL_002f:  ldloc.0
+  IL_0030:  ldobj      ""S1""
+  IL_0035:  ldloc.1
+  IL_0036:  ldloc.2
+  IL_0037:  ldloc.3
+  IL_0038:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_003d:  nop
+  IL_003e:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       59 (0x3b)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1,
+            InterpolationHandler V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.0
+  IL_0018:  ldobj      ""S1""
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       ""int E.get_Item(S1, int, InterpolationHandler)""
+  IL_0024:  call       ""int Program.Get1()""
+  IL_0029:  add
+  IL_002a:  stloc.3
+  IL_002b:  ldloc.0
+  IL_002c:  ldobj      ""S1""
+  IL_0031:  ldloc.1
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.3
+  IL_0034:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_0039:  nop
+  IL_003a:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0, $""] += 1;
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
+            );
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get1(), $""] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Program.Get1(), $""] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124125127127:124125127127").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  6
+  .locals init (S1& V_0,
+            int V_1,
+            InterpolationHandler V_2)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.2
+  IL_001c:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler)""
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  add
+  IL_0027:  call       ""void E.set_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_002c:  nop
+  IL_002d:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  6
+  .locals init (S1& V_0,
+                int V_1,
+                InterpolationHandler V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0011:  stloc.2
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  ldloc.2
+  IL_0015:  ldloc.0
+  IL_0016:  ldloc.1
+  IL_0017:  ldloc.2
+  IL_0018:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler)""
+  IL_001d:  call       ""int Program.Get1()""
+  IL_0022:  add
+  IL_0023:  call       ""void E.set_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_0028:  nop
+  IL_0029:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0, $""] += 1;
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, C1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123127").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  6
+  .locals init (C1 V_0,
+            int V_1,
+            InterpolationHandler V_2)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, C1)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.2
+  IL_001c:  call       ""int E.get_Item(C1, int, InterpolationHandler)""
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  add
+  IL_0027:  call       ""void E.set_Item(C1, int, InterpolationHandler, int)""
+  IL_002c:  nop
+  IL_002d:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1(), $""] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124125127127:124125127127:124125127127").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       94 (0x5e)
+  .maxstack  4
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            int V_3,
+            InterpolationHandler<T> V_4,
+            T V_5,
+            int V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_5
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_5
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.0
+  IL_0037:  ldobj      ""T""
+  IL_003c:  ldloc.3
+  IL_003d:  ldloc.s    V_4
+  IL_003f:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_0044:  call       ""int Program.Get1()""
+  IL_0049:  add
+  IL_004a:  stloc.s    V_6
+  IL_004c:  ldloc.0
+  IL_004d:  ldobj      ""T""
+  IL_0052:  ldloc.3
+  IL_0053:  ldloc.s    V_4
+  IL_0055:  ldloc.s    V_6
+  IL_0057:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_005c:  nop
+  IL_005d:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       59 (0x3b)
+  .maxstack  4
+  .locals init (T& V_0,
+            int V_1,
+            InterpolationHandler<T> V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.0
+  IL_0018:  ldobj      ""T""
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_0024:  call       ""int Program.Get1()""
+  IL_0029:  add
+  IL_002a:  stloc.3
+  IL_002b:  ldloc.0
+  IL_002c:  ldobj      ""T""
+  IL_0031:  ldloc.1
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.3
+  IL_0034:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_0039:  nop
+  IL_003a:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0, $""] += 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, ref TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F[Get1(), $""] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124125127127:124125127127").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  6
+  .locals init (T& V_0,
+            int V_1,
+            InterpolationHandler<T> V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler<T>..ctor(int, int, ref T)""
+  IL_0011:  stloc.2
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  ldloc.2
+  IL_0015:  ldloc.0
+  IL_0016:  ldloc.1
+  IL_0017:  ldloc.2
+  IL_0018:  call       ""int E.get_Item<T>(ref T, int, InterpolationHandler<T>)""
+  IL_001d:  call       ""int Program.Get1()""
+  IL_0022:  add
+  IL_0023:  call       ""void E.set_Item<T>(ref T, int, InterpolationHandler<T>, int)""
+  IL_0028:  nop
+  IL_0029:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0, $""] += 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, ref TR x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((C1)(object)x).F1);
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1(), $""] += await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123127:123123123127:123123123127").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       94 (0x5e)
+  .maxstack  4
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            int V_3,
+            InterpolationHandler<T> V_4,
+            T V_5,
+            int V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_5
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_5
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.0
+  IL_0037:  ldobj      ""T""
+  IL_003c:  ldloc.3
+  IL_003d:  ldloc.s    V_4
+  IL_003f:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_0044:  call       ""int Program.Get1()""
+  IL_0049:  add
+  IL_004a:  stloc.s    V_6
+  IL_004c:  ldloc.0
+  IL_004d:  ldobj      ""T""
+  IL_0052:  ldloc.3
+  IL_0053:  ldloc.s    V_4
+  IL_0055:  ldloc.s    V_6
+  IL_0057:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_005c:  nop
+  IL_005d:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  6
+  .locals init (T V_0,
+            int V_1,
+            InterpolationHandler<T> V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloc.0
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.2
+  IL_001a:  ldloc.0
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.2
+  IL_001d:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_0022:  call       ""int Program.Get1()""
+  IL_0027:  add
+  IL_0028:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002d:  nop
+  IL_002e:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_07()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79415 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    GetT<T>()[Get1(), $""] += await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002e:  nop
+  IL_002f:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_08()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((C1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79415 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(":");
+
+        Test2<C1>();
+
+        // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[Get1(), $""] += Get1();
+    }
+
+    static void Test2<T>() where T : class
+    {
+        GetT<T>()[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    GetT<T>()[Get1(), $""] += await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002e:  nop
+  IL_002f:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  6
+  .locals init (T V_0,
+                int V_1,
+                InterpolationHandler<T> V_2)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.2
+  IL_001c:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  add
+  IL_0027:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002c:  nop
+  IL_002d:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_WithInterpolationHandler_01()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get1(), $""] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Program.Get1(), $""] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldobj      ""S1""
+  IL_0015:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_001a:  stloc.2
+  IL_001b:  call       ""int Program.Get1()""
+  IL_0020:  stloc.3
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""S1""
+  IL_0027:  ldloc.1
+  IL_0028:  ldloc.2
+  IL_0029:  ldloc.3
+  IL_002a:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_002f:  nop
+  IL_0030:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1,
+            InterpolationHandler V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""S1""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_002b:  nop
+  IL_002c:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0, $""] = 1;
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
+            );
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_WithInterpolationHandler_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get1(), $""] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Program.Get1(), $""] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""int Program.Get1()""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  call       ""void E.set_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0, $""] = 1;
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_WithInterpolationHandler_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, C1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (C1 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, C1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item(C1, int, InterpolationHandler, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Set_WithInterpolationHandler_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<S1>.F = new S1 { F1 = 123 };
+        //await Test3<S1>();
+        //System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    Program<T>.F[Get1(), $""] = await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<S1>.F.F1++;
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                int V_3,
+                InterpolationHandler<T> V_4,
+                int V_5,
+                T V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_6
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  nop
+  IL_004e:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""T""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002b:  nop
+  IL_002c:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0, $""] = 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_WithInterpolationHandler_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, ref TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F[Get1(), $""] = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  5
+  .locals init (T& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""int Program.Get1()""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler<T>..ctor(int, int, ref T)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  call       ""void E.set_Item<T>(ref T, int, InterpolationHandler<T>, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0, $""] = 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, ref TR x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0, $""] += 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Set_WithInterpolationHandler_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((C1)(object)x).F1);
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<C1>.F = new C1 { F1 = 123 };
+        //await Test3<C1>();
+        //System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    Program<T>.F[Get1(), $""] = await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                int V_3,
+                InterpolationHandler<T> V_4,
+                int V_5,
+                T V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_6
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  nop
+  IL_004e:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""int Program.Get1()""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloc.0
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  call       ""int Program.Get1()""
+  IL_001b:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_0020:  nop
+  IL_0021:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_WithInterpolationHandler_07()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>()[Get1(), $""] = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_WithInterpolationHandler_08()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((C1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(":");
+
+        Test2<C1>();
+
+        System.Console.Write(":");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[Get1(), $""] = Get1();
+    }
+
+    static void Test2<T>() where T : class
+    {
+        GetT<T>()[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>()[Get1(), $""] = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_01()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        _ = this[Program.Get1(), $"", Program.Get1()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = F[Program.Get1(), $"", Get1()];
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldobj      ""S1""
+  IL_0015:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_001a:  stloc.2
+  IL_001b:  call       ""int Program.Get1()""
+  IL_0020:  stloc.3
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""S1""
+  IL_0027:  ldloc.1
+  IL_0028:  ldloc.2
+  IL_0029:  ldloc.3
+  IL_002a:  call       ""int E.get_Item(S1, int, InterpolationHandler, int)""
+  IL_002f:  pop
+  IL_0030:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""S1""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""int E.get_Item(S1, int, InterpolationHandler, int)""
+  IL_002b:  pop
+  IL_002c:  ret
+}
+");
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        _ = this[Program.Get1(), $"", Program.Get1()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = F[Program.Get1(), $"", Get1()];
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""int Program.Get1()""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001b:  pop
+  IL_001c:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        _ = default(S1)[0, $"", 1];
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
+        comp2.VerifyDiagnostics(
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, C1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = F[Get1(), $"", Get1()];
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (C1 V_0)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, C1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(C1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h, int j]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<S1>.F = new S1 { F1 = 123 };
+        //await Test3<S1>();
+        //System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        _ = f[Get1(), $"", Get1()];
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        _ = f[Get1(), $"", Get1()];
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    _ = Program<T>.F[Get1(), $"", await Get1Async()];
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<S1>.F.F1++;
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            int V_3,
+            InterpolationHandler<T> V_4,
+            int V_5,
+            T V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_6
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  pop
+  IL_004e:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                InterpolationHandler<T> V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.Get1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  stloc.2
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  stloc.3
+  IL_001d:  ldloc.0
+  IL_001e:  ldobj      ""T""
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002b:  pop
+  IL_002c:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, ref TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h, int j] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        _ = f[Get1(), $"", Get1()];
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        _ = Program<T>.F[Get1(), $"", await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  5
+  .locals init (T& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""int Program.Get1()""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler<T>..ctor(int, int, ref T)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  call       ""int E.get_Item<T>(ref T, int, InterpolationHandler<T>, int)""
+  IL_001b:  pop
+  IL_001c:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h, int j] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        _ = default(T)[0, $"", 1];
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, ref TR x)
+    {
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+""";
+
+        var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
+
+        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
+        comp2.VerifyDiagnostics(
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((C1)(object)x).F1);
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h, int j]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<C1>.F = new C1 { F1 = 123 };
+        //await Test3<C1>();
+        //System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        _ = f[Get1(), $"", Get1()];
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        _ = f[Get1(), $"", Get1()];
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    _ = Program<T>.F[Get1(), $"", await Get1Async()];
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            int V_3,
+            InterpolationHandler<T> V_4,
+            int V_5,
+            T V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_6
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_6
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  call       ""int Program.Get1()""
+  IL_0026:  stloc.3
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  call       ""int Program.Get1()""
+  IL_003b:  stloc.s    V_5
+  IL_003d:  ldloc.0
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_004d:  pop
+  IL_004e:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""int Program.Get1()""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloc.0
+  IL_0011:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0016:  call       ""int Program.Get1()""
+  IL_001b:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_0020:  pop
+  IL_0021:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_01()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        _ = GetS1()[Program.Get1(), $"", Get1()];
+    }
+
+    static S1 GetS1() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetS1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(S1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+unsafe struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        fixed (int* f1 = &x.F1)
+        {
+            (*f1)++;
+        }
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        _ = GetS1()[Program.Get1(), $"", Get1()];
+    }
+
+    static S1 GetS1() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  5
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetS1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.Get1()""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, C1 x)
+    {
+        System.Console.Write(x.F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        _ = GetC1()[Get1(), $"", Get1()];
+    }
+
+    static C1 GetC1() => new C1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (C1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""C1 Program.GetC1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, C1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(C1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h, int j]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        _ = GetT<T>()[Get1(), $"", Get1()];
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        _ = GetT<T>()[Get1(), $"", Get1()];
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        _ = GetT<T>()[Get1(), $"", await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, ref TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        x = (TR)(object)new S1 { F1 = ((S1)(object)x).F1 + 1 };
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h, int j] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test2<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        _ = GetT<T>()[Get1(), $"", Get1()];
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        _ = GetT<T>()[Get1(), $"", await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.Get1()""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  newobj     ""InterpolationHandler<T>..ctor(int, int, ref T)""
+  IL_0017:  call       ""int Program.Get1()""
+  IL_001c:  call       ""int E.get_Item<T>(ref T, int, InterpolationHandler<T>, int)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((C1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h, int j]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(":");
+
+        Test2<C1>();
+
+        System.Console.Write(":");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        _ = GetT<T>()[Get1(), $"", Get1()];
+    }
+
+    static void Test2<T>() where T : class
+    {
+        _ = GetT<T>()[Get1(), $"", Get1()];
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        _ = GetT<T>()[Get1(), $"", await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_ReadonlyReceiver_020(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test({{{(refKind == "ref" ? "ref" : "in")}}} F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test({{{refKind}}} S1 x)
+    {
+        _ = x[Program.Get1(), $"", Get1()];
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""int Program.Get1()""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0011:  call       ""int Program.Get1()""
+  IL_0016:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001b:  pop
+  IL_001c:  ret
+}
+");
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_ReadonlyReceiver_021(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = GetS1()[Program.Get1(), $"", Get1()];
+    }
+
+    static {{{(refKind == "ref" ? "ref" : "ref readonly")}}} S1 GetS1() => ref Program.F;
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  call       """ + (refKind == "ref" ? "ref" : "ref readonly") + @" S1 Program.GetS1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_WithInterpolationHandler_ReadonlyReceiver_022(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.Increment();
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h, int j]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static readonly S1 F;
+
+    static void Main()
+    {
+        Initialize();
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static unsafe void Initialize()
+    {
+        fixed (int* f1 = &F.F1)
+        {
+            *f1 = 123;
+        }
+    }
+
+    public static unsafe void Increment()
+    {
+        fixed (int* f1 = &F.F1)
+        {
+            (*f1)++;
+        }
+    }
+
+    static void Test()
+    {
+        _ = F[Program.Get1(), $"", Get1()];
+    }
+
+    public static int Get1()
+    {
+        Increment();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1& V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, " + refKind + @" S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""int E.get_Item(" + refKind + @" S1, int, InterpolationHandler, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get1()] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Program.Get1()] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  stloc.0
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  stloc.1
+  IL_0012:  ldobj      ""S1""
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  call       ""void E.set_Item(S1, int, int)""
+  IL_001e:  nop
+  IL_001f:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  stloc.1
+  IL_000e:  ldobj      ""S1""
+  IL_0013:  ldloc.0
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""void E.set_Item(S1, int, int)""
+  IL_001a:  nop
+  IL_001b:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0] = 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0] = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
+            );
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        this[Program.Get1()] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Program.Get1()] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  call       ""void E.set_Item(" + refKind + @" S1, int, int)""
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1)[0] = 1;
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(S1)[0] = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F = new C1 { F1 = Program.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        F[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item(C1, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Set_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<S1>.F = new S1 { F1 = 123 };
+        //await Test3<S1>();
+        //System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[Get1()] = Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    Program<T>.F[Get1()] = await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<S1>.F.F1++;
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_4
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_4
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.1
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.0
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""int Program.Get1()""
+  IL_0025:  stloc.2
+  IL_0026:  call       ""int Program.Get1()""
+  IL_002b:  stloc.3
+  IL_002c:  ldobj      ""T""
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.3
+  IL_0033:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0038:  nop
+  IL_0039:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  stloc.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  ldloc.0
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001a:  nop
+  IL_001b:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(T x) where T : struct
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0] = 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0] = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F[Get1()] = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  call       ""void E.set_Item<T>(ref T, int, int)""
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T)[0] = 1;
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         default(T)[0] = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Set_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<C1>.F = new C1 { F1 = 123 };
+        //await Test3<C1>();
+        //System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f[Get1()] = Get1();
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    Program<T>.F[Get1()] = await Get1Async();
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125:123125").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_4
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.s    V_4
+  IL_000d:  box        ""T""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.1
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.0
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""int Program.Get1()""
+  IL_0025:  stloc.2
+  IL_0026:  call       ""int Program.Get1()""
+  IL_002b:  stloc.3
+  IL_002c:  ldobj      ""T""
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.3
+  IL_0033:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0038:  nop
+  IL_0039:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0016:  nop
+  IL_0017:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_07()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>()[Get1()] = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Set_08()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((C1)(object)x).F1);
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(":");
+
+        Test2<C1>();
+
+        System.Console.Write(":");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        GetT<T>()[Get1()] = Get1();
+    }
+
+    static void Test2<T>() where T : class
+    {
+        GetT<T>()[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        GetT<T>()[Get1()] = await Get1Async();
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123:123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_LValueReceiver_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        _ = this[Program.Get1()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = F[Program.Get1()];
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  stloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""int E.get_Item(S1, int)""
+  IL_0017:  pop
+  IL_0018:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""S1""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Item(S1, int)""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+");
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_LValueReceiver_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void Test()
+    {
+        _ = this[Program.Get1()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = F[Program.Get1()];
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""S1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item(" + refKind + @" S1, int)""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+
+        verifier.VerifyIL("S1.Test",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  call       ""int E.get_Item(" + refKind + @" S1, int)""
+  IL_000c:  pop
+  IL_000d:  ret
+}
+");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        _ = default(S1)[0];
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
+        comp2.VerifyDiagnostics(
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_LValueReceiver_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 123 };
+        Test();
+        System.Console.Write(F.F1);
+    }
+
+    static void Test()
+    {
+        _ = F[Get1()];
+    }
+
+    static int Get1()
+    {
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1 Program.F""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item(C1, int)""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Get_LValueReceiver_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<S1>.F = new S1 { F1 = 123 };
+        //await Test3<S1>();
+        //System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        _ = f[Get1()];
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        _ = f[Get1()];
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    _ = Program<T>.F[await Get1Async()];
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<S1>.F.F1++;
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0030:  pop
+  IL_0031:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  stloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Item<T>(T, int)""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_LValueReceiver_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        _ = f[Get1()];
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        _ = Program<T>.F[await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Program.Get1()""
+  IL_0007:  call       ""int E.get_Item<T>(ref T, int)""
+  IL_000c:  pop
+  IL_000d:  ret
+}
+");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i] { get => 0; set {} }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        _ = default(T)[0];
+    }
+}
+
+namespace NS1
+{
+    static class E
+    {
+        extension<T>(in T x) where T : struct
+        {
+        }
+    }
+}
+
+namespace NS2
+{
+    static class E
+    {
+        extension<T>(ref readonly T x) where T : struct
+        {
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+
+        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
+        comp2.VerifyDiagnostics(
+            // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(in T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
+            // (31,35): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+            //         extension<T>(ref readonly T x) where T : struct
+            Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
+            );
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
+    public void IndexerAccess_Get_LValueReceiver_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<C1>.F = new C1 { F1 = 123 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write(Program<C1>.F.F1);
+
+        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+        //System.Console.Write(":");
+
+        //Program<C1>.F = new C1 { F1 = 123 };
+        //await Test3<C1>();
+        //System.Console.Write(Program<C1>.F.F1);
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        _ = f[Get1()];
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        _ = f[Get1()];
+    }
+
+    static int Get1()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 1;
+    }
+
+    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
+    //static async Task Test3<T>()
+    //{
+    //    _ = Program<T>.F[await Get1Async()];
+    //}
+
+    //static async Task<int> Get1Async()
+    //{
+    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+    //    await Task.Yield();
+    //    return 1;
+    //}
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int Program.Get1()""
+  IL_0024:  stloc.2
+  IL_0025:  ldobj      ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0030:  pop
+  IL_0031:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  call       ""int E.get_Item<T>(T, int)""
+  IL_0011:  pop
+  IL_0012:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_RValueReceiver_01()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        _ = GetS1()[Get1()];
+    }
+
+    static S1 GetS1() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetS1()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item(S1, int)""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Get_RValueReceiver_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        _ = GetS1()[Get1()];
+    }
+
+    static S1 GetS1() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetS1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.Get1()""
+  IL_000e:  call       ""int E.get_Item(" + refKind + @" S1, int)""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_RValueReceiver_03()
+    {
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        _ = GetC1()[Get1()];
+    }
+
+    static C1 GetC1() => new C1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""C1 Program.GetC1()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item(C1, int)""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_RValueReceiver_04()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        _ = GetT<T>()[Get1()];
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        _ = GetT<T>()[Get1()];
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        _ = GetT<T>()[await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123:123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_RValueReceiver_05()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public int this[int i] 
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test2<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        _ = GetT<T>()[Get1()];
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        _ = GetT<T>()[await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.Get1()""
+  IL_000e:  call       ""int E.get_Item<T>(ref T, int)""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+");
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_Get_RValueReceiver_06()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((C1)(object)x).F1);
+                return 0;
+            }
+        }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(":");
+
+        Test2<C1>();
+
+        System.Console.Write(":");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
+
+    static void Test1<T>()
+    {
+        _ = GetT<T>()[Get1()];
+    }
+
+    static void Test2<T>() where T : class
+    {
+        _ = GetT<T>()[Get1()];
+    }
+
+    static int Get1()
+    {
+        return 1;
+    }
+
+    static async Task Test3<T>()
+    {
+        _ = GetT<T>()[await Get1Async()];
+    }
+
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123:123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+
+        verifier.VerifyIL("Program.Test2<T>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetT<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int E.get_Item<T>(T, int)""
+  IL_0010:  pop
+  IL_0011:  ret
 }
 ");
     }
