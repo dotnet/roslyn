@@ -4466,14 +4466,14 @@ public static class Extensions
 
         CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested private auto ansi beforefieldinit C
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
         // Methods
         .method public hidebysig specialname rtspecialname 
@@ -4483,19 +4483,19 @@ public static class Extensions
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: call instance void [netstandard]System.Object::.ctor()
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
             IL_0006: ret
         } // end of method C::.ctor
     } // end of class C
     .class nested public auto ansi sealed specialname '<Extension>$C3CD11E70DE99F353AE602995BB874BF'
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$4D270477BCDFAB12B9E9B1A79213B9FB'
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method private hidebysig specialname static 
@@ -4503,7 +4503,7 @@ public static class Extensions
                     class Extensions/C x
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x206f
@@ -32357,21 +32357,21 @@ class C<T, S> {}
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("Extensions1", """
 .class public auto ansi abstract sealed beforefieldinit Extensions1
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$373395272A45479DE48E8BB1CCB2C42B'<$T0, $T1>
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$80D5112A03B26C94C628316C4DA793B2'<T, S>
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method assembly hidebysig specialname static 
@@ -32379,7 +32379,7 @@ class C<T, S> {}
                     class C`2<!T, !S> c
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -32405,14 +32405,14 @@ class C<T, S> {}
         } // end of method '<Extension>$373395272A45479DE48E8BB1CCB2C42B'::M1
     } // end of class <Extension>$373395272A45479DE48E8BB1CCB2C42B
     .class nested public auto ansi sealed specialname '<Extension>$6D4255504AB27A230E5AB4858D9E46EB'<$T0, $T1>
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A'<T, S>
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             // Methods
             .method assembly hidebysig specialname static 
@@ -32420,7 +32420,7 @@ class C<T, S> {}
                     class C`2<!S, !T> c
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x2067
@@ -32451,7 +32451,7 @@ class C<T, S> {}
             class C`2<!!T, !!S> c
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Method begins at RVA 0x2067
@@ -32464,7 +32464,7 @@ class C<T, S> {}
             class C`2<!!S, !!T> c
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Method begins at RVA 0x2067
