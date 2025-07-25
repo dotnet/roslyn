@@ -75,7 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Cci.INestedTypeDefinition>.CastUp(_lazyGroupingTypes);
         }
 
-        public Cci.ITypeDefinition GetCorrespondingMarkerType(SourceNamedTypeSymbol type)
+
+        public Cci.ITypeDefinition GetCorrespondingMarkerType(SynthesizedExtensionMarker markerMethod)
+        {
+            return GetCorrespondingMarkerType((SourceNamedTypeSymbol)markerMethod.ContainingType);
+        }
+
+        private ExtensionMarkerType GetCorrespondingMarkerType(SourceNamedTypeSymbol type)
         {
             GetGroupingTypes();
 
@@ -102,6 +108,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             throw ExceptionUtilities.Unreachable();
+        }
+
+        public Cci.TypeMemberVisibility GetCorrespondingMarkerMethodVisibility(SynthesizedExtensionMarker marker)
+        {
+            Debug.Assert(Cci.TypeMemberVisibility.Public > Cci.TypeMemberVisibility.Assembly);
+            Debug.Assert(Cci.TypeMemberVisibility.Assembly > Cci.TypeMemberVisibility.Private);
+
+            var result = Cci.TypeMemberVisibility.Private;
+
+            foreach (var extension in GetCorrespondingMarkerType((SourceNamedTypeSymbol)marker.ContainingType).UnderlyingExtensions)
+            {
+                foreach (var symbol in extension.GetMembers())
+                {
+                    var memberVisibility = symbol.MetadataVisibility;
+                    Debug.Assert(memberVisibility is Cci.TypeMemberVisibility.Public or Cci.TypeMemberVisibility.Assembly or Cci.TypeMemberVisibility.Private);
+
+                    if (memberVisibility == Cci.TypeMemberVisibility.Public)
+                    {
+                        return TypeMemberVisibility.Public;
+                    }
+
+                    if (result < memberVisibility)
+                    {
+                        // If we have a more visible member, use its visibility.
+                        result = memberVisibility;
+                    }
+                }
+            }
+
+            // PROTOTYPE: Is there a real need to cache this result for reuse?
+            return result;
         }
 
         public Cci.ITypeDefinition GetCorrespondingGroupingType(SourceNamedTypeSymbol type)

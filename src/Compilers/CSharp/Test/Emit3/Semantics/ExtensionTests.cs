@@ -161,7 +161,7 @@ public static class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -259,7 +259,7 @@ public static class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     !T ''
                 ) cil managed 
@@ -347,7 +347,7 @@ public static class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     !T ''
                 ) cil managed 
@@ -633,7 +633,7 @@ public static class Extensions
                     01 00 01 00 00
                 )
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     !T ''
                 ) cil managed 
@@ -888,7 +888,7 @@ public static partial class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -1825,7 +1825,7 @@ public static class Extensions
 {
     extension(object o)
     {
-        void M() { }
+        internal void M() { }
     }
 }
 """;
@@ -1853,7 +1853,7 @@ public static class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method assembly hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -1868,7 +1868,7 @@ public static class Extensions
             } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
         } // end of class <Marker>$119AA281C143547563250CAF89B48A76
         // Methods
-        .method private hidebysig 
+        .method assembly hidebysig 
             instance void M () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
@@ -1884,7 +1884,7 @@ public static class Extensions
         } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
-    .method private hidebysig static 
+    .method assembly hidebysig static 
         void M (
             object o
         ) cil managed 
@@ -1973,7 +1973,7 @@ public static class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -2111,7 +2111,7 @@ public static class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -2302,7 +2302,7 @@ public static class Extensions
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object ''
                 ) cil managed 
@@ -5117,7 +5117,7 @@ public static class Extensions
 {
     extension(object o)
     {
-        void M(string s)
+        internal void M(string s)
         {
             o.ToString();
             _ = s.Length;
@@ -5147,7 +5147,7 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method assembly hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -5162,7 +5162,7 @@ public static class Extensions
             } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
         } // end of class <Marker>$119AA281C143547563250CAF89B48A76
         // Methods
-        .method private hidebysig 
+        .method assembly hidebysig 
             instance void M (
                 string s
             ) cil managed 
@@ -5180,7 +5180,7 @@ public static class Extensions
         } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
-    .method private hidebysig static 
+    .method assembly hidebysig static 
         void M (
             object o,
             string s
@@ -11161,7 +11161,7 @@ class C1
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -11315,7 +11315,7 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
                 ) cil managed 
@@ -11471,7 +11471,7 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -11808,7 +11808,7 @@ public static class Extensions
 {
     extension<T>(T o)
     {
-        void M2()
+        public void M2()
         {
             #pragma warning disable CS8321 // The local function 'local' is declared but never used
             void local(dynamic d, T t)
@@ -11856,7 +11856,7 @@ public static class Extensions
             } // end of method '<Marker>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
         } // end of class <Marker>$D3EAC011D93395A3E50DF069CE627102
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance void M2 () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
@@ -11881,7 +11881,7 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
     } // end of class <>o__1`1
     // Methods
-    .method private hidebysig static 
+    .method public hidebysig static 
         void M2<T> (
             !!T o
         ) cil managed 
@@ -12018,7 +12018,7 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -32343,12 +32343,12 @@ public static class Extensions1
 {
     extension<T, S>(C<T, S> c)
     {
-        void M1() {}
+        internal void M1() {}
     }
 
     extension<T, S>(C<S, T> c)
     {
-        void M1() {}
+        internal void M1() {}
     }
 }
 
@@ -32389,7 +32389,7 @@ class C<T, S> {}
             } // end of method '<Marker>$80D5112A03B26C94C628316C4DA793B2'::'<Extension>$'
         } // end of class <Marker>$80D5112A03B26C94C628316C4DA793B2
         // Methods
-        .method private hidebysig 
+        .method assembly hidebysig 
             instance void M1 () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
@@ -32430,7 +32430,7 @@ class C<T, S> {}
             } // end of method '<Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A'::'<Extension>$'
         } // end of class <Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A
         // Methods
-        .method private hidebysig 
+        .method assembly hidebysig 
             instance void M1 () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
@@ -32446,7 +32446,7 @@ class C<T, S> {}
         } // end of method '<Extension>$6D4255504AB27A230E5AB4858D9E46EB'::M1
     } // end of class <Extension>$6D4255504AB27A230E5AB4858D9E46EB
     // Methods
-    .method private hidebysig static 
+    .method assembly hidebysig static 
         void M1<T, S> (
             class C`2<!!T, !!S> c
         ) cil managed 
@@ -32459,7 +32459,7 @@ class C<T, S> {}
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions1::M1
-    .method private hidebysig static 
+    .method assembly hidebysig static 
         void M1<T, S> (
             class C`2<!!S, !!T> c
         ) cil managed 
@@ -41132,7 +41132,7 @@ static class E
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 ''
                 ) cil managed 
@@ -41265,7 +41265,7 @@ static class E
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -41416,7 +41416,7 @@ static class E
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 ''
                 ) cil managed 
@@ -41556,7 +41556,7 @@ static class E
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -41742,7 +41742,7 @@ static class E
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -41898,7 +41898,7 @@ static class E
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 
@@ -42032,7 +42032,7 @@ static class E
             extends [netstandard]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
                 ) cil managed 

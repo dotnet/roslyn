@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol containingType = AdaptedMethodSymbol.ContainingType;
 
-            if (AdaptedMethodSymbol is SynthesizedExtensionMarker)
+            if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
             {
-                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType((SourceNamedTypeSymbol)containingType);
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
             }
             else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
             {
@@ -311,10 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // PROTOTYPE: Share logic with Cci.ITypeMemberReference.GetContainingType implementation?
-                if (AdaptedMethodSymbol is SynthesizedExtensionMarker)
+                if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
                 {
-                    var containingType = AdaptedMethodSymbol.ContainingType;
-                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType((SourceNamedTypeSymbol)containingType);
+                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
                 }
                 else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
                 {

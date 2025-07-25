@@ -10113,7 +10113,7 @@ static class E
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     object o
                 ) cil managed 
@@ -10441,7 +10441,7 @@ static class E
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     !U ''
                 ) cil managed 
@@ -10824,7 +10824,7 @@ static class E
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     !T ''
                 ) cil managed 
@@ -12534,7 +12534,7 @@ interface I { }
                     01 00 02 00 00
                 )
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 ''
                 ) cil managed 
@@ -12625,7 +12625,7 @@ class BAttribute : System.Attribute { }
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static 
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     int32 ''
                 ) cil managed 
