@@ -12,49 +12,49 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISymbolExtensions
 {
-    /// <summary>
-    /// Checks if 'symbol' is accessible from within 'within'.
-    /// </summary>
-    public static bool IsAccessibleWithin(
-        this ISymbol symbol,
-        ISymbol within,
-        ITypeSymbol? throughType = null)
+    extension(ISymbol symbol)
     {
-        if (within is IAssemblySymbol assembly)
+        /// <summary>
+        /// Checks if 'symbol' is accessible from within 'within'.
+        /// </summary>
+        public bool IsAccessibleWithin(
+            ISymbol within,
+            ITypeSymbol? throughType = null)
         {
-            return symbol.IsAccessibleWithin(assembly, throughType);
+            if (within is IAssemblySymbol assembly)
+            {
+                return symbol.IsAccessibleWithin(assembly, throughType);
+            }
+            else if (within is INamedTypeSymbol namedType)
+            {
+                return symbol.IsAccessibleWithin(namedType, throughType);
+            }
+            else
+            {
+                throw new ArgumentException();
+            }
         }
-        else if (within is INamedTypeSymbol namedType)
-        {
-            return symbol.IsAccessibleWithin(namedType, throughType);
-        }
-        else
-        {
-            throw new ArgumentException();
-        }
-    }
 
-    /// <summary>
-    /// Checks if 'symbol' is accessible from within assembly 'within'.
-    /// </summary>
-    public static bool IsAccessibleWithin(
-        this ISymbol symbol,
-        IAssemblySymbol within,
-        ITypeSymbol? throughType = null)
-    {
-        return IsSymbolAccessibleCore(symbol, within, throughType, out _);
-    }
+        /// <summary>
+        /// Checks if 'symbol' is accessible from within assembly 'within'.
+        /// </summary>
+        public bool IsAccessibleWithin(
+            IAssemblySymbol within,
+            ITypeSymbol? throughType = null)
+        {
+            return IsSymbolAccessibleCore(symbol, within, throughType, out _);
+        }
 
-    /// <summary>
-    /// Checks if 'symbol' is accessible from within name type 'within', with an optional
-    /// qualifier of type "throughTypeOpt".
-    /// </summary>
-    public static bool IsAccessibleWithin(
-        this ISymbol symbol,
-        INamedTypeSymbol within,
-        ITypeSymbol? throughType = null)
-    {
-        return IsSymbolAccessible(symbol, within, throughType, out _);
+        /// <summary>
+        /// Checks if 'symbol' is accessible from within name type 'within', with an optional
+        /// qualifier of type "throughTypeOpt".
+        /// </summary>
+        public bool IsAccessibleWithin(
+            INamedTypeSymbol within,
+            ITypeSymbol? throughType = null)
+        {
+            return IsSymbolAccessible(symbol, within, throughType, out _);
+        }
     }
 
     /// <summary>

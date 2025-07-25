@@ -9,7 +9,9 @@ namespace Microsoft.CodeAnalysis.InlineHints;
 
 internal static class InlineHintsOptionsStorage
 {
-    public static InlineHintsOptions GetInlineHintsOptions(this IGlobalOptionService globalOptions, string language)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public InlineHintsOptions GetInlineHintsOptions(string language)
         => new()
         {
             ParameterOptions = globalOptions.GetInlineParameterHintsOptions(language),
@@ -17,28 +19,29 @@ internal static class InlineHintsOptionsStorage
             DisplayOptions = globalOptions.GetSymbolDescriptionOptions(language),
         };
 
-    public static InlineParameterHintsOptions GetInlineParameterHintsOptions(this IGlobalOptionService globalOptions, string language)
-        => new()
-        {
-            EnabledForParameters = globalOptions.GetOption(EnabledForParameters, language),
-            ForLiteralParameters = globalOptions.GetOption(ForLiteralParameters, language),
-            ForIndexerParameters = globalOptions.GetOption(ForIndexerParameters, language),
-            ForObjectCreationParameters = globalOptions.GetOption(ForObjectCreationParameters, language),
-            ForOtherParameters = globalOptions.GetOption(ForOtherParameters, language),
-            SuppressForParametersThatDifferOnlyBySuffix = globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
-            SuppressForParametersThatMatchMethodIntent = globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
-            SuppressForParametersThatMatchArgumentName = globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language),
-        };
+        public InlineParameterHintsOptions GetInlineParameterHintsOptions(string language)
+            => new()
+            {
+                EnabledForParameters = globalOptions.GetOption(EnabledForParameters, language),
+                ForLiteralParameters = globalOptions.GetOption(ForLiteralParameters, language),
+                ForIndexerParameters = globalOptions.GetOption(ForIndexerParameters, language),
+                ForObjectCreationParameters = globalOptions.GetOption(ForObjectCreationParameters, language),
+                ForOtherParameters = globalOptions.GetOption(ForOtherParameters, language),
+                SuppressForParametersThatDifferOnlyBySuffix = globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
+                SuppressForParametersThatMatchMethodIntent = globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
+                SuppressForParametersThatMatchArgumentName = globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language),
+            };
 
-    public static InlineTypeHintsOptions GetInlineTypeHintsOptions(this IGlobalOptionService globalOptions, string language)
-        => new()
-        {
-            EnabledForTypes = globalOptions.GetOption(EnabledForTypes, language),
-            ForImplicitVariableTypes = globalOptions.GetOption(ForImplicitVariableTypes, language),
-            ForLambdaParameterTypes = globalOptions.GetOption(ForLambdaParameterTypes, language),
-            ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
-            ForCollectionExpressions = globalOptions.GetOption(ForCollectionExpressions, language),
-        };
+        public InlineTypeHintsOptions GetInlineTypeHintsOptions(string language)
+            => new()
+            {
+                EnabledForTypes = globalOptions.GetOption(EnabledForTypes, language),
+                ForImplicitVariableTypes = globalOptions.GetOption(ForImplicitVariableTypes, language),
+                ForLambdaParameterTypes = globalOptions.GetOption(ForLambdaParameterTypes, language),
+                ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
+                ForCollectionExpressions = globalOptions.GetOption(ForCollectionExpressions, language),
+            };
+    }
 
     // Note: inlay hints is the term used in LSP, we Want to use the LSP name when communicate with the LSP client.
     private static readonly OptionGroup s_inlayHintOptionGroup = new(name: "inlay_hints", description: "");

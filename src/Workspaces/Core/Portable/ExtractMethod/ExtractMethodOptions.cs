@@ -41,10 +41,13 @@ internal readonly record struct ExtractMethodGenerationOptions
 
 internal static class ExtractMethodGenerationOptionsProviders
 {
-    public static async ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
+    {
+        public async ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(CancellationToken cancellationToken)
         => new()
         {
             CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false),
             CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false),
         };
+    }
 }

@@ -15,14 +15,17 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </summary>
 internal static class VSInternalExtensionUtilities
 {
-    /// <summary>
-    /// Adds <see cref="VSExtensionConverter{TBase, TExtension}"/> necessary to deserialize
-    /// JSON stream into objects which include VS-specific extensions.
-    /// </summary>
-    internal static void AddVSInternalExtensionConverters(this JsonSerializerOptions options)
+    extension(JsonSerializerOptions options)
     {
-        VSExtensionUtilities.AddVSExtensionConverters(options);
-        AddConverters(options.Converters);
+        /// <summary>
+        /// Adds <see cref="VSExtensionConverter{TBase, TExtension}"/> necessary to deserialize
+        /// JSON stream into objects which include VS-specific extensions.
+        /// </summary>
+        internal void AddVSInternalExtensionConverters()
+        {
+            VSExtensionUtilities.AddVSExtensionConverters(options);
+            AddConverters(options.Converters);
+        }
     }
 
     private static void AddConverters(IList<JsonConverter> converters)
@@ -73,25 +76,28 @@ internal static class VSInternalExtensionUtilities
         }
     }
 
-    /// <summary>
-    /// Returns a string read from the <see cref="Utf8JsonReader"/>. If the string is small enough
-    /// to fit into the provided <paramref name="scratchChars"/>, no allocations will be needed.
-    /// </summary>
-    internal static ReadOnlySpan<char> GetStringSpan(this ref readonly Utf8JsonReader reader, Span<char> scratchChars)
+    extension(ref readonly Utf8JsonReader reader)
     {
-        var valueLength = reader.HasValueSequence ? reader.ValueSequence.Length : reader.ValueSpan.Length;
-
-        if (valueLength <= scratchChars.Length)
+        /// <summary>
+        /// Returns a string read from the <see cref="Utf8JsonReader"/>. If the string is small enough
+        /// to fit into the provided <paramref name="scratchChars"/>, no allocations will be needed.
+        /// </summary>
+        internal ReadOnlySpan<char> GetStringSpan(Span<char> scratchChars)
         {
-            // If the value fits into the scratch buffer, copy it there, and return a span from that.
-            var actualLength = reader.CopyString(scratchChars);
+            var valueLength = reader.HasValueSequence ? reader.ValueSequence.Length : reader.ValueSpan.Length;
 
-            return scratchChars.Slice(0, actualLength);
-        }
-        else
-        {
-            // Otherwise, ask the reader to allocate a string and return a span from that.
-            return reader.GetString().AsSpan();
+            if (valueLength <= scratchChars.Length)
+            {
+                // If the value fits into the scratch buffer, copy it there, and return a span from that.
+                var actualLength = reader.CopyString(scratchChars);
+
+                return scratchChars.Slice(0, actualLength);
+            }
+            else
+            {
+                // Otherwise, ask the reader to allocate a string and return a span from that.
+                return reader.GetString().AsSpan();
+            }
         }
     }
 }

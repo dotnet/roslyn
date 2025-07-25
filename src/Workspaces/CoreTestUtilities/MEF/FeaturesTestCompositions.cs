@@ -24,6 +24,9 @@ public static class FeaturesTestCompositions
         .AddAssemblies(MefHostServicesHelpers.LoadNearbyAssemblies(RemoteExportProviderBuilder.RemoteHostAssemblyNames))
         .AddParts(typeof(TestSerializerService.Factory));
 
-    public static TestComposition WithTestHostParts(this TestComposition composition, TestHost host)
+    extension(TestComposition composition)
+    {
+        public TestComposition WithTestHostParts(TestHost host)
         => (host == TestHost.InProcess) ? composition : composition.AddAssemblies(typeof(RemoteWorkspacesResources).Assembly).AddParts(typeof(InProcRemoteHostClientProvider.Factory));
+    }
 }

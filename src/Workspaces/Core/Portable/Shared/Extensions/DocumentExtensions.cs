@@ -11,16 +11,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class DocumentExtensions
 {
-    public static async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfNull(result);
-        return result;
+        public async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(CancellationToken cancellationToken)
+        {
+            var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
+
+        public ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(bool loadOnly, CancellationToken cancellationToken)
+            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
+
+        internal Document WithSolutionOptions(OptionSet options)
+            => document.Project.Solution.WithOptions(options).GetRequiredDocument(document.Id);
     }
-
-    public static ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
-        => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
-
-    internal static Document WithSolutionOptions(this Document document, OptionSet options)
-        => document.Project.Solution.WithOptions(options).GetRequiredDocument(document.Id);
 }

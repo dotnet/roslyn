@@ -90,10 +90,13 @@ internal static class CodeFixVerifierHelper
         }
     }
 
-    public static string? GetEditorConfigText(this OptionsCollection options)
+    extension(OptionsCollection options)
     {
-        var text = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
-        return text?.ToString();
+        public string? GetEditorConfigText()
+        {
+            var text = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
+            return text?.ToString();
+        }
     }
 
     public static SourceText? ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)

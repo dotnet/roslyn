@@ -61,6 +61,9 @@ internal readonly struct ConcatImmutableArray<T>(ImmutableArray<T> first, Immuta
 
 internal static partial class ImmutableArrayExtensions
 {
-    public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+    extension<T>(ImmutableArray<T> first)
+    {
+        public ConcatImmutableArray<T> ConcatFast(ImmutableArray<T> second)
         => new(first, second);
+    }
 }

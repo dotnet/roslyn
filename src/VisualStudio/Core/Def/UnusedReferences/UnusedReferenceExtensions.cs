@@ -10,35 +10,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
 internal static class UnusedReferenceExtensions
 {
-    public static ReferenceInfo ToReferenceInfo(this ProjectSystemReferenceInfo projectSystemReference)
+    extension(ProjectSystemReferenceInfo projectSystemReference)
     {
-        return new ReferenceInfo(
-            (ReferenceType)projectSystemReference.ReferenceType,
-            projectSystemReference.ItemSpecification,
-            projectSystemReference.TreatAsUsed,
-            [],
-            []);
-    }
-
-    public static ProjectSystemReferenceUpdate ToProjectSystemReferenceUpdate(this ReferenceUpdate referenceUpdate)
-    {
-        var updateAction = referenceUpdate.Action switch
+        public ReferenceInfo ToReferenceInfo()
         {
-            UpdateAction.TreatAsUsed => ProjectSystemUpdateAction.SetTreatAsUsed,
-            UpdateAction.TreatAsUnused => ProjectSystemUpdateAction.UnsetTreatAsUsed,
-            UpdateAction.Remove => ProjectSystemUpdateAction.Remove,
-            _ => throw ExceptionUtilities.Unreachable()
-        };
-        return new ProjectSystemReferenceUpdate(
-            updateAction,
-            referenceUpdate.ReferenceInfo.ToProjectSystemReferenceInfo());
+            return new ReferenceInfo(
+                (ReferenceType)projectSystemReference.ReferenceType,
+                projectSystemReference.ItemSpecification,
+                projectSystemReference.TreatAsUsed,
+                [],
+                []);
+        }
     }
 
-    public static ProjectSystemReferenceInfo ToProjectSystemReferenceInfo(this ReferenceInfo reference)
+    extension(ReferenceUpdate referenceUpdate)
     {
-        return new ProjectSystemReferenceInfo(
-            (ProjectSystemReferenceType)reference.ReferenceType,
-            reference.ItemSpecification,
-            reference.TreatAsUsed);
+        public ProjectSystemReferenceUpdate ToProjectSystemReferenceUpdate()
+        {
+            var updateAction = referenceUpdate.Action switch
+            {
+                UpdateAction.TreatAsUsed => ProjectSystemUpdateAction.SetTreatAsUsed,
+                UpdateAction.TreatAsUnused => ProjectSystemUpdateAction.UnsetTreatAsUsed,
+                UpdateAction.Remove => ProjectSystemUpdateAction.Remove,
+                _ => throw ExceptionUtilities.Unreachable()
+            };
+            return new ProjectSystemReferenceUpdate(
+                updateAction,
+                referenceUpdate.ReferenceInfo.ToProjectSystemReferenceInfo());
+        }
+    }
+
+    extension(ReferenceInfo reference)
+    {
+        public ProjectSystemReferenceInfo ToProjectSystemReferenceInfo()
+        {
+            return new ProjectSystemReferenceInfo(
+                (ProjectSystemReferenceType)reference.ReferenceType,
+                reference.ItemSpecification,
+                reference.TreatAsUsed);
+        }
     }
 }

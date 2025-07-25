@@ -16,27 +16,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISymbolExtensions2
 {
-    [Obsolete("Use overload without ISymbolDisplayService")]
-    public static ImmutableArray<TSymbol> Sort<TSymbol>(
-        this ImmutableArray<TSymbol> symbols,
+    extension<TSymbol>(ImmutableArray<TSymbol> symbols) where TSymbol : ISymbol
+    {
+        [Obsolete("Use overload without ISymbolDisplayService")]
+        public ImmutableArray<TSymbol> Sort(
         ISymbolDisplayService symbolDisplayService,
         SemanticModel semanticModel,
         int position)
-        where TSymbol : ISymbol
-    {
-        return Sort(symbols, semanticModel, position);
-    }
+        {
+            return Sort(symbols, semanticModel, position);
+        }
 
-    public static ImmutableArray<TSymbol> Sort<TSymbol>(
-        this ImmutableArray<TSymbol> symbols,
-        SemanticModel semanticModel,
-        int position)
-        where TSymbol : ISymbol
-    {
-        var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
-        string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, semanticModel, position);
+        public ImmutableArray<TSymbol> Sort(
+            SemanticModel semanticModel,
+            int position)
+        {
+            var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
+            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, semanticModel, position);
 
-        return [.. symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))];
+            return [.. symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))];
+        }
     }
 
     private static INamedTypeSymbol GetNamedType(ITypeSymbol type)

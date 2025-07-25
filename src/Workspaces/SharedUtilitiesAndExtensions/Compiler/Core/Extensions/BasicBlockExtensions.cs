@@ -9,21 +9,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis;
 
 internal static partial class BasicBlockExtensions
 {
-    public static IEnumerable<IOperation> DescendantOperations(this BasicBlock basicBlock)
+    extension(BasicBlock basicBlock)
     {
-        foreach (var statement in basicBlock.Operations)
+        public IEnumerable<IOperation> DescendantOperations()
         {
-            foreach (var operation in statement.DescendantsAndSelf())
+            foreach (var statement in basicBlock.Operations)
             {
-                yield return operation;
+                foreach (var operation in statement.DescendantsAndSelf())
+                {
+                    yield return operation;
+                }
             }
-        }
 
-        if (basicBlock.BranchValue != null)
-        {
-            foreach (var operation in basicBlock.BranchValue.DescendantsAndSelf())
+            if (basicBlock.BranchValue != null)
             {
-                yield return operation;
+                foreach (var operation in basicBlock.BranchValue.DescendantsAndSelf())
+                {
+                    yield return operation;
+                }
             }
         }
     }

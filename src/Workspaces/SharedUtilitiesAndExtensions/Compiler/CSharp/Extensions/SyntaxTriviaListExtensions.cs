@@ -15,32 +15,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class SyntaxTriviaListExtensions
 {
-    public static SyntaxTrivia? GetFirstNewLine(this SyntaxTriviaList triviaList)
+    extension(SyntaxTriviaList triviaList)
     {
-        return triviaList
-            .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
-            .FirstOrNull();
+        public SyntaxTrivia? GetFirstNewLine()
+        {
+            return triviaList
+                .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
+                .FirstOrNull();
+        }
+
+        public SyntaxTrivia? GetLastComment()
+        {
+            return triviaList
+                .Where(t => t.IsRegularComment())
+                .LastOrNull();
+        }
+
+        public SyntaxTrivia? GetLastCommentOrWhitespace()
+        {
+            if (triviaList.Count == 0)
+                return null;
+
+            return triviaList
+                .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
+                .LastOrNull();
+        }
+
+        public SyntaxTriviaList WithoutLeadingBlankLines()
+        {
+            var triviaInLeadingBlankLines = GetLeadingBlankLines(triviaList).SelectMany(l => l);
+            return [.. triviaList.Skip(triviaInLeadingBlankLines.Count())];
+        }
+
+        /// <summary>
+        /// Takes an INCLUSIVE range of trivia from the trivia list. 
+        /// </summary>
+        public IEnumerable<SyntaxTrivia> TakeRange(int start, int end)
+        {
+            while (start <= end)
+            {
+                yield return triviaList[start++];
+            }
+        }
     }
 
-    public static SyntaxTrivia? GetLastComment(this SyntaxTriviaList triviaList)
+    extension(IEnumerable<SyntaxTrivia> triviaList)
     {
-        return triviaList
-            .Where(t => t.IsRegularComment())
-            .LastOrNull();
-    }
-
-    public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
-    {
-        if (triviaList.Count == 0)
-            return null;
-
-        return triviaList
-            .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
-            .LastOrNull();
-    }
-
-    public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this IEnumerable<SyntaxTrivia> triviaList)
+        public IEnumerable<SyntaxTrivia> SkipInitialWhitespace()
         => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
+    }
 
     private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
     {
@@ -64,22 +87,5 @@ internal static class SyntaxTriviaListExtensions
         }
 
         return result.ToImmutableAndClear();
-    }
-
-    public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)
-    {
-        var triviaInLeadingBlankLines = GetLeadingBlankLines(triviaList).SelectMany(l => l);
-        return [.. triviaList.Skip(triviaInLeadingBlankLines.Count())];
-    }
-
-    /// <summary>
-    /// Takes an INCLUSIVE range of trivia from the trivia list. 
-    /// </summary>
-    public static IEnumerable<SyntaxTrivia> TakeRange(this SyntaxTriviaList triviaList, int start, int end)
-    {
-        while (start <= end)
-        {
-            yield return triviaList[start++];
-        }
     }
 }

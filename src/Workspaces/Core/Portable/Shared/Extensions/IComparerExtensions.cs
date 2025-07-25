@@ -9,14 +9,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class IComparerExtensions
 {
-    public static IComparer<T> Inverse<T>(this IComparer<T> comparer)
+    extension<T>(IComparer<T> comparer)
     {
-        if (comparer == null)
+        public IComparer<T> Inverse()
         {
-            throw new ArgumentNullException(nameof(comparer));
-        }
+            if (comparer == null)
+            {
+                throw new ArgumentNullException(nameof(comparer));
+            }
 
-        return new InverseComparer<T>(comparer);
+            return new InverseComparer<T>(comparer);
+        }
     }
 
     private sealed class InverseComparer<T> : IComparer<T>

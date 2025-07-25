@@ -11,23 +11,26 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 
 internal static class ServiceProviderExtensions
 {
-    public static bool TryGetService<TService, TInterface>(this IServiceProvider serviceProvider, JoinableTaskFactory joinableTaskFactory, [NotNullWhen(true)] out TInterface? @interface)
-        where TInterface : class
+    extension(IServiceProvider serviceProvider)
     {
-        @interface = serviceProvider.GetService<TService, TInterface>(joinableTaskFactory, throwOnFailure: false);
-        return @interface is not null;
-    }
+        public bool TryGetService<TService, TInterface>(JoinableTaskFactory joinableTaskFactory, [NotNullWhen(true)] out TInterface? @interface)
+        where TInterface : class
+        {
+            @interface = serviceProvider.GetService<TService, TInterface>(joinableTaskFactory, throwOnFailure: false);
+            return @interface is not null;
+        }
 
-    public static bool TryGetService<TInterface>(this IServiceProvider serviceProvider, JoinableTaskFactory joinableTaskFactory, [NotNullWhen(true)] out TInterface? @interface)
+        public bool TryGetService<TInterface>(JoinableTaskFactory joinableTaskFactory, [NotNullWhen(true)] out TInterface? @interface)
+                where TInterface : class
+        {
+            @interface = serviceProvider.GetService<TInterface>(joinableTaskFactory);
+            return @interface is not null;
+        }
+
+        public TInterface? GetService<TInterface>(JoinableTaskFactory joinableTaskFactory)
             where TInterface : class
-    {
-        @interface = serviceProvider.GetService<TInterface>(joinableTaskFactory);
-        return @interface is not null;
-    }
-
-    public static TInterface? GetService<TInterface>(this IServiceProvider serviceProvider, JoinableTaskFactory joinableTaskFactory)
-        where TInterface : class
-    {
-        return serviceProvider.GetService<TInterface, TInterface>(joinableTaskFactory, throwOnFailure: false);
+        {
+            return serviceProvider.GetService<TInterface, TInterface>(joinableTaskFactory, throwOnFailure: false);
+        }
     }
 }

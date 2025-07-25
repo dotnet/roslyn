@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal static class EmbeddedLanguageClassificationServiceExtensions
 {
-    public static void AddEmbeddedLanguageClassifications(
-        this IEmbeddedLanguageClassificationService classificationService,
+    extension(IEmbeddedLanguageClassificationService classificationService)
+    {
+        public void AddEmbeddedLanguageClassifications(
         SolutionServices solutionServices,
         Project project,
         SemanticModel semanticModel,
@@ -20,14 +21,15 @@ internal static class EmbeddedLanguageClassificationServiceExtensions
         ClassificationOptions options,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
-    {
-        classificationService.AddEmbeddedLanguageClassifications(
-            solutionServices,
-            project,
-            semanticModel,
-            [textSpan],
-            options,
-            result,
-            cancellationToken);
+        {
+            classificationService.AddEmbeddedLanguageClassifications(
+                solutionServices,
+                project,
+                semanticModel,
+                [textSpan],
+                options,
+                result,
+                cancellationToken);
+        }
     }
 }

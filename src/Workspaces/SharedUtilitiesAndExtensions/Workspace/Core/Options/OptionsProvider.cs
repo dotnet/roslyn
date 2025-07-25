@@ -24,6 +24,9 @@ internal static class OptionsProvider
             => ValueTask.FromResult(reader(optionsReader, languageServices.Language));
     }
 
-    public static OptionsProvider<TOptions> GetProvider<TOptions>(this IOptionsReader optionsReader, Func<IOptionsReader, string, TOptions> reader)
+    extension(IOptionsReader optionsReader)
+    {
+        public OptionsProvider<TOptions> GetProvider<TOptions>(Func<IOptionsReader, string, TOptions> reader)
         => new OptionsReaderProvider<TOptions>(optionsReader, reader);
+    }
 }

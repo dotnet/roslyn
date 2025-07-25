@@ -12,13 +12,16 @@ namespace Analyzer.Utilities
 {
     internal static class AnalyzerConfigOptionsProviderExtensions
     {
-        public static bool IsEmpty(this AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        extension(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
-            // Reflection based optimization for empty analyzer config options.
-            // Ideally 'AnalyzerConfigOptionsProvider.IsEmpty' would be exposed in the API.
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            return analyzerConfigOptionsProvider.GetType().GetField("_treeDict", flags)?.GetValue(analyzerConfigOptionsProvider) is ImmutableDictionary<object, AnalyzerConfigOptions> perTreeOptionsMap
-                && perTreeOptionsMap.IsEmpty;
+            public bool IsEmpty()
+            {
+                // Reflection based optimization for empty analyzer config options.
+                // Ideally 'AnalyzerConfigOptionsProvider.IsEmpty' would be exposed in the API.
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                return analyzerConfigOptionsProvider.GetType().GetField("_treeDict", flags)?.GetValue(analyzerConfigOptionsProvider) is ImmutableDictionary<object, AnalyzerConfigOptions> perTreeOptionsMap
+                    && perTreeOptionsMap.IsEmpty;
+            }
         }
     }
 }

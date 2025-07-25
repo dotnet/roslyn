@@ -87,21 +87,24 @@ public static class ExportProviderCache
     public static PartDiscovery CreatePartDiscovery(Resolver resolver)
         => PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
 
-    public static ComposableCatalog WithParts(this ComposableCatalog catalog, IEnumerable<Type> types)
+    extension(ComposableCatalog catalog)
+    {
+        public ComposableCatalog WithParts(IEnumerable<Type> types)
         => catalog.AddParts(CreateTypeCatalog(types).DiscoveredParts);
 
-    /// <summary>
-    /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
-    /// parts assignable to any type in <paramref name="types"/> removed from the catalog.
-    /// </summary>
-    public static ComposableCatalog WithoutPartsOfTypes(this ComposableCatalog catalog, IEnumerable<Type> types)
-    {
-        var parts = catalog.Parts.Where(composablePartDefinition => !IsExcludedPart(composablePartDefinition));
-        return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
-
-        bool IsExcludedPart(ComposablePartDefinition part)
+        /// <summary>
+        /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
+        /// parts assignable to any type in <paramref name="types"/> removed from the catalog.
+        /// </summary>
+        public ComposableCatalog WithoutPartsOfTypes(IEnumerable<Type> types)
         {
-            return types.Any(excludedType => excludedType.IsAssignableFrom(part.Type));
+            var parts = catalog.Parts.Where(composablePartDefinition => !IsExcludedPart(composablePartDefinition));
+            return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
+
+            bool IsExcludedPart(ComposablePartDefinition part)
+            {
+                return types.Any(excludedType => excludedType.IsAssignableFrom(part.Type));
+            }
         }
     }
 

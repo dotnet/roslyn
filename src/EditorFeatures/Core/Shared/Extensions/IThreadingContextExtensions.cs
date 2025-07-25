@@ -8,9 +8,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class IThreadingContextExtensions
 {
-    public static void ThrowIfNotOnUIThread(this IThreadingContext threadingContext)
+    extension(IThreadingContext threadingContext)
+    {
+        public void ThrowIfNotOnUIThread()
         => Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
 
-    public static void ThrowIfNotOnBackgroundThread(this IThreadingContext threadingContext)
-        => Contract.ThrowIfTrue(threadingContext.JoinableTaskContext.IsOnMainThread);
+        public void ThrowIfNotOnBackgroundThread()
+            => Contract.ThrowIfTrue(threadingContext.JoinableTaskContext.IsOnMainThread);
+    }
 }

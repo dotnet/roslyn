@@ -85,26 +85,32 @@ public readonly record struct TaggedText
 
 internal static class TaggedTextExtensions
 {
-    public static ImmutableArray<TaggedText> ToTaggedText(
-        this IEnumerable<SymbolDisplayPart>? displayParts, TaggedTextStyle style = TaggedTextStyle.None, Func<ISymbol?, string?>? getNavigationHint = null, bool includeNavigationHints = true)
+    extension(IEnumerable<SymbolDisplayPart>? displayParts)
     {
-        if (displayParts == null)
-            return [];
+        public ImmutableArray<TaggedText> ToTaggedText(
+TaggedTextStyle style = TaggedTextStyle.None, Func<ISymbol?, string?>? getNavigationHint = null, bool includeNavigationHints = true)
+        {
+            if (displayParts == null)
+                return [];
 
-        // To support CodeGeneration symbols, which do not support ToDisplayString we need to be able to override it.
-        getNavigationHint ??= static symbol => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            // To support CodeGeneration symbols, which do not support ToDisplayString we need to be able to override it.
+            getNavigationHint ??= static symbol => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
-        return displayParts.SelectAsArray(d =>
-            new TaggedText(
-                GetTag(d),
-                d.ToString(),
-                style,
-                includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
-                includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
+            return displayParts.SelectAsArray(d =>
+                new TaggedText(
+                    GetTag(d),
+                    d.ToString(),
+                    style,
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
+        }
     }
 
-    public static ImmutableArray<(string tag, string text)> ToTagsAndText(this ImmutableArray<SymbolDisplayPart> displayParts)
+    extension(ImmutableArray<SymbolDisplayPart> displayParts)
+    {
+        public ImmutableArray<(string tag, string text)> ToTagsAndText()
         => displayParts.SelectAsArray(static d => (GetTag(d), d.ToString()));
+    }
 
     private static string GetTag(SymbolDisplayPart part)
     {
@@ -124,29 +130,34 @@ internal static class TaggedTextExtensions
     private static string? GetNavigationTarget(ISymbol? symbol)
         => symbol is null ? null : SymbolKey.CreateString(symbol);
 
-    public static string JoinText(this ImmutableArray<TaggedText> values)
+    extension(ImmutableArray<TaggedText> values)
     {
-        if (values.IsDefaultOrEmpty)
+        public string JoinText()
         {
-            return "";
-        }
+            if (values.IsDefaultOrEmpty)
+            {
+                return "";
+            }
 
-        if (values is [var value])
-        {
-            return value.Text;
-        }
+            if (values is [var value])
+            {
+                return value.Text;
+            }
 
-        using var _ = PooledStringBuilder.GetInstance(out var builder);
-        builder.EnsureCapacity(values.Sum(static value => value.Text.Length));
-        foreach (var val in values)
-        {
-            builder.Append(val.Text);
-        }
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            builder.EnsureCapacity(values.Sum(static value => value.Text.Length));
+            foreach (var val in values)
+            {
+                builder.Append(val.Text);
+            }
 
-        return builder.ToString();
+            return builder.ToString();
+        }
     }
 
-    public static string ToClassificationTypeName(this string taggedTextTag)
+    extension(string taggedTextTag)
+    {
+        public string ToClassificationTypeName()
         => taggedTextTag switch
         {
             TextTags.Keyword => ClassificationTypeNames.Keyword,
@@ -181,127 +192,137 @@ internal static class TaggedTextExtensions
             TextTags.ContainerStart or TextTags.ContainerEnd or TextTags.CodeBlockStart or TextTags.CodeBlockEnd => ClassificationTypeNames.WhiteSpace,
             _ => throw ExceptionUtilities.UnexpectedValue(taggedTextTag),
         };
+    }
 
-    public static IEnumerable<ClassifiedSpan> ToClassifiedSpans(
-        this IEnumerable<TaggedText> parts)
+    extension(IEnumerable<TaggedText> parts)
     {
-        var index = 0;
-        foreach (var part in parts)
+        public IEnumerable<ClassifiedSpan> ToClassifiedSpans(
+)
         {
-            var text = part.ToString();
-            var classificationTypeName = part.Tag.ToClassificationTypeName();
+            var index = 0;
+            foreach (var part in parts)
+            {
+                var text = part.ToString();
+                var classificationTypeName = part.Tag.ToClassificationTypeName();
 
-            yield return new ClassifiedSpan(new TextSpan(index, text.Length), classificationTypeName);
-            index += text.Length;
+                yield return new ClassifiedSpan(new TextSpan(index, text.Length), classificationTypeName);
+                index += text.Length;
+            }
         }
+
+        public string ToVisibleDisplayString(bool includeLeftToRightMarker)
+        {
+            return string.Join(string.Empty, parts.Select(
+                p => p.ToVisibleDisplayString(includeLeftToRightMarker)));
+        }
+
+        public string GetFullText()
+            => string.Join(string.Empty, parts.Select(p => p.ToString()));
     }
 
     private const string LeftToRightMarkerPrefix = "\u200e";
 
-    public static string ToVisibleDisplayString(this TaggedText part, bool includeLeftToRightMarker)
+    extension(TaggedText part)
     {
-        var text = part.ToString();
-
-        if (includeLeftToRightMarker)
+        public string ToVisibleDisplayString(bool includeLeftToRightMarker)
         {
-            var classificationTypeName = part.Tag.ToClassificationTypeName();
-            if (classificationTypeName is ClassificationTypeNames.Punctuation or
-                ClassificationTypeNames.WhiteSpace)
+            var text = part.ToString();
+
+            if (includeLeftToRightMarker)
             {
-                text = LeftToRightMarkerPrefix + text;
+                var classificationTypeName = part.Tag.ToClassificationTypeName();
+                if (classificationTypeName is ClassificationTypeNames.Punctuation or
+                    ClassificationTypeNames.WhiteSpace)
+                {
+                    text = LeftToRightMarkerPrefix + text;
+                }
             }
+
+            return text;
         }
-
-        return text;
     }
 
-    public static string ToVisibleDisplayString(this IEnumerable<TaggedText> parts, bool includeLeftToRightMarker)
+    extension(IList<TaggedText> parts)
     {
-        return string.Join(string.Empty, parts.Select(
-            p => p.ToVisibleDisplayString(includeLeftToRightMarker)));
-    }
-
-    public static string GetFullText(this IEnumerable<TaggedText> parts)
-        => string.Join(string.Empty, parts.Select(p => p.ToString()));
-
-    public static void AddAliasName(this IList<TaggedText> parts, string text)
+        public void AddAliasName(string text)
         => parts.Add(new TaggedText(TextTags.Alias, text));
 
-    public static void AddAssemblyName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Assembly, text));
+        public void AddAssemblyName(string text)
+            => parts.Add(new TaggedText(TextTags.Assembly, text));
 
-    public static void AddClassName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Class, text));
+        public void AddClassName(string text)
+            => parts.Add(new TaggedText(TextTags.Class, text));
 
-    public static void AddDelegateName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Delegate, text));
+        public void AddDelegateName(string text)
+            => parts.Add(new TaggedText(TextTags.Delegate, text));
 
-    public static void AddEnumName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Enum, text));
+        public void AddEnumName(string text)
+            => parts.Add(new TaggedText(TextTags.Enum, text));
 
-    public static void AddErrorTypeName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.ErrorType, text));
+        public void AddErrorTypeName(string text)
+            => parts.Add(new TaggedText(TextTags.ErrorType, text));
 
-    public static void AddEventName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Event, text));
+        public void AddEventName(string text)
+            => parts.Add(new TaggedText(TextTags.Event, text));
 
-    public static void AddFieldName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Field, text));
+        public void AddFieldName(string text)
+            => parts.Add(new TaggedText(TextTags.Field, text));
 
-    public static void AddInterfaceName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Interface, text));
+        public void AddInterfaceName(string text)
+            => parts.Add(new TaggedText(TextTags.Interface, text));
 
-    public static void AddKeyword(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Keyword, text));
+        public void AddKeyword(string text)
+            => parts.Add(new TaggedText(TextTags.Keyword, text));
 
-    public static void AddLabelName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Label, text));
+        public void AddLabelName(string text)
+            => parts.Add(new TaggedText(TextTags.Label, text));
 
-    public static void AddLineBreak(this IList<TaggedText> parts, string text = "\r\n")
-        => parts.Add(new TaggedText(TextTags.LineBreak, text));
+        public void AddLineBreak(string text = "\r\n")
+            => parts.Add(new TaggedText(TextTags.LineBreak, text));
 
-    public static void AddNumericLiteral(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.NumericLiteral, text));
+        public void AddNumericLiteral(string text)
+            => parts.Add(new TaggedText(TextTags.NumericLiteral, text));
 
-    public static void AddStringLiteral(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.StringLiteral, text));
+        public void AddStringLiteral(string text)
+            => parts.Add(new TaggedText(TextTags.StringLiteral, text));
 
-    public static void AddLocalName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Local, text));
+        public void AddLocalName(string text)
+            => parts.Add(new TaggedText(TextTags.Local, text));
 
-    public static void AddMethodName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Method, text));
+        public void AddMethodName(string text)
+            => parts.Add(new TaggedText(TextTags.Method, text));
 
-    public static void AddModuleName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Module, text));
+        public void AddModuleName(string text)
+            => parts.Add(new TaggedText(TextTags.Module, text));
 
-    public static void AddNamespaceName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Namespace, text));
+        public void AddNamespaceName(string text)
+            => parts.Add(new TaggedText(TextTags.Namespace, text));
 
-    public static void AddOperator(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Operator, text));
+        public void AddOperator(string text)
+            => parts.Add(new TaggedText(TextTags.Operator, text));
 
-    public static void AddParameterName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Parameter, text));
+        public void AddParameterName(string text)
+            => parts.Add(new TaggedText(TextTags.Parameter, text));
 
-    public static void AddPropertyName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Property, text));
+        public void AddPropertyName(string text)
+            => parts.Add(new TaggedText(TextTags.Property, text));
 
-    public static void AddPunctuation(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Punctuation, text));
+        public void AddPunctuation(string text)
+            => parts.Add(new TaggedText(TextTags.Punctuation, text));
 
-    public static void AddRangeVariableName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.RangeVariable, text));
+        public void AddRangeVariableName(string text)
+            => parts.Add(new TaggedText(TextTags.RangeVariable, text));
 
-    public static void AddStructName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Struct, text));
+        public void AddStructName(string text)
+            => parts.Add(new TaggedText(TextTags.Struct, text));
 
-    public static void AddSpace(this IList<TaggedText> parts, string text = " ")
-        => parts.Add(new TaggedText(TextTags.Space, text));
+        public void AddSpace(string text = " ")
+            => parts.Add(new TaggedText(TextTags.Space, text));
 
-    public static void AddText(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.Text, text));
+        public void AddText(string text)
+            => parts.Add(new TaggedText(TextTags.Text, text));
 
-    public static void AddTypeParameterName(this IList<TaggedText> parts, string text)
-        => parts.Add(new TaggedText(TextTags.TypeParameter, text));
+        public void AddTypeParameterName(string text)
+            => parts.Add(new TaggedText(TextTags.TypeParameter, text));
+    }
 }

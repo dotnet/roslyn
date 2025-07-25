@@ -10,16 +10,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 
 internal static class TextDifferencingServiceExtensions
 {
-    public static IHierarchicalDifferenceCollection DiffSourceTexts(this ITextDifferencingService diffService, SourceText oldText, SourceText newText, StringDifferenceOptions options)
+    extension(ITextDifferencingService diffService)
     {
-        var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
-        var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
-        var useSnapshots = oldTextSnapshot != null && newTextSnapshot != null;
+        public IHierarchicalDifferenceCollection DiffSourceTexts(SourceText oldText, SourceText newText, StringDifferenceOptions options)
+        {
+            var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
+            var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
+            var useSnapshots = oldTextSnapshot != null && newTextSnapshot != null;
 
-        var diffResult = useSnapshots
-            ? diffService.DiffSnapshotSpans(oldTextSnapshot!.GetFullSpan(), newTextSnapshot!.GetFullSpan(), options)
-            : diffService.DiffStrings(oldText.ToString(), newText.ToString(), options);
+            var diffResult = useSnapshots
+                ? diffService.DiffSnapshotSpans(oldTextSnapshot!.GetFullSpan(), newTextSnapshot!.GetFullSpan(), options)
+                : diffService.DiffStrings(oldText.ToString(), newText.ToString(), options);
 
-        return diffResult;
+            return diffResult;
+        }
     }
 }

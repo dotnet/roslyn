@@ -16,14 +16,17 @@ namespace Microsoft.CodeAnalysis.Options;
 
 internal static partial class NamingStylePreferencesEditorConfigSerializer
 {
-    public static void AppendToEditorConfig(this NamingStylePreferences namingStylePreferences, string language, StringBuilder editorconfig)
+    extension(NamingStylePreferences namingStylePreferences)
     {
-        AppendNamingStylePreferencesToEditorConfig(
-            namingStylePreferences.SymbolSpecifications,
-            namingStylePreferences.NamingStyles,
-            namingStylePreferences.Rules.NamingRules,
-            language,
-            editorconfig);
+        public void AppendToEditorConfig(string language, StringBuilder editorconfig)
+        {
+            AppendNamingStylePreferencesToEditorConfig(
+                namingStylePreferences.SymbolSpecifications,
+                namingStylePreferences.NamingStyles,
+                namingStylePreferences.Rules.NamingRules,
+                language,
+                editorconfig);
+        }
     }
 
     public static void AppendNamingStylePreferencesToEditorConfig(

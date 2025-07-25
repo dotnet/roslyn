@@ -16,11 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 /// </summary>
 internal static class CodeGenerationSymbolFactory
 {
-    /// <summary>
-    /// Determines if the symbol is purely a code generation symbol.
-    /// </summary>
-    public static bool IsCodeGenerationSymbol(this ISymbol symbol)
-        => symbol is CodeGenerationSymbol;
+    extension(ISymbol symbol)
+    {
+        /// <summary>
+        /// Determines if the symbol is purely a code generation symbol.
+        /// </summary>
+        public bool IsCodeGenerationSymbol()
+            => symbol is CodeGenerationSymbol;
+    }
 
     /// <summary>
     /// Creates an event symbol that can be used to describe an event declaration.

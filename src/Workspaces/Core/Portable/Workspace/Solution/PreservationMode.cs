@@ -22,6 +22,9 @@ public enum PreservationMode
 
 internal static class PreservationModeExtensions
 {
-    public static bool IsValid(this PreservationMode mode)
+    extension(PreservationMode mode)
+    {
+        public bool IsValid()
         => mode is >= PreservationMode.PreserveValue and <= PreservationMode.PreserveIdentity;
+    }
 }

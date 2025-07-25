@@ -19,73 +19,76 @@ internal enum BufferMapDirection
 
 internal static class IBufferGraphExtensions
 {
-    public static SnapshotSpan? MapUpOrDownToFirstMatch(this IBufferGraph bufferGraph, SnapshotSpan span, Predicate<ITextSnapshot> match)
+    extension(IBufferGraph bufferGraph)
     {
-        var spans = bufferGraph.MapDownToFirstMatch(span, SpanTrackingMode.EdgeExclusive, match);
-        if (spans.Count == 0)
+        public SnapshotSpan? MapUpOrDownToFirstMatch(SnapshotSpan span, Predicate<ITextSnapshot> match)
         {
-            spans = bufferGraph.MapUpToFirstMatch(span, SpanTrackingMode.EdgeExclusive, match);
+            var spans = bufferGraph.MapDownToFirstMatch(span, SpanTrackingMode.EdgeExclusive, match);
+            if (spans.Count == 0)
+            {
+                spans = bufferGraph.MapUpToFirstMatch(span, SpanTrackingMode.EdgeExclusive, match);
+            }
+
+            return spans.Count > 0 ? spans[0] : null;
         }
 
-        return spans.Count > 0 ? spans[0] : null;
-    }
-
-    public static SnapshotSpan? MapUpOrDownToBuffer(this IBufferGraph bufferGraph, SnapshotSpan span, ITextBuffer targetBuffer)
-    {
-        var direction = ClassifyBufferMapDirection(span.Snapshot.TextBuffer, targetBuffer);
-        switch (direction)
+        public SnapshotSpan? MapUpOrDownToBuffer(SnapshotSpan span, ITextBuffer targetBuffer)
         {
-            case BufferMapDirection.Identity:
-                return span;
+            var direction = ClassifyBufferMapDirection(span.Snapshot.TextBuffer, targetBuffer);
+            switch (direction)
+            {
+                case BufferMapDirection.Identity:
+                    return span;
 
-            case BufferMapDirection.Down:
-                {
-                    var spans = bufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
-                    return spans.Count > 0 ? spans[0] : null;
-                }
+                case BufferMapDirection.Down:
+                    {
+                        var spans = bufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
+                        return spans.Count > 0 ? spans[0] : null;
+                    }
 
-            case BufferMapDirection.Up:
-                {
-                    var spans = bufferGraph.MapUpToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
-                    return spans.Count > 0 ? spans[0] : null;
-                }
+                case BufferMapDirection.Up:
+                    {
+                        var spans = bufferGraph.MapUpToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
+                        return spans.Count > 0 ? spans[0] : null;
+                    }
 
-            default:
-                return null;
+                default:
+                    return null;
+            }
         }
-    }
 
-    public static SnapshotPoint? MapUpOrDownToBuffer(this IBufferGraph bufferGraph, SnapshotPoint point, ITextBuffer targetBuffer)
-    {
-        var direction = ClassifyBufferMapDirection(point.Snapshot.TextBuffer, targetBuffer);
-        switch (direction)
+        public SnapshotPoint? MapUpOrDownToBuffer(SnapshotPoint point, ITextBuffer targetBuffer)
         {
-            case BufferMapDirection.Identity:
-                return point;
+            var direction = ClassifyBufferMapDirection(point.Snapshot.TextBuffer, targetBuffer);
+            switch (direction)
+            {
+                case BufferMapDirection.Identity:
+                    return point;
 
-            case BufferMapDirection.Down:
-                {
-                    // TODO (https://github.com/dotnet/roslyn/issues/5281): Remove try-catch.
-                    try
+                case BufferMapDirection.Down:
                     {
-                        return bufferGraph.MapDownToInsertionPoint(point, PointTrackingMode.Positive, s => s == targetBuffer.CurrentSnapshot);
+                        // TODO (https://github.com/dotnet/roslyn/issues/5281): Remove try-catch.
+                        try
+                        {
+                            return bufferGraph.MapDownToInsertionPoint(point, PointTrackingMode.Positive, s => s == targetBuffer.CurrentSnapshot);
+                        }
+                        catch (ArgumentOutOfRangeException) when (bufferGraph.TopBuffer.ContentType.TypeName == "Interactive Content")
+                        {
+                            // Suppress this to work around DevDiv #144964.
+                            // Note: Other callers might be affected, but this is the narrowest workaround for the observed problems.
+                            // A fix is already being reviewed, so a broader change is not required.
+                            return null;
+                        }
                     }
-                    catch (ArgumentOutOfRangeException) when (bufferGraph.TopBuffer.ContentType.TypeName == "Interactive Content")
+
+                case BufferMapDirection.Up:
                     {
-                        // Suppress this to work around DevDiv #144964.
-                        // Note: Other callers might be affected, but this is the narrowest workaround for the observed problems.
-                        // A fix is already being reviewed, so a broader change is not required.
-                        return null;
+                        return bufferGraph.MapUpToBuffer(point, PointTrackingMode.Positive, PositionAffinity.Predecessor, targetBuffer);
                     }
-                }
 
-            case BufferMapDirection.Up:
-                {
-                    return bufferGraph.MapUpToBuffer(point, PointTrackingMode.Positive, PositionAffinity.Predecessor, targetBuffer);
-                }
-
-            default:
-                return null;
+                default:
+                    return null;
+            }
         }
     }
 

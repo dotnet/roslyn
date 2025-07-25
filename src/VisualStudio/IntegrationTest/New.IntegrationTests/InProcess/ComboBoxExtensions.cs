@@ -15,136 +15,139 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
 public static class ComboBoxExtensions
 {
-    public static Task<bool> SimulateSelectItemAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string itemText, CancellationToken cancellationToken)
+    extension(ComboBox comboBox)
+    {
+        public Task<bool> SimulateSelectItemAsync(JoinableTaskFactory joinableTaskFactory, string itemText, CancellationToken cancellationToken)
         => SimulateSelectItemAsync(comboBox, joinableTaskFactory, itemText, mustExist: true, cancellationToken);
 
-    public static async Task<bool> SimulateSelectItemAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string itemText, bool mustExist, CancellationToken cancellationToken)
-    {
-        await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        if (comboBox.Text == itemText)
+        public async Task<bool> SimulateSelectItemAsync(JoinableTaskFactory joinableTaskFactory, string itemText, bool mustExist, CancellationToken cancellationToken)
         {
-            return true;
-        }
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        if (!await comboBox.SimulateExpandAsync(joinableTaskFactory, cancellationToken))
-        {
-            return false;
-        }
-
-        var peer = new ComboBoxAutomationPeer(comboBox);
-
-        var children = peer.GetChildren()?.OfType<ListBoxItemAutomationPeer>().ToList();
-        var existingItem = children?.Find(x => x.GetName() == itemText);
-        if (existingItem is null)
-        {
-            if (mustExist)
+            if (comboBox.Text == itemText)
             {
-                throw new InvalidOperationException($"Item '{itemText}' was not found in the combo box.");
+                return true;
             }
 
-            // Collapse the combo box, and then set the value explicitly
-            if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory, cancellationToken)
-                || !await comboBox.SimulateSetTextAsync(joinableTaskFactory, itemText, cancellationToken))
+            if (!await comboBox.SimulateExpandAsync(joinableTaskFactory, cancellationToken))
             {
                 return false;
             }
 
-            return true;
+            var peer = new ComboBoxAutomationPeer(comboBox);
+
+            var children = peer.GetChildren()?.OfType<ListBoxItemAutomationPeer>().ToList();
+            var existingItem = children?.Find(x => x.GetName() == itemText);
+            if (existingItem is null)
+            {
+                if (mustExist)
+                {
+                    throw new InvalidOperationException($"Item '{itemText}' was not found in the combo box.");
+                }
+
+                // Collapse the combo box, and then set the value explicitly
+                if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory, cancellationToken)
+                    || !await comboBox.SimulateSetTextAsync(joinableTaskFactory, itemText, cancellationToken))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                ISelectionItemProvider selectionItemProvider = existingItem;
+                selectionItemProvider.Select();
+
+                // Wait for changes to propagate
+                await Task.Yield();
+
+                if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory, cancellationToken))
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
-        else
+
+        public async Task<bool> SimulateExpandAsync(JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
         {
-            ISelectionItemProvider selectionItemProvider = existingItem;
-            selectionItemProvider.Select();
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (comboBox.IsDropDownOpen)
+            {
+                return true;
+            }
+
+            if (!comboBox.IsEnabled || !comboBox.IsVisible)
+            {
+                return false;
+            }
+
+            IExpandCollapseProvider expandCollapseProvider = new ComboBoxAutomationPeer(comboBox);
+            expandCollapseProvider.Expand();
 
             // Wait for changes to propagate
             await Task.Yield();
 
-            if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory, cancellationToken))
+            return true;
+        }
+
+        public async Task<bool> SimulateCollapseAsync(JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
+        {
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (!comboBox.IsDropDownOpen)
+            {
+                return true;
+            }
+
+            if (!comboBox.IsEnabled || !comboBox.IsVisible)
             {
                 return false;
             }
 
-            return true;
-        }
-    }
+            IExpandCollapseProvider expandCollapseProvider = new ComboBoxAutomationPeer(comboBox);
+            expandCollapseProvider.Collapse();
 
-    public static async Task<bool> SimulateExpandAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
-    {
-        await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Wait for changes to propagate
+            await Task.Yield();
 
-        if (comboBox.IsDropDownOpen)
-        {
             return true;
         }
 
-        if (!comboBox.IsEnabled || !comboBox.IsVisible)
+        public async Task<bool> SimulateSetTextAsync(JoinableTaskFactory joinableTaskFactory, string value, CancellationToken cancellationToken)
         {
-            return false;
-        }
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
 
-        IExpandCollapseProvider expandCollapseProvider = new ComboBoxAutomationPeer(comboBox);
-        expandCollapseProvider.Expand();
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        // Wait for changes to propagate
-        await Task.Yield();
+            if (comboBox.Text == value)
+            {
+                return true;
+            }
 
-        return true;
-    }
+            if (!comboBox.IsEditable)
+            {
+                throw new InvalidOperationException("The combo box is not editable.");
+            }
 
-    public static async Task<bool> SimulateCollapseAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
-    {
-        await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (!comboBox.IsEnabled || !comboBox.IsVisible)
+            {
+                return false;
+            }
 
-        if (!comboBox.IsDropDownOpen)
-        {
+            IValueProvider valueProvider = new ComboBoxAutomationPeer(comboBox);
+            valueProvider.SetValue(value);
+
+            // Wait for changes to propagate
+            await Task.Yield();
+
             return true;
         }
-
-        if (!comboBox.IsEnabled || !comboBox.IsVisible)
-        {
-            return false;
-        }
-
-        IExpandCollapseProvider expandCollapseProvider = new ComboBoxAutomationPeer(comboBox);
-        expandCollapseProvider.Collapse();
-
-        // Wait for changes to propagate
-        await Task.Yield();
-
-        return true;
-    }
-
-    public static async Task<bool> SimulateSetTextAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string value, CancellationToken cancellationToken)
-    {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        if (comboBox.Text == value)
-        {
-            return true;
-        }
-
-        if (!comboBox.IsEditable)
-        {
-            throw new InvalidOperationException("The combo box is not editable.");
-        }
-
-        if (!comboBox.IsEnabled || !comboBox.IsVisible)
-        {
-            return false;
-        }
-
-        IValueProvider valueProvider = new ComboBoxAutomationPeer(comboBox);
-        valueProvider.SetValue(value);
-
-        // Wait for changes to propagate
-        await Task.Yield();
-
-        return true;
     }
 }

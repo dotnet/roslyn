@@ -8,19 +8,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class SyntaxTriviaListExtensions
 {
-    public static SyntaxTrivia? FirstOrNull(this SyntaxTriviaList triviaList, Func<SyntaxTrivia, bool> predicate)
+    extension(SyntaxTriviaList triviaList)
     {
-        foreach (var trivia in triviaList)
+        public SyntaxTrivia? FirstOrNull(Func<SyntaxTrivia, bool> predicate)
         {
-            if (predicate(trivia))
+            foreach (var trivia in triviaList)
             {
-                return trivia;
+                if (predicate(trivia))
+                {
+                    return trivia;
+                }
             }
+
+            return null;
         }
 
-        return null;
+        public SyntaxTrivia LastOrDefault()
+            => triviaList.Any() ? triviaList.Last() : default;
     }
-
-    public static SyntaxTrivia LastOrDefault(this SyntaxTriviaList triviaList)
-        => triviaList.Any() ? triviaList.Last() : default;
 }

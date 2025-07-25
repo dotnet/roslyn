@@ -8,7 +8,10 @@ namespace Analyzer.Utilities.Lightup
 {
     internal static class ITypeParameterSymbolExtensions
     {
-        public static bool HasReferenceTypeConstraint(this ITypeParameterSymbol typeParameterSymbol)
+        extension(ITypeParameterSymbol typeParameterSymbol)
+        {
+            public bool HasReferenceTypeConstraint()
             => typeParameterSymbol.HasReferenceTypeConstraint;
+        }
     }
 }

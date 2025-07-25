@@ -124,10 +124,13 @@ internal interface IInlineRenameReplacementInfo
 
 internal static class InlineRenameReplacementInfoExtensions
 {
-    public static IEnumerable<InlineRenameReplacementKind> GetAllReplacementKinds(this IInlineRenameReplacementInfo info)
+    extension(IInlineRenameReplacementInfo info)
     {
-        var replacements = info.DocumentIds.SelectMany(info.GetReplacements);
-        return replacements.Select(r => r.Kind);
+        public IEnumerable<InlineRenameReplacementKind> GetAllReplacementKinds()
+        {
+            var replacements = info.DocumentIds.SelectMany(info.GetReplacements);
+            return replacements.Select(r => r.Kind);
+        }
     }
 }
 

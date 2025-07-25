@@ -13,16 +13,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo.Presentation;
 
 internal static class TaggedTextExtensions
 {
-    internal static ImmutableArray<QuickInfoElement> ToInteractiveTextElements(
-        this ImmutableArray<TaggedText> taggedTexts,
-        INavigationActionFactory? navigationActionFactory)
+    extension(ImmutableArray<TaggedText> taggedTexts)
     {
-        using var builder = TextElementBuilder.Empty;
-        var span = taggedTexts.AsSpan();
+        internal ImmutableArray<QuickInfoElement> ToInteractiveTextElements(
+        INavigationActionFactory? navigationActionFactory)
+        {
+            using var builder = TextElementBuilder.Empty;
+            var span = taggedTexts.AsSpan();
 
-        BuildInteractiveTextElements(ref span, ref TextElementBuilder.AsRef(in builder), navigationActionFactory);
+            BuildInteractiveTextElements(ref span, ref TextElementBuilder.AsRef(in builder), navigationActionFactory);
 
-        return builder.ToImmutableAndClear();
+            return builder.ToImmutableAndClear();
+        }
     }
 
     private static void BuildInteractiveTextElements(
@@ -251,30 +253,33 @@ internal static class TaggedTextExtensions
             => new(QuickInfoContainerStyle.Wrapped, elements);
     }
 
-    public static QuickInfoClassifiedTextStyle ToClassifiedTextRunStyle(this TaggedTextStyle style)
+    extension(TaggedTextStyle style)
     {
-        var result = QuickInfoClassifiedTextStyle.Plain;
-
-        if ((style & TaggedTextStyle.Emphasis) == TaggedTextStyle.Emphasis)
+        public QuickInfoClassifiedTextStyle ToClassifiedTextRunStyle()
         {
-            result |= QuickInfoClassifiedTextStyle.Italic;
-        }
+            var result = QuickInfoClassifiedTextStyle.Plain;
 
-        if ((style & TaggedTextStyle.Strong) == TaggedTextStyle.Strong)
-        {
-            result |= QuickInfoClassifiedTextStyle.Bold;
-        }
+            if ((style & TaggedTextStyle.Emphasis) == TaggedTextStyle.Emphasis)
+            {
+                result |= QuickInfoClassifiedTextStyle.Italic;
+            }
 
-        if ((style & TaggedTextStyle.Underline) == TaggedTextStyle.Underline)
-        {
-            result |= QuickInfoClassifiedTextStyle.Underline;
-        }
+            if ((style & TaggedTextStyle.Strong) == TaggedTextStyle.Strong)
+            {
+                result |= QuickInfoClassifiedTextStyle.Bold;
+            }
 
-        if ((style & TaggedTextStyle.Code) == TaggedTextStyle.Code)
-        {
-            result |= QuickInfoClassifiedTextStyle.UseClassificationFont;
-        }
+            if ((style & TaggedTextStyle.Underline) == TaggedTextStyle.Underline)
+            {
+                result |= QuickInfoClassifiedTextStyle.Underline;
+            }
 
-        return result;
+            if ((style & TaggedTextStyle.Code) == TaggedTextStyle.Code)
+            {
+                result |= QuickInfoClassifiedTextStyle.UseClassificationFont;
+            }
+
+            return result;
+        }
     }
 }

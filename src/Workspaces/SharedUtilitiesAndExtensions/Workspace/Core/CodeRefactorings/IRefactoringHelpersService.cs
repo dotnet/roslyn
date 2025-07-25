@@ -16,9 +16,12 @@ internal interface IRefactoringHelpersService : IRefactoringHelpers, ILanguageSe
 
 internal static class IRefactoringHelpersServiceExtensions
 {
-    public static void AddRelevantNodes<TSyntaxNode>(
-        this IRefactoringHelpersService service, ParsedDocument document, TextSpan selection, bool allowEmptyNodes, int maxCount, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+    extension(IRefactoringHelpersService service)
     {
-        service.AddRelevantNodes(document.Text, document.Root, selection, allowEmptyNodes, maxCount, ref result, cancellationToken);
+        public void AddRelevantNodes<TSyntaxNode>(
+ParsedDocument document, TextSpan selection, bool allowEmptyNodes, int maxCount, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+            service.AddRelevantNodes(document.Text, document.Root, selection, allowEmptyNodes, maxCount, ref result, cancellationToken);
+        }
     }
 }

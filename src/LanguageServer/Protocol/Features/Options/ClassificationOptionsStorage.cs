@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal static class ClassificationOptionsStorage
 {
-    public static ClassificationOptions GetClassificationOptions(this IOptionsReader globalOptions, string language)
+    extension(IOptionsReader globalOptions)
+    {
+        public ClassificationOptions GetClassificationOptions(string language)
         => new()
         {
             ClassifyReassignedVariables = globalOptions.GetOption(ClassifyReassignedVariables, language),
@@ -18,8 +20,9 @@ internal static class ClassificationOptionsStorage
             // ForceFrozenPartialSemanticsForCrossProcessOperations not stored in global options
         };
 
-    public static OptionsProvider<ClassificationOptions> GetClassificationOptionsProvider(this IOptionsReader globalOptions)
-        => globalOptions.GetProvider(GetClassificationOptions);
+        public OptionsProvider<ClassificationOptions> GetClassificationOptionsProvider()
+            => globalOptions.GetProvider(GetClassificationOptions);
+    }
 
     public static PerLanguageOption2<bool> ClassifyReassignedVariables =
         new("dotnet_classify_reassigned_variables", ClassificationOptions.Default.ClassifyReassignedVariables);

@@ -9,9 +9,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class ArrayExtensions
 {
-    public static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this T[]? array)
+    extension<T>([NotNullWhen(false)] T[]? array)
+    {
+        public bool IsNullOrEmpty()
         => array == null || array.Length == 0;
+    }
 
-    public static bool Contains<T>(this T[] array, T item)
+    extension<T>(T[] array)
+    {
+        public bool Contains(T item)
         => Array.IndexOf(array, item) >= 0;
+    }
 }

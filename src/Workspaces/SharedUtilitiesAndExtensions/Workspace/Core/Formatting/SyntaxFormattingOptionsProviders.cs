@@ -11,16 +11,22 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal static class SyntaxFormattingOptionsProviders
 {
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, Host.LanguageServices languageServices)
+    extension(IOptionsReader options)
+    {
+        public SyntaxFormattingOptions GetSyntaxFormattingOptions(Host.LanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options);
+    }
 
-    public static ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
+    {
+        public ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(CancellationToken cancellationToken)
         => GetSyntaxFormattingOptionsAsync(document, document.GetRequiredLanguageService<ISyntaxFormattingService>(), cancellationToken);
 
-    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, ISyntaxFormatting formatting, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return formatting.GetFormattingOptions(configOptions);
+        public async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(ISyntaxFormatting formatting, CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return formatting.GetFormattingOptions(configOptions);
+        }
     }
 
     public static SyntaxFormattingOptions GetDefault(Host.LanguageServices languageServices)

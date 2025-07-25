@@ -14,36 +14,42 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal static class CodeGenerationOptionsProviders
 {
-    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices)
+    extension(IOptionsReader options)
+    {
+        public CodeGenerationOptions GetCodeGenerationOptions(LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options);
 
-    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
-        => new()
-        {
-            GenerationOptions = options.GetCodeGenerationOptions(languageServices),
-            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions)
-        };
+        public CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
+            => new()
+            {
+                GenerationOptions = options.GetCodeGenerationOptions(languageServices),
+                AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions)
+            };
 
-    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
-        => new()
-        {
-            GenerationOptions = options.GetCodeGenerationOptions(languageServices),
-            CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions)
-        };
-
-    public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(document.Project.GetExtendedLanguageServices().LanguageServices);
+        public CleanCodeGenerationOptions GetCleanCodeGenerationOptions(LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
+            => new()
+            {
+                GenerationOptions = options.GetCodeGenerationOptions(languageServices),
+                CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions)
+            };
     }
 
-    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        Contract.ThrowIfNull(document.Project.ParseOptions);
+        public async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetCodeGenerationOptions(document.Project.GetExtendedLanguageServices().LanguageServices);
+        }
 
-        var options = await GetCodeGenerationOptionsAsync(document, cancellationToken).ConfigureAwait(false);
-        var service = document.GetRequiredLanguageService<ICodeGenerationService>();
-        return service.GetInfo(context, options, document.Project.ParseOptions);
+        public async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(CodeGenerationContext context, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(document.Project.ParseOptions);
+
+            var options = await GetCodeGenerationOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+            var service = document.GetRequiredLanguageService<ICodeGenerationService>();
+            return service.GetInfo(context, options, document.Project.ParseOptions);
+        }
     }
 
     public static CodeGenerationOptions GetDefault(LanguageServices languageServices)

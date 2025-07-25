@@ -10,7 +10,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class PredefinedTypeExtensions
 {
-    public static SpecialType ToSpecialType(this PredefinedType predefinedType)
+    extension(PredefinedType predefinedType)
+    {
+        public SpecialType ToSpecialType()
         => predefinedType switch
         {
             PredefinedType.Object => SpecialType.System_Object,
@@ -34,8 +36,11 @@ internal static class PredefinedTypeExtensions
             PredefinedType.UIntPtr => SpecialType.System_UIntPtr,
             _ => SpecialType.None,
         };
+    }
 
-    public static PredefinedType ToPredefinedType(this SpecialType specialType)
+    extension(SpecialType specialType)
+    {
+        public PredefinedType ToPredefinedType()
         => specialType switch
         {
             SpecialType.System_Object => PredefinedType.Object,
@@ -59,4 +64,5 @@ internal static class PredefinedTypeExtensions
             SpecialType.System_UIntPtr => PredefinedType.UIntPtr,
             _ => PredefinedType.None,
         };
+    }
 }

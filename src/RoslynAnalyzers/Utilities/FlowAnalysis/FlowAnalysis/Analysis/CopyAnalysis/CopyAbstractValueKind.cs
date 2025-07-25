@@ -37,28 +37,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
     internal static class CopyAbstractValueKindExtensions
     {
-        public static bool IsKnown(this CopyAbstractValueKind kind)
+        extension(CopyAbstractValueKind kind)
         {
-            return kind switch
+            public bool IsKnown()
             {
-                CopyAbstractValueKind.KnownValueCopy
-                or CopyAbstractValueKind.KnownReferenceCopy => true,
-                _ => false,
-            };
-        }
-
-        public static CopyAbstractValueKind MergeIfBothKnown(this CopyAbstractValueKind kind, CopyAbstractValueKind kindToMerge)
-        {
-            if (!kind.IsKnown() ||
-                !kindToMerge.IsKnown())
-            {
-                return kind;
+                return kind switch
+                {
+                    CopyAbstractValueKind.KnownValueCopy
+                    or CopyAbstractValueKind.KnownReferenceCopy => true,
+                    _ => false,
+                };
             }
 
-            // Can only ensure value copy if one of the kinds is a value copy.
-            return kind == CopyAbstractValueKind.KnownValueCopy || kindToMerge == CopyAbstractValueKind.KnownValueCopy ?
-                CopyAbstractValueKind.KnownValueCopy :
-                CopyAbstractValueKind.KnownReferenceCopy;
+            public CopyAbstractValueKind MergeIfBothKnown(CopyAbstractValueKind kindToMerge)
+            {
+                if (!kind.IsKnown() ||
+                    !kindToMerge.IsKnown())
+                {
+                    return kind;
+                }
+
+                // Can only ensure value copy if one of the kinds is a value copy.
+                return kind == CopyAbstractValueKind.KnownValueCopy || kindToMerge == CopyAbstractValueKind.KnownValueCopy ?
+                    CopyAbstractValueKind.KnownValueCopy :
+                    CopyAbstractValueKind.KnownReferenceCopy;
+            }
         }
     }
 }

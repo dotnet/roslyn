@@ -9,27 +9,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal static class IVsRunningDocumentTableExtensions
 {
-    public static bool IsDocumentInitialized(this IVsRunningDocumentTable4 runningDocTable, uint docCookie)
+    extension(IVsRunningDocumentTable4 runningDocTable)
     {
-        var flags = runningDocTable.GetDocumentFlags(docCookie);
+        public bool IsDocumentInitialized(uint docCookie)
+        {
+            var flags = runningDocTable.GetDocumentFlags(docCookie);
 
-        return (flags & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0;
+            return (flags & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0;
+        }
     }
 
-    public static IEnumerable<uint> GetRunningDocuments(this IVsRunningDocumentTable3 runningDocumentTable)
-        => GetRunningDocuments((IVsRunningDocumentTable)runningDocumentTable);
-
-    public static IEnumerable<uint> GetRunningDocuments(this IVsRunningDocumentTable runningDocumentTable)
+    extension(IVsRunningDocumentTable3 runningDocumentTable)
     {
-        ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
-        var cookies = new uint[16];
+        public IEnumerable<uint> GetRunningDocuments()
+        => GetRunningDocuments((IVsRunningDocumentTable)runningDocumentTable);
+    }
 
-        while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
-            && cookiesFetched > 0)
+    extension(IVsRunningDocumentTable runningDocumentTable)
+    {
+        public IEnumerable<uint> GetRunningDocuments()
         {
-            for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
+            ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
+            var cookies = new uint[16];
+
+            while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
+                && cookiesFetched > 0)
             {
-                yield return cookies[cookieIndex];
+                for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
+                {
+                    yield return cookies[cookieIndex];
+                }
             }
         }
     }

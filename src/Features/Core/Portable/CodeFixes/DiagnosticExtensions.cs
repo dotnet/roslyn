@@ -6,10 +6,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 
 internal static class DiagnosticExtensions
 {
-    public static bool IsMoreSevereThanOrEqualTo(this DiagnosticSeverity left, DiagnosticSeverity right)
+    extension(DiagnosticSeverity left)
     {
-        var leftInt = (int)left;
-        var rightInt = (int)right;
-        return leftInt >= rightInt;
+        public bool IsMoreSevereThanOrEqualTo(DiagnosticSeverity right)
+        {
+            var leftInt = (int)left;
+            var rightInt = (int)right;
+            return leftInt >= rightInt;
+        }
     }
 }

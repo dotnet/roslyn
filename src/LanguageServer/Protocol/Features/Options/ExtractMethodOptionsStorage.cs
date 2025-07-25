@@ -11,10 +11,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal static class ExtractMethodOptionsStorage
 {
-    public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(LanguageServices languageServices)
         => new()
         {
             CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
             CodeCleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices),
         };
+    }
 }

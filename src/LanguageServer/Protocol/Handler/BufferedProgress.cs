@@ -75,14 +75,17 @@ internal static class BufferedProgress
     static IProgress<TIn> Transform<TIn, TOut>(this IProgress<TOut> progress, Func<TIn, TOut> transform)
         => new ProgressTransformer<TIn, TOut>(progress, transform);
 
-    public static void Report<T>(this BufferedProgress<T[]> progress, T item)
+    extension<T>(BufferedProgress<T[]> progress)
     {
-        progress.Report([item]);
-    }
+        public void Report(T item)
+        {
+            progress.Report([item]);
+        }
 
-    public static T[]? GetFlattenedValues<T>(this BufferedProgress<T[]> progress)
-    {
-        return progress.GetValues()?.Flatten().ToArray();
+        public T[]? GetFlattenedValues()
+        {
+            return progress.GetValues()?.Flatten().ToArray();
+        }
     }
 
     sealed class ProgressTransformer<TIn, TOut>(IProgress<TOut> inner, Func<TIn, TOut> transform) : IProgress<TIn>

@@ -27,7 +27,10 @@ internal sealed class WorkspaceTestLogger : IWorkspaceTestLogger
 
 internal static class WorkspaceTestLoggerExtensions
 {
-    public static void SetWorkspaceTestOutput(this SolutionServices services, ITestOutputHelper outputHelper)
+    extension(SolutionServices services)
+    {
+        public void SetWorkspaceTestOutput(ITestOutputHelper outputHelper)
         => Assert.IsType<WorkspaceTestLogger>(services.GetRequiredService<IWorkspaceTestLogger>()).OutputHelper = outputHelper;
+    }
 }
 

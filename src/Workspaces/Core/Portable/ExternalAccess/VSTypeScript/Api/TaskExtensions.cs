@@ -9,8 +9,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 internal static class TaskExtensions
 {
+    extension(Task task)
+    {
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-    public static Task CompletesAsyncOperation(this Task task, VSTypeScriptAsyncToken asyncToken)
+        public Task CompletesAsyncOperation(VSTypeScriptAsyncToken asyncToken)
 #pragma warning restore VSTHRD200
-        => task.CompletesAsyncOperation(asyncToken.UnderlyingObject);
+            => task.CompletesAsyncOperation(asyncToken.UnderlyingObject);
+    }
 }

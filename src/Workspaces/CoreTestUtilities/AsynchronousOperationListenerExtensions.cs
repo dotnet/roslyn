@@ -10,11 +10,14 @@ namespace Roslyn.Test.Utilities;
 
 public static class AsynchronousOperationListenerExtensions
 {
-    internal static async Task WaitAllDispatcherOperationAndTasksAsync(this IAsynchronousOperationListenerProvider provider, Workspace? workspace, params string[] featureNames)
+    extension(IAsynchronousOperationListenerProvider provider)
     {
-        await ((AsynchronousOperationListenerProvider)provider).WaitAllAsync(workspace, featureNames).ConfigureAwait(false);
-    }
+        internal async Task WaitAllDispatcherOperationAndTasksAsync(Workspace? workspace, params string[] featureNames)
+        {
+            await ((AsynchronousOperationListenerProvider)provider).WaitAllAsync(workspace, featureNames).ConfigureAwait(false);
+        }
 
-    internal static IAsynchronousOperationWaiter GetWaiter(this IAsynchronousOperationListenerProvider provider, string featureName)
-        => (IAsynchronousOperationWaiter)provider.GetListener(featureName);
+        internal IAsynchronousOperationWaiter GetWaiter(string featureName)
+            => (IAsynchronousOperationWaiter)provider.GetListener(featureName);
+    }
 }

@@ -45,15 +45,18 @@ internal abstract class AbstractDocumentNavigationService : IDocumentNavigationS
 
 internal static class IDocumentNavigationServiceExtensions
 {
-    public static Task<bool> CanNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    extension(IDocumentNavigationService service)
+    {
+        public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         => service.CanNavigateToSpanAsync(workspace, documentId, textSpan, allowInvalidSpan: false, cancellationToken);
 
-    public static Task<bool> CanNavigateToPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
-        => service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace: 0, allowInvalidPosition: false, cancellationToken);
+        public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
+            => service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace: 0, allowInvalidPosition: false, cancellationToken);
 
-    public static Task<INavigableLocation?> GetLocationForSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
-        => service.GetLocationForSpanAsync(workspace, documentId, textSpan, allowInvalidSpan: false, cancellationToken);
+        public Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+            => service.GetLocationForSpanAsync(workspace, documentId, textSpan, allowInvalidSpan: false, cancellationToken);
 
-    public static Task<INavigableLocation?> GetLocationForPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
-        => service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace: 0, allowInvalidPosition: false, cancellationToken);
+        public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
+            => service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace: 0, allowInvalidPosition: false, cancellationToken);
+    }
 }

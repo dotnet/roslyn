@@ -13,10 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class MemberAccessExpressionSyntaxExtensions
 {
-    public static SimpleNameSyntax GetNameWithTriviaMoved(this MemberAccessExpressionSyntax memberAccess)
+    extension(MemberAccessExpressionSyntax memberAccess)
+    {
+        public SimpleNameSyntax GetNameWithTriviaMoved()
         => memberAccess.Name
             .WithLeadingTrivia(GetLeadingTriviaForSimplifiedMemberAccess(memberAccess))
             .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
+    }
 
     private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(MemberAccessExpressionSyntax memberAccess)
     {

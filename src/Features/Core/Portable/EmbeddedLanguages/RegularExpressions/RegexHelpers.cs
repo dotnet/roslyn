@@ -51,14 +51,17 @@ internal static class RegexHelpers
             _ => ch,
         };
 
-    public static bool IsSelfEscape(this RegexSimpleEscapeNode node)
+    extension(RegexSimpleEscapeNode node)
     {
-        if (node.TypeToken.VirtualChars.Length > 0)
+        public bool IsSelfEscape()
         {
-            var ch = node.TypeToken.VirtualChars[0];
-            return MapEscapeChar(ch) == ch;
-        }
+            if (node.TypeToken.VirtualChars.Length > 0)
+            {
+                var ch = node.TypeToken.VirtualChars[0];
+                return MapEscapeChar(ch) == ch;
+            }
 
-        return true;
+            return true;
+        }
     }
 }

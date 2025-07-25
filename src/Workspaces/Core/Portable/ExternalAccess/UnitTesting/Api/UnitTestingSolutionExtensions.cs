@@ -9,9 +9,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal static class UnitTestingSolutionExtensions
 {
-    public static int GetWorkspaceVersion(this Solution solution)
+    extension(Solution solution)
+    {
+        public int GetWorkspaceVersion()
         => solution.WorkspaceVersion;
 
-    public static async Task<UnitTestingChecksumWrapper> GetChecksumAsync(this Solution solution, CancellationToken cancellationToken)
-        => new UnitTestingChecksumWrapper(await solution.CompilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
+        public async Task<UnitTestingChecksumWrapper> GetChecksumAsync(CancellationToken cancellationToken)
+            => new UnitTestingChecksumWrapper(await solution.CompilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
+    }
 }

@@ -12,14 +12,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class ILanguageServiceProviderExtensions
 {
-    public static IEnumerable<Lazy<T, TMetadata>> SelectMatchingExtensions<T, TMetadata>(
-        this HostLanguageServices serviceProvider,
+    extension(HostLanguageServices serviceProvider)
+    {
+        public IEnumerable<Lazy<T, TMetadata>> SelectMatchingExtensions<T, TMetadata>(
         IEnumerable<Lazy<T, TMetadata>>? items)
         where TMetadata : ILanguageMetadata
-    {
-        if (items == null)
-            return [];
+        {
+            if (items == null)
+                return [];
 
-        return items.Where(lazy => lazy.Metadata.Language == serviceProvider.Language);
+            return items.Where(lazy => lazy.Metadata.Language == serviceProvider.Language);
+        }
     }
 }

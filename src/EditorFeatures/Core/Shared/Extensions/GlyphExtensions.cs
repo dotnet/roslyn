@@ -19,13 +19,16 @@ internal static class GlyphExtensions
     public static ImageId GetImageCatalogImageId(int imageId)
         => new(s_imageCatalogGuid, imageId);
 
-    public static ImageId GetImageId(this Glyph glyph)
+    extension(Glyph glyph)
     {
-        var (guid, id) = glyph.GetVsImageData();
+        public ImageId GetImageId()
+        {
+            var (guid, id) = glyph.GetVsImageData();
 
-        return new(guid, id);
+            return new(guid, id);
+        }
+
+        public ImageElement GetImageElement()
+            => new(glyph.GetImageId());
     }
-
-    public static ImageElement GetImageElement(this Glyph glyph)
-        => new(glyph.GetImageId());
 }

@@ -6,7 +6,9 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal static class ClassificationExtensions
 {
-    public static string? GetClassification(this ITypeSymbol type)
+    extension(ITypeSymbol type)
+    {
+        public string? GetClassification()
         => type.TypeKind switch
         {
             TypeKind.Class => type.IsRecord ? ClassificationTypeNames.RecordClassName : ClassificationTypeNames.ClassName,
@@ -19,4 +21,5 @@ internal static class ClassificationExtensions
             TypeKind.Dynamic => ClassificationTypeNames.Keyword,
             _ => null,
         };
+    }
 }

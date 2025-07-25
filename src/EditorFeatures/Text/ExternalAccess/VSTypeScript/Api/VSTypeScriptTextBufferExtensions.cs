@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 internal static class VSTypeScriptTextBufferExtensions
 {
-    public static SourceTextContainer AsTextContainer(this ITextBuffer buffer)
+    extension(ITextBuffer buffer)
+    {
+        public SourceTextContainer AsTextContainer()
         => Text.Extensions.TextBufferContainer.From(buffer);
+    }
 }

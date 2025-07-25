@@ -12,13 +12,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 /// </summary>
 internal static class SpanExtensions
 {
-    /// <summary>
-    /// Convert the editor Span instance to the corresponding TextSpan instance
-    /// </summary>
-    /// <param name="span"></param>
-    public static TextSpan ToTextSpan(this Span span)
-        => new(span.Start, span.Length);
+    extension(Span span)
+    {
+        /// <summary>
+        /// Convert the editor Span instance to the corresponding TextSpan instance
+        /// </summary>
+        /// <param name="span"></param>
+        public TextSpan ToTextSpan()
+            => new(span.Start, span.Length);
 
-    public static bool IntersectsWith(this Span span, int position)
-        => position >= span.Start && position <= span.End;
+        public bool IntersectsWith(int position)
+            => position >= span.Start && position <= span.End;
+    }
 }

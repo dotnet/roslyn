@@ -18,173 +18,126 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class SyntaxTriviaExtensions
 {
-    public static void Deconstruct(this SyntaxTrivia trivia, out SyntaxKind kind)
+    extension(SyntaxTrivia trivia)
+    {
+        public void Deconstruct(out SyntaxKind kind)
         => kind = trivia.Kind();
 
-    public static bool IsSingleOrMultiLineComment(this SyntaxTrivia trivia)
-        => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineCommentTrivia;
+        public bool IsSingleOrMultiLineComment()
+            => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineCommentTrivia;
 
-    public static bool IsRegularComment(this SyntaxTrivia trivia)
-        => trivia.IsSingleOrMultiLineComment() || trivia.IsShebangDirective();
+        public bool IsRegularComment()
+            => trivia.IsSingleOrMultiLineComment() || trivia.IsShebangDirective();
 
-    public static bool IsWhitespaceOrSingleOrMultiLineComment(this SyntaxTrivia trivia)
-        => trivia.IsWhitespace() || trivia.IsSingleOrMultiLineComment();
+        public bool IsWhitespaceOrSingleOrMultiLineComment()
+            => trivia.IsWhitespace() || trivia.IsSingleOrMultiLineComment();
 
-    public static bool IsRegularOrDocComment(this SyntaxTrivia trivia)
-        => trivia.IsRegularComment() || trivia.IsDocComment();
+        public bool IsRegularOrDocComment()
+            => trivia.IsRegularComment() || trivia.IsDocComment();
 
-    public static bool IsSingleLineComment(this SyntaxTrivia trivia)
-        => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
+        public bool IsSingleLineComment()
+            => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
 
-    public static bool IsMultiLineComment(this SyntaxTrivia trivia)
-        => trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
+        public bool IsMultiLineComment()
+            => trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
 
-    public static bool IsShebangDirective(this SyntaxTrivia trivia)
-        => trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
+        public bool IsShebangDirective()
+            => trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
 
-    public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
-    {
-        if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
-            return false;
-
-        var text = trivia.ToFullString();
-        return text is [.., _, _, '*', '/'];
-    }
-
-    public static bool IsDocComment(this SyntaxTrivia trivia)
-        => trivia.IsSingleLineDocComment() || trivia.IsMultiLineDocComment();
-
-    public static bool IsSingleLineDocComment(this SyntaxTrivia trivia)
-        => trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia;
-
-    public static bool IsMultiLineDocComment(this SyntaxTrivia trivia)
-        => trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia;
-
-    public static string GetCommentText(this SyntaxTrivia trivia)
-    {
-        var commentText = trivia.ToString();
-        if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
+        public bool IsCompleteMultiLineComment()
         {
-            if (commentText.StartsWith("//", StringComparison.Ordinal))
-            {
-                commentText = commentText[2..];
-            }
+            if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
+                return false;
 
-            return commentText.TrimStart(null);
+            var text = trivia.ToFullString();
+            return text is [.., _, _, '*', '/'];
         }
-        else if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+
+        public bool IsDocComment()
+            => trivia.IsSingleLineDocComment() || trivia.IsMultiLineDocComment();
+
+        public bool IsSingleLineDocComment()
+            => trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia;
+
+        public bool IsMultiLineDocComment()
+            => trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia;
+
+        public string GetCommentText()
         {
-            var textBuilder = new StringBuilder();
-
-            if (commentText.EndsWith("*/", StringComparison.Ordinal))
+            var commentText = trivia.ToString();
+            if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
             {
-                commentText = commentText[..^2];
-            }
-
-            if (commentText.StartsWith("/*", StringComparison.Ordinal))
-            {
-                commentText = commentText[2..];
-            }
-
-            commentText = commentText.Trim();
-
-            var newLine = Environment.NewLine;
-            var lines = commentText.Split([newLine], StringSplitOptions.None);
-            foreach (var line in lines)
-            {
-                var trimmedLine = line.Trim();
-
-                // Note: we trim leading '*' characters in multi-line comments.
-                // If the '*' was intentional, sorry, it's gone.
-                if (trimmedLine.StartsWith("*", StringComparison.Ordinal))
+                if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
-                    trimmedLine = trimmedLine.TrimStart('*');
-                    trimmedLine = trimmedLine.TrimStart(null);
+                    commentText = commentText[2..];
                 }
 
-                textBuilder.AppendLine(trimmedLine);
+                return commentText.TrimStart(null);
             }
-
-            // remove last line break
-            textBuilder.Remove(textBuilder.Length - newLine.Length, newLine.Length);
-
-            return textBuilder.ToString();
-        }
-        else
-        {
-            throw new InvalidOperationException();
-        }
-    }
-
-    public static string AsString(this IEnumerable<SyntaxTrivia> trivia)
-    {
-        Contract.ThrowIfNull(trivia);
-
-        if (trivia.Any())
-        {
-            var sb = new StringBuilder();
-            trivia.Select(t => t.ToFullString()).Do(s => sb.Append(s));
-            return sb.ToString();
-        }
-        else
-        {
-            return string.Empty;
-        }
-    }
-
-    public static int GetFullWidth(this IEnumerable<SyntaxTrivia> trivia)
-    {
-        Contract.ThrowIfNull(trivia);
-        return trivia.Sum(t => t.FullWidth());
-    }
-
-    public static SyntaxTriviaList AsTrivia(this string s)
-        => SyntaxFactory.ParseLeadingTrivia(s ?? string.Empty);
-
-    public static bool IsWhitespaceOrEndOfLine(this SyntaxTrivia trivia)
-        => IsWhitespace(trivia) || IsEndOfLine(trivia);
-
-    public static bool IsEndOfLine(this SyntaxTrivia trivia)
-        => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
-
-    public static bool IsWhitespace(this SyntaxTrivia trivia)
-        => trivia.Kind() == SyntaxKind.WhitespaceTrivia;
-
-    public static SyntaxTrivia GetPreviousTrivia(
-        this SyntaxTrivia trivia, SyntaxTree syntaxTree, CancellationToken cancellationToken, bool findInsideTrivia = false)
-    {
-        var span = trivia.FullSpan;
-        if (span.Start == 0)
-        {
-            return default;
-        }
-
-        return syntaxTree.GetRoot(cancellationToken).FindTrivia(span.Start - 1, findInsideTrivia);
-    }
-
-    public static IEnumerable<SyntaxTrivia> FilterComments(this IEnumerable<SyntaxTrivia> trivia, bool addElasticMarker)
-    {
-        var previousIsSingleLineComment = false;
-        foreach (var t in trivia)
-        {
-            if (previousIsSingleLineComment && t.IsEndOfLine())
+            else if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
             {
-                yield return t;
-            }
+                var textBuilder = new StringBuilder();
 
-            if (t.IsSingleOrMultiLineComment())
+                if (commentText.EndsWith("*/", StringComparison.Ordinal))
+                {
+                    commentText = commentText[..^2];
+                }
+
+                if (commentText.StartsWith("/*", StringComparison.Ordinal))
+                {
+                    commentText = commentText[2..];
+                }
+
+                commentText = commentText.Trim();
+
+                var newLine = Environment.NewLine;
+                var lines = commentText.Split([newLine], StringSplitOptions.None);
+                foreach (var line in lines)
+                {
+                    var trimmedLine = line.Trim();
+
+                    // Note: we trim leading '*' characters in multi-line comments.
+                    // If the '*' was intentional, sorry, it's gone.
+                    if (trimmedLine.StartsWith("*", StringComparison.Ordinal))
+                    {
+                        trimmedLine = trimmedLine.TrimStart('*');
+                        trimmedLine = trimmedLine.TrimStart(null);
+                    }
+
+                    textBuilder.AppendLine(trimmedLine);
+                }
+
+                // remove last line break
+                textBuilder.Remove(textBuilder.Length - newLine.Length, newLine.Length);
+
+                return textBuilder.ToString();
+            }
+            else
             {
-                yield return t;
+                throw new InvalidOperationException();
+            }
+        }
+
+        public bool IsWhitespaceOrEndOfLine()
+            => IsWhitespace(trivia) || IsEndOfLine(trivia);
+
+        public bool IsEndOfLine()
+            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
+
+        public bool IsWhitespace()
+            => trivia.Kind() == SyntaxKind.WhitespaceTrivia;
+
+        public SyntaxTrivia GetPreviousTrivia(
+    SyntaxTree syntaxTree, CancellationToken cancellationToken, bool findInsideTrivia = false)
+        {
+            var span = trivia.FullSpan;
+            if (span.Start == 0)
+            {
+                return default;
             }
 
-            previousIsSingleLineComment = t.IsSingleLineComment();
+            return syntaxTree.GetRoot(cancellationToken).FindTrivia(span.Start - 1, findInsideTrivia);
         }
-
-        if (addElasticMarker)
-        {
-            yield return SyntaxFactory.ElasticMarker;
-        }
-    }
 
 #if false
     public static int Width(this SyntaxTrivia trivia)
@@ -198,20 +151,76 @@ internal static class SyntaxTriviaExtensions
     }
 #endif
 
-    public static bool IsPragmaDirective(this SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
-    {
-        if (trivia.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
+        public bool IsPragmaDirective(out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
         {
-            var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
-            isDisable = pragmaWarning.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
-            isActive = pragmaWarning.IsActive;
-            errorCodes = pragmaWarning.ErrorCodes;
-            return true;
+            if (trivia.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
+            {
+                var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
+                isDisable = pragmaWarning.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
+                isActive = pragmaWarning.IsActive;
+                errorCodes = pragmaWarning.ErrorCodes;
+                return true;
+            }
+
+            isDisable = false;
+            isActive = false;
+            errorCodes = default;
+            return false;
+        }
+    }
+
+    extension(IEnumerable<SyntaxTrivia> trivia)
+    {
+        public string AsString()
+        {
+            Contract.ThrowIfNull(trivia);
+
+            if (trivia.Any())
+            {
+                var sb = new StringBuilder();
+                trivia.Select(t => t.ToFullString()).Do(s => sb.Append(s));
+                return sb.ToString();
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
 
-        isDisable = false;
-        isActive = false;
-        errorCodes = default;
-        return false;
+        public int GetFullWidth()
+        {
+            Contract.ThrowIfNull(trivia);
+            return trivia.Sum(t => t.FullWidth());
+        }
+
+        public IEnumerable<SyntaxTrivia> FilterComments(bool addElasticMarker)
+        {
+            var previousIsSingleLineComment = false;
+            foreach (var t in trivia)
+            {
+                if (previousIsSingleLineComment && t.IsEndOfLine())
+                {
+                    yield return t;
+                }
+
+                if (t.IsSingleOrMultiLineComment())
+                {
+                    yield return t;
+                }
+
+                previousIsSingleLineComment = t.IsSingleLineComment();
+            }
+
+            if (addElasticMarker)
+            {
+                yield return SyntaxFactory.ElasticMarker;
+            }
+        }
+    }
+
+    extension(string s)
+    {
+        public SyntaxTriviaList AsTrivia()
+        => SyntaxFactory.ParseLeadingTrivia(s ?? string.Empty);
     }
 }

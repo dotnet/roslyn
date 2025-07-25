@@ -14,50 +14,52 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class ILanguageMetadataExtensions
 {
-    public static TInterface? ToSpecificLanguage<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services, string languageName)
-        where TMetadata : ILanguageMetadata
+    extension<TInterface, TMetadata>(IEnumerable<Lazy<TInterface, TMetadata>> services) where TMetadata : ILanguageMetadata
     {
-        return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value).FirstOrDefault();
-    }
-
-    public static IEnumerable<TInterface> FilterToSpecificLanguage<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services, string languageName)
-        where TMetadata : ILanguageMetadata
-    {
-        return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value);
-    }
-
-    public static ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMap<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)
-        where TMetadata : ILanguageMetadata
-    {
-        var builder = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<Lazy<TInterface, TMetadata>>>();
-
-        foreach (var service in services)
+        public TInterface? ToSpecificLanguage(string languageName)
         {
-            var language = service.Metadata?.Language ?? string.Empty;
-            var list = builder.GetOrAdd(language, _ => ArrayBuilder<Lazy<TInterface, TMetadata>>.GetInstance());
-            list.Add(service);
+            return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value).FirstOrDefault();
         }
 
-        return builder.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree())).ToImmutableDictionary();
+        public IEnumerable<TInterface> FilterToSpecificLanguage(string languageName)
+        {
+            return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value);
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMap()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<Lazy<TInterface, TMetadata>>>();
+
+            foreach (var service in services)
+            {
+                var language = service.Metadata?.Language ?? string.Empty;
+                var list = builder.GetOrAdd(language, _ => ArrayBuilder<Lazy<TInterface, TMetadata>>.GetInstance());
+                list.Add(service);
+            }
+
+            return builder.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree())).ToImmutableDictionary();
+        }
     }
 
-    public static ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMapWithMultipleLanguages<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)
-        where TMetadata : ILanguagesMetadata
+    extension<TInterface, TMetadata>(IEnumerable<Lazy<TInterface, TMetadata>> services) where TMetadata : ILanguagesMetadata
     {
-        using var _ = PooledDictionary<string, ArrayBuilder<Lazy<TInterface, TMetadata>>>.GetInstance(out var map);
-
-        foreach (var service in services)
+        public ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMapWithMultipleLanguages()
         {
-            foreach (var language in service.Metadata.Languages.Distinct())
+            using var _ = PooledDictionary<string, ArrayBuilder<Lazy<TInterface, TMetadata>>>.GetInstance(out var map);
+
+            foreach (var service in services)
             {
-                if (!string.IsNullOrEmpty(language))
+                foreach (var language in service.Metadata.Languages.Distinct())
                 {
-                    var list = map.GetOrAdd(language, _ => ArrayBuilder<Lazy<TInterface, TMetadata>>.GetInstance());
-                    list.Add(service);
+                    if (!string.IsNullOrEmpty(language))
+                    {
+                        var list = map.GetOrAdd(language, _ => ArrayBuilder<Lazy<TInterface, TMetadata>>.GetInstance());
+                        list.Add(service);
+                    }
                 }
             }
-        }
 
-        return map.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
+            return map.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
+        }
     }
 }

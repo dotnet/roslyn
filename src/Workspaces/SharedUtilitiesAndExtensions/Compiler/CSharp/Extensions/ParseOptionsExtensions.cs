@@ -6,6 +6,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class ParseOptionsExtensions
 {
-    public static LanguageVersion LanguageVersion(this ParseOptions options)
+    extension(ParseOptions options)
+    {
+        public LanguageVersion LanguageVersion()
         => ((CSharpParseOptions)options).LanguageVersion;
+    }
 }

@@ -25,35 +25,38 @@ public static class ButtonBaseExtensions
         //s_executeCore = (Action<RoutedCommand, object, IInputElement, bool>)Delegate.CreateDelegate(typeof(Action<RoutedCommand, object, IInputElement, bool>), firstArgument: null, methodInfo);
     }
 
-    public static async Task<bool> SimulateClickAsync(this ButtonBase button, JoinableTaskFactory joinableTaskFactory)
+    extension(ButtonBase button)
     {
-        await joinableTaskFactory.SwitchToMainThreadAsync();
-
-        if (!button.IsEnabled || !button.IsVisible)
+        public async Task<bool> SimulateClickAsync(JoinableTaskFactory joinableTaskFactory)
         {
-            return false;
-        }
+            await joinableTaskFactory.SwitchToMainThreadAsync();
 
-        if (button is RadioButton radioButton)
-        {
-            ISelectionItemProvider peer = new RadioButtonAutomationPeer(radioButton);
-            peer.Select();
-        }
-        else if (button is Button button2)
-        {
-            IInvokeProvider peer = new ButtonAutomationPeer(button2);
-            peer.Invoke();
-        }
-        else
-        {
-            button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-            ExecuteCommandSource(button, true);
-        }
+            if (!button.IsEnabled || !button.IsVisible)
+            {
+                return false;
+            }
 
-        // Wait for changes to propagate
-        await Task.Yield();
+            if (button is RadioButton radioButton)
+            {
+                ISelectionItemProvider peer = new RadioButtonAutomationPeer(radioButton);
+                peer.Select();
+            }
+            else if (button is Button button2)
+            {
+                IInvokeProvider peer = new ButtonAutomationPeer(button2);
+                peer.Invoke();
+            }
+            else
+            {
+                button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                ExecuteCommandSource(button, true);
+            }
 
-        return true;
+            // Wait for changes to propagate
+            await Task.Yield();
+
+            return true;
+        }
     }
 
     private static void ExecuteCommandSource(ICommandSource commandSource, bool userInitiated)

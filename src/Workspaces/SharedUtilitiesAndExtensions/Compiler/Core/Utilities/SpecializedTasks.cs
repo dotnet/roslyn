@@ -22,9 +22,11 @@ internal static class SpecializedTasks
     [Obsolete("Use Task.CompletedTask instead which is available in the framework.")]
     public static readonly Task EmptyTask = Task.CompletedTask;
 
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task<T?> AsNullable<T>(this Task<T> task) where T : class
-        => task!;
+    extension<T>(Task<T> task) where T : class
+    {
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+        public Task<T?> AsNullable() => task!;
+    }
 
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<T?> Default<T>()
@@ -83,16 +85,19 @@ internal static class SpecializedTasks
         }
     }
 
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
-    public static async ValueTask<ImmutableArray<TResult>> WhenAll<TResult>(this IReadOnlyCollection<Task<TResult>> tasks)
+    extension<TResult>(IReadOnlyCollection<Task<TResult>> tasks)
     {
-        // Explicit cast to IEnumerable<Task> so we call the overload that doesn't allocate an array as the result.
-        await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
-        var result = new FixedSizeArrayBuilder<TResult>(tasks.Count);
-        foreach (var task in tasks)
-            result.Add(await task.ConfigureAwait(false));
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
+        public async ValueTask<ImmutableArray<TResult>> WhenAll()
+        {
+            // Explicit cast to IEnumerable<Task> so we call the overload that doesn't allocate an array as the result.
+            await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
+            var result = new FixedSizeArrayBuilder<TResult>(tasks.Count);
+            foreach (var task in tasks)
+                result.Add(await task.ConfigureAwait(false));
 
-        return result.MoveToImmutable();
+            return result.MoveToImmutable();
+        }
     }
 
     /// <summary>

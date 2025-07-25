@@ -390,57 +390,60 @@ internal static class ClassificationHelpers
         }
     }
 
-    private static bool IsOperator(this SyntaxKind kind)
+    extension(SyntaxKind kind)
     {
-        switch (kind)
+        private bool IsOperator()
         {
-            case SyntaxKind.TildeToken:
-            case SyntaxKind.ExclamationToken:
-            case SyntaxKind.PercentToken:
-            case SyntaxKind.CaretToken:
-            case SyntaxKind.AmpersandToken:
-            case SyntaxKind.AsteriskToken:
-            case SyntaxKind.MinusToken:
-            case SyntaxKind.PlusToken:
-            case SyntaxKind.EqualsToken:
-            case SyntaxKind.BarToken:
-            case SyntaxKind.ColonToken:
-            case SyntaxKind.LessThanToken:
-            case SyntaxKind.GreaterThanToken:
-            case SyntaxKind.DotToken:
-            case SyntaxKind.QuestionToken:
-            case SyntaxKind.SlashToken:
-            case SyntaxKind.BarBarToken:
-            case SyntaxKind.AmpersandAmpersandToken:
-            case SyntaxKind.MinusMinusToken:
-            case SyntaxKind.PlusPlusToken:
-            case SyntaxKind.ColonColonToken:
-            case SyntaxKind.QuestionQuestionToken:
-            case SyntaxKind.MinusGreaterThanToken:
-            case SyntaxKind.ExclamationEqualsToken:
-            case SyntaxKind.EqualsEqualsToken:
-            case SyntaxKind.EqualsGreaterThanToken:
-            case SyntaxKind.LessThanEqualsToken:
-            case SyntaxKind.LessThanLessThanToken:
-            case SyntaxKind.LessThanLessThanEqualsToken:
-            case SyntaxKind.GreaterThanEqualsToken:
-            case SyntaxKind.GreaterThanGreaterThanToken:
-            case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
-            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-            case SyntaxKind.SlashEqualsToken:
-            case SyntaxKind.AsteriskEqualsToken:
-            case SyntaxKind.BarEqualsToken:
-            case SyntaxKind.AmpersandEqualsToken:
-            case SyntaxKind.PlusEqualsToken:
-            case SyntaxKind.MinusEqualsToken:
-            case SyntaxKind.CaretEqualsToken:
-            case SyntaxKind.PercentEqualsToken:
-            case SyntaxKind.QuestionQuestionEqualsToken:
-                return true;
+            switch (kind)
+            {
+                case SyntaxKind.TildeToken:
+                case SyntaxKind.ExclamationToken:
+                case SyntaxKind.PercentToken:
+                case SyntaxKind.CaretToken:
+                case SyntaxKind.AmpersandToken:
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.MinusToken:
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.EqualsToken:
+                case SyntaxKind.BarToken:
+                case SyntaxKind.ColonToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.DotToken:
+                case SyntaxKind.QuestionToken:
+                case SyntaxKind.SlashToken:
+                case SyntaxKind.BarBarToken:
+                case SyntaxKind.AmpersandAmpersandToken:
+                case SyntaxKind.MinusMinusToken:
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.ColonColonToken:
+                case SyntaxKind.QuestionQuestionToken:
+                case SyntaxKind.MinusGreaterThanToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.EqualsGreaterThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.LessThanLessThanToken:
+                case SyntaxKind.LessThanLessThanEqualsToken:
+                case SyntaxKind.GreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.SlashEqualsToken:
+                case SyntaxKind.AsteriskEqualsToken:
+                case SyntaxKind.BarEqualsToken:
+                case SyntaxKind.AmpersandEqualsToken:
+                case SyntaxKind.PlusEqualsToken:
+                case SyntaxKind.MinusEqualsToken:
+                case SyntaxKind.CaretEqualsToken:
+                case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
+                    return true;
 
-            default:
-                return false;
+                default:
+                    return false;
+            }
         }
     }
 

@@ -11,13 +11,19 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal static class LineFormattingOptionsProviders
 {
-    public static LineFormattingOptions GetLineFormattingOptions(this IOptionsReader options, string language)
-        => new(options, language);
-
-    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(IOptionsReader options)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetLineFormattingOptions(document.Project.Language);
+        public LineFormattingOptions GetLineFormattingOptions(string language)
+        => new(options, language);
+    }
+
+    extension(Document document)
+    {
+        public async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetLineFormattingOptions(document.Project.Language);
+        }
     }
 }
 

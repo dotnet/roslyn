@@ -15,14 +15,17 @@ internal static partial class DirectiveSyntaxExtensions
 {
     private static readonly ConditionalWeakTable<SyntaxNode, DirectiveInfo<DirectiveTriviaSyntax>> s_rootToDirectiveInfo = new();
 
-    private static SyntaxNode GetAbsoluteRoot(this SyntaxNode node)
+    extension(SyntaxNode node)
     {
-        while (node.Parent != null || node is StructuredTriviaSyntax)
+        private SyntaxNode GetAbsoluteRoot()
         {
-            node = node.Parent ?? node.ParentTrivia.Token.GetRequiredParent();
-        }
+            while (node.Parent != null || node is StructuredTriviaSyntax)
+            {
+                node = node.Parent ?? node.ParentTrivia.Token.GetRequiredParent();
+            }
 
-        return node;
+            return node;
+        }
     }
 
     private static DirectiveInfo<DirectiveTriviaSyntax> GetDirectiveInfo(SyntaxNode node, CancellationToken cancellationToken)
@@ -34,29 +37,32 @@ internal static partial class DirectiveSyntaxExtensions
         => CodeAnalysis.Shared.Extensions.SyntaxNodeExtensions.GetDirectiveInfoForRoot<DirectiveTriviaSyntax>(
             root, CSharpSyntaxKinds.Instance, cancellationToken);
 
-    public static DirectiveTriviaSyntax? GetMatchingDirective(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+    extension(DirectiveTriviaSyntax directive)
     {
-        if (IsConditionalDirective(directive) ||
-            IsRegionDirective(directive))
+        public DirectiveTriviaSyntax? GetMatchingDirective(CancellationToken cancellationToken)
         {
-            var directiveSyntaxMap = GetDirectiveInfo(directive, cancellationToken).DirectiveMap;
-            if (directiveSyntaxMap.TryGetValue(directive, out var result))
-                return result;
+            if (IsConditionalDirective(directive) ||
+                IsRegionDirective(directive))
+            {
+                var directiveSyntaxMap = GetDirectiveInfo(directive, cancellationToken).DirectiveMap;
+                if (directiveSyntaxMap.TryGetValue(directive, out var result))
+                    return result;
+            }
+
+            return null;
         }
 
-        return null;
-    }
-
-    public static ImmutableArray<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
-    {
-        if (IsConditionalDirective(directive))
+        public ImmutableArray<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(CancellationToken cancellationToken)
         {
-            var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;
-            if (directiveConditionalMap.TryGetValue(directive, out var result))
-                return result;
-        }
+            if (IsConditionalDirective(directive))
+            {
+                var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;
+                if (directiveConditionalMap.TryGetValue(directive, out var result))
+                    return result;
+            }
 
-        return [];
+            return [];
+        }
     }
 
     private static bool IsRegionDirective(DirectiveTriviaSyntax directive)

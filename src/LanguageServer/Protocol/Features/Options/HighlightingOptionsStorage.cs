@@ -8,12 +8,15 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting;
 
 internal static class HighlightingOptionsStorage
 {
-    public static HighlightingOptions GetHighlightingOptions(this IGlobalOptionService globalOptions, string language)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public HighlightingOptions GetHighlightingOptions(string language)
         => new()
         {
             HighlightRelatedRegexComponentsUnderCursor = globalOptions.GetOption(HighlightRelatedRegexComponentsUnderCursor, language),
             HighlightRelatedJsonComponentsUnderCursor = globalOptions.GetOption(HighlightRelatedJsonComponentsUnderCursor, language)
         };
+    }
 
     private static readonly OptionGroup s_highlightingGroup = new(name: "highlighting", description: "");
 

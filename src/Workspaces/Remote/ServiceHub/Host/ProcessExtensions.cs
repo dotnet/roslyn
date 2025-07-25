@@ -12,24 +12,27 @@ internal static class ProcessExtensions
 {
     private static bool s_settingPrioritySupported = true;
 
-    public static bool TrySetPriorityClass(this Process process, ProcessPriorityClass priorityClass)
+    extension(Process process)
     {
-        if (!s_settingPrioritySupported)
+        public bool TrySetPriorityClass(ProcessPriorityClass priorityClass)
         {
-            return false;
-        }
+            if (!s_settingPrioritySupported)
+            {
+                return false;
+            }
 
-        try
-        {
-            process.PriorityClass = priorityClass;
-            return true;
-        }
-        catch (Exception e) when (e is PlatformNotSupportedException or Win32Exception)
-        {
-            // the runtime does not support changing process priority
-            s_settingPrioritySupported = false;
+            try
+            {
+                process.PriorityClass = priorityClass;
+                return true;
+            }
+            catch (Exception e) when (e is PlatformNotSupportedException or Win32Exception)
+            {
+                // the runtime does not support changing process priority
+                s_settingPrioritySupported = false;
 
-            return false;
+                return false;
+            }
         }
     }
 }

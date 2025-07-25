@@ -10,27 +10,36 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml;
 
 internal static class Extensions
 {
-    public static string GetFilePath(this ITextView textView)
-        => textView.TextBuffer.GetFilePath();
-
-    public static string GetFilePath(this ITextBuffer textBuffer)
+    extension(ITextView textView)
     {
-        if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var textDoc))
-        {
-            return textDoc.FilePath;
-        }
-
-        return string.Empty;
+        public string GetFilePath()
+        => textView.TextBuffer.GetFilePath();
     }
 
-    public static Project GetCodeProject(this TextDocument document)
+    extension(ITextBuffer textBuffer)
     {
-        if (document.Project.SupportsCompilation)
+        public string GetFilePath()
         {
-            return document.Project;
-        }
+            if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var textDoc))
+            {
+                return textDoc.FilePath;
+            }
 
-        // There has to be a match
-        return document.Project.Solution.Projects.Single(p => p.SupportsCompilation && p.FilePath == document.Project.FilePath);
+            return string.Empty;
+        }
+    }
+
+    extension(TextDocument document)
+    {
+        public Project GetCodeProject()
+        {
+            if (document.Project.SupportsCompilation)
+            {
+                return document.Project;
+            }
+
+            // There has to be a match
+            return document.Project.Solution.Projects.Single(p => p.SupportsCompilation && p.FilePath == document.Project.FilePath);
+        }
     }
 }

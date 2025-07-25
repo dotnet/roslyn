@@ -12,112 +12,105 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 internal static class EditAndContinueValidation
 {
-    internal static void VerifyLineEdits(
-        this EditScriptDescription editScript,
+    extension(EditScriptDescription editScript)
+    {
+        internal void VerifyLineEdits(
         SourceLineUpdate[] lineEdits,
         SemanticEditDescription[]? semanticEdits = null,
         RudeEditDiagnosticDescription[]? diagnostics = null,
         EditAndContinueCapabilities? capabilities = null)
-    {
-        Assert.NotEmpty(lineEdits);
+        {
+            Assert.NotEmpty(lineEdits);
 
-        VerifyLineEdits(
-            editScript,
-            [new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, [.. lineEdits])],
-            semanticEdits,
-            diagnostics,
-            capabilities);
-    }
+            VerifyLineEdits(
+                editScript,
+                [new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, [.. lineEdits])],
+                semanticEdits,
+                diagnostics,
+                capabilities);
+        }
 
-    internal static void VerifyLineEdits(
-        this EditScriptDescription editScript,
-        SequencePointUpdates[] lineEdits,
-        SemanticEditDescription[]? semanticEdits = null,
-        RudeEditDiagnosticDescription[]? diagnostics = null,
-        EditAndContinueCapabilities? capabilities = null)
-    {
-        new CSharpEditAndContinueTestVerifier().VerifyLineEdits(
-            editScript,
-            lineEdits,
-            semanticEdits,
-            diagnostics,
-            capabilities);
-    }
+        internal void VerifyLineEdits(
+            SequencePointUpdates[] lineEdits,
+            SemanticEditDescription[]? semanticEdits = null,
+            RudeEditDiagnosticDescription[]? diagnostics = null,
+            EditAndContinueCapabilities? capabilities = null)
+        {
+            new CSharpEditAndContinueTestVerifier().VerifyLineEdits(
+                editScript,
+                lineEdits,
+                semanticEdits,
+                diagnostics,
+                capabilities);
+        }
 
-    internal static void VerifySemanticDiagnostics(
-        this EditScriptDescription editScript,
-        params RudeEditDiagnosticDescription[] diagnostics)
-    {
-        VerifySemanticDiagnostics(editScript, activeStatements: null, targetFrameworks: null, capabilities: null, diagnostics);
-    }
+        internal void VerifySemanticDiagnostics(
+            params RudeEditDiagnosticDescription[] diagnostics)
+        {
+            VerifySemanticDiagnostics(editScript, activeStatements: null, targetFrameworks: null, capabilities: null, diagnostics);
+        }
 
-    internal static void VerifySemanticDiagnostics(
-         this EditScriptDescription editScript,
-         ActiveStatementsDescription activeStatements,
-         params RudeEditDiagnosticDescription[] diagnostics)
-    {
-        VerifySemanticDiagnostics(editScript, activeStatements, targetFrameworks: null, capabilities: null, diagnostics);
-    }
+        internal void VerifySemanticDiagnostics(
+             ActiveStatementsDescription activeStatements,
+             params RudeEditDiagnosticDescription[] diagnostics)
+        {
+            VerifySemanticDiagnostics(editScript, activeStatements, targetFrameworks: null, capabilities: null, diagnostics);
+        }
 
-    internal static void VerifySemanticDiagnostics(
-        this EditScriptDescription editScript,
-        RudeEditDiagnosticDescription[] diagnostics,
-        EditAndContinueCapabilities? capabilities)
-    {
-        VerifySemanticDiagnostics(editScript, activeStatements: null, targetFrameworks: null, capabilities, diagnostics);
-    }
+        internal void VerifySemanticDiagnostics(
+            RudeEditDiagnosticDescription[] diagnostics,
+            EditAndContinueCapabilities? capabilities)
+        {
+            VerifySemanticDiagnostics(editScript, activeStatements: null, targetFrameworks: null, capabilities, diagnostics);
+        }
 
-    internal static void VerifySemanticDiagnostics(
-        this EditScriptDescription editScript,
-        ActiveStatementsDescription? activeStatements = null,
-        TargetFramework[]? targetFrameworks = null,
-        EditAndContinueCapabilities? capabilities = null,
-        params RudeEditDiagnosticDescription[] diagnostics)
-    {
-        VerifySemantics(
-            [editScript],
-            [new DocumentAnalysisResultsDescription(activeStatements: activeStatements, diagnostics: diagnostics)],
-            targetFrameworks,
-            capabilities);
-    }
+        internal void VerifySemanticDiagnostics(
+            ActiveStatementsDescription? activeStatements = null,
+            TargetFramework[]? targetFrameworks = null,
+            EditAndContinueCapabilities? capabilities = null,
+            params RudeEditDiagnosticDescription[] diagnostics)
+        {
+            VerifySemantics(
+                [editScript],
+                [new DocumentAnalysisResultsDescription(activeStatements: activeStatements, diagnostics: diagnostics)],
+                targetFrameworks,
+                capabilities);
+        }
 
-    internal static void VerifySemantics(
-        this EditScriptDescription editScript,
-        ActiveStatementsDescription activeStatements,
-        SemanticEditDescription[] semanticEdits,
-        EditAndContinueCapabilities? capabilities = null)
-    {
-        VerifySemantics(
-            [editScript],
-            [new DocumentAnalysisResultsDescription(activeStatements, semanticEdits: semanticEdits)],
-            capabilities: capabilities);
-    }
+        internal void VerifySemantics(
+            ActiveStatementsDescription activeStatements,
+            SemanticEditDescription[] semanticEdits,
+            EditAndContinueCapabilities? capabilities = null)
+        {
+            VerifySemantics(
+                [editScript],
+                [new DocumentAnalysisResultsDescription(activeStatements, semanticEdits: semanticEdits)],
+                capabilities: capabilities);
+        }
 
-    internal static void VerifySemantics(
-        this EditScriptDescription editScript,
-        SemanticEditDescription[] semanticEdits,
-        EditAndContinueCapabilities capabilities)
-    {
-        VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits, capabilities);
-    }
+        internal void VerifySemantics(
+            SemanticEditDescription[] semanticEdits,
+            EditAndContinueCapabilities capabilities)
+        {
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits, capabilities);
+        }
 
-    internal static void VerifySemantics(
-        this EditScriptDescription editScript,
-        params SemanticEditDescription[] semanticEdits)
-    {
-        VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits, capabilities: null);
-    }
+        internal void VerifySemantics(
+            params SemanticEditDescription[] semanticEdits)
+        {
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits, capabilities: null);
+        }
 
-    internal static void VerifySemantics(
-        this EditScriptDescription editScript,
-        SemanticEditDescription[] semanticEdits,
-        RudeEditDiagnosticDescription[] warnings,
-        EditAndContinueCapabilities? capabilities = null)
-    {
-        VerifySemantics(
-            [editScript],
-            [new DocumentAnalysisResultsDescription(ActiveStatementsDescription.Empty, semanticEdits: semanticEdits, diagnostics: warnings)],
-            capabilities: capabilities);
+        internal void VerifySemantics(
+            SemanticEditDescription[] semanticEdits,
+            RudeEditDiagnosticDescription[] warnings,
+            EditAndContinueCapabilities? capabilities = null)
+        {
+            VerifySemantics(
+                [editScript],
+                [new DocumentAnalysisResultsDescription(ActiveStatementsDescription.Empty, semanticEdits: semanticEdits, diagnostics: warnings)],
+                capabilities: capabilities);
+        }
     }
 
     internal static void VerifySemantics(

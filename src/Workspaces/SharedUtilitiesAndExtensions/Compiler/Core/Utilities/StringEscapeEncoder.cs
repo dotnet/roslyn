@@ -9,90 +9,93 @@ namespace Roslyn.Utilities;
 
 internal static class StringEscapeEncoder
 {
-    public static string Escape(this string text, char escapePrefix, params char[] prohibitedCharacters)
+    extension(string text)
     {
-        StringBuilder? builder = null;
-
-        var startIndex = 0;
-        while (startIndex < text.Length)
+        public string Escape(char escapePrefix, params char[] prohibitedCharacters)
         {
-            var prefixIndex = text.IndexOf(escapePrefix, startIndex);
-            var prohibitIndex = text.IndexOfAny(prohibitedCharacters, startIndex);
-            var index = prefixIndex >= 0 && prohibitIndex >= 0 ? Math.Min(prefixIndex, prohibitIndex)
-                    : prefixIndex >= 0 ? prefixIndex
-                    : prohibitIndex >= 0 ? prohibitIndex
-                    : -1;
+            StringBuilder? builder = null;
 
-            if (index < 0)
+            var startIndex = 0;
+            while (startIndex < text.Length)
             {
-                // append remaining text
-                builder?.Append(text, startIndex, text.Length - startIndex);
+                var prefixIndex = text.IndexOf(escapePrefix, startIndex);
+                var prohibitIndex = text.IndexOfAny(prohibitedCharacters, startIndex);
+                var index = prefixIndex >= 0 && prohibitIndex >= 0 ? Math.Min(prefixIndex, prohibitIndex)
+                        : prefixIndex >= 0 ? prefixIndex
+                        : prohibitIndex >= 0 ? prohibitIndex
+                        : -1;
 
-                break;
+                if (index < 0)
+                {
+                    // append remaining text
+                    builder?.Append(text, startIndex, text.Length - startIndex);
+
+                    break;
+                }
+
+                builder ??= new StringBuilder();
+
+                if (index > startIndex)
+                {
+                    // everything between the start and the prohibited character
+                    builder.Append(text, startIndex, index - startIndex);
+                }
+
+                // add the escape prefix before the character that needs escaping
+                builder.Append(escapePrefix);
+
+                // add the prohibited character data as hex after the prefix
+                builder.AppendFormat("{0:X2}", (int)text[index]);
+
+                startIndex = index + 1;
             }
 
-            builder ??= new StringBuilder();
-
-            if (index > startIndex)
+            if (builder != null)
             {
-                // everything between the start and the prohibited character
+                return builder.ToString();
+            }
+            else
+            {
+                return text;
+            }
+        }
+
+        public string Unescape(char escapePrefix)
+        {
+            StringBuilder? builder = null;
+            var startIndex = 0;
+
+            while (startIndex < text.Length)
+            {
+                var index = text.IndexOf(escapePrefix, startIndex);
+                if (index < 0)
+                {
+                    // append remaining text
+                    builder?.Append(text, startIndex, text.Length - startIndex);
+
+                    break;
+                }
+
+                builder ??= new StringBuilder();
+
+                // add everything up to the escape prefix
                 builder.Append(text, startIndex, index - startIndex);
+
+                // skip over the escape prefix and the following character that was escaped
+                var hex = ParseHex(text, index + 1, 2);
+                builder.Append((char)hex);
+
+                startIndex = index + 3; // includes escape + 2 hex digits
             }
 
-            // add the escape prefix before the character that needs escaping
-            builder.Append(escapePrefix);
-
-            // add the prohibited character data as hex after the prefix
-            builder.AppendFormat("{0:X2}", (int)text[index]);
-
-            startIndex = index + 1;
-        }
-
-        if (builder != null)
-        {
-            return builder.ToString();
-        }
-        else
-        {
-            return text;
-        }
-    }
-
-    public static string Unescape(this string text, char escapePrefix)
-    {
-        StringBuilder? builder = null;
-        var startIndex = 0;
-
-        while (startIndex < text.Length)
-        {
-            var index = text.IndexOf(escapePrefix, startIndex);
-            if (index < 0)
+            if (builder != null)
             {
-                // append remaining text
-                builder?.Append(text, startIndex, text.Length - startIndex);
-
-                break;
+                return builder.ToString();
             }
-
-            builder ??= new StringBuilder();
-
-            // add everything up to the escape prefix
-            builder.Append(text, startIndex, index - startIndex);
-
-            // skip over the escape prefix and the following character that was escaped
-            var hex = ParseHex(text, index + 1, 2);
-            builder.Append((char)hex);
-
-            startIndex = index + 3; // includes escape + 2 hex digits
-        }
-
-        if (builder != null)
-        {
-            return builder.ToString();
-        }
-        else
-        {
-            return text;
+            else
+            {
+                return text;
+            }
         }
     }
 

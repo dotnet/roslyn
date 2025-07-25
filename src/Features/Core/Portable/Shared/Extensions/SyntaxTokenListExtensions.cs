@@ -8,28 +8,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class SyntaxTokenListExtensions
 {
-    /// <summary>
-    /// Gets the concatenated value text for the token list.
-    /// </summary>
-    /// <returns>The concatenated value text, or an empty string if there are no tokens in the list.</returns>
-    internal static string GetValueText(this SyntaxTokenList tokens)
+    extension(SyntaxTokenList tokens)
     {
-        switch (tokens.Count)
+        /// <summary>
+        /// Gets the concatenated value text for the token list.
+        /// </summary>
+        /// <returns>The concatenated value text, or an empty string if there are no tokens in the list.</returns>
+        internal string GetValueText()
         {
-            case 0:
-                return string.Empty;
+            switch (tokens.Count)
+            {
+                case 0:
+                    return string.Empty;
 
-            case 1:
-                return tokens[0].ValueText;
+                case 1:
+                    return tokens[0].ValueText;
 
-            default:
-                var pooledBuilder = PooledStringBuilder.GetInstance();
-                foreach (var token in tokens)
-                {
-                    pooledBuilder.Builder.Append(token.ValueText);
-                }
+                default:
+                    var pooledBuilder = PooledStringBuilder.GetInstance();
+                    foreach (var token in tokens)
+                    {
+                        pooledBuilder.Builder.Append(token.ValueText);
+                    }
 
-                return pooledBuilder.ToStringAndFree();
+                    return pooledBuilder.ToStringAndFree();
+            }
         }
     }
 }

@@ -86,38 +86,39 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
 
 internal static class IDiagnosticAnalyzerServiceExtensions
 {
-    /// <summary>
-    /// Return up to date diagnostics of the given <paramref name="diagnosticKind"/> for the given <paramref name="range"/>
-    /// for the given <paramref name="document"/>.
-    /// <para>
-    /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
-    /// </para>
-    /// </summary>
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
-        TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
-        => service.GetDiagnosticsForSpanAsync(
-            document, range,
-            diagnosticId: null,
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-            diagnosticKind,
-            cancellationToken);
-
-    /// <summary>
-    /// Return up to date diagnostics for the given <paramref name="range"/> and parameters for the given <paramref name="document"/>.
-    /// <para>
-    /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet. If
-    /// <paramref name="diagnosticId"/> is not null, it gets diagnostics only for this given <paramref
-    /// name="diagnosticId"/> value.
-    /// </para>
-    /// </summary>
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
-        TextDocument document, TextSpan? range, string? diagnosticId,
-        ICodeActionRequestPriorityProvider priorityProvider,
-        DiagnosticKind diagnosticKind,
-        CancellationToken cancellationToken)
+    extension(IDiagnosticAnalyzerService service)
     {
-        Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
-        return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-            priorityProvider, diagnosticKind, cancellationToken);
+        /// <summary>
+        /// Return up to date diagnostics of the given <paramref name="diagnosticKind"/> for the given <paramref name="range"/>
+        /// for the given <paramref name="document"/>.
+        /// <para>
+        /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
+        /// </para>
+        /// </summary>
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
+            => service.GetDiagnosticsForSpanAsync(
+                document, range,
+                diagnosticId: null,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                diagnosticKind,
+                cancellationToken);
+
+        /// <summary>
+        /// Return up to date diagnostics for the given <paramref name="range"/> and parameters for the given <paramref name="document"/>.
+        /// <para>
+        /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet. If
+        /// <paramref name="diagnosticId"/> is not null, it gets diagnostics only for this given <paramref
+        /// name="diagnosticId"/> value.
+        /// </para>
+        /// </summary>
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(TextDocument document, TextSpan? range, string? diagnosticId,
+            ICodeActionRequestPriorityProvider priorityProvider,
+            DiagnosticKind diagnosticKind,
+            CancellationToken cancellationToken)
+        {
+            Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
+            return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
+                priorityProvider, diagnosticKind, cancellationToken);
+        }
     }
 }

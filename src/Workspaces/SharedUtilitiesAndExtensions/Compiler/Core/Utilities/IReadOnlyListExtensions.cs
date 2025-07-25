@@ -9,30 +9,36 @@ namespace Microsoft.CodeAnalysis.Utilities;
 
 internal static class IReadOnlyListExtensions
 {
-    public static IReadOnlyList<T> ToReadOnlyList<T>(this IList<T> list)
+    extension<T>(IList<T> list)
     {
-        if (list is IReadOnlyList<T> readOnlyList)
+        public IReadOnlyList<T> ToReadOnlyList()
         {
-            return readOnlyList;
-        }
+            if (list is IReadOnlyList<T> readOnlyList)
+            {
+                return readOnlyList;
+            }
 
-        return new ReadOnlyList<T>(list);
+            return new ReadOnlyList<T>(list);
+        }
     }
 
-    public static T Last<T>(this IReadOnlyList<T> list)
+    extension<T>(IReadOnlyList<T> list)
+    {
+        public T Last()
         => list[list.Count - 1];
 
-    public static int IndexOf<T>(this IReadOnlyList<T> list, T value, int startIndex = 0)
-    {
-        for (var index = startIndex; index < list.Count; index++)
+        public int IndexOf(T value, int startIndex = 0)
         {
-            if (EqualityComparer<T>.Default.Equals(list[index], value))
+            for (var index = startIndex; index < list.Count; index++)
             {
-                return index;
+                if (EqualityComparer<T>.Default.Equals(list[index], value))
+                {
+                    return index;
+                }
             }
-        }
 
-        return -1;
+            return -1;
+        }
     }
 
     private sealed class ReadOnlyList<T>(IList<T> list) : IReadOnlyList<T>
