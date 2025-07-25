@@ -110,7 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
                     }
 
-                    throw ExceptionUtilities.Unreachable(); // we don't bind to extension methods with unsupported metadata
+                    // Valid scenarios shouldn't get to here. These are the cases we know can get to here. If this assert triggers for
+                    // an invalid scenario, it can simply be added. If it triggers for a valid scenario, the above code should be updated to handle it.
+                    Debug.Assert(method is ErrorMethodSymbol or { HasUnsupportedMetadata: true });
+                    return null;
                 }
             }
 
