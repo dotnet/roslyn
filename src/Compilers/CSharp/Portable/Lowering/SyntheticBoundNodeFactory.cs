@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (epilogue != null) ? Concat(innerInstrumentation.Epilogue, epilogue) : innerInstrumentation.Epilogue)
                 : new BoundBlockInstrumentation(
                     Syntax,
-                    OneOrMany.OneOrNone(local),
+                    (local != null) ? [local] : [],
                     prologue,
                     epilogue);
         }
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements.Add(statement);
             }
 
-            return Block(instrumentation.Locals.ToImmutable(), statements.ToImmutableAndClear());
+            return Block(instrumentation.Locals, statements.ToImmutableAndClear());
         }
 
         public BoundReturnStatement Return(BoundExpression? expression = null)
