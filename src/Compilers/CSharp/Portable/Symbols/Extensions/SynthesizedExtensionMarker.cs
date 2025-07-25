@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedExtensionMarker : SynthesizedSourceOrdinaryMethodSymbol
     {
+        private byte _lazyMetadataVisibility = 0xFF;
+
         internal SynthesizedExtensionMarker(SourceMemberContainerTypeSymbol extensionType, ParameterListSyntax parameterList)
             : base(extensionType, WellKnownMemberNames.ExtensionMarkerMethodName, parameterList.OpenParenToken.GetLocation(), parameterList,
                    (GetDeclarationModifiers(), MakeFlags(
@@ -33,6 +36,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static DeclarationModifiers GetDeclarationModifiers() => DeclarationModifiers.Private | DeclarationModifiers.Static;
+
+        public override TypeMemberVisibility MetadataVisibility
+        {
+            get
+            {
+                if (_lazyMetadataVisibility == 0xFF)
+                {
+                    _lazyMetadataVisibility = (byte)calculate();
+                    Debug.Assert(_lazyMetadataVisibility != 0xFF);
+                }
+
+                return (TypeMemberVisibility)_lazyMetadataVisibility;
+
+                TypeMemberVisibility calculate()
+                {
+                    if (Parameters is not [var parameter, ..])
+                    {
+                        return TypeMemberVisibility.Private;
+                    }
+
+                    var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                    var testField = new SynthesizedFieldSymbol(ContainingType, parameter.Type, WellKnownMemberNames.ExtensionMarkerMethodName, DeclarationModifiers.Public);
+                    if (parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(testField, ref useSiteInfo))
+                    {
+                        return TypeMemberVisibility.Public;
+                    }
+
+                    testField = new SynthesizedFieldSymbol(ContainingType, parameter.Type, WellKnownMemberNames.ExtensionMarkerMethodName, DeclarationModifiers.Internal);
+                    if (parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(testField, ref useSiteInfo))
+                    {
+                        return TypeMemberVisibility.Assembly;
+                    }
+
+                    return TypeMemberVisibility.Private;
+                }
+            }
+        }
 
         internal override bool HasSpecialName => true;
 

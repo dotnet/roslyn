@@ -2088,7 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     MethodAttributes flags;
                     module.GetMethodDefPropsOrThrow(methodHandle, out methodName, out _, out flags, out _);
 
-                    if ((flags & (MethodAttributes.SpecialName | MethodAttributes.Static | MethodAttributes.MemberAccessMask)) == (MethodAttributes.SpecialName | MethodAttributes.Static | MethodAttributes.Private) &&
+                    if ((flags & (MethodAttributes.SpecialName | MethodAttributes.Static)) == (MethodAttributes.SpecialName | MethodAttributes.Static) &&
                         methodName is WellKnownMemberNames.ExtensionMarkerMethodName)
                     {
                         if (!foundMarkerMethod.IsNil)
@@ -2227,7 +2227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var marker = PENamedTypeSymbol.Create(moduleSymbol, type, markerRid);
 
                         // PROTOTYPE: test effect of every condition here
-                        if (marker.HasSpecialName && marker.IsStatic && marker.DeclaredAccessibility == Accessibility.Private &&
+                        if (marker.HasSpecialName && marker.IsStatic && marker.DeclaredAccessibility == Accessibility.Public &&
                             marker.TypeKind == TypeKind.Class && marker.BaseTypeNoUseSiteDiagnostics.IsObjectType() && marker.Arity == 0 &&
                             marker.InterfacesNoUseSiteDiagnostics().IsEmpty &&
                             (type.Arity == 0 || marker is PENamedTypeSymbolGeneric))

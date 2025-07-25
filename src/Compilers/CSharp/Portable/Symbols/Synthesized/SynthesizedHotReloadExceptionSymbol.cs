@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _members =
             [
                 new SynthesizedHotReloadExceptionConstructorSymbol(this, stringType, intType),
-                new SynthesizedFieldSymbol(this, intType, CodeFieldName, isPublic: true, isReadOnly: true, isStatic: false)
+                new SynthesizedFieldSymbol(this, intType, CodeFieldName, DeclarationModifiers.Public, isReadOnly: true, isStatic: false)
             ];
         }
 
