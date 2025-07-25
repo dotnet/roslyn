@@ -672,7 +672,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 // so the mapper has something to compare to.
                 foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
                 {
-                    _ = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                    var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
                 }
 
                 foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())

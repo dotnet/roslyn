@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -47,6 +48,8 @@ internal abstract partial class AbstractEditorInlineRenameService
         private static async ValueTask<InlineRenameLocation> ConvertLocationAsync(Solution solution, RenameLocation location, CancellationToken cancellationToken)
         {
             var document = await solution.GetRequiredDocumentAsync(location.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+            Contract.ThrowIfTrue(location.DocumentId.IsSourceGenerated && !document.IsRazorSourceGeneratedDocument());
             return new InlineRenameLocation(document, location.Location.SourceSpan);
         }
 

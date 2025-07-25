@@ -939,7 +939,8 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         {
             if (documentId.IsSourceGenerated)
             {
-                _ = await finalSolution.GetDocumentAsync(documentId, includeSourceGenerated: true, CancellationToken.None).ConfigureAwait(false);
+                var document = await finalSolution.GetDocumentAsync(documentId, includeSourceGenerated: true, CancellationToken.None).ConfigureAwait(false);
+                Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
             }
 
             finalSolution = newRoot != null

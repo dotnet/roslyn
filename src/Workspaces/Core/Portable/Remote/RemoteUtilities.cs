@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -65,6 +66,8 @@ internal static class RemoteUtilities
             .SelectAsArrayAsync(async (tuple, cancellationToken) =>
             {
                 var document = await oldSolution.GetDocumentAsync(tuple.documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(tuple.documentId.IsSourceGenerated && !document.IsRazorSourceGeneratedDocument());
+
                 var oldText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var newText = oldText.WithChanges(tuple.textChanges);
                 return (tuple.documentId, newText);
