@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var (placeholder, placeholderConversion) = conversion.DeconstructConversionInfo[i];
                     var underlyingConversion = BoundNode.GetConversion(placeholderConversion, placeholder);
-                    VisitDeconstructionArguments(nestedVariables, syntax, underlyingConversion, right: invocation.Arguments[i]);
+                    VisitDeconstructionArguments(nestedVariables, syntax, underlyingConversion, right: invocation.Arguments[i + offset]);
                 }
             }
         }
