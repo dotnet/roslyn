@@ -38,9 +38,3 @@ internal readonly record struct UserCodeExceptionInfo(
     [property: DataMember(Order = 2)] ImmutableArray<TaggedText> TypeName,
     [property: DataMember(Order = 3)] ImmutableArray<TaggedText> StackTrace,
     [property: DataMember(Order = 4)] TextSpan Span);
-
-[DataContract]
-internal readonly record struct QueryCompilationError(
-    [property: DataMember(Order = 0)] string Id,
-    [property: DataMember(Order = 1)] string Message,
-    [property: DataMember(Order = 2)] TextSpan Span);

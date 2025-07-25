@@ -5068,7 +5068,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 {
                 }
             }
-
             """,
             index: 2);
 

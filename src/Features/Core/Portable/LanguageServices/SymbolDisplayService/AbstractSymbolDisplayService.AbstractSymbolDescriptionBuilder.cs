@@ -111,6 +111,7 @@ internal abstract partial class AbstractSymbolDisplayService
         protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
         protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
         protected abstract string? GetNavigationHint(ISymbol? symbol);
+        protected abstract string GetCommentText(SyntaxTrivia trivia);
 
         protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
         protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -157,7 +158,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
             // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
             // LSIF (which does this for every symbol in an entire solution).
-            var firstSymbolDocumentationComment = firstSymbol.GetAppropriateDocumentationComment(Compilation, CancellationToken);
+            var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol, Compilation, CancellationToken);
 
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
@@ -167,6 +168,82 @@ internal abstract partial class AbstractSymbolDisplayService
             AddCaptures(firstSymbol);
 
             AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment);
+        }
+
+        private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol, Compilation compilation, CancellationToken cancellationToken)
+        {
+            // For locals, we synthesize the documentation comment from the leading trivia of the local declaration.
+            return firstSymbol is ILocalSymbol localSymbol
+                ? SynthesizeDocumentationCommentForLocal(localSymbol, cancellationToken)
+                : firstSymbol.GetAppropriateDocumentationComment(compilation, cancellationToken);
+        }
+
+        private DocumentationComment SynthesizeDocumentationCommentForLocal(
+            ILocalSymbol localSymbol, CancellationToken cancellationToken)
+        {
+            if (localSymbol.DeclaringSyntaxReferences is not [var reference])
+                return DocumentationComment.Empty;
+
+            var node = reference.GetSyntax(cancellationToken);
+
+            var syntaxFacts = LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var statement = node.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsStatement);
+            if (statement is null)
+                return DocumentationComment.Empty;
+
+            var leadingTrivia = statement.GetLeadingTrivia();
+
+            var startIndex = leadingTrivia.Count;
+
+            // Consume any directly leading contiguous comments right before the statement.
+            using var _1 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var commentsAndNewLines);
+            while (true)
+            {
+                // Skip indentation if present.
+                if (syntaxFacts.IsWhitespaceTrivia(GetTrivia(startIndex - 1)))
+                    startIndex--;
+
+                if (!syntaxFacts.IsEndOfLineTrivia(GetTrivia(--startIndex)) ||
+                    !syntaxFacts.IsSingleLineCommentTrivia(GetTrivia(--startIndex)))
+                {
+                    break;
+                }
+
+                commentsAndNewLines.Add(GetTrivia(startIndex));
+                commentsAndNewLines.Add(GetTrivia(startIndex + 1));
+            }
+
+            if (commentsAndNewLines.Count == 0)
+                return DocumentationComment.Empty;
+
+            // Remove the last trivia, as it's always an end of line trivia.  Then reverse the array since we placed
+            // the elements in reverse order as we walked backwards.
+            commentsAndNewLines.Count--;
+            commentsAndNewLines.ReverseContents();
+
+            // Concatenate the comment text and new lines into a single string.
+            // The even items are the comments, and the odd items are the new lines.
+            var text = commentsAndNewLines.Select((t, i) => i % 2 == 0 ? GetCommentText(t) : t.ToFullString()).Join("");
+
+            // Try seeing if the text is actually just an real xml doc comment written by the user.
+            var docComment = DocumentationComment.FromXmlFragment(text);
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            // Otherwise, try wrapping with <summary> tags to make it a valid doc comment.
+            docComment = DocumentationComment.FromXmlFragment($"<summary>{text}</summary>");
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            // Try one final time, this type escaping `<` and `>` characters so that they don't cause XML parse errors.
+            docComment = DocumentationComment.FromXmlFragment($"<summary>{text.Replace("<", "&lt;").Replace(">", "&gt;")}</summary>");
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            return DocumentationComment.Empty;
+
+            SyntaxTrivia GetTrivia(int index)
+                => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
 
         private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
@@ -424,7 +501,7 @@ internal abstract partial class AbstractSymbolDisplayService
             }
         }
 
-        private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
+        private Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
         {
             var includeNavigationHints = Options.QuickInfoOptions.IncludeNavigationHintsInQuickInfo;
 
