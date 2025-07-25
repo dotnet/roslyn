@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib461(source, options: options, references: references);
         }
 
-        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             return CreateCompilation(source, options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.Net100);
         }
