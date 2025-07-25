@@ -84,7 +84,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInHeader1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Bar() {
@@ -103,7 +103,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInHeader2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Bar() {
@@ -122,7 +122,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInHeader4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Bar() {
@@ -898,7 +898,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInElementAccess1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo() {
@@ -918,7 +918,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInElementAccess2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo() {
@@ -938,7 +938,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInObjectCreation1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo() {
@@ -958,7 +958,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInObjectCreation2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 void Goo() {
@@ -978,7 +978,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50104")]
     public Task TestInImplicitObjectCreation()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1005,7 +1005,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInConstructorInitializer1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public C() : base([||]a, b, c) {
@@ -1023,7 +1023,7 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
 
     [Fact]
     public Task TestInConstructorInitializer2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C {
                 public C() : [||]base(a, b, c) {

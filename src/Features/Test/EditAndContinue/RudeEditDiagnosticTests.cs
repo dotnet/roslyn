@@ -71,7 +71,7 @@ public sealed class RudeEditDiagnosticTests
             RudeEditKind.ChangingNamespace,
         };
 
-        var allKinds = Enum.GetValues(typeof(RudeEditKind)).Cast<RudeEditKind>();
+        var allKinds = Enum.GetValues<RudeEditKind>();
 
         foreach (var kind in allKinds)
         {

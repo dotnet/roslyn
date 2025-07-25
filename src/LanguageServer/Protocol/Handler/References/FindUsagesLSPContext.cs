@@ -372,6 +372,6 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
         // We can report outside of the lock here since _progress is thread-safe.
         _progress.Report([.. referencesToReport]);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

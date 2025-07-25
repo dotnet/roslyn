@@ -64,7 +64,7 @@ internal sealed class RemoteExtensionMethodImportCompletionService(
         {
             var project = solution.GetRequiredProject(projectId);
             ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 }

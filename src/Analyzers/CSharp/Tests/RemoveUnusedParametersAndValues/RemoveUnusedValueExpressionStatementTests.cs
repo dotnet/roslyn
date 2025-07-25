@@ -75,8 +75,8 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            """, new TestParameters(options: PreferDiscard,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
@@ -329,7 +329,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_02()
@@ -357,7 +357,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_03()
@@ -391,7 +391,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_04()
@@ -431,7 +431,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_", "_", "_")]
@@ -505,7 +505,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task ExpressionStatement_Trivia_PreferDiscard_02()
@@ -534,7 +534,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferDiscard);
+            """, new TestParameters(options: PreferDiscard));
 
     [Fact]
     public Task ExpressionStatement_Trivia_PreferUnusedLocal_01()
@@ -564,7 +564,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Fact]
     public Task ExpressionStatement_Trivia_PreferUnusedLocal_02()
@@ -593,7 +593,7 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
 
                 int M2() => 0;
             }
-            """, options: PreferUnusedLocal);
+            """, new TestParameters(options: PreferUnusedLocal));
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32942")]
     [InlineData(nameof(PreferDiscard))]

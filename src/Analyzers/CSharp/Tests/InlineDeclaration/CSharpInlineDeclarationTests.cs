@@ -40,7 +40,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineVariable1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -67,7 +67,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineInNestedCall()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -94,7 +94,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineVariableWithConstructor1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C1
             {
@@ -141,7 +141,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineVariableIntoFirstOut1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -168,7 +168,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineVariableIntoFirstOut2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -219,7 +219,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineVariablePreferVar1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -246,7 +246,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineVariablePreferVarExceptForPredefinedTypes1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -273,7 +273,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestAvailableWhenWrittenAfter1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -508,7 +508,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestInEmbeddedStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -539,7 +539,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestAvailableInNestedBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -572,7 +572,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestOverloadResolutionDoNotUseVar1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -615,7 +615,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestOverloadResolutionDoNotUseVar2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -658,7 +658,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestGenericInferenceDoNotUseVar3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -693,7 +693,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -726,7 +726,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -758,7 +758,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -792,7 +792,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -824,7 +824,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -856,7 +856,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments6()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -888,7 +888,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments7()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -920,7 +920,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments8()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -954,7 +954,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestComments9()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -989,7 +989,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15994")]
     public Task TestCommentsTrivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1026,7 +1026,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15994")]
     public Task TestCommentsTrivia2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1079,7 +1079,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15336")]
     public Task TestNotMissingIfCapturedInLambdaAndNotUsedAfterwards()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1159,7 +1159,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15408")]
     public Task TestDataFlow2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1229,7 +1229,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16198")]
     public Task TestIndentation1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1487,7 +1487,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
     public Task TestInLoops1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1530,7 +1530,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
     public Task TestInLoops2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1571,7 +1571,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
     public Task TestInLoops3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1614,7 +1614,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
     public Task TestInLoops4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1657,7 +1657,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
     public Task TestInUsing()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1698,7 +1698,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
     public Task TestInExceptionFilter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1745,7 +1745,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
     public Task TestInShortCircuitExpression1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1782,7 +1782,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
     public Task TestInShortCircuitExpression2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1819,7 +1819,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
     public Task TestInFixed()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1886,7 +1886,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestInLocalFunction2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1933,7 +1933,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
     public Task TestMultipleDeclarationStatementsOnSameLine1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1957,7 +1957,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
     public Task TestMultipleDeclarationStatementsOnSameLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1981,7 +1981,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
     public Task TestMultipleDeclarationStatementsOnSameLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2227,7 +2227,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
     [InlineData("false || M(out x)", "false || M(out bool x)")]
     [InlineData("M(out x) || M(out x)", "M(out bool x) || M(out x)")]
     public Task TestDefiniteAssignment3(string input, string output)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             $$"""
             using System;
 
@@ -2266,7 +2266,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task InlineVariable_NullableEnable()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             #nullable enable
             class C
             {
@@ -2302,11 +2302,11 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             if (int.TryParse(v, out int i))
             {
             }
-            """, CSharpParseOptions.Default);
+            """, new(CSharpParseOptions.Default));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47041")]
     public Task CollectionInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2328,7 +2328,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22881")]
     public Task PriorRegionClose()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2371,7 +2371,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact]
     public Task TestInSwitchSection()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2460,17 +2460,17 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                     }
                 }
             }
-            """, options: new(LanguageNames.CSharp)
+            """, new(options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, new CodeStyleOption2<bool>(preferIntrinsicPredefinedTypeKeywordInDeclaration, new NotificationOption2(preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic, false)) },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, new CodeStyleOption2<bool>(varForBuiltInTypes, new NotificationOption2(varForBuiltInTypesDiagnostic, false)) },
                 { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, ignoreSpacing },
-            });
+            }));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62805")]
     public Task TestDirectiveWithFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2529,7 +2529,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                     }
                 }
             }
-            """, options: ExplicitTypeEverywhere());
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40650")]
     public Task TestReferencedInSwitchArms1()
@@ -2557,7 +2557,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40650")]
     public Task TestReferencedInSwitchArms2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 

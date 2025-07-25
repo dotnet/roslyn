@@ -214,7 +214,7 @@ public sealed class AssetProviderTests
                 }
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
     }
 }

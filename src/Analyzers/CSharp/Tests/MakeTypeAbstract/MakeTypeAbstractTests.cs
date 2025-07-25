@@ -27,7 +27,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -43,7 +43,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestMethodEnclosingClassWithoutAccessibility()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Goo
             {
@@ -59,7 +59,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestMethodEnclosingClassDocumentationComment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             /// <summary>
             /// Some class comment.
@@ -81,7 +81,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestPropertyGetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -97,7 +97,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestPropertySetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -113,7 +113,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestIndexerGetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -129,7 +129,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestIndexerSetter()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -145,7 +145,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54218")]
     public Task TestPartialClass()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public partial class Goo
             {
@@ -245,7 +245,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestRecord()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public record Goo
             {
@@ -261,7 +261,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task TestRecordClass()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public record class Goo
             {
@@ -286,7 +286,7 @@ public sealed class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBase
 
     [Fact]
     public Task FixAll()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace NS
             {

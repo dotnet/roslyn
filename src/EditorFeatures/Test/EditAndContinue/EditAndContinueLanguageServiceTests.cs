@@ -210,12 +210,19 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                         ])
                 ],
                 SyntaxError = syntaxError,
-                ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
+                ProjectsToRebuild = [projectId],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(projectId, []),
+                ProjectsToRedeploy = [projectId],
             };
         };
 
-        var updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        var runningProjectInfo = new DebuggerContracts.RunningProjectInfo()
+        {
+            ProjectInstanceId = new DebuggerContracts.ProjectInstanceId(project.FilePath, "net9.0"),
+            RestartAutomatically = false,
+        };
+
+        var updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
@@ -276,10 +283,11 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                 SyntaxError = null,
                 ProjectsToRebuild = [],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+                ProjectsToRedeploy = [],
             };
         };
 
-        updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 

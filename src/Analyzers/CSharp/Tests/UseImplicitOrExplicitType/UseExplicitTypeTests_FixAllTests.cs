@@ -122,7 +122,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ExplicitTypeEverywhere());
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -232,7 +232,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ExplicitTypeEverywhere());
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -342,7 +342,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ExplicitTypeEverywhere());
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -388,7 +388,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """, options: ExplicitTypeExceptWhereApparent());
+            """, new(options: ExplicitTypeExceptWhereApparent()));
 
     #endregion
 }

@@ -38,13 +38,9 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
+public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logger)
+    : AbstractCodeActionOrUserDiagnosticTest(logger)
 {
-    protected AbstractUserDiagnosticTest(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal abstract Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
         EditorTestWorkspace workspace, TestParameters parameters);
 
@@ -224,16 +220,10 @@ public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrU
 
     private protected Task TestActionCountInAllFixesAsync(
         string initialMarkup,
-        int count,
-        ParseOptions parseOptions = null,
-        CompilationOptions compilationOptions = null,
-        OptionsCollectionAlias options = null,
-        object fixProviderData = null)
+        int count)
     {
         return TestActionCountInAllFixesAsync(
-            initialMarkup,
-            new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData),
-            count);
+            initialMarkup, parameters: TestParameters.Default, count);
     }
 
     private async Task TestActionCountInAllFixesAsync(

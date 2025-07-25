@@ -179,9 +179,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync("""
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync("""
                 using System;
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
@@ -219,12 +218,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     }
                 }
                 """);
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync("""
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
                 Imports System
                 Imports System.Collections.Generic
                 Imports System.Collections.Immutable
@@ -260,7 +257,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     End Sub
                 End Class
                 """);
-        }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string unsupportedDescriptorName) =>
 #pragma warning disable RS0030 // Do not use banned APIs

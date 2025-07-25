@@ -31,7 +31,7 @@ public abstract class AbstractAddUsingTests(ITestOutputHelper? logger = null)
         int index = 0,
         CodeActionPriority? priority = null,
         OptionsCollection? options = null)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             initialMarkup,
             expectedMarkup,
             index,
