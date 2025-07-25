@@ -271,7 +271,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document>
             namespace ConsoleApplication1
             {
@@ -292,7 +292,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                     <Document>
@@ -425,7 +425,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document>
             namespace ConsoleApplication1
             {
@@ -450,7 +450,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                     <Document>
@@ -477,7 +477,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
