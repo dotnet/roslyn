@@ -32,7 +32,9 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
     {
         var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-        if (_options.SeparateImportDirectiveGroups == newOptions.SeparateImportDirectiveGroups)
+        if (_options.SeparateImportDirectiveGroups == newOptions.SeparateImportDirectiveGroups &&
+            _options.WrapCallChains == newOptions.WrapCallChains &&
+            _options.IndentWrappedCallChains == newOptions.IndentWrappedCallChains)
         {
             return this;
         }
@@ -217,6 +219,13 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             }
 
             return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
+        }
+
+        // Handle dots in method call chains
+        var callChainNewLineOperation = GetCallChainNewLineOperation(currentToken);
+        if (callChainNewLineOperation != null)
+        {
+            return callChainNewLineOperation;
         }
 
         return nextOperation.Invoke(in previousToken, in currentToken);
@@ -462,7 +471,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
         }
 
-        // For spacing between the identifier and the conditional operator 
+        // For spacing between the identifier and the conditional access operator (?)
         if (currentToken.IsKind(SyntaxKind.QuestionToken) && currentToken.Parent.IsKind(SyntaxKind.ConditionalAccessExpression))
         {
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -556,5 +565,36 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         return nextOperation.Invoke(in previousToken, in currentToken);
+    }
+
+    private AdjustNewLinesOperation? GetCallChainNewLineOperation(SyntaxToken currentToken)
+    {
+        // Only handle dot tokens if method call chain wrapping is enabled
+        if (!_options.WrapCallChains)
+        {
+            return null;
+        }
+
+        // Check if we're dealing with a dot token
+        if (currentToken.Kind() != SyntaxKind.DotToken)
+        {
+            return null;
+        }
+
+        // Check if this dot token is part of a method call chain
+        if (currentToken.Parent is MemberAccessExpressionSyntax memberAccess &&
+            IsPartOfCallChain(memberAccess))
+        {
+            // Allow wrapping before dots in method call chains
+            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+        }
+
+        return null;
+    }
+
+    private static bool IsPartOfCallChain(MemberAccessExpressionSyntax memberAccess)
+    {
+        // Check if the left side is an invocation or another member access
+        return memberAccess.Expression is InvocationExpressionSyntax or MemberAccessExpressionSyntax;
     }
 }
