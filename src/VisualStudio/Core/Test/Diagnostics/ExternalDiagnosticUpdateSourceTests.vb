@@ -3,8 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.ComponentModel.Composition
-Imports System.IO.Pipelines
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -12,17 +10,14 @@ Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.ServiceHub.Framework
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.RpcContracts.DiagnosticManagement
-Imports Microsoft.VisualStudio.Shell.ServiceBroker
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -30,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     <[UseExportProvider]>
     Public Class ExternalDiagnosticUpdateSourceTests
         Private Shared ReadOnly s_composition As TestComposition = VisualStudioTestCompositions.LanguageServices.AddParts(
-            GetType(TestServiceBroker),
+            GetType(MockServiceBroker),
             GetType(MockServiceProvider),
             GetType(StubVsServiceExporter(Of )),
             GetType(StubVsServiceExporter(Of ,)),
@@ -114,6 +109,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <WpfFact>
         Public Async Function TestExternalDiagnosticsReported() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
+                Dim diagnosticManagerService = New DiagnosticManagerService()
+                workspace.GetService(Of MockServiceBroker)().RegisterService(Of IDiagnosticManagerService)(diagnosticManagerService)
+
                 Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
@@ -121,14 +119,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim service = New TestDiagnosticAnalyzerService()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
-                Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
 
                     source.OnSolutionBuildStarted()
                     Await waiter.ExpeditedWaitAsync()
-                    Assert.True(testServiceBroker.DiagnosticManagerService.AllDiagnosticsCleared)
+                    Assert.True(diagnosticManagerService.AllDiagnosticsCleared)
 
                     Dim diagnostics = {diagnostic, GetDiagnosticData(project.Id)}.ToImmutableArray()
 
@@ -136,7 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.OnSolutionBuildCompleted()
                     Await waiter.ExpeditedWaitAsync()
 
-                    Assert.Equal(2, testServiceBroker.DiagnosticManagerService.AllDiagnostics.Count)
+                    Assert.Equal(2, diagnosticManagerService.AllDiagnostics.Count)
                 End Using
             End Using
         End Function
@@ -150,20 +147,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.Equal(WellKnownDiagnosticTags.Build, value)
 
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
+                Dim diagnosticManagerService = New DiagnosticManagerService()
+                workspace.GetService(Of MockServiceBroker)().RegisterService(Of IDiagnosticManagerService)(diagnosticManagerService)
+
                 Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
                 Dim service = New TestDiagnosticAnalyzerService()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
-                Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
 
                     source.OnSolutionBuildStarted()
                     Await waiter.ExpeditedWaitAsync()
-                    Assert.True(testServiceBroker.DiagnosticManagerService.AllDiagnosticsCleared)
+                    Assert.True(diagnosticManagerService.AllDiagnosticsCleared)
 
                     Dim diagnostic = New DiagnosticData(
                         "id",
@@ -189,6 +188,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <WpfFact>
         Public Async Function TestExternalDiagnostics_AddDuplicatedErrors() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
+                Dim diagnosticManagerService = New DiagnosticManagerService()
+                workspace.GetService(Of MockServiceBroker)().RegisterService(Of IDiagnosticManagerService)(diagnosticManagerService)
+
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
 
@@ -197,14 +199,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim service = New TestDiagnosticAnalyzerService()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
-                Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
 
                     source.OnSolutionBuildStarted()
                     Await waiter.ExpeditedWaitAsync()
-                    Assert.True(testServiceBroker.DiagnosticManagerService.AllDiagnosticsCleared)
+                    Assert.True(diagnosticManagerService.AllDiagnosticsCleared)
 
                     ' we shouldn't crash here
                     source.AddNewErrors(project.Id, s_projectGuid, {diagnostic}.ToImmutableArray())
@@ -213,7 +214,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.OnSolutionBuildCompleted()
                     Await waiter.ExpeditedWaitAsync()
 
-                    Assert.Equal(2, testServiceBroker.DiagnosticManagerService.AllDiagnostics.Count)
+                    Assert.Equal(2, diagnosticManagerService.AllDiagnostics.Count)
                 End Using
             End Using
         End Function
@@ -221,6 +222,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <WpfFact>
         Public Async Function TestCompilerDiagnosticWithoutDocumentId() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
+                Dim diagnosticManagerService = New DiagnosticManagerService()
+                workspace.GetService(Of MockServiceBroker)().RegisterService(Of IDiagnosticManagerService)(diagnosticManagerService)
+
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim analyzer = New CompilationAnalyzer()
                 Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
@@ -235,7 +239,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim service = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
-                Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
@@ -325,34 +328,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Function
 
             Public Function ForceAnalyzeProjectAsync(project As Project, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.ForceAnalyzeProjectAsync
-                Throw New NotImplementedException()
-            End Function
-        End Class
-
-        <PartNotDiscoverable>
-        <Export(GetType(SVsFullAccessServiceBroker))>
-        <Export(GetType(TestServiceBroker))>
-        Private Class TestServiceBroker
-            Implements IServiceBroker
-
-            Friend DiagnosticManagerService As DiagnosticManagerService = New DiagnosticManagerService()
-
-            <ImportingConstructor>
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
-
-            Public Event AvailabilityChanged As EventHandler(Of BrokeredServicesChangedEventArgs) Implements IServiceBroker.AvailabilityChanged
-
-            Public Function GetProxyAsync(Of T As Class)(serviceDescriptor As ServiceRpcDescriptor, Optional options As ServiceActivationOptions = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ValueTask(Of T) Implements IServiceBroker.GetProxyAsync
-                If (GetType(T) Is GetType(IDiagnosticManagerService)) Then
-                    Return New ValueTask(Of T)(Task.FromResult(CType(CType(DiagnosticManagerService, Object), T)))
-                End If
-
-                Throw New InvalidOperationException()
-            End Function
-
-            Public Function GetPipeAsync(serviceMoniker As ServiceMoniker, Optional options As ServiceActivationOptions = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ValueTask(Of IDuplexPipe) Implements IServiceBroker.GetPipeAsync
                 Throw New NotImplementedException()
             End Function
         End Class

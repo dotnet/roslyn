@@ -26,6 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private ReadOnly _fileChangeEx As New MockVsFileChangeEx
 
         Public MockMonitorSelection As IVsMonitorSelection
+        Public MockRunningDocumentTable As New MockVsRunningDocumentTable
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -56,11 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     Return _fileChangeEx
 
                 Case GetType(SVsRunningDocumentTable)
-                    Dim mock = New Mock(Of IVsRunningDocumentTable)
-                    mock.As(Of IVsRunningDocumentTable4)()
-
-                    mock.Setup(Function(m) m.AdviseRunningDocTableEvents(It.IsAny(Of IVsRunningDocTableEvents), It.IsAny(Of UInteger))).Returns(VSConstants.S_OK)
-                    Return mock.Object
+                    Return MockRunningDocumentTable
 
                 Case Else
                     Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")

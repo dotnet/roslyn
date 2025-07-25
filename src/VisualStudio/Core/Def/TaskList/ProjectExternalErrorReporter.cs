@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -45,10 +43,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     public ProjectExternalErrorReporter(ProjectId projectId, Guid projectHierarchyGuid, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
     {
-        Debug.Assert(projectId != null);
-        Debug.Assert(errorCodePrefix != null);
-        Debug.Assert(workspace != null);
-
         _projectId = projectId;
         _projectHierarchyGuid = projectHierarchyGuid;
         _errorCodePrefix = errorCodePrefix;
@@ -83,7 +77,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
 
         var errors = new ExternalError[1];
-        var project = _workspace.CurrentSolution.GetProject(_projectId);
+        var project = _workspace.CurrentSolution.GetRequiredProject(_projectId);
         while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
         {
             var error = errors[0];
@@ -119,21 +113,21 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         return VSConstants.S_OK;
     }
 
-    public int GetErrors(out IVsEnumExternalErrors pErrors)
+    public int GetErrors(out IVsEnumExternalErrors? pErrors)
     {
         pErrors = null;
         Debug.Fail("This is not implemented, because no one called it.");
         return VSConstants.E_NOTIMPL;
     }
 
-    private DocumentId TryGetDocumentId(string filePath)
+    private DocumentId? TryGetDocumentId(string filePath)
     {
         return _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath)
                          .Where(f => f.ProjectId == _projectId)
                          .FirstOrDefault();
     }
 
-    private DiagnosticData TryCreateDocumentDiagnosticItem(ExternalError error)
+    private DiagnosticData? TryCreateDocumentDiagnosticItem(ExternalError error)
     {
         var documentId = TryGetDocumentId(error.bstrFileName);
         if (documentId == null)
@@ -218,8 +212,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
         };
 
-        DocumentId documentId;
-        if (bstrFileName == null || iStartLine < 0 || iStartColumn < 0)
+        DocumentId? documentId;
+        if (iStartLine < 0 || iStartColumn < 0)
         {
             documentId = null;
             iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
@@ -258,7 +252,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     }
 
     private static DiagnosticData GetDiagnosticData(
-        DocumentId documentId,
+        DocumentId? documentId,
         ProjectId projectId,
         Workspace workspace,
         string errorId,
@@ -268,7 +262,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         FileLinePositionSpan unmappedSpan,
         DiagnosticAnalyzerInfoCache analyzerInfoCache)
     {
-        string title, description, category, helpLink;
+        string title, description, category;
+        string? helpLink;
         DiagnosticSeverity defaultSeverity;
         bool isEnabledByDefault;
         ImmutableArray<string> customTags;
@@ -316,7 +311,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         if (workspace.CurrentSolution.GetDocument(documentId) is Document document &&
             document.SupportsSyntaxTree)
         {
-            var tree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
+            var tree = document.GetRequiredSyntaxTreeSynchronously(CancellationToken.None);
             var text = tree.GetText();
             var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
             var location = diagnostic.DataLocation.WithSpan(span, tree);
