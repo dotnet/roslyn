@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -36,7 +34,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
 
     private async Task TestQuickActionNotProvidedAsync(
         string initialMarkup,
-        TestParameters parameters = null)
+        TestParameters? parameters = null)
     {
         var service = new TestPullMemberUpService(null, null);
         var parametersValue = (parameters ?? TestParameters.Default).WithFixProviderData(service);
@@ -3957,11 +3955,11 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
     internal Task TestWithPullMemberDialogAsync(
         string initialMarkUp,
         string expectedResult,
-        IEnumerable<(string name, bool makeAbstract)> selection = null,
-        string destinationName = null,
+        IEnumerable<(string name, bool makeAbstract)>? selection = null,
+        string? destinationName = null,
         int index = 0,
-        TestParameters parameters = null,
-        OptionsCollection options = null)
+        TestParameters? parameters = null,
+        OptionsCollection? options = null)
     {
         var service = new TestPullMemberUpService(selection, destinationName);
 
