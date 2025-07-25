@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -578,7 +579,6 @@ public sealed class ImplementInterfaceCodeFixTests
                     throw new System.NotImplementedException();
                 }
             }
-
             """);
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
@@ -2087,7 +2087,6 @@ public sealed class ImplementInterfaceCodeFixTests
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
@@ -3107,8 +3106,7 @@ index: 1);
             {
                 public event EventHandler E;
             }
-            """,
-            index: 0);
+            """);
 
     [Fact]
     public Task TestImplementEventAbstractly()
@@ -5687,7 +5685,6 @@ class B : IGoo
                     throw new System.NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545922")]
@@ -5775,7 +5772,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")]
@@ -5821,7 +5817,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5863,8 +5858,7 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
-            """, index: 0);
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5882,7 +5876,6 @@ class B : IGoo
 
             {{DisposePattern("protected virtual ", "C", "public void ")}}
             }
-
             """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
@@ -5902,7 +5895,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """, index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
@@ -5946,7 +5938,6 @@ class B : IGoo
             {
                 public abstract void Dispose();
             }
-
             """, index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
@@ -5985,7 +5976,6 @@ class B : IGoo
 
             {{DisposePattern("protected virtual ", "C", "void System.IDisposable.", gcPrefix: "System.")}}
             }
-
             """,
             CodeActionIndex = 3,
 
@@ -6024,7 +6014,7 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-            """, index: 0);
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
     public Task TestImplementIDisposableViaBaseInterface()
@@ -6138,7 +6128,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact]
@@ -6157,7 +6146,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545924")]
@@ -6230,7 +6218,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -6250,7 +6237,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -6270,7 +6256,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -6290,7 +6275,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545940")]
@@ -7030,7 +7014,7 @@ class Goo : [|IComparable|]
                     throw new NotImplementedException();
                 }
             }
-            """, index: 0);
+            """);
 
     [Fact]
     public Task TestImplementInterfaceForIDisposableNonApplicable2()
@@ -7059,7 +7043,7 @@ class Goo : [|IComparable|]
                     throw new NotImplementedException();
                 }
             }
-            """, index: 0);
+            """);
 
     [Fact]
     public Task TestImplementInterfaceForExplicitIDisposableWithSealedClass()
@@ -10054,7 +10038,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -10085,7 +10068,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -10116,7 +10098,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -10185,7 +10166,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -11900,4 +11880,27 @@ class Goo : [|IComparable|]
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79584")]
+    public Task TestImplementIDisposable_DisposePattern_LF_EndOfLine()
+         => new VerifyCS.Test
+         {
+             TestCode = """
+                using System;
+                class C : {|CS0535:IDisposable|}{|CS1513:|}{|CS1514:|}
+                """.Replace("\r\n", "\n"),
+             FixedCode = $$"""
+                using System;
+                class C : IDisposable
+                {
+                    private bool disposedValue;
+
+                {{DisposePattern("protected virtual ", "C", "public void ")}}
+                }
+                """.Replace("\r\n", "\n"),
+             CodeActionIndex = 1,
+             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+             Options = { { FormattingOptions2.NewLine, "\n" } },
+         }.RunAsync();
 }
