@@ -26,7 +26,7 @@ internal interface IRemoteSemanticSearchService
         ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken);
     }
 
-    ValueTask<CompileQueryResult> CompileQueryAsync(string query, CancellationToken cancellationToken);
+    ValueTask<CompileQueryResult> CompileQueryAsync(string query, string referenceAssembliesDir, CancellationToken cancellationToken);
     ValueTask<ExecuteQueryResult> ExecuteQueryAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, CompiledQueryId queryId, CancellationToken cancellationToken);
     ValueTask DiscardQueryAsync(CompiledQueryId queryId, CancellationToken cancellationToken);
 }
@@ -123,7 +123,7 @@ internal static class RemoteSemanticSearchServiceProxy
         }
 
         var result = await client.TryInvokeAsync<IRemoteSemanticSearchService, CompileQueryResult>(
-            (service, cancellationToken) => service.CompileQueryAsync(query, cancellationToken),
+            (service, cancellationToken) => service.CompileQueryAsync(query, SemanticSearchWorkspace.ReferenceAssembliesDirectory, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         return result.Value;
