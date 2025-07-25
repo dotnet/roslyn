@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis
             // Mimic behavior of the native function by the same name.
             static void processSlashes(StringBuilder builder, ReadOnlySpan<char> arg, ref int i)
             {
-                RoslynDebug.Assert(!arg.IsEmpty);
+                RoslynDebug.Assert(arg != null);
                 Debug.Assert(i < arg.Length);
 
                 var slashCount = 0;

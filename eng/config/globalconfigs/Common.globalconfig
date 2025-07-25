@@ -13,6 +13,9 @@ dotnet_diagnostic.CA1052.severity = warning
 # CA2012: Use ValueTasks correctly
 dotnet_diagnostic.CA2012.severity = warning
 
+# CA2265: Do not compare Span<T> to 'null' or 'default'
+dotnet_diagnostic.CA2265.severity = suggestion
+
 # IDE0073: File header
 dotnet_diagnostic.IDE0073.severity = warning
 
