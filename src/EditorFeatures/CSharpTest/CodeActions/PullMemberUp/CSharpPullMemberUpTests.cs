@@ -603,7 +603,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 Uri Endpoint { get; set; }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
@@ -649,7 +649,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 bool TestMethod();
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
@@ -700,7 +700,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 Uri TestMethod();
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
@@ -750,7 +750,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 bool TestMethod(Uri endpoint);
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
@@ -807,7 +807,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 event EventHandler TestEvent;
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
@@ -859,14 +859,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public Uri Endpoint { get; set; }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -899,14 +899,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public Uri Endpoint { get; set; }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -943,14 +943,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public Uri Endpoint { get; set; }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1000,14 +1000,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1047,14 +1047,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                     return Enumerable.Range(0, 5).Sum();
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System.Linq;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1121,7 +1121,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1184,7 +1184,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1239,7 +1239,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1282,14 +1282,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                     return 5;
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System.Linq;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1329,14 +1329,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public Uri Endpoint { get; set; }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1376,14 +1376,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public Uri Endpoint { get; set; }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1429,7 +1429,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                         Count((uri) => uri != null);
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
             using System.Linq;
@@ -1437,7 +1437,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1492,7 +1492,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1888,7 +1888,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -1941,7 +1941,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -2170,7 +2170,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public Other GetOther() => null;
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             namespace X.Y;
             class Derived : A.B.Base
@@ -2523,14 +2523,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                     return new Uri("http://localhost");
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -2572,14 +2572,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                     return endpoint.Equals(localhost);
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -2623,14 +2623,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                     return endpoint1.Equals(endpoint2);
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -2684,14 +2684,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -2725,14 +2725,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public var endpoint = new Uri("http://localhost");
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
@@ -2766,14 +2766,14 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public var range = Enumerable.Range(0, 5);
             }
-                    </Document>
+            </Document>
                     <Document FilePath = "File2.cs">
             using System.Linq;
 
             public class Derived : Base
             {
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
             """);
