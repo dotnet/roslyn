@@ -11,9 +11,13 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
@@ -21,8 +25,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [Export(typeof(VirtualProjectXmlProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
+internal class VirtualProjectXmlProvider(IDiagnosticsRefresher diagnosticRefresher, DotnetCliHelper dotnetCliHelper)
 {
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
+    private readonly Dictionary<string, ImmutableArray<SimpleDiagnostic>> _diagnosticsByFilePath = [];
+
+    internal async ValueTask<ImmutableArray<SimpleDiagnostic>> GetCachedDiagnosticsAsync(string path, CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            _diagnosticsByFilePath.TryGetValue(path, out var diagnostics);
+            return diagnostics;
+        }
+    }
+
+    internal async ValueTask UnloadCachedDiagnosticsAsync(string path)
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            _diagnosticsByFilePath.Remove(path);
+        }
+    }
+
     internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
@@ -70,7 +94,15 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
 
             if (response is RunApiOutput.Project project)
             {
+                using (await _gate.DisposableWaitAsync(cancellationToken))
+                {
+                    _diagnosticsByFilePath.TryGetValue(documentFilePath, out var previousCachedDiagnostics);
+                    _diagnosticsByFilePath[documentFilePath] = project.Diagnostics;
 
+                    // check for difference, and signal to host to update if so.
+                    if (previousCachedDiagnostics.IsDefault || !project.Diagnostics.SequenceEqual(previousCachedDiagnostics))
+                        diagnosticRefresher.RequestWorkspaceRefresh();
+                }
                 return (project.Content, project.Diagnostics);
             }
 
