@@ -71,9 +71,7 @@ namespace Roslyn.Test.PdbUtilities
             internal void FillBuffer(Stream stream, int capacity)
             {
                 MinCapacity(capacity);
-#pragma warning disable CA2022 // Avoid inexact read with 'Stream.Read'
                 stream.Read(_buffer, 0, capacity);
-#pragma warning restore CA2022
                 _offset = 0;
             }
 
@@ -86,9 +84,7 @@ namespace Roslyn.Test.PdbUtilities
                     Array.Copy(_buffer, newBuffer, _buffer.Length);
                     _buffer = newBuffer;
                 }
-#pragma warning disable CA2022 // Avoid inexact read with 'Stream.Read'
                 stream.Read(_buffer, _offset, count);
-#pragma warning restore CA2022
                 _offset += count;
             }
 
@@ -851,9 +847,7 @@ namespace Roslyn.Test.PdbUtilities
 
             internal void Read(byte[] bytes, int offset, int count)
             {
-#pragma warning disable CA2022 // Avoid inexact read with 'Stream.Read'
                 reader.Read(bytes, offset, count);
-#pragma warning restore CA2022
             }
 
             internal int PagesFromSize(int size)
