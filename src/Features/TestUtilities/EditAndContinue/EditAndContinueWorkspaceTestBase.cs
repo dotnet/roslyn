@@ -219,14 +219,28 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static void EndDebuggingSession(DebuggingSession session)
         => session.EndSession(out _);
 
-    internal static async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+    internal static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
         DebuggingSession session,
         Solution solution,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
         var runningProjects = solution.ProjectIds.ToImmutableDictionary(
             keySelector: id => id,
-            elementSelector: id => new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false });
+            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = false, RestartWhenChangesHaveNoEffect = false });
+
+        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
+        return (result.ModuleUpdates, result.Diagnostics.OrderBy(d => d.ProjectId.DebugName).ToImmutableArray().ToDiagnosticData(solution));
+    }
+
+    internal static async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+        DebuggingSession session,
+        Solution solution,
+        bool allowPartialUpdate,
+        ActiveStatementSpanProvider? activeStatementSpanProvider = null)
+    {
+        var runningProjects = solution.ProjectIds.ToImmutableDictionary(
+            keySelector: id => id,
+            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = allowPartialUpdate, RestartWhenChangesHaveNoEffect = false });
 
         var results = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
 
@@ -235,14 +249,26 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         Assert.Equal(hasTransientError, results.ProjectsToRestart.Any());
         Assert.Equal(hasTransientError, results.ProjectsToRebuild.Any());
 
+        if (!allowPartialUpdate)
+        {
+            // No updates should be produced if transient error is reported:
+            Assert.True(!hasTransientError || results.ModuleUpdates.Updates.IsEmpty);
+        }
+
         return results;
     }
 
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
+        => actual.Select(InspectDiagnostic);
+
+    internal static string InspectDiagnostic(DiagnosticData diagnostic)
+        => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
+
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<ProjectDiagnostics> actual)
-        => actual.SelectMany(pd => pd.Diagnostics.Select(d => $"{pd.ProjectId.DebugName}: {InspectDiagnostic(d)}")).Order();
+        => actual.SelectMany(pd => pd.Diagnostics.Select(d => $"{pd.ProjectId.DebugName}: {InspectDiagnostic(d)}"));
 
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> diagnostics)
-        => diagnostics.SelectMany(pd => pd.diagnostics.Select(d => $"{pd.project.DebugName}: {InspectDiagnostic(d)}")).Order();
+        => diagnostics.SelectMany(pd => pd.diagnostics.Select(d => $"{pd.project.DebugName}: {InspectDiagnostic(d)}"));
 
     internal static string InspectDiagnostic(Diagnostic actual)
         => $"{Inspect(actual.Location)}: {actual.Severity} {actual.Id}: {actual.GetMessage()}";

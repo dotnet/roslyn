@@ -51,6 +51,9 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
         (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
+    private static readonly ImmutableArray<Update> EmptyUpdate = [];
+    private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = [];
+
     private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
     private DebuggingSessionId _sessionId;
 
@@ -92,10 +95,10 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
         var results = await _encService
-            .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_solutionActiveStatementSpanProvider, cancellationToken)
+            .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_solutionActiveStatementSpanProvider, cancellationToken)
             .ConfigureAwait(false);
 
-        if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        if (!results.ModuleUpdates.Updates.IsEmpty)
         {
             if (commitUpdates)
             {
@@ -107,10 +110,11 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
             }
         }
 
-        var diagnostics = results.GetAllDiagnostics();
-        if (diagnostics.HasAnyErrors())
+        if (results.SyntaxError is not null)
         {
-            return ([], diagnostics);
+            // We do not need to acquire any updates or other
+            // diagnostics if there is a syntax error.
+            return (EmptyUpdate, EmptyDiagnostic.Add(results.SyntaxError));
         }
 
         var updates = results.ModuleUpdates.Updates.SelectAsArray(
@@ -121,6 +125,8 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
                 update.PdbDelta,
                 update.UpdatedMethods,
                 update.UpdatedTypes));
+
+        var diagnostics = results.GetAllDiagnostics();
 
         return (updates, diagnostics);
     }

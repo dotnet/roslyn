@@ -957,7 +957,7 @@ internal sealed class EditSession
         Solution solution,
         ActiveStatementSpanProvider solutionActiveStatementSpanProvider,
         UpdateId updateId,
-        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         CancellationToken cancellationToken)
     {
         var projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
