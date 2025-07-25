@@ -2575,7 +2575,6 @@ public sealed class ConvertPrimaryToRegularConstructorTests
                     {
                     }
                 }
-
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
