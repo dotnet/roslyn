@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Cci.INestedTypeDefinition>.CastUp(_lazyGroupingTypes);
         }
 
-
         public Cci.ITypeDefinition GetCorrespondingMarkerType(SynthesizedExtensionMarker markerMethod)
         {
             return GetCorrespondingMarkerType((SourceNamedTypeSymbol)markerMethod.ContainingType);
