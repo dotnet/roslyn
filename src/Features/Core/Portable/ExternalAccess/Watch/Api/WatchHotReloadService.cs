@@ -114,17 +114,22 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         /// Updates to be applied to modules. Empty if there are blocking rude edits.
         /// Only updates to projects that are not included in <see cref="ProjectsToRebuild"/> are listed.
         /// </summary>
-        public ImmutableArray<Update> ProjectUpdates { get; init; }
+        public required ImmutableArray<Update> ProjectUpdates { get; init; }
 
         /// <summary>
         /// Running projects that need to be restarted due to rude edits in order to apply changes.
         /// </summary>
-        public ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart { get; init; }
+        public required ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart { get; init; }
 
         /// <summary>
         /// Projects with changes that need to be rebuilt in order to apply changes.
         /// </summary>
-        public ImmutableArray<ProjectId> ProjectsToRebuild { get; init; }
+        public required ImmutableArray<ProjectId> ProjectsToRebuild { get; init; }
+
+        /// <summary>
+        /// Projects whose dependencies need to be deployed to their output directory, if not already present.
+        /// </summary>
+        public required ImmutableArray<ProjectId> ProjectsToRedeploy { get; init; }
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
@@ -186,9 +191,6 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     public static string? GetTargetFramework(Project project)
         => project.State.NameAndFlavor.flavor;
 
-    // TODO: remove, for backwards compat only
-    public static bool RequireCommit { get; set; }
-
     /// <summary>
     /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or
     /// the one passed to <see cref="StartSessionAsync(Solution, CancellationToken)"/> for the first invocation.
@@ -206,20 +208,12 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
 
         var runningProjectsImpl = runningProjects.ToImmutableDictionary(
             static e => e.Key,
-            static e => new EditAndContinue.RunningProjectInfo()
+            static e => new RunningProjectOptions()
             {
-                RestartWhenChangesHaveNoEffect = e.Value.RestartWhenChangesHaveNoEffect,
-                AllowPartialUpdate = RequireCommit
+                RestartWhenChangesHaveNoEffect = e.Value.RestartWhenChangesHaveNoEffect
             });
 
         var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjectsImpl, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-        // If the changes fail to apply dotnet-watch fails.
-        // We don't support discarding the changes and letting the user retry.
-        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready && results.ProjectsToRebuild.IsEmpty)
-        {
-            _encService.CommitSolutionUpdate(sessionId);
-        }
 
         return new Updates2
         {
@@ -241,7 +235,8 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
                 update.UpdatedTypes,
                 update.RequiredCapabilities)),
             ProjectsToRestart = results.ProjectsToRestart,
-            ProjectsToRebuild = results.ProjectsToRebuild
+            ProjectsToRebuild = results.ProjectsToRebuild,
+            ProjectsToRedeploy = results.ProjectsToRedeploy,
         };
     }
 
@@ -255,12 +250,6 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     {
         var sessionId = GetDebuggingSession();
         _encService.DiscardSolutionUpdate(sessionId);
-    }
-
-    public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> projectIds)
-    {
-        var sessionId = GetDebuggingSession();
-        _encService.UpdateBaselines(sessionId, solution, projectIds);
     }
 
     public void EndSession()

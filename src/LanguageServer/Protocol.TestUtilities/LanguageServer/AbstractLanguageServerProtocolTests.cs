@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -326,7 +327,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         return CreateTestLspServerAsync(workspace, lspOptions, languageName);
     }
 
-    private async Task<TestLspServer> CreateTestLspServerAsync(LspTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
+    private protected async Task<TestLspServer> CreateTestLspServerAsync(LspTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
     {
         var solution = workspace.CurrentSolution;
 
@@ -363,7 +364,11 @@ public abstract partial class AbstractLanguageServerProtocolTests
             composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true), supportsLspMutation: mutatingLspWorkspace);
         options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
-        workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
+        // By default, workspace event listeners are disabled in tests.  Explicitly enable the LSP workspace registration event listener
+        // to ensure that the lsp workspace registration service sees all workspaces.
+        var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+        var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
+        listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
 
         return workspace;
     }
@@ -606,10 +611,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
             // Initialize the language server
             _ = _languageServer.Value;
 
-            // Workspace listener events do not run in tests, so we manually register the lsp misc workspace.
-            // This must be done after the language server is created in order to access the misc workspace off of the LSP workspace manager.
-            TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
-
             if (_initializationOptions.CallInitialize)
             {
                 _initializeResult = await this.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
@@ -850,9 +851,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async ValueTask DisposeAsync()
         {
-            TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(TestWorkspace);
-            TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
-
             // Some tests will manually call shutdown and exit, so attempting to call this during dispose
             // will fail as the server's jsonrpc instance will be disposed of.
             if (!_languageServer.Value.GetTestAccessor().HasShutdownStarted())
