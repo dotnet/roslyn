@@ -2846,19 +2846,33 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 
         protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
-            if (ExecutionConditionUtil.IsCoreClr)
+            switch (targetFramework)
             {
-                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
-            }
-            else
-            {
-                var reference = CreateCompilation(new[] { TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+                case TargetFramework.Empty:
+                case TargetFramework.NetStandard20:
+                case TargetFramework.NetFramework:
+                case TargetFramework.Standard:
+                case TargetFramework.StandardAndCSharp:
+                case TargetFramework.StandardAndVBRuntime:
+                case TargetFramework.WinRT:
+                case >= TargetFramework.Mscorlib40 and <= TargetFramework.Mscorlib461AndVBRuntime:
+                case TargetFramework.Minimal:
+                case TargetFramework.MinimalAsync:
+                    var reference = CreateCompilation([TestSources.Span, TestSources.MemoryExtensions], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
-                return CreateCompilation(
-                    text,
-                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
-                    options: options,
-                    parseOptions: parseOptions);
+                    return CreateCompilation(
+                        text,
+                        references: [reference.EmitToImageReference()],
+                        options: options,
+                        parseOptions: parseOptions);
+
+                case TargetFramework.NetCoreApp:
+                case TargetFramework.NetLatest:
+                case >= TargetFramework.Net50 and <= TargetFramework.Net90:
+                    return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(targetFramework), targetFramework, "Unsupported target framework for span and memory extensions compilation.");
             }
         }
 

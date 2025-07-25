@@ -9370,8 +9370,7 @@ static class Program
     }
     static void Deconstruct(this Span<int> s, out R2 x, out R1 y) => throw null;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
+            var expectedDiagnostics = new[] {
                 // (20,9): error CS8352: Cannot use variable '(x, (y, z2)) = s' in this context because it may expose referenced variables outside of their declaration scope
                 //         (x, (y, z2)) = s; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(20, 9),
@@ -9383,7 +9382,13 @@ static class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(z2, (y, z1)) = s").WithArguments("(z2, (y, z1)) = s").WithLocation(21, 9),
                 // (21,25): error CS8350: This combination of arguments to 'Program.Deconstruct(Span<int>, out R2, out R1)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         (z2, (y, z1)) = s; // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("Program.Deconstruct(System.Span<int>, out R2, out R1)", "s").WithLocation(21, 25));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("Program.Deconstruct(System.Span<int>, out R2, out R1)", "s").WithLocation(21, 25)
+            };
+
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetFramework);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Theory]
