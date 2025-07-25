@@ -24,12 +24,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is NamespaceBlockSyntax
         End Function
 
+        Public Overrides Function IsTypeDeclaration(node As SyntaxNode) As Boolean
+            Return TypeOf node Is TypeStatementSyntax
+        End Function
+
         Public Overrides Function IsAttribute(node As SyntaxNode) As Boolean
             Return TypeOf node Is AttributeSyntax
         End Function
 
         Public Overrides Function GetNameOfAttribute(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, AttributeSyntax).Name
+        End Function
+
+        Public Overrides Function DoesAttributeHaveMethodTarget(node As SyntaxNode) As Boolean
+            ' VB only supports assembly and module targets, not method.
+            Return False
         End Function
 
         Public Overrides Function IsAttributeList(node As SyntaxNode) As Boolean

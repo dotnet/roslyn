@@ -25,11 +25,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsAnyNamespaceBlock(SyntaxNode node)
             => node is BaseNamespaceDeclarationSyntax;
 
+        public override bool IsTypeDeclaration(SyntaxNode node)
+            => node is TypeDeclarationSyntax;
+
         public override bool IsAttribute(SyntaxNode node)
             => node is AttributeSyntax;
 
         public override SyntaxNode GetNameOfAttribute(SyntaxNode node)
             => ((AttributeSyntax)node).Name;
+
+        public override bool DoesAttributeHaveMethodTarget(SyntaxNode node)
+        {
+            var list = ((AttributeSyntax)node).FirstAncestorOrSelf<AttributeListSyntax>();
+
+            if (list != null && list.Target != null)
+                return list.Target.Identifier.IsKind(SyntaxKind.MethodKeyword);
+
+            return false;
+        }
 
         public override bool IsAttributeList(SyntaxNode node)
             => node is AttributeListSyntax;
