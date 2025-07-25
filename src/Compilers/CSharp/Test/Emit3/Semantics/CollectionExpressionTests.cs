@@ -15479,7 +15479,7 @@ partial class Program
         }
 
         // As above, but with TargetFramework.NetFramework.
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void CollectionBuilder_02B()
         {
             string sourceA = """
@@ -15532,7 +15532,7 @@ partial class Program
                     var type = module.GlobalNamespace.GetTypeMembers("<>y__InlineArray3").SingleOrDefault();
                     Assert.Null(type);
                 },
-                expectedOutput: ExecutionConditionUtil.IsDesktop ? "[1, 2, null], " : null);
+                expectedOutput: "[1, 2, null], ");
             verifier.VerifyIL("Program.F",
                 """
                 {
