@@ -35,7 +35,8 @@
       "Microsoft.NETCore.App.Runtime.win-{arch}"
       "Microsoft.WindowsDesktop.App.Runtime.win-{arch}"
     -->    
-    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />    
+    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" />
   </ItemGroup>
   
   <Target Name="CalculateCrossgenInputs" DependsOnTargets="PublishItemsOutputGroup">  
@@ -66,6 +67,7 @@
       <_R2RAssemblies Include="Microsoft.VisualStudio.Composition.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Telemetry.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Threading.dll" />
+      <_R2RAssemblies Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch.dll" />
       <_R2RAssemblies Include="MessagePack.dll" />
       <_R2RAssemblies Include="Nerdback.Streams.dll" />
       <_R2RAssemblies Include="Newtonsoft.Json.dll" />
