@@ -523,7 +523,7 @@ internal sealed class DebuggingSession : IDisposable
 
     public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         Solution solution,
-        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -536,6 +536,8 @@ internal sealed class DebuggingSession : IDisposable
 
         var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, updateId, runningProjects, cancellationToken).ConfigureAwait(false);
 
+        var allowPartialUpdates = runningProjects.Any(p => p.Value.AllowPartialUpdate);
+
         solutionUpdate.Log(SessionLog, updateId);
         _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
@@ -547,13 +549,29 @@ internal sealed class DebuggingSession : IDisposable
                 // We have updates to be applied or processes to restart. The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
 
-                StorePendingUpdate(new PendingSolutionUpdate(
-                    solution,
-                    solutionUpdate.StaleProjects,
-                    solutionUpdate.ProjectsToRebuild,
-                    solutionUpdate.ProjectBaselines,
-                    solutionUpdate.ModuleUpdates.Updates,
-                    solutionUpdate.NonRemappableRegions));
+                if (allowPartialUpdates)
+                {
+                    StorePendingUpdate(new PendingSolutionUpdate(
+                        solution,
+                        solutionUpdate.StaleProjects,
+                        solutionUpdate.ProjectsToRebuild,
+                        solutionUpdate.ProjectBaselines,
+                        solutionUpdate.ModuleUpdates.Updates,
+                        solutionUpdate.NonRemappableRegions));
+                }
+                else if (solutionUpdate.ProjectsToRebuild.IsEmpty)
+                {
+                    // no rude edits
+
+                    StorePendingUpdate(new PendingSolutionUpdate(
+                        solution,
+                        solutionUpdate.StaleProjects,
+                        // if partial updates are not allowed we don't treat rebuild as part of solution update:
+                        projectsToRebuild: [],
+                        solutionUpdate.ProjectBaselines,
+                        solutionUpdate.ModuleUpdates.Updates,
+                        solutionUpdate.NonRemappableRegions));
+                }
 
                 break;
 
@@ -576,7 +594,10 @@ internal sealed class DebuggingSession : IDisposable
         return new EmitSolutionUpdateResults()
         {
             Solution = solution,
-            ModuleUpdates = solutionUpdate.ModuleUpdates,
+            // If partial updates are disabled the debugger does not expect module updates when rude edits are reported:
+            ModuleUpdates = allowPartialUpdates || solutionUpdate.ProjectsToRebuild.IsEmpty
+                ? solutionUpdate.ModuleUpdates
+                : new ModuleUpdates(solutionUpdate.ModuleUpdates.Status, []),
             Diagnostics = solutionUpdate.Diagnostics,
             SyntaxError = solutionUpdate.SyntaxError,
             ProjectsToRestart = solutionUpdate.ProjectsToRestart,
@@ -681,6 +702,36 @@ internal sealed class DebuggingSession : IDisposable
                 SessionLog.Write($"Baselines discarded: {solution.GetRequiredProject(projectId).GetLogDisplay()}.");
             }
         }
+    }
+
+    // TODO: remove once the debugger implements https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2459003
+    public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> rebuiltProjects)
+    {
+        ThrowIfDisposed();
+
+        // Make sure the solution snapshot has all source-generated documents up-to-date.
+        solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
+
+        LastCommittedSolution.CommitChanges(solution, staleProjects: null, projectsToUnstale: rebuiltProjects);
+
+        // Wait for all operations on baseline to finish before we dispose the readers.
+
+        _baselineContentAccessLock.EnterWriteLock();
+
+        lock (_projectEmitBaselinesGuard)
+        {
+            DiscardProjectBaselinesNoLock(solution, rebuiltProjects);
+        }
+
+        _baselineContentAccessLock.ExitWriteLock();
+
+        foreach (var projectId in rebuiltProjects)
+        {
+            _editSessionTelemetry.LogUpdatedBaseline(solution.GetRequiredProject(projectId).State.ProjectInfo.Attributes.TelemetryId);
+        }
+
+        // Restart edit session reusing previous non-remappable regions and break state:
+        RestartEditSession(nonRemappableRegions: null, inBreakState: null);
     }
 
     /// <summary>

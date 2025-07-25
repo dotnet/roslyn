@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,13 +23,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Export(typeof(IManagedHotReloadLanguageService))]
 [Export(typeof(IManagedHotReloadLanguageService2))]
-[Export(typeof(IManagedHotReloadLanguageService3))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class ManagedHotReloadLanguageService(
     IServiceBrokerProvider serviceBrokerProvider,
     IEditAndContinueService encService,
-    SolutionSnapshotRegistry solutionSnapshotRegistry) : IManagedHotReloadLanguageService3
+    SolutionSnapshotRegistry solutionSnapshotRegistry) : IManagedHotReloadLanguageService2
 {
     private sealed class PdbMatchingSourceTextProvider : IPdbMatchingSourceTextProvider
     {
@@ -156,9 +156,34 @@ internal sealed partial class ManagedHotReloadLanguageService(
         return ValueTask.CompletedTask;
     }
 
-    [Obsolete]
-    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    public async ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+    {
+        if (_disabled)
+        {
+            return;
+        }
+
+        try
+        {
+            Contract.ThrowIfNull(_debuggingSession);
+
+            var currentDesignTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
+            var currentCompileTimeSolution = GetCurrentCompileTimeSolution(currentDesignTimeSolution);
+
+            _committedDesignTimeSolution = currentDesignTimeSolution;
+
+            var projectIds = from path in projectPaths
+                             let projectId = currentCompileTimeSolution.Projects.FirstOrDefault(project => project.FilePath == path)?.Id
+                             where projectId != null
+                             select projectId;
+
+            encService.UpdateBaselines(_debuggingSession.Value, currentCompileTimeSolution, [.. projectIds]);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            Disable();
+        }
+    }
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
     {
@@ -244,15 +269,10 @@ internal sealed partial class ManagedHotReloadLanguageService(
         }
     }
 
-    [Obsolete]
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+        => GetUpdatesAsync(runningProjects: [], cancellationToken);
 
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
-
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
@@ -265,17 +285,24 @@ internal sealed partial class ManagedHotReloadLanguageService(
 
             var designTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             var solution = GetCurrentCompileTimeSolution(designTimeSolution);
-            var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
+
+            using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
+            runningProjectPaths.AddAll(runningProjects);
+
+            // TODO: Update once implemented: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2449700
+            var runningProjectInfos = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).ToImmutableDictionary(
+                keySelector: static p => p.Id,
+                elementSelector: static p => new RunningProjectInfo { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
 
             EmitSolutionUpdateResults.Data results;
 
             try
             {
-                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectOptions, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
+                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectInfos, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                results = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjectOptions);
+                results = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjectInfos);
             }
 
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
@@ -287,15 +314,11 @@ internal sealed partial class ManagedHotReloadLanguageService(
             return new ManagedHotReloadUpdates(
                 results.ModuleUpdates.Updates,
                 results.GetAllDiagnostics(),
-                ToProjectIntanceIds(results.ProjectsToRebuild),
-                ToProjectIntanceIds(results.ProjectsToRestart.Keys));
+                GetProjectPaths(results.ProjectsToRebuild),
+                GetProjectPaths(results.ProjectsToRestart.Keys));
 
-            ImmutableArray<ProjectInstanceId> ToProjectIntanceIds(IEnumerable<ProjectId> ids)
-                => ids.SelectAsArray(id =>
-                {
-                    var project = solution.GetRequiredProject(id);
-                    return new ProjectInstanceId(project.FilePath!, project.State.NameAndFlavor.flavor ?? "");
-                });
+            ImmutableArray<string> GetProjectPaths(IEnumerable<ProjectId> ids)
+                => ids.SelectAsArray(id => solution.GetRequiredProject(id).FilePath!);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {

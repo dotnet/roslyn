@@ -78,7 +78,7 @@ internal readonly struct EmitSolutionUpdateResults
             return builder.ToImmutableAndClear();
         }
 
-        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects)
+        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects)
         {
             ImmutableArray<DiagnosticData> diagnostics = [];
             var firstProject = solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First();
@@ -200,7 +200,7 @@ internal readonly struct EmitSolutionUpdateResults
         ImmutableArray<ManagedHotReloadUpdate> moduleUpdates,
         ImmutableArray<ProjectDiagnostics> diagnostics,
         IReadOnlyCollection<ProjectId> addedUnbuiltProjects,
-        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         out ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
         out ImmutableArray<ProjectId> projectsToRebuild)
     {
@@ -279,7 +279,26 @@ internal readonly struct EmitSolutionUpdateResults
         // At this point the restart set contains all running projects transitively affected by rude edits.
         // Next, find projects that were successfully updated and affect running projects.
 
-        if (!moduleUpdates.IsEmpty && projectsToRebuildBuilder.Count > 0)
+        // Remove once https://github.com/dotnet/roslyn/issues/78244 is implemented.
+        if (!runningProjects.Any(static p => p.Value.AllowPartialUpdate))
+        {
+            // Partial solution update not supported.
+            if (projectsToRestartBuilder.Any())
+            {
+                foreach (var update in moduleUpdates)
+                {
+                    foreach (var ancestor in GetAncestorsAndSelf(update.ProjectId))
+                    {
+                        if (runningProjects.ContainsKey(ancestor))
+                        {
+                            projectsToRebuildBuilder.TryAdd(ancestor, []);
+                            projectsToRestartBuilder.Add(ancestor);
+                        }
+                    }
+                }
+            }
+        }
+        else if (!moduleUpdates.IsEmpty && projectsToRebuildBuilder.Count > 0)
         {
             // The set of updated projects is usually much smaller than the number of all projects in the solution.
             // We iterate over this set updating the restart set until no new project is added to the restart set.

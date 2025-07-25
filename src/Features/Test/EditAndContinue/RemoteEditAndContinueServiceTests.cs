@@ -176,9 +176,9 @@ public sealed class RemoteEditAndContinueServiceTests
 
         var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
-        var runningProjects1 = new Dictionary<ProjectId, RunningProjectOptions>
+        var runningProjects1 = new Dictionary<ProjectId, RunningProjectInfo>
         {
-            { project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = true } }
+            { project.Id, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true, AllowPartialUpdate = true} }
         }.ToImmutableDictionary();
 
         mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, activeStatementSpanProvider) =>

@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 [DataContract]
-internal readonly struct ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate> updates, ImmutableArray<ManagedHotReloadDiagnostic> diagnostics, ImmutableArray<ProjectInstanceId> projectsToRebuild, ImmutableArray<ProjectInstanceId> projectsToRestart)
+internal readonly struct ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate> updates, ImmutableArray<ManagedHotReloadDiagnostic> diagnostics, ImmutableArray<string> projectsToRebuild, ImmutableArray<string> projectsToRestart)
 {
     [DataMember(Name = "updates")]
     public ImmutableArray<ManagedHotReloadUpdate> Updates { get; } = updates;
@@ -17,8 +17,8 @@ internal readonly struct ManagedHotReloadUpdates(ImmutableArray<ManagedHotReload
     public ImmutableArray<ManagedHotReloadDiagnostic> Diagnostics { get; } = diagnostics;
 
     [DataMember(Name = "projectsToRebuild")]
-    public ImmutableArray<ProjectInstanceId> ProjectsToRebuild { get; } = projectsToRebuild;
+    public ImmutableArray<string> ProjectsToRebuild { get; } = projectsToRebuild;
 
     [DataMember(Name = "projectsToRestart")]
-    public ImmutableArray<ProjectInstanceId> ProjectsToRestart { get; } = projectsToRestart;
+    public ImmutableArray<string> ProjectsToRestart { get; } = projectsToRestart;
 }

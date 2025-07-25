@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [ExportBrokeredService(ManagedHotReloadLanguageServiceDescriptor.MonikerName, ManagedHotReloadLanguageServiceDescriptor.ServiceVersion, Audience = ServiceAudience.Local)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService3 service) : IManagedHotReloadLanguageService3, IExportedBrokeredService
+internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService2 service) : IManagedHotReloadLanguageService2, IExportedBrokeredService
 {
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor
         => ManagedHotReloadLanguageServiceDescriptor.Descriptor;
@@ -41,23 +41,17 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
         => service.OnCapabilitiesChangedAsync(cancellationToken);
 
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false)).FromContract();
 
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
-
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
-        => (await service.GetUpdatesAsync(runningProjects.SelectAsArray(static info => info.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+        => (await service.GetUpdatesAsync(runningProjects, cancellationToken).ConfigureAwait(false)).FromContract();
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => service.CommitUpdatesAsync(cancellationToken);
 
-    [Obsolete]
     public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+        => service.UpdateBaselinesAsync(projectPaths, cancellationToken);
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         => service.DiscardUpdatesAsync(cancellationToken);
