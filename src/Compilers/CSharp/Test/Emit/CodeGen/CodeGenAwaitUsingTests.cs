@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -238,7 +238,7 @@ class C : System.IAsyncDisposable
                   .try
                   {
                     IL_0008:  ldstr      "body "
-                    IL_000d:  call       "void System.Console.Write(object)"
+                    IL_000d:  call       "void System.Console.Write(string)"
                     IL_0012:  leave.s    IL_0017
                   }
                   catch object
@@ -262,7 +262,7 @@ class C : System.IAsyncDisposable
                   IL_0033:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0038:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003d:  ldstr      "end"
-                  IL_0042:  call       "void System.Console.Write(object)"
+                  IL_0042:  call       "void System.Console.Write(string)"
                   IL_0047:  ret
                 }
                 """);
@@ -477,7 +477,7 @@ class C : System.IAsyncDisposable
                   .try
                   {
                     IL_0002:  ldstr      "try "
-                    IL_0007:  call       "void System.Console.Write(object)"
+                    IL_0007:  call       "void System.Console.Write(string)"
                     IL_000c:  newobj     "System.ArgumentNullException..ctor()"
                     IL_0011:  throw
                   }
@@ -498,7 +498,7 @@ class C : System.IAsyncDisposable
                   .try
                   {
                     IL_0023:  ldstr      "using "
-                    IL_0028:  call       "void System.Console.Write(object)"
+                    IL_0028:  call       "void System.Console.Write(string)"
                     IL_002d:  leave.s    IL_0032
                   }
                   catch object
@@ -522,7 +522,7 @@ class C : System.IAsyncDisposable
                   IL_004e:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0053:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_0058:  ldstr      "end"
-                  IL_005d:  call       "void System.Console.Write(object)"
+                  IL_005d:  call       "void System.Console.Write(string)"
                   IL_0062:  ret
                 }
                 """);
@@ -648,7 +648,7 @@ class C : System.IAsyncDisposable
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x67, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x67, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
                     """
             });
@@ -677,7 +677,7 @@ class C : System.IAsyncDisposable
                   .try
                   {
                     IL_000f:  ldstr      "using "
-                    IL_0014:  call       "void System.Console.Write(object)"
+                    IL_0014:  call       "void System.Console.Write(string)"
                     IL_0019:  leave.s    IL_001e
                   }
                   catch object
@@ -711,7 +711,7 @@ class C : System.IAsyncDisposable
                   IL_0052:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0057:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_005c:  ldstr      "return"
-                  IL_0061:  call       "void System.Console.Write(object)"
+                  IL_0061:  call       "void System.Console.Write(string)"
                   IL_0066:  ldc.i4.1
                   IL_0067:  ret
                 }
@@ -779,7 +779,7 @@ class C : System.IAsyncDisposable
                     .try
                     {
                       IL_0008:  ldstr      "using "
-                      IL_000d:  call       "void System.Console.Write(object)"
+                      IL_000d:  call       "void System.Console.Write(string)"
                       IL_0012:  leave.s    IL_0017
                     }
                     catch object
@@ -811,11 +811,11 @@ class C : System.IAsyncDisposable
                     IL_0045:  ldloc.2
                     IL_0046:  callvirt   "string System.Exception.Message.get"
                     IL_004b:  call       "string string.Concat(string, string)"
-                    IL_0050:  call       "void System.Console.Write(object)"
+                    IL_0050:  call       "void System.Console.Write(string)"
                     IL_0055:  leave.s    IL_0061
                   }
                   IL_0057:  ldstr      "SKIPPED"
-                  IL_005c:  call       "void System.Console.Write(object)"
+                  IL_005c:  call       "void System.Console.Write(string)"
                   IL_0061:  ret
                 }
                 """);
@@ -853,7 +853,7 @@ class C
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x58, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x58, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -875,7 +875,7 @@ class C
                     IL_0005:  leave.s    IL_0007
                   }
                   IL_0007:  ldstr      "before "
-                  IL_000c:  call       "void System.Console.Write(object)"
+                  IL_000c:  call       "void System.Console.Write(string)"
                   IL_0011:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
                   IL_0016:  stloc.2
                   IL_0017:  ldloca.s   V_2
@@ -889,7 +889,7 @@ class C
                   IL_002e:  ldloca.s   V_1
                   IL_0030:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
                   IL_0035:  ldstr      "after"
-                  IL_003a:  call       "void System.Console.Write(object)"
+                  IL_003a:  call       "void System.Console.Write(string)"
                   IL_003f:  ldloc.0
                   IL_0040:  brfalse.s  IL_0057
                   IL_0042:  ldloc.0
@@ -1241,7 +1241,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -1261,7 +1261,7 @@ class C : System.IAsyncDisposable, System.IDisposable
                   .try
                   {
                     IL_000a:  ldstr      "body "
-                    IL_000f:  call       "void System.Console.Write(object)"
+                    IL_000f:  call       "void System.Console.Write(string)"
                     IL_0014:  ldc.i4.1
                     IL_0015:  stloc.3
                     IL_0016:  ldc.i4.1
@@ -1716,7 +1716,7 @@ class C : System.IAsyncDisposable
                   .try
                   {
                     IL_000a:  ldstr      "body "
-                    IL_000f:  call       "void System.Console.Write(object)"
+                    IL_000f:  call       "void System.Console.Write(string)"
                     IL_0014:  ldc.i4.1
                     IL_0015:  stloc.2
                     IL_0016:  leave.s    IL_001b
@@ -1951,7 +1951,7 @@ class C : System.IAsyncDisposable
                   .try
                   {
                     IL_000a:  ldstr      "body "
-                    IL_000f:  call       "void System.Console.Write(object)"
+                    IL_000f:  call       "void System.Console.Write(string)"
                     IL_0014:  ldc.i4.1
                     IL_0015:  stloc.2
                     IL_0016:  leave.s    IL_001b
@@ -2187,7 +2187,7 @@ class C
                   .try
                   {
                     IL_000a:  ldstr      "body "
-                    IL_000f:  call       "void System.Console.Write(object)"
+                    IL_000f:  call       "void System.Console.Write(string)"
                     IL_0014:  ldc.i4.1
                     IL_0015:  stloc.2
                     IL_0016:  leave.s    IL_001b
@@ -2256,7 +2256,7 @@ class C
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  ldstr      "body"
-                  IL_0005:  call       "void System.Console.Write(object)"
+                  IL_0005:  call       "void System.Console.Write(string)"
                   IL_000a:  ret
                 }
                 """);
@@ -2522,7 +2522,7 @@ struct S : System.IAsyncDisposable
                   .try
                   {
                     IL_000c:  ldstr      "body "
-                    IL_0011:  call       "void System.Console.Write(object)"
+                    IL_0011:  call       "void System.Console.Write(string)"
                     IL_0016:  ldc.i4.1
                     IL_0017:  stloc.2
                     IL_0018:  leave.s    IL_001d
@@ -2749,7 +2749,7 @@ struct S : System.IAsyncDisposable
                   .try
                   {
                     IL_000c:  ldstr      "body "
-                    IL_0011:  call       "void System.Console.Write(object)"
+                    IL_0011:  call       "void System.Console.Write(string)"
                     IL_0016:  ldc.i4.1
                     IL_0017:  stloc.2
                     IL_0018:  leave.s    IL_001d
@@ -2927,7 +2927,7 @@ struct S : System.IAsyncDisposable
                   .try
                   {
                     IL_0013:  ldstr      "body "
-                    IL_0018:  call       "void System.Console.Write(object)"
+                    IL_0018:  call       "void System.Console.Write(string)"
                     IL_001d:  ldc.i4.1
                     IL_001e:  stloc.3
                     IL_001f:  leave.s    IL_0024
@@ -2938,10 +2938,10 @@ struct S : System.IAsyncDisposable
                     IL_0022:  leave.s    IL_0024
                   }
                   IL_0024:  ldloca.s   V_1
-                  IL_0026:  call       "bool S?.HasValue.get"
+                  IL_0026:  call       "readonly bool S?.HasValue.get"
                   IL_002b:  brfalse.s  IL_0047
                   IL_002d:  ldloca.s   V_1
-                  IL_002f:  call       "S S?.GetValueOrDefault()"
+                  IL_002f:  call       "readonly S S?.GetValueOrDefault()"
                   IL_0034:  stloc.0
                   IL_0035:  ldloca.s   V_0
                   IL_0037:  constrained. "S"
@@ -3021,7 +3021,7 @@ struct S : System.IAsyncDisposable
                   .try
                   {
                     IL_000e:  ldstr      "body"
-                    IL_0013:  call       "void System.Console.Write(object)"
+                    IL_0013:  call       "void System.Console.Write(string)"
                     IL_0018:  ldc.i4.1
                     IL_0019:  stloc.2
                     IL_001a:  leave.s    IL_001f
@@ -3032,10 +3032,10 @@ struct S : System.IAsyncDisposable
                     IL_001d:  leave.s    IL_001f
                   }
                   IL_001f:  ldloca.s   V_0
-                  IL_0021:  call       "bool S?.HasValue.get"
+                  IL_0021:  call       "readonly bool S?.HasValue.get"
                   IL_0026:  brfalse.s  IL_0042
                   IL_0028:  ldloca.s   V_0
-                  IL_002a:  call       "S S?.GetValueOrDefault()"
+                  IL_002a:  call       "readonly S S?.GetValueOrDefault()"
                   IL_002f:  stloc.3
                   IL_0030:  ldloca.s   V_3
                   IL_0032:  constrained. "S"
@@ -3139,7 +3139,7 @@ class S : System.IAsyncDisposable
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x8c }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x6a }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x9a }
                     """
             });
             verifier.VerifyIL("S.Main()", """
@@ -3171,7 +3171,7 @@ class S : System.IAsyncDisposable
                     .try
                     {
                       IL_0018:  ldstr      "body "
-                      IL_001d:  call       "void System.Console.Write(object)"
+                      IL_001d:  call       "void System.Console.Write(string)"
                       IL_0022:  ldc.i4.1
                       IL_0023:  stloc.s    V_5
                       IL_0025:  leave.s    IL_002b
@@ -3306,7 +3306,7 @@ class S : System.IAsyncDisposable
                       .try
                       {
                         IL_0012:  ldstr      "body "
-                        IL_0017:  call       "void System.Console.Write(object)"
+                        IL_0017:  call       "void System.Console.Write(string)"
                         IL_001c:  newobj     "System.Exception..ctor()"
                         IL_0021:  throw
                       }
@@ -3358,7 +3358,7 @@ class S : System.IAsyncDisposable
                   {
                     IL_0078:  pop
                     IL_0079:  ldstr      "caught"
-                    IL_007e:  call       "void System.Console.Write(object)"
+                    IL_007e:  call       "void System.Console.Write(string)"
                     IL_0083:  leave.s    IL_0085
                   }
                   IL_0085:  ret
@@ -3444,7 +3444,7 @@ class S : System.IAsyncDisposable
                       .try
                       {
                         IL_0012:  ldstr      "SKIPPED"
-                        IL_0017:  call       "void System.Console.Write(object)"
+                        IL_0017:  call       "void System.Console.Write(string)"
                         IL_001c:  leave.s    IL_0021
                       }
                       catch object
@@ -3495,7 +3495,7 @@ class S : System.IAsyncDisposable
                   {
                     IL_0074:  pop
                     IL_0075:  ldstr      "caught"
-                    IL_007a:  call       "void System.Console.Write(object)"
+                    IL_007a:  call       "void System.Console.Write(string)"
                     IL_007f:  leave.s    IL_0081
                   }
                   IL_0081:  ret
@@ -3639,7 +3639,7 @@ public class C
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x35, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x35, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
                     """
             });
@@ -3751,7 +3751,7 @@ public class C
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
                     """
             });
@@ -3768,7 +3768,7 @@ public class C
                   .try
                   {
                     IL_0008:  ldstr      "using "
-                    IL_000d:  call       "void System.Console.Write(object)"
+                    IL_000d:  call       "void System.Console.Write(string)"
                     IL_0012:  leave.s    IL_0017
                   }
                   catch object
@@ -3792,7 +3792,7 @@ public class C
                   IL_0033:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0038:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003d:  ldstr      "return"
-                  IL_0042:  call       "void System.Console.Write(object)"
+                  IL_0042:  call       "void System.Console.Write(string)"
                   IL_0047:  ldc.i4.1
                   IL_0048:  ret
                 }
@@ -3834,7 +3834,7 @@ public class C
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("using dispose_start dispose_end return", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
                     """
             });
@@ -3851,7 +3851,7 @@ public class C
                   .try
                   {
                     IL_0008:  ldstr      "using "
-                    IL_000d:  call       "void System.Console.Write(object)"
+                    IL_000d:  call       "void System.Console.Write(string)"
                     IL_0012:  leave.s    IL_0017
                   }
                   catch object
@@ -3875,7 +3875,7 @@ public class C
                   IL_0033:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0038:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003d:  ldstr      "return"
-                  IL_0042:  call       "void System.Console.Write(object)"
+                  IL_0042:  call       "void System.Console.Write(string)"
                   IL_0047:  ldc.i4.1
                   IL_0048:  ret
                 }
@@ -3920,7 +3920,7 @@ public class C : System.IAsyncDisposable
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
                     """
             });
@@ -3937,7 +3937,7 @@ public class C : System.IAsyncDisposable
                   .try
                   {
                     IL_0008:  ldstr      "using "
-                    IL_000d:  call       "void System.Console.Write(object)"
+                    IL_000d:  call       "void System.Console.Write(string)"
                     IL_0012:  leave.s    IL_0017
                   }
                   catch object
@@ -3961,7 +3961,7 @@ public class C : System.IAsyncDisposable
                   IL_0033:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0038:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003d:  ldstr      "return"
-                  IL_0042:  call       "void System.Console.Write(object)"
+                  IL_0042:  call       "void System.Console.Write(string)"
                   IL_0047:  ldc.i4.1
                   IL_0048:  ret
                 }
@@ -4003,7 +4003,7 @@ public class C
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x49, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x49, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
                     """
             });
@@ -4020,7 +4020,7 @@ public class C
                   .try
                   {
                     IL_0008:  ldstr      "using "
-                    IL_000d:  call       "void System.Console.Write(object)"
+                    IL_000d:  call       "void System.Console.Write(string)"
                     IL_0012:  leave.s    IL_0017
                   }
                   catch object
@@ -4045,7 +4045,7 @@ public class C
                   IL_0034:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0039:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003e:  ldstr      "return"
-                  IL_0043:  call       "void System.Console.Write(object)"
+                  IL_0043:  call       "void System.Console.Write(string)"
                   IL_0048:  ldc.i4.1
                   IL_0049:  ret
                 }
@@ -4087,13 +4087,13 @@ public class C
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x4e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x4e }
+                    [Main]: Unexpected type on the stack. { Offset = 0x4d, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x66 }
                     """
             });
             verifier.VerifyIL("C.Main()", """
                 {
-                  // Code size       79 (0x4f)
+                  // Code size       78 (0x4e)
                   .maxstack  2
                   .locals init (C V_0, //x
                                 object V_1)
@@ -4104,7 +4104,7 @@ public class C
                   .try
                   {
                     IL_0008:  ldstr      "using "
-                    IL_000d:  call       "void System.Console.Write(object)"
+                    IL_000d:  call       "void System.Console.Write(string)"
                     IL_0012:  leave.s    IL_0017
                   }
                   catch object
@@ -4113,26 +4113,25 @@ public class C
                     IL_0015:  leave.s    IL_0017
                   }
                   IL_0017:  ldloc.0
-                  IL_0018:  brfalse.s  IL_002b
+                  IL_0018:  brfalse.s  IL_002a
                   IL_001a:  ldloc.0
-                  IL_001b:  ldc.i4.0
-                  IL_001c:  newarr     "int"
-                  IL_0021:  callvirt   "System.Threading.Tasks.ValueTask C.DisposeAsync(params int[])"
-                  IL_0026:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
-                  IL_002b:  ldloc.1
-                  IL_002c:  brfalse.s  IL_0043
-                  IL_002e:  ldloc.1
-                  IL_002f:  isinst     "System.Exception"
-                  IL_0034:  dup
-                  IL_0035:  brtrue.s   IL_0039
-                  IL_0037:  ldloc.1
-                  IL_0038:  throw
-                  IL_0039:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                  IL_003e:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                  IL_0043:  ldstr      "return"
-                  IL_0048:  call       "void System.Console.Write(object)"
-                  IL_004d:  ldc.i4.1
-                  IL_004e:  ret
+                  IL_001b:  call       "int[] System.Array.Empty<int>()"
+                  IL_0020:  callvirt   "System.Threading.Tasks.ValueTask C.DisposeAsync(params int[])"
+                  IL_0025:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_002a:  ldloc.1
+                  IL_002b:  brfalse.s  IL_0042
+                  IL_002d:  ldloc.1
+                  IL_002e:  isinst     "System.Exception"
+                  IL_0033:  dup
+                  IL_0034:  brtrue.s   IL_0038
+                  IL_0036:  ldloc.1
+                  IL_0037:  throw
+                  IL_0038:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_003d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0042:  ldstr      "return"
+                  IL_0047:  call       "void System.Console.Write(string)"
+                  IL_004c:  ldc.i4.1
+                  IL_004d:  ret
                 }
                 """);
         }
@@ -4424,7 +4423,7 @@ public class C
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
                     """
             });
@@ -4441,7 +4440,7 @@ public class C
                   .try
                   {
                     IL_0008:  ldstr      "using "
-                    IL_000d:  call       "void System.Console.Write(object)"
+                    IL_000d:  call       "void System.Console.Write(string)"
                     IL_0012:  leave.s    IL_0017
                   }
                   catch object
@@ -4465,7 +4464,7 @@ public class C
                   IL_0033:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0038:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003d:  ldstr      "return"
-                  IL_0042:  call       "void System.Console.Write(object)"
+                  IL_0042:  call       "void System.Console.Write(string)"
                   IL_0047:  ldc.i4.1
                   IL_0048:  ret
                 }
@@ -4516,7 +4515,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = """
-                [Main]: Unexpected type on the stack. { Offset = 0x5e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Unexpected type on the stack. { Offset = 0x5e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """ });
             verifier.VerifyIL("C.Main", """
                 {
@@ -4532,7 +4531,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
                   .try
                   {
                     IL_000a:  ldstr      "using "
-                    IL_000f:  call       "void System.Console.Write(object)"
+                    IL_000f:  call       "void System.Console.Write(string)"
                     IL_0014:  leave.s    IL_0019
                   }
                   catch object
@@ -4563,7 +4562,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
                   IL_0049:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_004e:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_0053:  ldstr      "return"
-                  IL_0058:  call       "void System.Console.Write(object)"
+                  IL_0058:  call       "void System.Console.Write(string)"
                   IL_005d:  ldc.i4.1
                   IL_005e:  ret
                 }
@@ -4605,7 +4604,7 @@ public struct C
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
                     """
             });
@@ -4622,7 +4621,7 @@ public struct C
                   .try
                   {
                     IL_000a:  ldstr      "using "
-                    IL_000f:  call       "void System.Console.Write(object)"
+                    IL_000f:  call       "void System.Console.Write(string)"
                     IL_0014:  leave.s    IL_0019
                   }
                   catch object
@@ -4644,7 +4643,7 @@ public struct C
                   IL_0033:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0038:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003d:  ldstr      "return"
-                  IL_0042:  call       "void System.Console.Write(object)"
+                  IL_0042:  call       "void System.Console.Write(string)"
                   IL_0047:  ldc.i4.1
                   IL_0048:  ret
                 }
@@ -4686,8 +4685,8 @@ public struct C
             comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = """
-                [Main]: Unexpected type on the stack. { Offset = 0x49, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                [DisposeAsync]: Unexpected type on the stack. { Offset = 0x39, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Unexpected type on the stack. { Offset = 0x49, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [DisposeAsync]: Unexpected type on the stack. { Offset = 0x39, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """ });
             verifier.VerifyIL("C.Main", """
                 {
@@ -4702,7 +4701,7 @@ public struct C
                   .try
                   {
                     IL_000a:  ldstr      "using "
-                    IL_000f:  call       "void System.Console.Write(object)"
+                    IL_000f:  call       "void System.Console.Write(string)"
                     IL_0014:  leave.s    IL_0019
                   }
                   catch object
@@ -4725,7 +4724,7 @@ public struct C
                   IL_0034:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                   IL_0039:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
                   IL_003e:  ldstr      "return"
-                  IL_0043:  call       "void System.Console.Write(object)"
+                  IL_0043:  call       "void System.Console.Write(string)"
                   IL_0048:  ldc.i4.1
                   IL_0049:  ret
                 }
@@ -5452,7 +5451,7 @@ internal static class EnumerableExtensions
                   .locals init (System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_0,
                                 System.Runtime.CompilerServices.YieldAwaitable V_1)
                   IL_0000:  ldstr      "DISPOSED"
-                  IL_0005:  call       "void System.Console.Write(object)"
+                  IL_0005:  call       "void System.Console.Write(string)"
                   IL_000a:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
                   IL_000f:  stloc.1
                   IL_0010:  ldloca.s   V_1
