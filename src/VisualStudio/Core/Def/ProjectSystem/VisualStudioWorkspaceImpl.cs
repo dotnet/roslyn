@@ -103,7 +103,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly JoinableTaskCollection _updateUIContextJoinableTasks;
 
     private readonly OpenFileTracker _openFileTracker;
-    private UIContext? _solutionClosingContext;
+    private readonly UIContext _solutionClosingContext;
 
     internal IFileChangeWatcher FileChangeWatcher { get; }
 
@@ -112,10 +112,9 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
     private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
     private readonly IAsynchronousOperationListener _workspaceListener;
-    private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
     /// <summary>
-    /// Only read/written on hte UI thread.
+    /// Only read/written on the UI thread.
     /// </summary>
     private bool _isShowingDocumentChangeErrorInfoBar = false;
     private bool _ignoreDocumentTextChangeErrors;
@@ -140,6 +139,9 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
             this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
 
+        _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
+        _solutionClosingContext.UIContextChanged += SolutionClosingContext_UIContextChanged;
+
         _openFileTracker = new OpenFileTracker(
             this,
             ProjectSystemProjectFactory,
@@ -147,11 +149,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             _workspaceListener,
             exportProvider.GetExportedValue<OpenTextBufferProvider>());
 
-        InitializeUIAffinitizedServicesAsync().Forget();
-
-        _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-            exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
-            isThreadSafe: true);
+        _lazyExternalErrorDiagnosticUpdateSource = exportProvider.GetExport<ExternalErrorDiagnosticUpdateSource>();
 
         _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
 
@@ -162,49 +160,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
             static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
-    }
 
-    internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
-
-    internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
-    {
-        // TODO: further understand if this needs the foreground thread for any reason. UIContexts are safe to read from the UI thread;
-        // it's not clear to me why this is being asserted.
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
-        {
-            return;
-        }
-
-        // TODO: https://github.com/dotnet/roslyn/issues/36065
-        // UIContextImpl requires IVsMonitorSelection service:
-        if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
-        {
-            return;
-        }
-
-        // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
-        KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
-        {
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += (_, e) =>
-            {
-                if (e.Activated)
-                {
-                    ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
-                }
-                else
-                {
-                    // A real build just finished.  Clear out any results from the last "run code analysis" command.
-                    this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
-                    ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
-                }
-            };
-
-            ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
-        });
-
-        _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
+        SubscribeToSourceGeneratorImpactingEvents();
     }
 
     private void SolutionClosingContext_UIContextChanged(object sender, UIContextChangedEventArgs e)
@@ -212,15 +169,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory.SolutionClosing = e.Activated;
     }
 
-    public async Task InitializeUIAffinitizedServicesAsync()
-    {
-        // Yield the thread, so the caller can proceed and return immediately.
-        // Create services that are bound to the UI thread
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
-
-        _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
-        _solutionClosingContext.UIContextChanged += SolutionClosingContext_UIContextChanged;
-    }
+    internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
         => _openFileTracker.CheckForAddedFileBeingOpenMaybeAsync(useAsync, newFileNames);
@@ -1471,15 +1420,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
 
-            if (_lazyExternalErrorDiagnosticUpdateSource.IsValueCreated)
-            {
-                _lazyExternalErrorDiagnosticUpdateSource.Value.Dispose();
-            }
-
-            // Make sure we unsubscribe this, or otherwise this will cause a leak in unit tests since the UIContext for SolutionClosing is a static that is shared
-            // across all tests.
-            if (_solutionClosingContext is not null)
-                _solutionClosingContext.UIContextChanged -= SolutionClosingContext_UIContextChanged;
+            // UIContext.FromUIContextGuid internally has a map from the GUID to the context object itself that is stored in a static;
+            // if we don't unsubscribe, it will leak our workspace object which can cause memory leaks in tests that create a whole MEF container
+            // per test.
+            _solutionClosingContext?.UIContextChanged -= SolutionClosingContext_UIContextChanged;
         }
 
         base.Dispose(finalize);

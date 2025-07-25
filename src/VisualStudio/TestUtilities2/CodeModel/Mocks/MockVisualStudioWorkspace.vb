@@ -84,6 +84,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
         Public Overrides Sub EnsureEditableDocuments(documents As IEnumerable(Of DocumentId))
             ' Nothing to do here
         End Sub
+
+        Protected Overrides Sub SubscribeToSourceGeneratorImpactingEvents()
+            ' HACK: We override this method in unit tests to do nothing. The base type uses WhenActivated which can cause a leak if those handlers don't actually
+            ' run, and that API gives us no way to unsubscribe. Further; right now raising events to update the source generator versions
+            ' causes TryApplyChanges to also fail in unit tests because of https://github.com/dotnet/roslyn/issues/79587.
+        End Sub
     End Class
 
     Public Class MockInvisibleEditor
