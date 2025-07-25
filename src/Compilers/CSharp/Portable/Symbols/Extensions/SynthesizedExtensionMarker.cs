@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyMetadataVisibility == 0xFF)
                 {
                     _lazyMetadataVisibility = (byte)calculate();
+                    Debug.Assert(_lazyMetadataVisibility != 0xFF);
                 }
 
                 return (TypeMemberVisibility)_lazyMetadataVisibility;
