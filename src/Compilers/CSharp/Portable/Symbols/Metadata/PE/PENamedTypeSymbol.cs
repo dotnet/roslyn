@@ -2235,8 +2235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             // Try to locate the marker method.
                             if (marker.TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
                             {
-                                marker = PENamedTypeSymbol.Create(moduleSymbol, this, markerRid, marker, markerHandle);
-                                yield return marker;
+                                var extension = PENamedTypeSymbol.Create(moduleSymbol, this, markerRid, marker, markerHandle);
+                                yield return extension;
                             }
                         }
                     }
