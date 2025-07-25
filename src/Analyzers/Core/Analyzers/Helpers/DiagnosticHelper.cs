@@ -350,7 +350,7 @@ internal static class DiagnosticHelper
                 throw new ArgumentNullException(nameof(messageFormat));
             }
 
-            if (formatArguments == null)
+            if (formatArguments.IsEmpty)
             {
                 throw new ArgumentNullException(nameof(formatArguments));
             }
