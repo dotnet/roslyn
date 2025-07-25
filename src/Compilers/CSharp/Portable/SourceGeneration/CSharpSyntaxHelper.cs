@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool DoesAttributeHaveMethodTarget(SyntaxNode node)
         {
-            var list = ((AttributeSyntax)node).FirstAncestorOrSelf<AttributeListSyntax>();
+return node is AttributeSyntax { Parent: AttributeListSyntax { Target.Identifer.RawKind: (int)SyntaxKind.MethodKeyword } };
 
             if (list != null && list.Target != null)
                 return list.Target.Identifier.IsKind(SyntaxKind.MethodKeyword);
