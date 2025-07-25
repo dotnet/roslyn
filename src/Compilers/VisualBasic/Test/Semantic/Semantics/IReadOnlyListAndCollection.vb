@@ -111,7 +111,6 @@ End Module
 <expected>
 </expected>)
 
-            ' ILVerify: Unexpected type on the stack. { Offset = 232, Found = ref 'int32[][]', Expected = ref '[mscorlib]System.Collections.Generic.IList`1<System.Collections.Generic.IReadOnlyList`1<int32>>' }
             CompileAndVerify(compilation,
             <![CDATA[
 3
@@ -128,7 +127,7 @@ ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyListOfObject3
-]]>, verify:=Verification.FailsILVerify)
+]]>, verify:=Verification.Passes)
 
         End Sub
 
