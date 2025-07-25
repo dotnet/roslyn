@@ -53,7 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.8.1" />
 
     <!--
       Visual Studio

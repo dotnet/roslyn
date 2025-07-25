@@ -44,7 +44,7 @@ internal sealed partial class DotNetSdkMSBuildInstalled : ExecutionCondition
 
             var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None).Result;
 
-            return buildHost.HasUsableMSBuildAsync(solution, CancellationToken.None).Result;
+            return buildHost.FindUsableMSBuildAsync(solution, CancellationToken.None).Result is not null;
         }
         finally
         {
