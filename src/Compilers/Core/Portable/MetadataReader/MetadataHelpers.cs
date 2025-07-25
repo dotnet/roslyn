@@ -498,7 +498,7 @@ ExitDecodeTypeName:
 
         private static short InferTypeArityFromMetadataName(ReadOnlySpan<char> emittedTypeName, out int suffixStartsAt)
         {
-            Debug.Assert(emittedTypeName != null, "NULL actual name unexpected!!!");
+            Debug.Assert(!emittedTypeName.IsEmpty, "NULL actual name unexpected!!!");
             int emittedTypeNameLength = emittedTypeName.Length;
 
             int indexOfManglingChar;

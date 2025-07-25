@@ -187,7 +187,7 @@ namespace Microsoft.DiaSymReader
                 }
             }
 
-            if (source != null)
+            if (!source.IsEmpty)
             {
                 try
                 {
@@ -483,8 +483,8 @@ namespace Microsoft.DiaSymReader
             ReadOnlySpan<int> yieldOffsets,
             ReadOnlySpan<int> resumeOffsets)
         {
-            if (yieldOffsets == null) throw new ArgumentNullException(nameof(yieldOffsets));
-            if (resumeOffsets == null) throw new ArgumentNullException(nameof(resumeOffsets));
+            if (yieldOffsets.IsEmpty) throw new ArgumentNullException(nameof(yieldOffsets));
+            if (resumeOffsets.IsEmpty) throw new ArgumentNullException(nameof(resumeOffsets));
 
             if (yieldOffsets.Length != resumeOffsets.Length)
             {
