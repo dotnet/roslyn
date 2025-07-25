@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
 
         [Fact]
         public void RuleSeveritiesPreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Rules AnalyzerId="MyAnalyzers" RuleNamespace="MyAnalyzers">
@@ -80,12 +79,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
 
                 dotnet_diagnostic.CA1004.severity = none
                 """);
-        }
 
         [Fact]
         public void RuleSeveritiesAcrossRulesGroupsPreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Rules AnalyzerId="MyAnalyzers1" RuleNamespace="MyAnalyzers1">
@@ -109,12 +106,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
 
                 dotnet_diagnostic.CA1001.severity = warning
                 """);
-        }
 
         [Fact]
         public void RuleSeverityOverrideAfterIncludePreserved()
-        {
-            Verify($"""
+            => Verify($"""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Include Path=".\{IncludedRulesetName}" Action="Default" />
@@ -142,12 +137,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                   </Rules>
                 </RuleSet>
                 """);
-        }
 
         [Fact]
         public void IncludeAllPreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <IncludeAll Action="Warning" />
@@ -171,12 +164,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
 
                 dotnet_diagnostic.CA1000.severity = error
                 """);
-        }
 
         [Fact]
         public void CommentBeforeRulePreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Rules AnalyzerId="MyAnalyzers" RuleNamespace="MyAnalyzers">
@@ -197,12 +188,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                 # Comment before rule
                 dotnet_diagnostic.CA1000.severity = none
                 """);
-        }
 
         [Fact]
         public void MultilineCommentBeforeRulePreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Rules AnalyzerId="MyAnalyzers" RuleNamespace="MyAnalyzers">
@@ -229,12 +218,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                 # rule
                 dotnet_diagnostic.CA1000.severity = none
                 """);
-        }
 
         [Fact]
         public void MultipleCommentsBeforeRulePreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Rules AnalyzerId="MyAnalyzers" RuleNamespace="MyAnalyzers">
@@ -257,12 +244,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                 # Comment2 before rule
                 dotnet_diagnostic.CA1000.severity = none
                 """);
-        }
 
         [Fact]
         public void CommentAfterRulePreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Rules AnalyzerId="MyAnalyzers" RuleNamespace="MyAnalyzers">
@@ -282,12 +267,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                 # Comment after rule
                 dotnet_diagnostic.CA1000.severity = none
                 """);
-        }
 
         [Fact]
         public void CommentsBeforeAndAfterRulePreserved()
-        {
-            Verify("""
+            => Verify("""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Rules AnalyzerId="MyAnalyzers" RuleNamespace="MyAnalyzers">
@@ -309,12 +292,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                 # Comment after rule
                 dotnet_diagnostic.CA1000.severity = none
                 """);
-        }
 
         [Fact]
         public void CommentsFromIncludedRulesetPreserved()
-        {
-            Verify($"""
+            => Verify($"""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Include Path=".\{IncludedRulesetName}" Action="Default" />
@@ -341,12 +322,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                   </Rules>
                 </RuleSet>
                 """);
-        }
 
         [Fact]
         public void CommentsFromPrimaryAndIncludedRulesetPreserved()
-        {
-            Verify($"""
+            => Verify($"""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Include Path=".\{IncludedRulesetName}" Action="Default" />
@@ -382,12 +361,10 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                   </Rules>
                 </RuleSet>
                 """);
-        }
 
         [Fact]
         public void CommentsFromOverrideAfterIncludedRulesetPreserved()
-        {
-            Verify($"""
+            => Verify($"""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet Name="ConfigurationFileName" Description="Configuration file description" ToolsVersion="14.0">
                   <Include Path=".\{IncludedRulesetName}" Action="Default" />
@@ -419,6 +396,5 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                   </Rules>
                 </RuleSet>
                 """);
-        }
     }
 }

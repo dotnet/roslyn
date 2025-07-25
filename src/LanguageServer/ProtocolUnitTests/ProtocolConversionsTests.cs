@@ -170,9 +170,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     [InlineData("git://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     [InlineData("xy://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     public void CreateAbsoluteUri_Urls(string url)
-    {
-        Assert.Equal(url, ProtocolConversions.CreateAbsoluteUri(url).AbsoluteUri);
-    }
+        => Assert.Equal(url, ProtocolConversions.CreateAbsoluteUri(url).AbsoluteUri);
 
     [Fact]
     public void CompletionItemKind_DoNotUseMethodAndFunction()
