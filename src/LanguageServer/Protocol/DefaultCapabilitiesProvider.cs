@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.LanguageServer.Protocol;
 
@@ -23,15 +25,18 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
     private readonly ImmutableArray<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
+    private readonly IGlobalOptionService _globalOptionService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExperimentalCapabilitiesProvider(
         [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders)
+        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
+        IGlobalOptionService globalOptionService)
     {
         _completionProviders = [.. completionProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
         _signatureHelpProviders = [.. signatureHelpProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
+        _globalOptionService = globalOptionService;
     }
 
     public void Initialize()
@@ -134,6 +139,19 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
 
         // Using VS server capabilities because we have our own custom client.
         capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n"] };
+
+        if (clientCapabilities.Workspace?.TextDocumentContent is not null)
+        {
+            // Enable the global option to ensure the metadata as source service creates virtual files.
+            _globalOptionService.SetGlobalOption(MetadataAsSourceOptionsStorage.NavigateToVirtualFile, true);
+            capabilities.Workspace = new WorkspaceServerCapabilities
+            {
+                TextDocumentContent = new TextDocumentContentOptions
+                {
+                    Schemes = [VirtualMetadataDocumentPersister.VirtualFileScheme]
+                }
+            };
+        }
 
         return capabilities;
     }

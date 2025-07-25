@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Structure;
-using Microsoft.CodeAnalysis.SymbolMapping;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
@@ -16,30 +12,19 @@ internal interface IMetadataAsSourceFileProvider
     /// <summary>
     /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
     /// </summary>
-    Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
+    Task<(MetadataAsSourceFile File, MetadataAsSourceFileMetadata FileMetadata)?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,
         Workspace sourceWorkspace,
         Project sourceProject,
         ISymbol symbol,
         bool signaturesOnly,
         MetadataAsSourceOptions options,
-        string tempPath,
         TelemetryMessage? telemetryMessage,
+        IMetadataDocumentPersister persister,
         CancellationToken cancellationToken);
 
     /// <summary>
     /// Called to clean up any state. Will be called under a lock to prevent concurrent access.
     /// </summary>
     void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace);
-
-    /// <summary>
-    /// Called to determine if the file should be collapsed by default when opened for the first time.  Will be
-    /// called on the main thread of the workspace host.
-    /// </summary>
-    bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions);
-
-    /// <summary>
-    /// Maps from a document to its project for the purposes of symbol mapping via <see cref="ISymbolMappingService"/>
-    /// </summary>
-    Project? MapDocument(Document document);
 }
