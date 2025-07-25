@@ -225,8 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddOrSetLocalScopes(local, refEscapeScope, valEscapeScope);
         }
 
-        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, SafeContextAndLocation valEscapeScope
-        )
+        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, SafeContextAndLocation valEscapeScope)
         {
 #if DEBUG
             if (_placeholderScopes?.TryGetValue(placeholder, out var existing) == true)

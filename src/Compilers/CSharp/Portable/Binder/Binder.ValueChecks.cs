@@ -283,17 +283,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public static MethodInvocationInfo FromInlineArrayAccess(SignatureOnlyMethodSymbol equivalentSignatureMethod, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKinds, bool hasAnyErrors)
-                    => new MethodInvocationInfo
-                    {
-                        MethodInfo = MethodInfo.Create(equivalentSignatureMethod),
-                        ReceiverOpt = null,
-                        ReceiverIsSubjectToCloning = ThreeState.Unknown,
-                        Parameters = equivalentSignatureMethod.Parameters,
-                        ArgsOpt = arguments,
-                        ArgumentRefKindsOpt = refKinds,
-                        ArgsToParamsOpt = default,
-                        HasAnyErrors = hasAnyErrors
-                    };
+                => new MethodInvocationInfo
+                {
+                    MethodInfo = MethodInfo.Create(equivalentSignatureMethod),
+                    ReceiverOpt = null,
+                    ReceiverIsSubjectToCloning = ThreeState.Unknown,
+                    Parameters = equivalentSignatureMethod.Parameters,
+                    ArgsOpt = arguments,
+                    ArgumentRefKindsOpt = refKinds,
+                    ArgsToParamsOpt = default,
+                    HasAnyErrors = hasAnyErrors
+                };
 
             public MethodInfo MethodInfo;
             public ImmutableArray<ParameterSymbol> Parameters;
