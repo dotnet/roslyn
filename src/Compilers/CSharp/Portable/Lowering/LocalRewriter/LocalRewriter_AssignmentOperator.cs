@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsPropertyWithByValPossiblyStructReceiverWhichHasLocationAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, PropertySymbol property)
+        private bool IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, PropertySymbol property)
         {
             return CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
                    IsNewExtensionMemberWithByValPossiblyStructReceiver(property) &&
@@ -324,14 +324,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenReceiver is not null &&
                 assignmentKind is not (AssignmentKind.CompoundAssignment or AssignmentKind.NullCoalescingAssignment or AssignmentKind.Deconstruction or AssignmentKind.IncrementDecrement) &&
-                IsPropertyWithByValPossiblyStructReceiverWhichHasLocationAndCanChangeValueBetweenReads(rewrittenReceiver, property) &&
+                IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(rewrittenReceiver, property) &&
                 (arguments.Length != 0 || !IsSafeForReordering(rewrittenRight, RefKind.None)))
             {
-                // The receiever has location, but extension property/indexer takes receiver by value.
-                // This means that we need to ensure that the the receiver value is read after
+                // The receiver has location, but extension property/indexer takes receiver by value.
+                // This means that we need to ensure that the receiver value is read after
                 // any side-effecting arguments and right hand side are evaluated, so that the
-                // the setter receives the last value of the receiver, not the value before the
-                // arguments/rhs were evaluated. Receiver sideeffects should be evaluated at
+                // setter receives the last value of the receiver, not the value before the
+                // arguments/rhs were evaluated. Receiver side effects should be evaluated at
                 // the very beginning, of course.
 
                 needSpecialExtensionPropertyReceiverReadOrder = true;
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundSequence(
                     syntax,
                     AppendToPossibleNull(argTemps, rhsTemp),
-                    sideEffects.Add(setterCall), // https://github.com/dotnet/roslyn/issues/78829 - there is no test coverage for sideEffects on this code path
+                    sideEffects.Add(setterCall), // https://github.com/dotnet/roslyn/issues/78829 - there is no test coverage for 'sideEffects' on this code path
                     boundRhs,
                     rhsTemp.Type);
             }

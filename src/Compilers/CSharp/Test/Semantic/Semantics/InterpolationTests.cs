@@ -11687,6 +11687,90 @@ logged = 4
             verifier.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void StructReceiver_Lvalue_08()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var l = new StructLogger();
+Console.WriteLine(""logged = {0}"", l._logged);
+test(ref l);
+Console.WriteLine(""logged = {0}"", l._logged);
+
+void test(ref readonly StructLogger l)
+{
+    l.Log($""log:{0}"");
+}
+
+internal struct StructLogger
+{
+    public int _logged;
+
+    public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler)
+    {
+        _logged++;
+        Console.WriteLine($""StructLogger: "" + handler.GetContent());
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger)
+    {
+        Console.WriteLine($""Creating DummyHandler"");
+        _builder = new StringBuilder();
+    }
+    public string GetContent() => _builder.ToString();
+
+    public void AppendLiteral(string s) => _builder.Append(s);
+    public void AppendFormatted<T>(T t) => _builder.Append(t);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+logged = 0
+Creating DummyHandler
+StructLogger: log:0
+logged = 1
+");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  5
+  .locals init (StructLogger& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""StructLogger""
+  IL_000d:  call       ""DummyHandler..ctor(int, int, StructLogger)""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldstr      ""log:""
+  IL_0019:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  ldc.i4.0
+  IL_0021:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0026:  ldloc.1
+  IL_0027:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_002c:  ret
+}
+");
+        }
+
         [Theory]
         [InlineData(@"$""""")]
         [InlineData(@"$"""" + $""""")]

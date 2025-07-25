@@ -649,13 +649,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// interpolated string handler conversions needs), <paramref name="storesOpt"/> must be not null.
         /// 
         /// If receiver is captured by this method:
-        /// - If <paramref name="storesOpt"/> is not null, the sideeffect of capturing is added to <paramref name="storesOpt"/>
+        /// - If <paramref name="storesOpt"/> is not null, the side effect of capturing is added to <paramref name="storesOpt"/>
         ///   and <paramref name="rewrittenReceiver"/> is changed to the captured value;
         /// - Otherwise, <paramref name="rewrittenReceiver"/> is changed to a <see cref="BoundSequence"/> node with no locals,
-        ///   the sideeffects of capturing are the sifeeffects of the sequence and its result is the captured value.
+        ///   the side effects of capturing are the side effects of the sequence and its result is the captured value.
         ///   
         /// All temps introduced by this function for capturing purposes (including the temp capturing the receiver) are appended
-        /// to <paramref name="tempsOpt"/>, which is allocated, if 'null' on input.
+        /// to <paramref name="tempsOpt"/>, which is allocated if 'null' on input.
         /// </summary>
         private ImmutableArray<BoundExpression> VisitArgumentsAndCaptureReceiverIfNeeded(
             [NotNullIfNotNull(nameof(rewrittenReceiver))] ref BoundExpression? rewrittenReceiver,
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, (refKind is RefKind.RefReadOnlyParameter or RefKind.In) ? RefKindExtensions.StrictIn : refKind);
+                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
 
                 tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
                 tempsOpt.Add(receiverTemp.LocalSymbol);

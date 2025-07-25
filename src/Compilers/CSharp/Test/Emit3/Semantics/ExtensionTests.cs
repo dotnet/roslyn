@@ -21049,6 +21049,7 @@ static class E
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_ReceiverParameter_ByRef(bool useMetadataRef)
     {
@@ -21193,6 +21194,7 @@ static class E
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_ReceiverParameter_Generic_ByRef(bool useMetadataRef)
     {
@@ -21292,6 +21294,7 @@ static class E
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_ReceiverParameter_ByIn_WithConstantReceiver(bool useMetadataRef, [CombinatorialValues("ref readonly", "in")] string refkind)
     {
@@ -21686,6 +21689,7 @@ static class E
     }
 
     [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_StructReceiverParameter_ByValueThroughField(bool useMetadataRef)
     {
@@ -21768,6 +21772,7 @@ static class E
     }
 
     [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_StructReceiverParameter_Generic_ByValueThroughField(bool useMetadataRef)
     {
@@ -21880,6 +21885,7 @@ static class E
     }
 
     [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_StructReceiverParameter_GenericStruct_ByValueThroughField(bool useMetadataRef)
     {
@@ -21976,6 +21982,7 @@ static class E
     }
 
     [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_ClassReceiverParameter_GenericClass_ByValueThroughField(bool useMetadataRef)
     {
@@ -22089,6 +22096,7 @@ static class E
     }
 
     [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79379")]
     [CombinatorialData]
     public void InterpolationHandler_ClassReceiverParameter_Generic_ByValueThroughField(bool useMetadataRef)
     {

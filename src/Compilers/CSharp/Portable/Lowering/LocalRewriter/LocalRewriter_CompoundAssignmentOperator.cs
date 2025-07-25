@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverTemp = _factory.StoreToTemp(
                 rewrittenReceiver,
                 out assignmentToTemp,
-                refKind: refKind,
+                refKind: refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind,
                 isKnownToReferToTempIfReferenceType: isKnownToReferToTempIfReferenceType);
 
             temps.Add(receiverTemp.LocalSymbol);

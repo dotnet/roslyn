@@ -5596,6 +5596,28 @@ public struct S1
     {
         this.P1 = Program.Get1();
     }
+
+    public int P2
+    {
+        get
+        {
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(F1);
+        }
+    }
+
+    public void Test2()
+    {
+        this.P2 = Program.Get1();
+    }
+
+    public void Test3()
+    {
+        E.set_P1(this, Program.Get1()); 
+    }
 }
 
 class Program
@@ -5613,6 +5635,18 @@ class Program
         F = new S1 { F1 = 123 };
         F.Test();
         System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test3();
+        System.Console.Write(F.F1);
     }
 
     static void Test()
@@ -5629,7 +5663,7 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124:123124", verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"

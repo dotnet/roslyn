@@ -162,13 +162,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool needSpecialExtensionPropertyReceiverReadOrder = false;
                 ArrayBuilder<BoundExpression>? storesOpt = null;
 
-                if (IsPropertyWithByValPossiblyStructReceiverWhichHasLocationAndCanChangeValueBetweenReads(rewrittenReceiver, indexer))
+                if (IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(rewrittenReceiver, indexer))
                 {
-                    // The receiever has location, but extension indexer takes receiver by value.
-                    // This means that we need to ensure that the the receiver value is read after
+                    // The receiver has location, but extension indexer takes receiver by value.
+                    // This means that we need to ensure that the receiver value is read after
                     // any side-effecting arguments are evaluated, so that the
-                    // the setter receives the last value of the receiver, not the value before the
-                    // arguments were evaluated. Receiver sideeffects should be evaluated at
+                    // setter receives the last value of the receiver, not the value before the
+                    // arguments were evaluated. Receiver side effects should be evaluated at
                     // the very beginning, of course.
 
                     needSpecialExtensionPropertyReceiverReadOrder = true;
