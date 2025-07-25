@@ -579,7 +579,6 @@ public sealed class ImplementInterfaceCodeFixTests
                     throw new System.NotImplementedException();
                 }
             }
-
             """);
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
@@ -5686,7 +5685,6 @@ class B : IGoo
                     throw new System.NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545922")]
@@ -6220,7 +6218,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -10169,7 +10166,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
