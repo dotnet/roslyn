@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis
 
         bool IsAnyNamespaceBlock(SyntaxNode node);
 
-        bool IsTypeDeclaration(SyntaxNode node);
         bool IsAttributeList(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
 
@@ -22,7 +21,6 @@ namespace Microsoft.CodeAnalysis
 
         bool IsAttribute(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
-        bool DoesAttributeHaveMethodTarget(SyntaxNode node);
 
         bool IsLambdaExpression(SyntaxNode node);
 
@@ -47,11 +45,8 @@ namespace Microsoft.CodeAnalysis
 
         public abstract bool IsAnyNamespaceBlock(SyntaxNode node);
 
-        public abstract bool IsTypeDeclaration(SyntaxNode node);
-
         public abstract bool IsAttribute(SyntaxNode node);
         public abstract SyntaxNode GetNameOfAttribute(SyntaxNode node);
-        public abstract bool DoesAttributeHaveMethodTarget(SyntaxNode node);
 
         public abstract bool IsAttributeList(SyntaxNode node);
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);

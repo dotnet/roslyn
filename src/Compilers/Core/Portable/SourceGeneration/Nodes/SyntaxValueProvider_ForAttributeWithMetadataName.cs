@@ -114,7 +114,7 @@ public partial struct SyntaxValueProvider
                         if (targetSymbol is null)
                             continue;
 
-                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName, syntaxHelper);
+                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
                         if (attributes.Length > 0)
                         {
                             result.Add(transform(
@@ -137,8 +137,7 @@ public partial struct SyntaxValueProvider
         static ImmutableArray<AttributeData> getMatchingAttributes(
             SyntaxNode attributeTarget,
             ISymbol symbol,
-            string fullyQualifiedMetadataName,
-            ISyntaxHelper syntaxHelper)
+            string fullyQualifiedMetadataName)
         {
             var targetSyntaxTree = attributeTarget.SyntaxTree;
             var result = ArrayBuilder<AttributeData>.GetInstance();
@@ -146,12 +145,12 @@ public partial struct SyntaxValueProvider
             addMatchingAttributes(symbol.GetAttributes());
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
 
-            if (symbol is INamedTypeSymbol namedTypeSymbol && syntaxHelper.IsTypeDeclaration(attributeTarget))
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
                 var attrs = namedTypeSymbol
                     .InstanceConstructors
+                    .Where(c => c.DeclaringSyntaxReferences.Any(r => r.GetSyntax() == attributeTarget))
                     .SelectMany(c => c.GetAttributes())
-                    .Where(a => a.ApplicationSyntaxReference?.GetSyntax() is { } syn && syntaxHelper.DoesAttributeHaveMethodTarget(syn))
                     .ToImmutableArray();
 
                 addMatchingAttributes(attrs);
