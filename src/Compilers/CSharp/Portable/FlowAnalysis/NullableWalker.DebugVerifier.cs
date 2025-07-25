@@ -123,7 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                bool hasElementType = node.CollectionTypeKind is not CollectionExpressionTypeKind.None;
+                // See NullableWalker.VisitCollectionExpression.getCollectionDetails() which
+                // does not have an element type for the ImplementsIEnumerable case.
+                bool hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
                 foreach (var element in node.Elements)
                 {
                     if (element is BoundCollectionExpressionSpreadElement spread)
