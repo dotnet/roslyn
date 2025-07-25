@@ -170,4 +170,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             Preferred: buildHostKind,
             Actual: buildHostKind);
     }
+
+    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    {
+        await _projectXmlProvider.UnloadCachedDiagnosticsAsync(projectFilePath);
+    }
 }

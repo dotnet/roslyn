@@ -39,6 +39,14 @@ internal class VirtualProjectXmlProvider(IDiagnosticsRefresher diagnosticRefresh
         }
     }
 
+    internal async ValueTask UnloadCachedDiagnosticsAsync(string path)
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            _diagnosticsByFilePath.Remove(path);
+        }
+    }
+
     internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);

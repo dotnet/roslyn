@@ -181,6 +181,9 @@ internal abstract class LanguageServerProjectLoader
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
+    /// <summary>Called after a project is unloaded to allow the subtype to clean up any resources associated with the project.</summary>
+    protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
+
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
@@ -445,5 +448,7 @@ internal abstract class LanguageServerProjectLoader
                 throw ExceptionUtilities.UnexpectedValue(loadState);
             }
         }
+
+        await OnProjectUnloadedAsync(projectPath);
     }
 }
