@@ -12,20 +12,23 @@ internal static class CompilerDiagnosticAnalyzerNames
 
 internal static partial class DiagnosticAnalyzerExtensions
 {
-    public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
+    extension(DiagnosticAnalyzer analyzer)
     {
-        // TODO: find better way.
-        var typeString = analyzer.GetType().ToString();
-        if (typeString == CompilerDiagnosticAnalyzerNames.CSharpCompilerAnalyzerTypeName)
+        public bool IsCompilerAnalyzer()
         {
-            return true;
-        }
+            // TODO: find better way.
+            var typeString = analyzer.GetType().ToString();
+            if (typeString == CompilerDiagnosticAnalyzerNames.CSharpCompilerAnalyzerTypeName)
+            {
+                return true;
+            }
 
-        if (typeString == CompilerDiagnosticAnalyzerNames.VisualBasicCompilerAnalyzerTypeName)
-        {
-            return true;
-        }
+            if (typeString == CompilerDiagnosticAnalyzerNames.VisualBasicCompilerAnalyzerTypeName)
+            {
+                return true;
+            }
 
-        return false;
+            return false;
+        }
     }
 }

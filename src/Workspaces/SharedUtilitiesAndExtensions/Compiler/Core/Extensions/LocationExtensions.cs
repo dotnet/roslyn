@@ -9,38 +9,47 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class LocationExtensions
 {
-    public static SyntaxTree GetSourceTreeOrThrow(this Location location)
+    extension(Location location)
     {
-        Contract.ThrowIfNull(location.SourceTree);
-        return location.SourceTree;
-    }
-
-    public static SyntaxToken FindToken(this Location location, CancellationToken cancellationToken)
-        => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindToken(location.SourceSpan.Start);
-
-    public static SyntaxNode FindNode(this Location location, CancellationToken cancellationToken)
-        => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindNode(location.SourceSpan);
-
-    public static SyntaxNode FindNode(this Location location, bool getInnermostNodeForTie, CancellationToken cancellationToken)
-        => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindNode(location.SourceSpan, getInnermostNodeForTie: getInnermostNodeForTie);
-
-    public static SyntaxNode FindNode(this Location location, bool findInsideTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
-        => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindNode(location.SourceSpan, findInsideTrivia, getInnermostNodeForTie);
-
-    public static bool IsVisibleSourceLocation(this Location loc)
-    {
-        if (!loc.IsInSource)
+        public SyntaxTree GetSourceTreeOrThrow()
         {
-            return false;
+            Contract.ThrowIfNull(location.SourceTree);
+            return location.SourceTree;
         }
 
-        var tree = loc.SourceTree;
-        return !(tree == null || tree.IsHiddenPosition(loc.SourceSpan.Start));
+        public SyntaxToken FindToken(CancellationToken cancellationToken)
+            => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindToken(location.SourceSpan.Start);
+
+        public SyntaxNode FindNode(CancellationToken cancellationToken)
+            => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindNode(location.SourceSpan);
+
+        public SyntaxNode FindNode(bool getInnermostNodeForTie, CancellationToken cancellationToken)
+            => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindNode(location.SourceSpan, getInnermostNodeForTie: getInnermostNodeForTie);
+
+        public SyntaxNode FindNode(bool findInsideTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
+            => location.GetSourceTreeOrThrow().GetRoot(cancellationToken).FindNode(location.SourceSpan, findInsideTrivia, getInnermostNodeForTie);
     }
 
-    public static bool IntersectsWith(this Location loc1, Location loc2)
+    extension(Location loc)
     {
-        Debug.Assert(loc1.IsInSource && loc2.IsInSource);
-        return loc1.SourceTree == loc2.SourceTree && loc1.SourceSpan.IntersectsWith(loc2.SourceSpan);
+        public bool IsVisibleSourceLocation()
+        {
+            if (!loc.IsInSource)
+            {
+                return false;
+            }
+
+            var tree = loc.SourceTree;
+            return !(tree == null || tree.IsHiddenPosition(loc.SourceSpan.Start));
+        }
+    }
+
+    extension(Location loc1)
+    {
+        public bool IntersectsWith(Location loc2)
+        {
+            Debug.Assert(loc1.IsInSource && loc2.IsInSource);
+            return loc1.SourceTree == loc2.SourceTree && loc1.SourceSpan.IntersectsWith(loc2.SourceSpan);
+        }
     }
 }

@@ -12,17 +12,23 @@ namespace Microsoft.CodeAnalysis.OrganizeImports;
 
 internal static class OrganizeImportsOptionsProviders
 {
-    public static OrganizeImportsOptions GetOrganizeImportsOptions(this IOptionsReader options, string language)
+    extension(IOptionsReader options)
+    {
+        public OrganizeImportsOptions GetOrganizeImportsOptions(string language)
         => new()
         {
             PlaceSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, language),
             SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language),
             NewLine = options.GetOption(FormattingOptions2.NewLine, language)
         };
+    }
 
-    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetOrganizeImportsOptions(document.Project.Language);
+        public async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetOrganizeImportsOptions(document.Project.Language);
+        }
     }
 }

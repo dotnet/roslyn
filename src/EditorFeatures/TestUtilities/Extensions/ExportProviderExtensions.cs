@@ -13,17 +13,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 internal static class ExportProviderExtensions
 {
-    public static TCommandHandler GetCommandHandler<TCommandHandler>(this ExportProvider exportProvider, string name)
-        where TCommandHandler : ICommandHandler
+    extension(ExportProvider exportProvider)
     {
-        var lazyCommandHandlers = exportProvider.GetExports<ICommandHandler, OrderableMetadata>();
-        return Assert.IsType<TCommandHandler>(lazyCommandHandlers.Single(lazyCommandHandler => lazyCommandHandler.Metadata.Name == name).Value);
-    }
+        public TCommandHandler GetCommandHandler<TCommandHandler>(string name)
+        where TCommandHandler : ICommandHandler
+        {
+            var lazyCommandHandlers = exportProvider.GetExports<ICommandHandler, OrderableMetadata>();
+            return Assert.IsType<TCommandHandler>(lazyCommandHandlers.Single(lazyCommandHandler => lazyCommandHandler.Metadata.Name == name).Value);
+        }
 
-    public static TCommandHandler GetCommandHandler<TCommandHandler>(this ExportProvider exportProvider, string name, string contentType)
-        where TCommandHandler : ICommandHandler
-    {
-        var lazyCommandHandlers = exportProvider.GetExports<ICommandHandler, OrderableContentTypeMetadata>();
-        return Assert.IsType<TCommandHandler>(lazyCommandHandlers.Single(lazyCommandHandler => lazyCommandHandler.Metadata.Name == name && lazyCommandHandler.Metadata.ContentTypes.Contains(contentType)).Value);
+        public TCommandHandler GetCommandHandler<TCommandHandler>(string name, string contentType)
+            where TCommandHandler : ICommandHandler
+        {
+            var lazyCommandHandlers = exportProvider.GetExports<ICommandHandler, OrderableContentTypeMetadata>();
+            return Assert.IsType<TCommandHandler>(lazyCommandHandlers.Single(lazyCommandHandler => lazyCommandHandler.Metadata.Name == name && lazyCommandHandler.Metadata.ContentTypes.Contains(contentType)).Value);
+        }
     }
 }

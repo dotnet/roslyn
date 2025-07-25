@@ -25,62 +25,66 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISymbolExtensions
 {
-    /// <summary>
-    /// Checks a given symbol for browsability based on its declaration location, attributes explicitly limiting
-    /// browsability, and whether showing of advanced members is enabled. The optional editorBrowsableInfo parameters
-    /// may be used to specify the symbols of the constructors of the various browsability limiting attributes because
-    /// finding these repeatedly over a large list of symbols can be slow. If these are not provided, they will be found
-    /// in the compilation.
-    /// </summary>
-    public static bool IsEditorBrowsable(
-        this ISymbol symbol,
-        bool hideAdvancedMembers,
-        Compilation compilation,
-        EditorBrowsableInfo editorBrowsableInfo = default,
-        bool includingSourceSymbols = false)
+    extension(ISymbol symbol)
     {
-        return IsEditorBrowsableWithState(
-            symbol,
-            hideAdvancedMembers,
-            compilation,
-            editorBrowsableInfo,
-            includingSourceSymbols).isBrowsable;
-    }
-
-    // In addition to given symbol's browsability, also returns its EditorBrowsableState if it contains EditorBrowsableAttribute.
-    public static (bool isBrowsable, bool isEditorBrowsableStateAdvanced) IsEditorBrowsableWithState(
-        this ISymbol symbol,
-        bool hideAdvancedMembers,
-        Compilation compilation,
-        EditorBrowsableInfo editorBrowsableInfo = default,
-        bool includingSourceSymbols = false)
-    {
-        // Namespaces can't have attributes, so just return true here.  This also saves us a 
-        // costly check if this namespace has any locations in source (since a merged namespace
-        // needs to go collect all the locations).
-        if (symbol.Kind == SymbolKind.Namespace)
-            return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
-
-        // check for IsImplicitlyDeclared so we don't spend time examining VB's embedded types.
-        // This saves a few percent in typing scenarios.  An implicitly declared symbol can't
-        // have attributes, so it can't be hidden by them.
-        if (symbol.IsImplicitlyDeclared)
-            return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
-
-        if (editorBrowsableInfo.IsDefault)
-            editorBrowsableInfo = new EditorBrowsableInfo(compilation);
-
-        // Ignore browsability limiting attributes if the symbol is declared in source.
-        // Check all locations since some of VB's embedded My symbols are declared in 
-        // both source and the MyTemplateLocation.
-        if (!includingSourceSymbols && symbol.Locations.All(loc => loc.IsInSource))
+        /// <summary>
+        /// Checks a given symbol for browsability based on its declaration location, attributes explicitly limiting
+        /// browsability, and whether showing of advanced members is enabled. The optional editorBrowsableInfo parameters
+        /// may be used to specify the symbols of the constructors of the various browsability limiting attributes because
+        /// finding these repeatedly over a large list of symbols can be slow. If these are not provided, they will be found
+        /// in the compilation.
+        /// </summary>
+        public bool IsEditorBrowsable(
+            bool hideAdvancedMembers,
+            Compilation compilation,
+            EditorBrowsableInfo editorBrowsableInfo = default,
+            bool includingSourceSymbols = false)
         {
-            // The HideModuleNameAttribute still applies to Modules defined in source
-            return (!IsBrowsingProhibitedByHideModuleNameAttribute(symbol, editorBrowsableInfo.HideModuleNameAttribute), isEditorBrowsableStateAdvanced: false);
+            return IsEditorBrowsableWithState(
+                symbol,
+                hideAdvancedMembers,
+                compilation,
+                editorBrowsableInfo,
+                includingSourceSymbols).isBrowsable;
         }
 
-        var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibited(symbol, hideAdvancedMembers, editorBrowsableInfo);
-        return (!isProhibited, isEditorBrowsableStateAdvanced);
+        // In addition to given symbol's browsability, also returns its EditorBrowsableState if it contains EditorBrowsableAttribute.
+        public (bool isBrowsable, bool isEditorBrowsableStateAdvanced) IsEditorBrowsableWithState(
+            bool hideAdvancedMembers,
+            Compilation compilation,
+            EditorBrowsableInfo editorBrowsableInfo = default,
+            bool includingSourceSymbols = false)
+        {
+            // Namespaces can't have attributes, so just return true here.  This also saves us a 
+            // costly check if this namespace has any locations in source (since a merged namespace
+            // needs to go collect all the locations).
+            if (symbol.Kind == SymbolKind.Namespace)
+                return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
+
+            // check for IsImplicitlyDeclared so we don't spend time examining VB's embedded types.
+            // This saves a few percent in typing scenarios.  An implicitly declared symbol can't
+            // have attributes, so it can't be hidden by them.
+            if (symbol.IsImplicitlyDeclared)
+                return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
+
+            if (editorBrowsableInfo.IsDefault)
+                editorBrowsableInfo = new EditorBrowsableInfo(compilation);
+
+            // Ignore browsability limiting attributes if the symbol is declared in source.
+            // Check all locations since some of VB's embedded My symbols are declared in 
+            // both source and the MyTemplateLocation.
+            if (!includingSourceSymbols && symbol.Locations.All(loc => loc.IsInSource))
+            {
+                // The HideModuleNameAttribute still applies to Modules defined in source
+                return (!IsBrowsingProhibitedByHideModuleNameAttribute(symbol, editorBrowsableInfo.HideModuleNameAttribute), isEditorBrowsableStateAdvanced: false);
+            }
+
+            var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibited(symbol, hideAdvancedMembers, editorBrowsableInfo);
+            return (!isProhibited, isEditorBrowsableStateAdvanced);
+        }
+
+        public DocumentationComment GetDocumentationComment(Compilation compilation, CultureInfo? preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
+            => GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
     }
 
     private static (bool isProhibited, bool isEditorBrowsableStateAdvanced) IsBrowsingProhibited(
@@ -217,9 +221,6 @@ internal static partial class ISymbolExtensions
 
         return false;
     }
-
-    public static DocumentationComment GetDocumentationComment(this ISymbol symbol, Compilation compilation, CultureInfo? preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
-        => GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
 
     private static DocumentationComment GetDocumentationComment(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, CultureInfo? preferredCulture, bool expandIncludes, bool expandInheritdoc, CancellationToken cancellationToken)
     {
@@ -633,55 +634,58 @@ internal static partial class ISymbolExtensions
     private static bool ElementNameIs(XElement element, string name)
         => string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);
 
-    /// <summary>
-    /// First, remove symbols from the set if they are overridden by other symbols in the set.
-    /// If a symbol is overridden only by symbols outside of the set, then it is not removed. 
-    /// This is useful for filtering out symbols that cannot be accessed in a given context due
-    /// to the existence of overriding members. Second, remove remaining symbols that are
-    /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
-    /// attribute. Finally, keep only remaining symbols which the given inclusionFilter indicates
-    /// should be included.
-    /// </summary>
-    public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
-        this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation, Func<T, bool> inclusionFilter) where T : ISymbol
+    extension<T>(ImmutableArray<T> symbols) where T : ISymbol
     {
-        if (symbols.Length == 0)
-            return [];
-
-        using var _ = MetadataUnifyingSymbolHashSet.GetInstance(out var overriddenSymbols);
-
-        foreach (var symbol in symbols)
+        /// <summary>
+        /// First, remove symbols from the set if they are overridden by other symbols in the set.
+        /// If a symbol is overridden only by symbols outside of the set, then it is not removed. 
+        /// This is useful for filtering out symbols that cannot be accessed in a given context due
+        /// to the existence of overriding members. Second, remove remaining symbols that are
+        /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
+        /// attribute. Finally, keep only remaining symbols which the given inclusionFilter indicates
+        /// should be included.
+        /// </summary>
+        public ImmutableArray<T> FilterToVisibleAndBrowsableSymbols(
+    bool hideAdvancedMembers, Compilation compilation, Func<T, bool> inclusionFilter)
         {
-            var overriddenMember = symbol.GetOverriddenMember();
-            if (overriddenMember != null)
-                overriddenSymbols.Add(overriddenMember);
+            if (symbols.Length == 0)
+                return [];
+
+            using var _ = MetadataUnifyingSymbolHashSet.GetInstance(out var overriddenSymbols);
+
+            foreach (var symbol in symbols)
+            {
+                var overriddenMember = symbol.GetOverriddenMember();
+                if (overriddenMember != null)
+                    overriddenSymbols.Add(overriddenMember);
+            }
+
+            // Since all symbols are from the same compilation, find the required attribute
+            // constructors once and reuse.
+            var editorBrowsableInfo = new EditorBrowsableInfo(compilation);
+
+            // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
+            // check to see if we're referencing a symbol defined in source.
+            var filteredSymbols = symbols.WhereAsArray(static (s, arg) =>
+                // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
+                // of each namespace symbol, which might end up allocating in LOH
+                !arg.overriddenSymbols.Contains(s) &&
+                (s is INamespaceSymbol || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
+                !s.IsDestructor() &&
+                s.IsEditorBrowsable(
+                    arg.hideAdvancedMembers,
+                    arg.editorBrowsableInfo.Compilation,
+                    arg.editorBrowsableInfo) &&
+                arg.inclusionFilter(s),
+                arg: (hideAdvancedMembers, editorBrowsableInfo, overriddenSymbols, inclusionFilter));
+
+            return filteredSymbols;
         }
 
-        // Since all symbols are from the same compilation, find the required attribute
-        // constructors once and reuse.
-        var editorBrowsableInfo = new EditorBrowsableInfo(compilation);
-
-        // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
-        // check to see if we're referencing a symbol defined in source.
-        var filteredSymbols = symbols.WhereAsArray(static (s, arg) =>
-            // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
-            // of each namespace symbol, which might end up allocating in LOH
-            !arg.overriddenSymbols.Contains(s) &&
-            (s is INamespaceSymbol || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
-            !s.IsDestructor() &&
-            s.IsEditorBrowsable(
-                arg.hideAdvancedMembers,
-                arg.editorBrowsableInfo.Compilation,
-                arg.editorBrowsableInfo) &&
-            arg.inclusionFilter(s),
-            arg: (hideAdvancedMembers, editorBrowsableInfo, overriddenSymbols, inclusionFilter));
-
-        return filteredSymbols;
-    }
-
-    public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(
-        this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
-    {
-        return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation, static s => !s.RequiresUnsafeModifier());
+        public ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(
+    bool hideAdvancedMembers, Compilation compilation)
+        {
+            return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation, static s => !s.RequiresUnsafeModifier());
+        }
     }
 }

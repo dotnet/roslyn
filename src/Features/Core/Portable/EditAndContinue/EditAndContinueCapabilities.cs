@@ -111,37 +111,40 @@ internal static class EditAndContinueCapabilitiesParser
         return caps;
     }
 
-    public static ImmutableArray<string> ToStringArray(this EditAndContinueCapabilities capabilities)
+    extension(EditAndContinueCapabilities capabilities)
     {
-        using var _ = ArrayBuilder<string>.GetInstance(out var builder);
+        public ImmutableArray<string> ToStringArray()
+        {
+            using var _ = ArrayBuilder<string>.GetInstance(out var builder);
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.Baseline))
-            builder.Add(nameof(EditAndContinueCapabilities.Baseline));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.Baseline))
+                builder.Add(nameof(EditAndContinueCapabilities.Baseline));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.AddMethodToExistingType))
-            builder.Add(nameof(EditAndContinueCapabilities.AddMethodToExistingType));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddMethodToExistingType))
+                builder.Add(nameof(EditAndContinueCapabilities.AddMethodToExistingType));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.AddStaticFieldToExistingType))
-            builder.Add(nameof(EditAndContinueCapabilities.AddStaticFieldToExistingType));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddStaticFieldToExistingType))
+                builder.Add(nameof(EditAndContinueCapabilities.AddStaticFieldToExistingType));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
-            builder.Add(nameof(EditAndContinueCapabilities.AddInstanceFieldToExistingType));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
+                builder.Add(nameof(EditAndContinueCapabilities.AddInstanceFieldToExistingType));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
-            builder.Add(nameof(EditAndContinueCapabilities.NewTypeDefinition));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
+                builder.Add(nameof(EditAndContinueCapabilities.NewTypeDefinition));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes))
-            builder.Add(nameof(EditAndContinueCapabilities.ChangeCustomAttributes));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes))
+                builder.Add(nameof(EditAndContinueCapabilities.ChangeCustomAttributes));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
-            builder.Add(nameof(EditAndContinueCapabilities.UpdateParameters));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
+                builder.Add(nameof(EditAndContinueCapabilities.UpdateParameters));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
-            builder.Add(nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
+                builder.Add(nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
 
-        if (capabilities.HasFlag(EditAndContinueCapabilities.AddFieldRva))
-            builder.Add(nameof(EditAndContinueCapabilities.AddFieldRva));
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddFieldRva))
+                builder.Add(nameof(EditAndContinueCapabilities.AddFieldRva));
 
-        return builder.ToImmutableAndClear();
+            return builder.ToImmutableAndClear();
+        }
     }
 }

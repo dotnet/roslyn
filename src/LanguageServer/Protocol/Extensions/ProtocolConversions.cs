@@ -104,12 +104,15 @@ internal static partial class ProtocolConversions
         { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
     }.ToImmutableDictionary();
 
-    public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
+    extension(JsonSerializerOptions options)
     {
-        LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
-        options.Converters.Add(new LSP.NaturalObjectConverter());
-        options.Converters.Add(new DocumentUriConverter());
-        return options;
+        public JsonSerializerOptions AddLspSerializerOptions()
+        {
+            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
+            options.Converters.Add(new LSP.NaturalObjectConverter());
+            options.Converters.Add(new DocumentUriConverter());
+            return options;
+        }
     }
 
     /// <summary>

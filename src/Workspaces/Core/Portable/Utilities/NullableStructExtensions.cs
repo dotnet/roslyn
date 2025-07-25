@@ -6,9 +6,12 @@ namespace Roslyn.Utilities;
 
 internal static class NullableStructExtensions
 {
-    public static void Deconstruct<T>(this T? value, out T valueOrDefault, out bool hasValue) where T : struct
+    extension<T>(T? value) where T : struct
     {
-        valueOrDefault = value.GetValueOrDefault();
-        hasValue = value.HasValue;
+        public void Deconstruct(out T valueOrDefault, out bool hasValue)
+        {
+            valueOrDefault = value.GetValueOrDefault();
+            hasValue = value.HasValue;
+        }
     }
 }

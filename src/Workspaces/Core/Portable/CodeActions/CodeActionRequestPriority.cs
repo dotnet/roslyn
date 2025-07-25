@@ -51,31 +51,37 @@ public enum CodeActionRequestPriority
 
 internal static class CodeActionRequestPriorityExtensions
 {
-    /// <summary>
-    /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
-    /// present in <see cref="CodeActionRequestPriority"/>.
-    /// </summary>
-    public static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority, ImmutableArray<string> customTags)
+    extension(CodeActionRequestPriority priority)
     {
-        // Note: we intentionally clamp things lower than 'Low' (including 'Lowest') priorities to 'Low'.  The 'Lowest'
-        // value is only for use by specialized suppression/configuration providers.  Any values returned by an actual
-        // regular provider (either 1st or 3rd party) should still only be between Low and High.
-        if (priority < CodeActionRequestPriority.Low)
-            priority = CodeActionRequestPriority.Low;
+        /// <summary>
+        /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
+        /// present in <see cref="CodeActionRequestPriority"/>.
+        /// </summary>
+        public CodeActionRequestPriority Clamp(ImmutableArray<string> customTags)
+        {
+            // Note: we intentionally clamp things lower than 'Low' (including 'Lowest') priorities to 'Low'.  The 'Lowest'
+            // value is only for use by specialized suppression/configuration providers.  Any values returned by an actual
+            // regular provider (either 1st or 3rd party) should still only be between Low and High.
+            if (priority < CodeActionRequestPriority.Low)
+                priority = CodeActionRequestPriority.Low;
 
-        if (priority > CodeActionRequestPriority.High)
-            priority = CodeActionRequestPriority.High;
+            if (priority > CodeActionRequestPriority.High)
+                priority = CodeActionRequestPriority.High;
 
-        if (priority == CodeActionRequestPriority.High && !customTags.Contains(CodeAction.CanBeHighPriorityTag))
-            priority = CodeActionRequestPriority.Default;
+            if (priority == CodeActionRequestPriority.High && !customTags.Contains(CodeAction.CanBeHighPriorityTag))
+                priority = CodeActionRequestPriority.Default;
 
-        return priority;
+            return priority;
+        }
     }
 
-    public static int GetPriorityInt(this CodeActionRequestPriority? priority)
+    extension(CodeActionRequestPriority? priority)
+    {
+        public int GetPriorityInt()
         => priority switch
         {
             null => 0,
             { } nonNull => (int)nonNull
         };
+    }
 }

@@ -9,19 +9,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 
 internal static class VirtualTreePointExtensions
 {
-    public static VsTextSpan ToVsTextSpan(this VirtualTreePoint virtualSnapshotPoint)
+    extension(VirtualTreePoint virtualSnapshotPoint)
     {
-        var line = virtualSnapshotPoint.GetContainingLine();
-        var lineNumber = line.LineNumber;
-        var columnIndex = virtualSnapshotPoint.Position - line.Start;
-        columnIndex += virtualSnapshotPoint.VirtualSpaces;
-
-        return new VsTextSpan()
+        public VsTextSpan ToVsTextSpan()
         {
-            iStartLine = lineNumber,
-            iStartIndex = columnIndex,
-            iEndLine = lineNumber,
-            iEndIndex = columnIndex,
-        };
+            var line = virtualSnapshotPoint.GetContainingLine();
+            var lineNumber = line.LineNumber;
+            var columnIndex = virtualSnapshotPoint.Position - line.Start;
+            columnIndex += virtualSnapshotPoint.VirtualSpaces;
+
+            return new VsTextSpan()
+            {
+                iStartLine = lineNumber,
+                iStartIndex = columnIndex,
+                iEndLine = lineNumber,
+                iEndIndex = columnIndex,
+            };
+        }
     }
 }

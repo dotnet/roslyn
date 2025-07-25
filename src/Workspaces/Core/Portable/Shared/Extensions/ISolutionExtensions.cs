@@ -15,68 +15,70 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISolutionExtensions
 {
-    public static async Task<ImmutableArray<INamespaceSymbol>> GetGlobalNamespacesAsync(
-        this Solution solution,
-        CancellationToken cancellationToken)
+    extension(Solution solution)
     {
-        var results = ArrayBuilder<INamespaceSymbol>.GetInstance();
-
-        foreach (var projectId in solution.ProjectIds)
+        public async Task<ImmutableArray<INamespaceSymbol>> GetGlobalNamespacesAsync(
+        CancellationToken cancellationToken)
         {
-            var project = solution.GetProject(projectId)!;
-            if (project.SupportsCompilation)
+            var results = ArrayBuilder<INamespaceSymbol>.GetInstance();
+
+            foreach (var projectId in solution.ProjectIds)
             {
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(projectId)!;
+                if (project.SupportsCompilation)
+                {
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 #nullable disable // Can 'compilation' be null here?
-                results.Add(compilation.Assembly.GlobalNamespace);
+                    results.Add(compilation.Assembly.GlobalNamespace);
 #nullable enable
+                }
+            }
+
+            return results.ToImmutableAndFree();
+        }
+
+        public TextDocumentKind? GetDocumentKind(DocumentId documentId)
+            => solution.GetTextDocument(documentId)?.Kind;
+
+        internal TextDocument? GetTextDocumentForLocation(Location location)
+        {
+            switch (location.Kind)
+            {
+                case LocationKind.SourceFile:
+                    return solution.GetDocument(location.SourceTree);
+                case LocationKind.ExternalFile:
+                    var documentId = solution.GetDocumentIdsWithFilePath(location.GetLineSpan().Path).FirstOrDefault();
+                    return solution.GetTextDocument(documentId);
+                default:
+                    return null;
             }
         }
 
-        return results.ToImmutableAndFree();
-    }
-
-    public static TextDocumentKind? GetDocumentKind(this Solution solution, DocumentId documentId)
-        => solution.GetTextDocument(documentId)?.Kind;
-
-    internal static TextDocument? GetTextDocumentForLocation(this Solution solution, Location location)
-    {
-        switch (location.Kind)
+        public Solution WithTextDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {
-            case LocationKind.SourceFile:
-                return solution.GetDocument(location.SourceTree);
-            case LocationKind.ExternalFile:
-                var documentId = solution.GetDocumentIdsWithFilePath(location.GetLineSpan().Path).FirstOrDefault();
-                return solution.GetTextDocument(documentId);
-            default:
-                return null;
+            var documentKind = solution.GetDocumentKind(documentId);
+            switch (documentKind)
+            {
+                case TextDocumentKind.Document:
+                    return solution.WithDocumentText(documentId, text, mode);
+
+                case TextDocumentKind.AnalyzerConfigDocument:
+                    return solution.WithAnalyzerConfigDocumentText(documentId, text, mode);
+
+                case TextDocumentKind.AdditionalDocument:
+                    return solution.WithAdditionalDocumentText(documentId, text, mode);
+
+                case null:
+                    throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(documentKind);
+            }
         }
+
+        public Workspace? TryGetWorkspace()
+            => solution.WorkspaceKind == WorkspaceKind.RemoteWorkspace
+                ? null
+                : solution.Workspace;
     }
-
-    public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
-    {
-        var documentKind = solution.GetDocumentKind(documentId);
-        switch (documentKind)
-        {
-            case TextDocumentKind.Document:
-                return solution.WithDocumentText(documentId, text, mode);
-
-            case TextDocumentKind.AnalyzerConfigDocument:
-                return solution.WithAnalyzerConfigDocumentText(documentId, text, mode);
-
-            case TextDocumentKind.AdditionalDocument:
-                return solution.WithAdditionalDocumentText(documentId, text, mode);
-
-            case null:
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(documentKind);
-        }
-    }
-
-    public static Workspace? TryGetWorkspace(this Solution solution)
-        => solution.WorkspaceKind == WorkspaceKind.RemoteWorkspace
-            ? null
-            : solution.Workspace;
 }

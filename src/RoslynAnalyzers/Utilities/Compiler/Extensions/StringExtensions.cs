@@ -9,10 +9,13 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class StringExtensions
     {
-        public static bool IsASCII(this string value)
+        extension(string value)
         {
-            // ASCII encoding replaces non-ascii with question marks, so we use UTF8 to see if multi-byte sequences are there
-            return Encoding.UTF8.GetByteCount(value) == value.Length;
+            public bool IsASCII()
+            {
+                // ASCII encoding replaces non-ascii with question marks, so we use UTF8 to see if multi-byte sequences are there
+                return Encoding.UTF8.GetByteCount(value) == value.Length;
+            }
         }
     }
 }

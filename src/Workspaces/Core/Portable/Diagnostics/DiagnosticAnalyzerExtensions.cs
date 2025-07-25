@@ -6,7 +6,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class DiagnosticAnalyzerExtensions
 {
-    public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer)
+    extension(DiagnosticAnalyzer analyzer)
+    {
+        public DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory()
         => analyzer switch
         {
             FileContentLoadAnalyzer => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis,
@@ -20,29 +22,30 @@ internal static partial class DiagnosticAnalyzerExtensions
                 : DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
         };
 
-    public static bool SupportAnalysisKind(this DiagnosticAnalyzer analyzer, AnalysisKind kind)
-        => kind switch
+        public bool SupportAnalysisKind(AnalysisKind kind)
+            => kind switch
+            {
+                AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
+                AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
+
+        public bool SupportsSyntaxDiagnosticAnalysis()
         {
-            AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
-            AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
-            _ => throw ExceptionUtilities.UnexpectedValue(kind)
-        };
+            var category = analyzer.GetDiagnosticAnalyzerCategory();
+            return (category & DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis) != 0;
+        }
 
-    public static bool SupportsSyntaxDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)
-    {
-        var category = analyzer.GetDiagnosticAnalyzerCategory();
-        return (category & DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis) != 0;
-    }
+        public bool SupportsSemanticDiagnosticAnalysis()
+        {
+            var category = analyzer.GetDiagnosticAnalyzerCategory();
+            return (category & (DiagnosticAnalyzerCategory.SemanticSpanAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis)) != 0;
+        }
 
-    public static bool SupportsSemanticDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)
-    {
-        var category = analyzer.GetDiagnosticAnalyzerCategory();
-        return (category & (DiagnosticAnalyzerCategory.SemanticSpanAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis)) != 0;
-    }
-
-    public static bool SupportsSpanBasedSemanticDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)
-    {
-        var category = analyzer.GetDiagnosticAnalyzerCategory();
-        return (category & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
+        public bool SupportsSpanBasedSemanticDiagnosticAnalysis()
+        {
+            var category = analyzer.GetDiagnosticAnalyzerCategory();
+            return (category & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
+        }
     }
 }

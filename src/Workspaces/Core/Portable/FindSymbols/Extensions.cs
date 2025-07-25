@@ -14,6 +14,9 @@ internal static partial class Extensions
     public const string ComplexArrayReceiverTypeName = "[]";
     public const string ArrayReceiverTypeNameSuffix = "[]";
 
-    internal static bool TextMatch(this ISyntaxFactsService syntaxFacts, string text1, string text2)
+    extension(ISyntaxFactsService syntaxFacts)
+    {
+        internal bool TextMatch(string text1, string text2)
         => syntaxFacts.StringComparer.Equals(text1, text2);
+    }
 }

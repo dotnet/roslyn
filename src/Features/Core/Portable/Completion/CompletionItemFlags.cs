@@ -31,9 +31,12 @@ internal enum CompletionItemFlags
 
 internal static class CompletionItemFlagsExtensions
 {
-    public static bool IsCached(this CompletionItemFlags flags)
+    extension(CompletionItemFlags flags)
+    {
+        public bool IsCached()
         => (flags & CompletionItemFlags.Cached) != 0;
 
-    public static bool IsExpanded(this CompletionItemFlags flags)
-        => (flags & CompletionItemFlags.Expanded) != 0;
+        public bool IsExpanded()
+            => (flags & CompletionItemFlags.Expanded) != 0;
+    }
 }

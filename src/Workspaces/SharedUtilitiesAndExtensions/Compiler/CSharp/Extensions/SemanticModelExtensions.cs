@@ -19,34 +19,403 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static partial class SemanticModelExtensions
 {
-    public static IEnumerable<ITypeSymbol> LookupTypeRegardlessOfArity(
-        this SemanticModel semanticModel,
+    extension(SemanticModel semanticModel)
+    {
+        public IEnumerable<ITypeSymbol> LookupTypeRegardlessOfArity(
         SyntaxToken name,
         CancellationToken cancellationToken)
-    {
-        if (name.Parent is ExpressionSyntax expression)
         {
-            var results = semanticModel.LookupName(expression, cancellationToken: cancellationToken);
-            if (results.Length > 0)
+            if (name.Parent is ExpressionSyntax expression)
             {
-                return results.OfType<ITypeSymbol>();
+                var results = semanticModel.LookupName(expression, cancellationToken: cancellationToken);
+                if (results.Length > 0)
+                {
+                    return results.OfType<ITypeSymbol>();
+                }
             }
+
+            return [];
         }
 
-        return [];
-    }
-
-    public static ImmutableArray<ISymbol> LookupName(
-        this SemanticModel semanticModel,
-        SyntaxToken name,
-        CancellationToken cancellationToken)
-    {
-        if (name.Parent is ExpressionSyntax expression)
+        public ImmutableArray<ISymbol> LookupName(
+            SyntaxToken name,
+            CancellationToken cancellationToken)
         {
-            return semanticModel.LookupName(expression, cancellationToken);
+            if (name.Parent is ExpressionSyntax expression)
+            {
+                return semanticModel.LookupName(expression, cancellationToken);
+            }
+
+            return [];
         }
 
-        return [];
+        public ImmutableArray<ISymbol> LookupName(
+            ExpressionSyntax expression,
+            CancellationToken cancellationToken)
+        {
+            var expr = SyntaxFactory.GetStandaloneExpression(expression);
+            DecomposeName(expr, out var qualifier, out var name, out _);
+
+            INamespaceOrTypeSymbol symbol = null;
+            if (qualifier != null)
+            {
+                var typeInfo = semanticModel.GetTypeInfo(qualifier, cancellationToken);
+                var symbolInfo = semanticModel.GetSymbolInfo(qualifier, cancellationToken);
+                if (typeInfo.Type != null)
+                {
+                    symbol = typeInfo.Type;
+                }
+                else if (symbolInfo.Symbol != null)
+                {
+                    symbol = symbolInfo.Symbol as INamespaceOrTypeSymbol;
+                }
+            }
+
+            return semanticModel.LookupSymbols(expr.SpanStart, container: symbol, name: name, includeReducedExtensionMethods: true);
+        }
+
+        public SymbolInfo GetSymbolInfo(SyntaxToken token)
+        {
+            if (!CanBindToken(token))
+            {
+                return default;
+            }
+
+            switch (token.Parent)
+            {
+                case ExpressionSyntax expression:
+                    return semanticModel.GetSymbolInfo(expression);
+                case AttributeSyntax attribute:
+                    return semanticModel.GetSymbolInfo(attribute);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return semanticModel.GetSymbolInfo(constructorInitializer);
+            }
+
+            return default;
+        }
+
+        public ISet<INamespaceSymbol> GetUsingNamespacesInScope(SyntaxNode location)
+        {
+            // Avoiding linq here for perf reasons. This is used heavily in the AddImport service
+            var result = new HashSet<INamespaceSymbol>();
+
+            foreach (var @using in location.GetEnclosingUsingDirectives())
+            {
+                if (@using.Alias == null)
+                {
+                    Contract.ThrowIfNull(@using.NamespaceOrType);
+                    var symbolInfo = semanticModel.GetSymbolInfo(@using.NamespaceOrType);
+                    if (symbolInfo.Symbol is INamespaceSymbol namespaceSymbol)
+                    {
+                        result ??= [];
+                        result.Add(namespaceSymbol);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public Accessibility DetermineAccessibilityConstraint(
+            TypeSyntax type,
+            CancellationToken cancellationToken)
+        {
+            if (type == null)
+            {
+                return Accessibility.Private;
+            }
+
+            type = GetOutermostType(type);
+
+            // Interesting cases based on 3.5.4 Accessibility constraints in the language spec.
+            // If any of the below hold, then we will override the default accessibility if the
+            // constraint wants the type to be more accessible. i.e. if by default we generate
+            // 'internal', but a constraint makes us 'public', then be public.
+
+            // 1) The direct base class of a class type must be at least as accessible as the
+            //    class type itself.
+            //
+            // 2) The explicit base interfaces of an interface type must be at least as accessible
+            //    as the interface type itself.
+            if (type != null)
+            {
+                if (type.Parent is BaseTypeSyntax baseType &&
+                    baseType.Parent is BaseListSyntax baseList &&
+                    baseType.Type == type)
+                {
+                    var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken);
+                    if (containingType != null && containingType.TypeKind == TypeKind.Interface)
+                    {
+                        return containingType.DeclaredAccessibility;
+                    }
+                    else if (baseList.Types[0] == type.Parent)
+                    {
+                        return containingType.DeclaredAccessibility;
+                    }
+                }
+            }
+
+            // 4) The type of a constant must be at least as accessible as the constant itself.
+            // 5) The type of a field must be at least as accessible as the field itself.
+            if (type?.Parent is VariableDeclarationSyntax variableDeclaration &&
+                variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
+            {
+                return semanticModel.GetDeclaredSymbol(
+                    variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
+            }
+
+            // Also do the same check if we are in an object creation expression
+            if (type.IsParentKind(SyntaxKind.ObjectCreationExpression) &&
+                type.Parent.IsParentKind(SyntaxKind.EqualsValueClause) &&
+                type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
+                type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
+                variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
+            {
+                return semanticModel.GetDeclaredSymbol(
+                    variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
+            }
+
+            // 3) The return type of a delegate type must be at least as accessible as the
+            //    delegate type itself.
+            // 6) The return type of a method must be at least as accessible as the method
+            //    itself.
+            // 7) The type of a property must be at least as accessible as the property itself.
+            // 8) The type of an event must be at least as accessible as the event itself.
+            // 9) The type of an indexer must be at least as accessible as the indexer itself.
+            // 10) The return type of an operator must be at least as accessible as the operator
+            //     itself.
+            if (type.Parent.Kind()
+                    is SyntaxKind.DelegateDeclaration
+                    or SyntaxKind.MethodDeclaration
+                    or SyntaxKind.PropertyDeclaration
+                    or SyntaxKind.EventDeclaration
+                    or SyntaxKind.IndexerDeclaration
+                    or SyntaxKind.OperatorDeclaration)
+            {
+                return semanticModel.GetDeclaredSymbol(
+                    type.Parent, cancellationToken).DeclaredAccessibility;
+            }
+
+            // 3) The parameter types of a delegate type must be at least as accessible as the
+            //    delegate type itself.
+            // 6) The parameter types of a method must be at least as accessible as the method
+            //    itself.
+            // 9) The parameter types of an indexer must be at least as accessible as the
+            //    indexer itself.
+            // 10) The parameter types of an operator must be at least as accessible as the
+            //     operator itself.
+            // 11) The parameter types of an instance constructor must be at least as accessible
+            //     as the instance constructor itself.
+            if (type.IsParentKind(SyntaxKind.Parameter) && type.Parent.IsParentKind(SyntaxKind.ParameterList))
+            {
+                if (type.Parent.Parent.Parent?.Kind()
+                        is SyntaxKind.DelegateDeclaration
+                        or SyntaxKind.MethodDeclaration
+                        or SyntaxKind.IndexerDeclaration
+                        or SyntaxKind.OperatorDeclaration)
+                {
+                    return semanticModel.GetDeclaredSymbol(
+                        type.Parent.Parent.Parent, cancellationToken).DeclaredAccessibility;
+                }
+
+                if (type.Parent.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration))
+                {
+                    var symbol = semanticModel.GetDeclaredSymbol(type.Parent.Parent.Parent, cancellationToken);
+                    if (!symbol.IsStatic)
+                    {
+                        return symbol.DeclaredAccessibility;
+                    }
+                }
+            }
+
+            // 8) The type of an event must be at least as accessible as the event itself.
+            if (type.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
+                variableDeclaration.IsParentKind(SyntaxKind.EventFieldDeclaration))
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0], cancellationToken);
+                if (symbol != null)
+                {
+                    return symbol.DeclaredAccessibility;
+                }
+            }
+
+            // Type constraint must be at least as accessible as the declaring member (class, interface, delegate, method)
+            if (type.IsParentKind(SyntaxKind.TypeConstraint))
+            {
+                return AllContainingTypesArePublicOrProtected(semanticModel, type, cancellationToken)
+                    ? Accessibility.Public
+                    : Accessibility.Internal;
+            }
+
+            return Accessibility.Private;
+        }
+
+        public bool AllContainingTypesArePublicOrProtected(
+            TypeSyntax type,
+            CancellationToken cancellationToken)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            var typeDeclarations = type.GetAncestors<TypeDeclarationSyntax>();
+
+            foreach (var typeDeclaration in typeDeclarations)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+
+                if (symbol.DeclaredAccessibility is Accessibility.Private or
+                    Accessibility.ProtectedAndInternal or
+                    Accessibility.Internal)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Given an expression node, tries to generate an appropriate name that can be used for
+        /// that expression. 
+        /// </summary>
+        public string GenerateNameForExpression(
+    ExpressionSyntax expression,
+            bool capitalize, CancellationToken cancellationToken)
+        {
+            // Try to find a usable name node that we can use to name the
+            // parameter.  If we have an expression that has a name as part of it
+            // then we try to use that part.
+            var current = expression;
+            while (true)
+            {
+                current = current.WalkDownParentheses();
+
+                if (current is IdentifierNameSyntax identifierName)
+                    return identifierName.Identifier.ValueText.ToCamelCase();
+
+                if (current is MemberAccessExpressionSyntax memberAccess)
+                    return memberAccess.Name.Identifier.ValueText.ToCamelCase();
+
+                if (current is MemberBindingExpressionSyntax memberBinding)
+                    return memberBinding.Name.Identifier.ValueText.ToCamelCase();
+
+                if (current is DeclarationExpressionSyntax decl)
+                {
+                    if (decl.Designation is not SingleVariableDesignationSyntax name)
+                        break;
+
+                    return name.Identifier.ValueText.ToCamelCase();
+                }
+
+                if (current.Parent is ForEachStatementSyntax foreachStatement &&
+                    foreachStatement.Expression == expression)
+                {
+                    var word = foreachStatement.Identifier.ValueText.ToCamelCase();
+                    return CodeAnalysis.Shared.Extensions.SemanticModelExtensions.Pluralize(word);
+                }
+
+                if (current.Parent is AnonymousObjectMemberDeclaratorSyntax { NameEquals: { } nameEquals } anonymousObjectMemberDeclarator &&
+                    anonymousObjectMemberDeclarator.Expression == current)
+                {
+                    return nameEquals.Name.Identifier.ValueText.ToCamelCase();
+                }
+
+                if (current is ConditionalAccessExpressionSyntax conditionalAccess)
+                {
+                    current = conditionalAccess.WhenNotNull;
+                    continue;
+                }
+
+                if (current is CastExpressionSyntax castExpression)
+                {
+                    current = castExpression.Expression;
+                    continue;
+                }
+
+                break;
+            }
+
+            // there was nothing in the expression to signify a name.  If we're in an argument
+            // location, then try to choose a name based on the argument name.
+            var argumentName = TryGenerateNameForArgumentExpression(
+                semanticModel, expression, cancellationToken);
+            if (argumentName != null)
+            {
+                return capitalize ? argumentName.ToPascalCase() : argumentName.ToCamelCase();
+            }
+
+            // Otherwise, figure out the type of the expression and generate a name from that
+            // instead.
+            var info = semanticModel.GetTypeInfo(expression, cancellationToken);
+            if (info.Type == null)
+            {
+                return CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName;
+            }
+
+            return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
+        }
+
+        public INamedTypeSymbol GetRequiredDeclaredSymbol(BaseTypeDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public IMethodSymbol GetRequiredDeclaredSymbol(ConstructorDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public IMethodSymbol GetRequiredDeclaredSymbol(LocalFunctionStatementSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public IParameterSymbol GetRequiredDeclaredSymbol(ParameterSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public IPropertySymbol GetRequiredDeclaredSymbol(PropertyDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public IMethodSymbol GetRequiredDeclaredSymbol(BaseMethodDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public ISymbol GetRequiredDeclaredSymbol(VariableDeclaratorSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public ISymbol GetRequiredDeclaredSymbol(SingleVariableDesignationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        /// <summary>
+        /// Returns whether or not <see cref="IntPtr"/> and <see cref="UIntPtr"/> are exactly identical to <see
+        /// cref="nint"/> and <see cref="nuint"/> respectively.
+        /// </summary>
+        public bool UnifiesNativeIntegers()
+        {
+            var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
+
+            // In C# 11 we made it so that IntPtr and nint are identical as long as the runtime unifies them.
+            return languageVersion >= LanguageVersion.CSharp11 && semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr);
+        }
     }
 
     /// <summary>
@@ -99,52 +468,6 @@ internal static partial class SemanticModelExtensions
         }
     }
 
-    public static ImmutableArray<ISymbol> LookupName(
-        this SemanticModel semanticModel,
-        ExpressionSyntax expression,
-        CancellationToken cancellationToken)
-    {
-        var expr = SyntaxFactory.GetStandaloneExpression(expression);
-        DecomposeName(expr, out var qualifier, out var name, out _);
-
-        INamespaceOrTypeSymbol symbol = null;
-        if (qualifier != null)
-        {
-            var typeInfo = semanticModel.GetTypeInfo(qualifier, cancellationToken);
-            var symbolInfo = semanticModel.GetSymbolInfo(qualifier, cancellationToken);
-            if (typeInfo.Type != null)
-            {
-                symbol = typeInfo.Type;
-            }
-            else if (symbolInfo.Symbol != null)
-            {
-                symbol = symbolInfo.Symbol as INamespaceOrTypeSymbol;
-            }
-        }
-
-        return semanticModel.LookupSymbols(expr.SpanStart, container: symbol, name: name, includeReducedExtensionMethods: true);
-    }
-
-    public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token)
-    {
-        if (!CanBindToken(token))
-        {
-            return default;
-        }
-
-        switch (token.Parent)
-        {
-            case ExpressionSyntax expression:
-                return semanticModel.GetSymbolInfo(expression);
-            case AttributeSyntax attribute:
-                return semanticModel.GetSymbolInfo(attribute);
-            case ConstructorInitializerSyntax constructorInitializer:
-                return semanticModel.GetSymbolInfo(constructorInitializer);
-        }
-
-        return default;
-    }
-
     private static bool CanBindToken(SyntaxToken token)
     {
         // Add more token kinds if necessary;
@@ -158,273 +481,8 @@ internal static partial class SemanticModelExtensions
         return true;
     }
 
-    public static ISet<INamespaceSymbol> GetUsingNamespacesInScope(this SemanticModel semanticModel, SyntaxNode location)
-    {
-        // Avoiding linq here for perf reasons. This is used heavily in the AddImport service
-        var result = new HashSet<INamespaceSymbol>();
-
-        foreach (var @using in location.GetEnclosingUsingDirectives())
-        {
-            if (@using.Alias == null)
-            {
-                Contract.ThrowIfNull(@using.NamespaceOrType);
-                var symbolInfo = semanticModel.GetSymbolInfo(@using.NamespaceOrType);
-                if (symbolInfo.Symbol is INamespaceSymbol namespaceSymbol)
-                {
-                    result ??= [];
-                    result.Add(namespaceSymbol);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public static Accessibility DetermineAccessibilityConstraint(
-        this SemanticModel semanticModel,
-        TypeSyntax type,
-        CancellationToken cancellationToken)
-    {
-        if (type == null)
-        {
-            return Accessibility.Private;
-        }
-
-        type = GetOutermostType(type);
-
-        // Interesting cases based on 3.5.4 Accessibility constraints in the language spec.
-        // If any of the below hold, then we will override the default accessibility if the
-        // constraint wants the type to be more accessible. i.e. if by default we generate
-        // 'internal', but a constraint makes us 'public', then be public.
-
-        // 1) The direct base class of a class type must be at least as accessible as the
-        //    class type itself.
-        //
-        // 2) The explicit base interfaces of an interface type must be at least as accessible
-        //    as the interface type itself.
-        if (type != null)
-        {
-            if (type.Parent is BaseTypeSyntax baseType &&
-                baseType.Parent is BaseListSyntax baseList &&
-                baseType.Type == type)
-            {
-                var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken);
-                if (containingType != null && containingType.TypeKind == TypeKind.Interface)
-                {
-                    return containingType.DeclaredAccessibility;
-                }
-                else if (baseList.Types[0] == type.Parent)
-                {
-                    return containingType.DeclaredAccessibility;
-                }
-            }
-        }
-
-        // 4) The type of a constant must be at least as accessible as the constant itself.
-        // 5) The type of a field must be at least as accessible as the field itself.
-        if (type?.Parent is VariableDeclarationSyntax variableDeclaration &&
-            variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
-        {
-            return semanticModel.GetDeclaredSymbol(
-                variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
-        }
-
-        // Also do the same check if we are in an object creation expression
-        if (type.IsParentKind(SyntaxKind.ObjectCreationExpression) &&
-            type.Parent.IsParentKind(SyntaxKind.EqualsValueClause) &&
-            type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-            type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
-            variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
-        {
-            return semanticModel.GetDeclaredSymbol(
-                variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
-        }
-
-        // 3) The return type of a delegate type must be at least as accessible as the
-        //    delegate type itself.
-        // 6) The return type of a method must be at least as accessible as the method
-        //    itself.
-        // 7) The type of a property must be at least as accessible as the property itself.
-        // 8) The type of an event must be at least as accessible as the event itself.
-        // 9) The type of an indexer must be at least as accessible as the indexer itself.
-        // 10) The return type of an operator must be at least as accessible as the operator
-        //     itself.
-        if (type.Parent.Kind()
-                is SyntaxKind.DelegateDeclaration
-                or SyntaxKind.MethodDeclaration
-                or SyntaxKind.PropertyDeclaration
-                or SyntaxKind.EventDeclaration
-                or SyntaxKind.IndexerDeclaration
-                or SyntaxKind.OperatorDeclaration)
-        {
-            return semanticModel.GetDeclaredSymbol(
-                type.Parent, cancellationToken).DeclaredAccessibility;
-        }
-
-        // 3) The parameter types of a delegate type must be at least as accessible as the
-        //    delegate type itself.
-        // 6) The parameter types of a method must be at least as accessible as the method
-        //    itself.
-        // 9) The parameter types of an indexer must be at least as accessible as the
-        //    indexer itself.
-        // 10) The parameter types of an operator must be at least as accessible as the
-        //     operator itself.
-        // 11) The parameter types of an instance constructor must be at least as accessible
-        //     as the instance constructor itself.
-        if (type.IsParentKind(SyntaxKind.Parameter) && type.Parent.IsParentKind(SyntaxKind.ParameterList))
-        {
-            if (type.Parent.Parent.Parent?.Kind()
-                    is SyntaxKind.DelegateDeclaration
-                    or SyntaxKind.MethodDeclaration
-                    or SyntaxKind.IndexerDeclaration
-                    or SyntaxKind.OperatorDeclaration)
-            {
-                return semanticModel.GetDeclaredSymbol(
-                    type.Parent.Parent.Parent, cancellationToken).DeclaredAccessibility;
-            }
-
-            if (type.Parent.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration))
-            {
-                var symbol = semanticModel.GetDeclaredSymbol(type.Parent.Parent.Parent, cancellationToken);
-                if (!symbol.IsStatic)
-                {
-                    return symbol.DeclaredAccessibility;
-                }
-            }
-        }
-
-        // 8) The type of an event must be at least as accessible as the event itself.
-        if (type.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
-            variableDeclaration.IsParentKind(SyntaxKind.EventFieldDeclaration))
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0], cancellationToken);
-            if (symbol != null)
-            {
-                return symbol.DeclaredAccessibility;
-            }
-        }
-
-        // Type constraint must be at least as accessible as the declaring member (class, interface, delegate, method)
-        if (type.IsParentKind(SyntaxKind.TypeConstraint))
-        {
-            return AllContainingTypesArePublicOrProtected(semanticModel, type, cancellationToken)
-                ? Accessibility.Public
-                : Accessibility.Internal;
-        }
-
-        return Accessibility.Private;
-    }
-
-    public static bool AllContainingTypesArePublicOrProtected(
-        this SemanticModel semanticModel,
-        TypeSyntax type,
-        CancellationToken cancellationToken)
-    {
-        if (type == null)
-        {
-            return false;
-        }
-
-        var typeDeclarations = type.GetAncestors<TypeDeclarationSyntax>();
-
-        foreach (var typeDeclaration in typeDeclarations)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
-
-            if (symbol.DeclaredAccessibility is Accessibility.Private or
-                Accessibility.ProtectedAndInternal or
-                Accessibility.Internal)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private static TypeSyntax GetOutermostType(TypeSyntax type)
         => type.GetAncestorsOrThis<TypeSyntax>().Last();
-
-    /// <summary>
-    /// Given an expression node, tries to generate an appropriate name that can be used for
-    /// that expression. 
-    /// </summary>
-    public static string GenerateNameForExpression(
-        this SemanticModel semanticModel, ExpressionSyntax expression,
-        bool capitalize, CancellationToken cancellationToken)
-    {
-        // Try to find a usable name node that we can use to name the
-        // parameter.  If we have an expression that has a name as part of it
-        // then we try to use that part.
-        var current = expression;
-        while (true)
-        {
-            current = current.WalkDownParentheses();
-
-            if (current is IdentifierNameSyntax identifierName)
-                return identifierName.Identifier.ValueText.ToCamelCase();
-
-            if (current is MemberAccessExpressionSyntax memberAccess)
-                return memberAccess.Name.Identifier.ValueText.ToCamelCase();
-
-            if (current is MemberBindingExpressionSyntax memberBinding)
-                return memberBinding.Name.Identifier.ValueText.ToCamelCase();
-
-            if (current is DeclarationExpressionSyntax decl)
-            {
-                if (decl.Designation is not SingleVariableDesignationSyntax name)
-                    break;
-
-                return name.Identifier.ValueText.ToCamelCase();
-            }
-
-            if (current.Parent is ForEachStatementSyntax foreachStatement &&
-                foreachStatement.Expression == expression)
-            {
-                var word = foreachStatement.Identifier.ValueText.ToCamelCase();
-                return CodeAnalysis.Shared.Extensions.SemanticModelExtensions.Pluralize(word);
-            }
-
-            if (current.Parent is AnonymousObjectMemberDeclaratorSyntax { NameEquals: { } nameEquals } anonymousObjectMemberDeclarator &&
-                anonymousObjectMemberDeclarator.Expression == current)
-            {
-                return nameEquals.Name.Identifier.ValueText.ToCamelCase();
-            }
-
-            if (current is ConditionalAccessExpressionSyntax conditionalAccess)
-            {
-                current = conditionalAccess.WhenNotNull;
-                continue;
-            }
-
-            if (current is CastExpressionSyntax castExpression)
-            {
-                current = castExpression.Expression;
-                continue;
-            }
-
-            break;
-        }
-
-        // there was nothing in the expression to signify a name.  If we're in an argument
-        // location, then try to choose a name based on the argument name.
-        var argumentName = TryGenerateNameForArgumentExpression(
-            semanticModel, expression, cancellationToken);
-        if (argumentName != null)
-        {
-            return capitalize ? argumentName.ToPascalCase() : argumentName.ToCamelCase();
-        }
-
-        // Otherwise, figure out the type of the expression and generate a name from that
-        // instead.
-        var info = semanticModel.GetTypeInfo(expression, cancellationToken);
-        if (info.Type == null)
-        {
-            return CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName;
-        }
-
-        return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
-    }
 
     private static string TryGenerateNameForArgumentExpression(
         SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
@@ -455,65 +513,5 @@ internal static partial class SemanticModelExtensions
         }
 
         return null;
-    }
-
-    public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, LocalFunctionStatementSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    public static IParameterSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ParameterSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    public static IPropertySymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, PropertyDeclarationSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseMethodDeclarationSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, VariableDeclaratorSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, SingleVariableDesignationSyntax syntax, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
-            ?? throw new InvalidOperationException();
-    }
-
-    /// <summary>
-    /// Returns whether or not <see cref="IntPtr"/> and <see cref="UIntPtr"/> are exactly identical to <see
-    /// cref="nint"/> and <see cref="nuint"/> respectively.
-    /// </summary>
-    public static bool UnifiesNativeIntegers(this SemanticModel semanticModel)
-    {
-        var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
-
-        // In C# 11 we made it so that IntPtr and nint are identical as long as the runtime unifies them.
-        return languageVersion >= LanguageVersion.CSharp11 && semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr);
     }
 }

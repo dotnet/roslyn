@@ -10,17 +10,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class IndentationResultExtensions
 {
-    public static int GetIndentation(this Indentation.IndentationResult result, ITextView textView, ITextSnapshotLine lineToBeIndented)
+    extension(Indentation.IndentationResult result)
     {
-        var position = new SnapshotPoint(lineToBeIndented.Snapshot, result.BasePosition);
-        var pointInSurfaceSnapshot = textView.BufferGraph.MapUpToSnapshot(position, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
-        if (!pointInSurfaceSnapshot.HasValue)
+        public int GetIndentation(ITextView textView, ITextSnapshotLine lineToBeIndented)
         {
-            return position.GetContainingLine().GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(textView.Options);
-        }
+            var position = new SnapshotPoint(lineToBeIndented.Snapshot, result.BasePosition);
+            var pointInSurfaceSnapshot = textView.BufferGraph.MapUpToSnapshot(position, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
+            if (!pointInSurfaceSnapshot.HasValue)
+            {
+                return position.GetContainingLine().GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(textView.Options);
+            }
 
-        var lineInSurfaceSnapshot = pointInSurfaceSnapshot.Value.Snapshot.GetLineFromPosition(pointInSurfaceSnapshot.Value.Position);
-        var offsetInLine = pointInSurfaceSnapshot.Value.Position - lineInSurfaceSnapshot.Start.Position;
-        return lineInSurfaceSnapshot.GetColumnFromLineOffset(offsetInLine, textView.Options) + result.Offset;
+            var lineInSurfaceSnapshot = pointInSurfaceSnapshot.Value.Snapshot.GetLineFromPosition(pointInSurfaceSnapshot.Value.Position);
+            var offsetInLine = pointInSurfaceSnapshot.Value.Position - lineInSurfaceSnapshot.Start.Position;
+            return lineInSurfaceSnapshot.GetColumnFromLineOffset(offsetInLine, textView.Options) + result.Offset;
+        }
     }
 }

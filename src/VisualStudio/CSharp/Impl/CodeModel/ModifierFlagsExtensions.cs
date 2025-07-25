@@ -35,89 +35,92 @@ internal static class ModifierFlagsExtensions
         { ModifierFlags.Partial, SyntaxKind.PartialKeyword }
     };
 
-    public static ModifierFlags GetModifierFlags(this MemberDeclarationSyntax member)
+    extension(MemberDeclarationSyntax member)
     {
-        ModifierFlags result = 0;
-
-        foreach (var modifier in member.GetModifiers())
+        public ModifierFlags GetModifierFlags()
         {
-            switch (modifier.Kind())
+            ModifierFlags result = 0;
+
+            foreach (var modifier in member.GetModifiers())
             {
-                case SyntaxKind.PublicKeyword:
-                    result |= ModifierFlags.Public;
-                    break;
-                case SyntaxKind.ProtectedKeyword:
-                    result |= ModifierFlags.Protected;
-                    break;
-                case SyntaxKind.InternalKeyword:
-                    result |= ModifierFlags.Internal;
-                    break;
-                case SyntaxKind.PrivateKeyword:
-                    result |= ModifierFlags.Private;
-                    break;
-                case SyntaxKind.VirtualKeyword:
-                    result |= ModifierFlags.Virtual;
-                    break;
-                case SyntaxKind.AbstractKeyword:
-                    result |= ModifierFlags.Abstract;
-                    break;
-                case SyntaxKind.NewKeyword:
-                    result |= ModifierFlags.New;
-                    break;
-                case SyntaxKind.OverrideKeyword:
-                    result |= ModifierFlags.Override;
-                    break;
-                case SyntaxKind.SealedKeyword:
-                    result |= ModifierFlags.Sealed;
-                    break;
-                case SyntaxKind.StaticKeyword:
-                    result |= ModifierFlags.Static;
-                    break;
-                case SyntaxKind.ExternKeyword:
-                    result |= ModifierFlags.Extern;
-                    break;
-                case SyntaxKind.ReadOnlyKeyword:
-                    result |= ModifierFlags.ReadOnly;
-                    break;
-                case SyntaxKind.ConstKeyword:
-                    result |= ModifierFlags.Const;
-                    break;
-                case SyntaxKind.VolatileKeyword:
-                    result |= ModifierFlags.Volatile;
-                    break;
-                case SyntaxKind.UnsafeKeyword:
-                    result |= ModifierFlags.Unsafe;
-                    break;
-                case SyntaxKind.AsyncKeyword:
-                    result |= ModifierFlags.Async;
-                    break;
-                case SyntaxKind.PartialKeyword:
-                    result |= ModifierFlags.Partial;
-                    break;
+                switch (modifier.Kind())
+                {
+                    case SyntaxKind.PublicKeyword:
+                        result |= ModifierFlags.Public;
+                        break;
+                    case SyntaxKind.ProtectedKeyword:
+                        result |= ModifierFlags.Protected;
+                        break;
+                    case SyntaxKind.InternalKeyword:
+                        result |= ModifierFlags.Internal;
+                        break;
+                    case SyntaxKind.PrivateKeyword:
+                        result |= ModifierFlags.Private;
+                        break;
+                    case SyntaxKind.VirtualKeyword:
+                        result |= ModifierFlags.Virtual;
+                        break;
+                    case SyntaxKind.AbstractKeyword:
+                        result |= ModifierFlags.Abstract;
+                        break;
+                    case SyntaxKind.NewKeyword:
+                        result |= ModifierFlags.New;
+                        break;
+                    case SyntaxKind.OverrideKeyword:
+                        result |= ModifierFlags.Override;
+                        break;
+                    case SyntaxKind.SealedKeyword:
+                        result |= ModifierFlags.Sealed;
+                        break;
+                    case SyntaxKind.StaticKeyword:
+                        result |= ModifierFlags.Static;
+                        break;
+                    case SyntaxKind.ExternKeyword:
+                        result |= ModifierFlags.Extern;
+                        break;
+                    case SyntaxKind.ReadOnlyKeyword:
+                        result |= ModifierFlags.ReadOnly;
+                        break;
+                    case SyntaxKind.ConstKeyword:
+                        result |= ModifierFlags.Const;
+                        break;
+                    case SyntaxKind.VolatileKeyword:
+                        result |= ModifierFlags.Volatile;
+                        break;
+                    case SyntaxKind.UnsafeKeyword:
+                        result |= ModifierFlags.Unsafe;
+                        break;
+                    case SyntaxKind.AsyncKeyword:
+                        result |= ModifierFlags.Async;
+                        break;
+                    case SyntaxKind.PartialKeyword:
+                        result |= ModifierFlags.Partial;
+                        break;
+                }
             }
+
+            return result;
         }
 
-        return result;
-    }
-
-    public static MemberDeclarationSyntax UpdateModifiers(this MemberDeclarationSyntax member, ModifierFlags flags)
-    {
-        // The starting token for this member may change, so we need to save
-        // the leading trivia and reattach it after updating the modifiers.
-        // We also need to remove it here to avoid duplicates.
-        var leadingTrivia = member.GetLeadingTrivia();
-        member = member.WithLeadingTrivia(SyntaxTriviaList.Empty);
-
-        var newModifierList = new List<SyntaxToken>();
-        foreach (var modifierDefinition in s_modifierDefinitions)
+        public MemberDeclarationSyntax UpdateModifiers(ModifierFlags flags)
         {
-            if ((flags & modifierDefinition.Key) != 0)
-            {
-                newModifierList.Add(SyntaxFactory.Token(modifierDefinition.Value));
-            }
-        }
+            // The starting token for this member may change, so we need to save
+            // the leading trivia and reattach it after updating the modifiers.
+            // We also need to remove it here to avoid duplicates.
+            var leadingTrivia = member.GetLeadingTrivia();
+            member = member.WithLeadingTrivia(SyntaxTriviaList.Empty);
 
-        var newMember = member.WithModifiers([.. newModifierList]);
-        return newMember.WithLeadingTrivia(leadingTrivia);
+            var newModifierList = new List<SyntaxToken>();
+            foreach (var modifierDefinition in s_modifierDefinitions)
+            {
+                if ((flags & modifierDefinition.Key) != 0)
+                {
+                    newModifierList.Add(SyntaxFactory.Token(modifierDefinition.Value));
+                }
+            }
+
+            var newMember = member.WithModifiers([.. newModifierList]);
+            return newMember.WithLeadingTrivia(leadingTrivia);
+        }
     }
 }

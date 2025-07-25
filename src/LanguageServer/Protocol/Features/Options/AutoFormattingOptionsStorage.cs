@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal static class AutoFormattingOptionsStorage
 {
-    public static AutoFormattingOptions GetAutoFormattingOptions(this IGlobalOptionService globalOptions, string language)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public AutoFormattingOptions GetAutoFormattingOptions(string language)
         => new()
         {
             FormatOnReturn = globalOptions.GetOption(FormatOnReturn, language),
@@ -16,6 +18,7 @@ internal static class AutoFormattingOptionsStorage
             FormatOnSemicolon = globalOptions.GetOption(FormatOnSemicolon, language),
             FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
         };
+    }
 
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
         "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn);

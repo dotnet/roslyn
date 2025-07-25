@@ -10,21 +10,33 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 
 internal static partial class PythiaSyntaxExtensions
 {
-    public static bool IsInNonUserCode(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+    extension(SyntaxTree syntaxTree)
+    {
+        public bool IsInNonUserCode(int position, CancellationToken cancellationToken)
         => CSharp.Extensions.SyntaxTreeExtensions.IsInNonUserCode(syntaxTree, position, cancellationToken);
 
-    public static SyntaxToken GetPreviousTokenIfTouchingWord(this SyntaxToken token, int position)
+        public SyntaxToken FindTokenOnLeftOfPosition(int position, CancellationToken cancellationToken, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false)
+            => Shared.Extensions.SyntaxTreeExtensions.FindTokenOnLeftOfPosition(syntaxTree, position, cancellationToken, includeSkipped, includeDirectives, includeDocumentationComments);
+    }
+
+    extension(SyntaxToken token)
+    {
+        public SyntaxToken GetPreviousTokenIfTouchingWord(int position)
         => CSharp.Extensions.SyntaxTokenExtensions.GetPreviousTokenIfTouchingWord(token, position);
+    }
 
-    public static SyntaxToken FindTokenOnLeftOfPosition(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false)
-        => Shared.Extensions.SyntaxTreeExtensions.FindTokenOnLeftOfPosition(syntaxTree, position, cancellationToken, includeSkipped, includeDirectives, includeDocumentationComments);
-
-    public static bool IsFoundUnder<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter) where TParent : SyntaxNode
+    extension(SyntaxNode node)
+    {
+        public bool IsFoundUnder<TParent>(Func<TParent, SyntaxNode> childGetter) where TParent : SyntaxNode
         => Shared.Extensions.SyntaxNodeExtensions.IsFoundUnder(node, childGetter);
 
-    public static SimpleNameSyntax? GetRightmostName(this ExpressionSyntax node)
-        => CSharp.Extensions.ExpressionSyntaxExtensions.GetRightmostName(node);
+        public bool IsInStaticContext()
+            => CSharp.Extensions.SyntaxNodeExtensions.IsInStaticContext(node);
+    }
 
-    public static bool IsInStaticContext(this SyntaxNode node)
-        => CSharp.Extensions.SyntaxNodeExtensions.IsInStaticContext(node);
+    extension(ExpressionSyntax node)
+    {
+        public SimpleNameSyntax? GetRightmostName()
+        => CSharp.Extensions.ExpressionSyntaxExtensions.GetRightmostName(node);
+    }
 }

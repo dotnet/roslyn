@@ -10,21 +10,33 @@ internal static class Extensions
 {
     private const string RazorCSharpLspClientName = "RazorCSharp";
 
-    public static bool CanApplyChange([NotNullWhen(returnValue: true)] this TextDocument? document)
+    extension([NotNullWhen(true)] TextDocument? document)
+    {
+        public bool CanApplyChange()
         => document?.State.CanApplyChange() ?? false;
 
-    public static bool CanApplyChange([NotNullWhen(returnValue: true)] this TextDocumentState? document)
+        public bool SupportsDiagnostics()
+            => document?.State.SupportsDiagnostics() ?? false;
+    }
+
+    extension([NotNullWhen(true)] TextDocumentState? document)
+    {
+        public bool CanApplyChange()
         => document?.DocumentServiceProvider.GetService<IDocumentOperationService>()?.CanApplyChange ?? false;
 
-    public static bool SupportsDiagnostics([NotNullWhen(returnValue: true)] this TextDocument? document)
-        => document?.State.SupportsDiagnostics() ?? false;
+        public bool SupportsDiagnostics()
+            => document?.DocumentServiceProvider.GetService<IDocumentOperationService>()?.SupportDiagnostics ?? false;
+    }
 
-    public static bool SupportsDiagnostics([NotNullWhen(returnValue: true)] this TextDocumentState? document)
-        => document?.DocumentServiceProvider.GetService<IDocumentOperationService>()?.SupportDiagnostics ?? false;
-
-    public static bool IsRazorDocument(this TextDocument document)
+    extension(TextDocument document)
+    {
+        public bool IsRazorDocument()
         => IsRazorDocument(document.State);
+    }
 
-    public static bool IsRazorDocument(this TextDocumentState documentState)
+    extension(TextDocumentState documentState)
+    {
+        public bool IsRazorDocument()
         => documentState.DocumentServiceProvider.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName == RazorCSharpLspClientName;
+    }
 }

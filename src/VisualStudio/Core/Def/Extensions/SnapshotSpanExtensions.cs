@@ -10,16 +10,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 
 internal static class SnapshotSpanExtensions
 {
-    public static VsTextSpan ToVsTextSpan(this SnapshotSpan snapshotSpan)
+    extension(SnapshotSpan snapshotSpan)
     {
-        snapshotSpan.GetLinesAndCharacters(out var startLine, out var startCharacterIndex, out var endLine, out var endCharacterIndex);
-
-        return new VsTextSpan()
+        public VsTextSpan ToVsTextSpan()
         {
-            iStartLine = startLine,
-            iStartIndex = startCharacterIndex,
-            iEndLine = endLine,
-            iEndIndex = endCharacterIndex
-        };
+            snapshotSpan.GetLinesAndCharacters(out var startLine, out var startCharacterIndex, out var endLine, out var endCharacterIndex);
+
+            return new VsTextSpan()
+            {
+                iStartLine = startLine,
+                iStartIndex = startCharacterIndex,
+                iEndLine = endLine,
+                iEndIndex = endCharacterIndex
+            };
+        }
     }
 }

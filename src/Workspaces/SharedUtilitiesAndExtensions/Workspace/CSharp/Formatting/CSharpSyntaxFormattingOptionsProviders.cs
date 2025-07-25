@@ -10,9 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
 internal static class CSharpSyntaxFormattingOptionsProviders
 {
-    public static async ValueTask<CSharpSyntaxFormattingOptions> GetCSharpSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return new CSharpSyntaxFormattingOptions(configOptions);
+        public async ValueTask<CSharpSyntaxFormattingOptions> GetCSharpSyntaxFormattingOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return new CSharpSyntaxFormattingOptions(configOptions);
+        }
     }
 }

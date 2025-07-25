@@ -12,9 +12,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 
 internal static class ITextSnapshotExtensions
 {
-    public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, VsTextSpan textSpan)
+    extension(ITextSnapshot snapshot)
+    {
+        public SnapshotSpan GetSpan(VsTextSpan textSpan)
         => TryGetSpan(snapshot, textSpan).Value;
 
-    public static SnapshotSpan? TryGetSpan(this ITextSnapshot snapshot, VsTextSpan textSpan)
-        => snapshot.TryGetSpan(textSpan.iStartLine, textSpan.iStartIndex, textSpan.iEndLine, textSpan.iEndIndex);
+        public SnapshotSpan? TryGetSpan(VsTextSpan textSpan)
+            => snapshot.TryGetSpan(textSpan.iStartLine, textSpan.iStartIndex, textSpan.iEndLine, textSpan.iEndIndex);
+    }
 }

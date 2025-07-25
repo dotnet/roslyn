@@ -15,21 +15,27 @@ using static SyntaxFactory;
 
 internal static class ITypeParameterSymbolExtensions
 {
-    public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
-        this ImmutableArray<ITypeParameterSymbol> typeParameters)
+    extension(ImmutableArray<ITypeParameterSymbol> typeParameters)
     {
-        return typeParameters.AsEnumerable().GenerateConstraintClauses();
+        public SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
+)
+        {
+            return typeParameters.AsEnumerable().GenerateConstraintClauses();
+        }
     }
 
-    public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
-        this IEnumerable<ITypeParameterSymbol> typeParameters)
+    extension(IEnumerable<ITypeParameterSymbol> typeParameters)
     {
-        using var _ = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var clauses);
+        public SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
+)
+        {
+            using var _ = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var clauses);
 
-        foreach (var typeParameter in typeParameters)
-            AddConstraintClauses(clauses, typeParameter);
+            foreach (var typeParameter in typeParameters)
+                AddConstraintClauses(clauses, typeParameter);
 
-        return [.. clauses];
+            return [.. clauses];
+        }
     }
 
     private static void AddConstraintClauses(

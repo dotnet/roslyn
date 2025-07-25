@@ -17,9 +17,12 @@ internal static class CopilotUtilities
     public static string GetCopilotSuggestionDiagnosticTag()
         => WellKnownDiagnosticCustomTags.CopilotSuggestion;
 
-    public static bool IsResultantVisibilityPublic(this ISymbol symbol)
+    extension(ISymbol symbol)
     {
-        return symbol.GetResultantVisibility() == Shared.Utilities.SymbolVisibility.Public;
+        public bool IsResultantVisibilityPublic()
+        {
+            return symbol.GetResultantVisibility() == Shared.Utilities.SymbolVisibility.Public;
+        }
     }
 
     public static bool IsValidIdentifier([NotNullWhen(returnValue: true)] string? name)

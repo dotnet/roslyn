@@ -10,13 +10,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class DocumentationCommentExtensions
 {
-    public static bool IsMultilineDocComment([NotNullWhen(true)] this DocumentationCommentTriviaSyntax? documentationComment)
+    extension([NotNullWhen(true)] DocumentationCommentTriviaSyntax? documentationComment)
     {
-        if (documentationComment == null)
+        public bool IsMultilineDocComment()
         {
-            return false;
-        }
+            if (documentationComment == null)
+            {
+                return false;
+            }
 
-        return documentationComment.ToFullString().StartsWith("/**", StringComparison.Ordinal);
+            return documentationComment.ToFullString().StartsWith("/**", StringComparison.Ordinal);
+        }
     }
 }

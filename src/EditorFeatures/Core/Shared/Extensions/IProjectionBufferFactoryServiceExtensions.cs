@@ -32,87 +32,152 @@ internal static class IProjectionBufferFactoryServiceExtensions
     [BaseDefinition("projection")]
     public static readonly ContentTypeDefinition? RoslynPreviewContentTypeDefinition;
 
-    public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
-        this IProjectionBufferFactoryService factoryService,
+    extension(IProjectionBufferFactoryService factoryService)
+    {
+        public IProjectionBuffer CreateProjectionBufferWithoutIndentation(
         IEditorOptions editorOptions,
         IContentType? contentType = null,
         params SnapshotSpan[] exposedSpans)
-    {
-        return factoryService.CreateProjectionBufferWithoutIndentation(
-            editorOptions,
-            contentType,
-            (IEnumerable<SnapshotSpan>)exposedSpans);
-    }
-
-    public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
-        this IProjectionBufferFactoryService factoryService,
-        IEditorOptions editorOptions,
-        IContentType? contentType,
-        IEnumerable<SnapshotSpan> exposedSpans)
-    {
-        var spans = new NormalizedSnapshotSpanCollection(exposedSpans);
-
-        if (spans.Count > 0)
         {
-            // BUG(6335): We have to make sure that the spans refer to the current snapshot of
-            // the buffer.
-            var buffer = spans.First().Snapshot.TextBuffer;
-            var currentSnapshot = buffer.CurrentSnapshot;
-            spans = new NormalizedSnapshotSpanCollection(
-                spans.Select(s => s.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive)));
+            return factoryService.CreateProjectionBufferWithoutIndentation(
+                editorOptions,
+                contentType,
+                (IEnumerable<SnapshotSpan>)exposedSpans);
         }
 
-        contentType ??= factoryService.ProjectionContentType;
-        var projectionBuffer = factoryService.CreateProjectionBuffer(
-            projectionEditResolver: null,
-            sourceSpans: [],
-            options: ProjectionBufferOptions.None,
-            contentType: contentType);
-
-        if (spans.Count > 0)
+        public IProjectionBuffer CreateProjectionBufferWithoutIndentation(
+            IEditorOptions editorOptions,
+            IContentType? contentType,
+            IEnumerable<SnapshotSpan> exposedSpans)
         {
-            var finalSpans = new List<object>();
+            var spans = new NormalizedSnapshotSpanCollection(exposedSpans);
 
-            // We need to figure out the shorted indentation level of the exposed lines.  We'll
-            // then remove that indentation from all lines.
-            var indentationColumn = DetermineIndentationColumn(editorOptions, spans);
-
-            foreach (var span in spans)
+            if (spans.Count > 0)
             {
-                var snapshot = span.Snapshot;
-                var startLineNumber = snapshot.GetLineNumberFromPosition(span.Start);
-                var endLineNumber = snapshot.GetLineNumberFromPosition(span.End);
-
-                for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
-                {
-                    // Compute the span clamped to this line
-                    var line = snapshot.GetLineFromLineNumber(lineNumber);
-                    var finalSpanStart = Math.Max(line.Start, span.Start);
-                    var finalSpanEnd = Math.Min(line.EndIncludingLineBreak, span.End);
-
-                    // We'll only offset if our span doesn't already start at the start of the line. See the similar exclusion in
-                    // DetermineIndentationColumn that this matches.
-                    if (line.Start == finalSpanStart)
-                    {
-                        finalSpanStart += line.GetLineOffsetFromColumn(indentationColumn, editorOptions);
-
-                        // Paranoia: what if the indentation reversed our ordering?
-                        if (finalSpanStart > finalSpanEnd)
-                        {
-                            finalSpanStart = finalSpanEnd;
-                        }
-                    }
-
-                    // We don't expect edits to happen while this projection buffer is active. We'll choose EdgeExclusive so
-                    // if they do we don't end up in any cases where there is overlapping source spans.
-                    finalSpans.Add(snapshot.CreateTrackingSpan(Span.FromBounds(finalSpanStart, finalSpanEnd), SpanTrackingMode.EdgeExclusive));
-                }
+                // BUG(6335): We have to make sure that the spans refer to the current snapshot of
+                // the buffer.
+                var buffer = spans.First().Snapshot.TextBuffer;
+                var currentSnapshot = buffer.CurrentSnapshot;
+                spans = new NormalizedSnapshotSpanCollection(
+                    spans.Select(s => s.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive)));
             }
 
-            projectionBuffer.InsertSpans(0, finalSpans);
+            contentType ??= factoryService.ProjectionContentType;
+            var projectionBuffer = factoryService.CreateProjectionBuffer(
+                projectionEditResolver: null,
+                sourceSpans: [],
+                options: ProjectionBufferOptions.None,
+                contentType: contentType);
+
+            if (spans.Count > 0)
+            {
+                var finalSpans = new List<object>();
+
+                // We need to figure out the shorted indentation level of the exposed lines.  We'll
+                // then remove that indentation from all lines.
+                var indentationColumn = DetermineIndentationColumn(editorOptions, spans);
+
+                foreach (var span in spans)
+                {
+                    var snapshot = span.Snapshot;
+                    var startLineNumber = snapshot.GetLineNumberFromPosition(span.Start);
+                    var endLineNumber = snapshot.GetLineNumberFromPosition(span.End);
+
+                    for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
+                    {
+                        // Compute the span clamped to this line
+                        var line = snapshot.GetLineFromLineNumber(lineNumber);
+                        var finalSpanStart = Math.Max(line.Start, span.Start);
+                        var finalSpanEnd = Math.Min(line.EndIncludingLineBreak, span.End);
+
+                        // We'll only offset if our span doesn't already start at the start of the line. See the similar exclusion in
+                        // DetermineIndentationColumn that this matches.
+                        if (line.Start == finalSpanStart)
+                        {
+                            finalSpanStart += line.GetLineOffsetFromColumn(indentationColumn, editorOptions);
+
+                            // Paranoia: what if the indentation reversed our ordering?
+                            if (finalSpanStart > finalSpanEnd)
+                            {
+                                finalSpanStart = finalSpanEnd;
+                            }
+                        }
+
+                        // We don't expect edits to happen while this projection buffer is active. We'll choose EdgeExclusive so
+                        // if they do we don't end up in any cases where there is overlapping source spans.
+                        finalSpans.Add(snapshot.CreateTrackingSpan(Span.FromBounds(finalSpanStart, finalSpanEnd), SpanTrackingMode.EdgeExclusive));
+                    }
+                }
+
+                projectionBuffer.InsertSpans(0, finalSpans);
+            }
+
+            return projectionBuffer;
         }
 
-        return projectionBuffer;
+        public IProjectionBuffer CreateProjectionBuffer(
+            IContentTypeRegistryService registryService,
+            IEditorOptions editorOptions,
+            ITextSnapshot snapshot,
+            string separator,
+            params ReadOnlySpan<LineSpan> exposedLineSpans)
+        {
+            return CreateProjectionBuffer(
+                factoryService,
+                registryService,
+                editorOptions,
+                snapshot,
+                separator,
+                suffixOpt: null,
+                trim: false,
+                exposedLineSpans: exposedLineSpans);
+        }
+
+        public IProjectionBuffer CreateProjectionBufferWithoutIndentation(
+            IContentTypeRegistryService registryService,
+            IEditorOptions editorOptions,
+            ITextSnapshot snapshot,
+            string separator,
+            params ReadOnlySpan<LineSpan> exposedLineSpans)
+        {
+            return factoryService.CreateProjectionBufferWithoutIndentation(
+                registryService,
+                editorOptions,
+                snapshot,
+                separator,
+                suffixOpt: null,
+                exposedLineSpans: exposedLineSpans);
+        }
+
+        public IProjectionBuffer CreateProjectionBufferWithoutIndentation(
+            IContentTypeRegistryService registryService,
+            IEditorOptions editorOptions,
+            ITextSnapshot snapshot,
+            string separator,
+            object? suffixOpt,
+            params ReadOnlySpan<LineSpan> exposedLineSpans)
+        {
+            return CreateProjectionBuffer(
+                factoryService,
+                registryService,
+                editorOptions,
+                snapshot,
+                separator,
+                suffixOpt,
+                trim: true,
+                exposedLineSpans: exposedLineSpans);
+        }
+
+        public IProjectionBuffer CreatePreviewProjectionBuffer(
+            IList<object> sourceSpans,
+            IContentTypeRegistryService registryService)
+        {
+            return factoryService.CreateProjectionBuffer(
+                projectionEditResolver: null,
+                sourceSpans: sourceSpans,
+                options: ProjectionBufferOptions.None,
+                contentType: registryService.GetContentType(RoslynPreviewContentType));
+        }
     }
 
     private static int DetermineIndentationColumn(
@@ -161,74 +226,6 @@ internal static class IProjectionBufferFactoryServiceExtensions
         }
 
         return indentationColumn ?? 0;
-    }
-
-    public static IProjectionBuffer CreateProjectionBuffer(
-        this IProjectionBufferFactoryService factoryService,
-        IContentTypeRegistryService registryService,
-        IEditorOptions editorOptions,
-        ITextSnapshot snapshot,
-        string separator,
-        params ReadOnlySpan<LineSpan> exposedLineSpans)
-    {
-        return CreateProjectionBuffer(
-            factoryService,
-            registryService,
-            editorOptions,
-            snapshot,
-            separator,
-            suffixOpt: null,
-            trim: false,
-            exposedLineSpans: exposedLineSpans);
-    }
-
-    public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
-        this IProjectionBufferFactoryService factoryService,
-        IContentTypeRegistryService registryService,
-        IEditorOptions editorOptions,
-        ITextSnapshot snapshot,
-        string separator,
-        params ReadOnlySpan<LineSpan> exposedLineSpans)
-    {
-        return factoryService.CreateProjectionBufferWithoutIndentation(
-            registryService,
-            editorOptions,
-            snapshot,
-            separator,
-            suffixOpt: null,
-            exposedLineSpans: exposedLineSpans);
-    }
-
-    public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
-        this IProjectionBufferFactoryService factoryService,
-        IContentTypeRegistryService registryService,
-        IEditorOptions editorOptions,
-        ITextSnapshot snapshot,
-        string separator,
-        object? suffixOpt,
-        params ReadOnlySpan<LineSpan> exposedLineSpans)
-    {
-        return CreateProjectionBuffer(
-            factoryService,
-            registryService,
-            editorOptions,
-            snapshot,
-            separator,
-            suffixOpt,
-            trim: true,
-            exposedLineSpans: exposedLineSpans);
-    }
-
-    public static IProjectionBuffer CreatePreviewProjectionBuffer(
-        this IProjectionBufferFactoryService factoryService,
-        IList<object> sourceSpans,
-        IContentTypeRegistryService registryService)
-    {
-        return factoryService.CreateProjectionBuffer(
-            projectionEditResolver: null,
-            sourceSpans: sourceSpans,
-            options: ProjectionBufferOptions.None,
-            contentType: registryService.GetContentType(RoslynPreviewContentType));
     }
 
     private static IProjectionBuffer CreateProjectionBuffer(

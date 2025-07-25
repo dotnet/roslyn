@@ -11,24 +11,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static partial class ClassificationExtensions
 {
-    public static IList<ClassificationSpan> ToClassificationSpans(
-        this IEnumerable<TaggedText> parts,
+    extension(IEnumerable<TaggedText> parts)
+    {
+        public IList<ClassificationSpan> ToClassificationSpans(
         ITextSnapshot textSnapshot,
         ClassificationTypeMap typeMap)
-    {
-        var result = new List<ClassificationSpan>();
-
-        var index = 0;
-        foreach (var part in parts)
         {
-            var text = part.ToString();
-            result.Add(new ClassificationSpan(
-                new SnapshotSpan(textSnapshot, new Span(index, text.Length)),
-                typeMap.GetClassificationType(part.Tag.ToClassificationTypeName())));
+            var result = new List<ClassificationSpan>();
 
-            index += text.Length;
+            var index = 0;
+            foreach (var part in parts)
+            {
+                var text = part.ToString();
+                result.Add(new ClassificationSpan(
+                    new SnapshotSpan(textSnapshot, new Span(index, text.Length)),
+                    typeMap.GetClassificationType(part.Tag.ToClassificationTypeName())));
+
+                index += text.Length;
+            }
+
+            return result;
         }
-
-        return result;
     }
 }

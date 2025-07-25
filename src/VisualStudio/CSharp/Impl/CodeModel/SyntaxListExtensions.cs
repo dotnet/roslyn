@@ -11,15 +11,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
 
 internal static class SyntaxListExtensions
 {
-    public static IReadOnlyList<TNode> AsReadOnlyList<TNode>(this SyntaxList<TNode> list)
-        where TNode : SyntaxNode
+    extension<TNode>(SyntaxList<TNode> list) where TNode : SyntaxNode
     {
-        return list;
+        public IReadOnlyList<TNode> AsReadOnlyList()
+        {
+            return list;
+        }
     }
 
-    public static IReadOnlyList<TNode> AsReadOnlyList<TNode>(this SeparatedSyntaxList<TNode> separatedList)
-        where TNode : SyntaxNode
+    extension<TNode>(SeparatedSyntaxList<TNode> separatedList) where TNode : SyntaxNode
     {
-        return separatedList;
+        public IReadOnlyList<TNode> AsReadOnlyList()
+        {
+            return separatedList;
+        }
     }
 }

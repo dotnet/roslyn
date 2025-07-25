@@ -20,7 +20,9 @@ internal readonly partial record struct NotificationOption2
 
 internal static partial class Extensions
 {
-    public static string GetDisplayString(this ReportDiagnostic severity)
+    extension(ReportDiagnostic severity)
+    {
+        public string GetDisplayString()
         => severity switch
         {
             ReportDiagnostic.Suppress => WorkspacesResources.None,
@@ -30,4 +32,5 @@ internal static partial class Extensions
             ReportDiagnostic.Error => WorkspacesResources.Error,
             _ => throw ExceptionUtilities.UnexpectedValue(severity)
         };
+    }
 }

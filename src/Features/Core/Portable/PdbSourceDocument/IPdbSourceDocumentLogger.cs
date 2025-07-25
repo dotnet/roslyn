@@ -16,9 +16,12 @@ internal interface IPdbSourceDocumentLogger
 
 internal static class PdbSourceDocumentLoggerExtensions
 {
-    public static void Log(this IPdbSourceDocumentLogger logger, string message, object arg0)
+    extension(IPdbSourceDocumentLogger logger)
+    {
+        public void Log(string message, object arg0)
         => logger.Log(string.Format(message, arg0));
 
-    public static void Log(this IPdbSourceDocumentLogger logger, string message, object arg0, object arg1)
-        => logger.Log(string.Format(message, arg0, arg1));
+        public void Log(string message, object arg0, object arg1)
+            => logger.Log(string.Format(message, arg0, arg1));
+    }
 }

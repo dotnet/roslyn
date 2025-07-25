@@ -20,13 +20,16 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
 internal static class SourceTextExtensions
 {
-    public static SourceText WithNamingStyles(this SourceText sourceText, IGlobalOptionService globalOptions)
+    extension(SourceText sourceText)
     {
-        var (common, csharp, visualBasic) = GetPreferencesForAllLanguages(globalOptions);
+        public SourceText WithNamingStyles(IGlobalOptionService globalOptions)
+        {
+            var (common, csharp, visualBasic) = GetPreferencesForAllLanguages(globalOptions);
 
-        sourceText = WithNamingStyles(sourceText, csharp, Language.CSharp);
-        sourceText = WithNamingStyles(sourceText, visualBasic, Language.VisualBasic);
-        return WithNamingStyles(sourceText, common, Language.CSharp | Language.VisualBasic);
+            sourceText = WithNamingStyles(sourceText, csharp, Language.CSharp);
+            sourceText = WithNamingStyles(sourceText, visualBasic, Language.VisualBasic);
+            return WithNamingStyles(sourceText, common, Language.CSharp | Language.VisualBasic);
+        }
     }
 
     private static SourceText WithNamingStyles(SourceText sourceText, IEnumerable<NamingRule> rules, Language language)

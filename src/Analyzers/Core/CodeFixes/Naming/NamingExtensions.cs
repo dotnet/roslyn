@@ -13,28 +13,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class NamingExtensions
 {
-    public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-        this Document document, SymbolKind symbolKind, Accessibility accessibility, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var rule in rules)
+        public async Task<NamingRule> GetApplicableNamingRuleAsync(
+SymbolKind symbolKind, Accessibility accessibility, CancellationToken cancellationToken)
         {
-            if (rule.SymbolSpecification.AppliesTo(symbolKind, accessibility))
-                return rule;
+            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var rule in rules)
+            {
+                if (rule.SymbolSpecification.AppliesTo(symbolKind, accessibility))
+                    return rule;
+            }
+
+            throw ExceptionUtilities.Unreachable();
         }
 
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    /// <summary>
-    /// Gets the set of naming rules the user has set for this document.  Will include a set of default naming rules
-    /// that match if the user hasn't specified any for a particular symbol type.  The are added at the end so they
-    /// will only be used if the user hasn't specified a preference.
-    /// </summary>
-    public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-        this Document document, CancellationToken cancellationToken)
-    {
-        var options = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
-        return options.Rules.NamingRules.AddRange(FallbackNamingRules.Default);
+        /// <summary>
+        /// Gets the set of naming rules the user has set for this document.  Will include a set of default naming rules
+        /// that match if the user hasn't specified any for a particular symbol type.  The are added at the end so they
+        /// will only be used if the user hasn't specified a preference.
+        /// </summary>
+        public async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
+    CancellationToken cancellationToken)
+        {
+            var options = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
+            return options.Rules.NamingRules.AddRange(FallbackNamingRules.Default);
+        }
     }
 }

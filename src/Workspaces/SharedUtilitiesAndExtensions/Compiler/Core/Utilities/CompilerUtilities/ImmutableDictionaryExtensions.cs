@@ -9,38 +9,40 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class ImmutableDictionaryExtensions
 {
-    public static bool KeysEqual<TKey, TValue>(this ImmutableDictionary<TKey, TValue> self, ImmutableDictionary<TKey, TValue> other)
-        where TKey : notnull
+    extension<TKey, TValue>(ImmutableDictionary<TKey, TValue> self) where TKey : notnull
     {
-        if (self.Count != other.Count)
+        public bool KeysEqual(ImmutableDictionary<TKey, TValue> other)
         {
-            return false;
-        }
-
-        if (self.IsEmpty)
-        {
-            return true;
-        }
-
-        foreach (var (key, _) in self)
-        {
-            if (!other.ContainsKey(key))
+            if (self.Count != other.Count)
             {
                 return false;
             }
-        }
 
-        if (self.KeyComparer != other.KeyComparer)
-        {
-            foreach (var (key, _) in other)
+            if (self.IsEmpty)
             {
-                if (!self.ContainsKey(key))
+                return true;
+            }
+
+            foreach (var (key, _) in self)
+            {
+                if (!other.ContainsKey(key))
                 {
                     return false;
                 }
             }
-        }
 
-        return true;
+            if (self.KeyComparer != other.KeyComparer)
+            {
+                foreach (var (key, _) in other)
+                {
+                    if (!self.ContainsKey(key))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
     }
 }

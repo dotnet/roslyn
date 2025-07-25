@@ -34,12 +34,15 @@ internal interface IAddImportsService : ILanguageService
 
 internal static class IAddImportServiceExtensions
 {
-    public static SyntaxNode AddImport(
-        this IAddImportsService service, Compilation compilation, SyntaxNode root,
+    extension(IAddImportsService service)
+    {
+        public SyntaxNode AddImport(
+Compilation compilation, SyntaxNode root,
         SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, AddImportPlacementOptions options,
         CancellationToken cancellationToken)
-    {
-        return service.AddImports(compilation, root, contextLocation,
-            [newImport], generator, options, cancellationToken);
+        {
+            return service.AddImports(compilation, root, contextLocation,
+                [newImport], generator, options, cancellationToken);
+        }
     }
 }

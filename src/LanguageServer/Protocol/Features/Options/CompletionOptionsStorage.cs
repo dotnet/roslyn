@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.Completion;
 
 internal static class CompletionOptionsStorage
 {
-    public static CompletionOptions GetCompletionOptions(this IGlobalOptionService options, string language)
+    extension(IGlobalOptionService options)
+    {
+        public CompletionOptions GetCompletionOptions(string language)
         => new()
         {
             TriggerOnTyping = options.GetOption(TriggerOnTyping, language),
@@ -35,6 +37,7 @@ internal static class CompletionOptionsStorage
             ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language),
             ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
+    }
 
     private static readonly OptionGroup s_completionOptionGroup = new(name: "completion", description: "");
 

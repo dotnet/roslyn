@@ -66,15 +66,18 @@ internal enum ValueUsageInfo
 
 internal static class ValueUsageInfoExtensions
 {
-    public static bool IsReadFrom(this ValueUsageInfo valueUsageInfo)
+    extension(ValueUsageInfo valueUsageInfo)
+    {
+        public bool IsReadFrom()
         => (valueUsageInfo & ValueUsageInfo.Read) != 0;
 
-    public static bool IsWrittenTo(this ValueUsageInfo valueUsageInfo)
-        => (valueUsageInfo & ValueUsageInfo.Write) != 0;
+        public bool IsWrittenTo()
+            => (valueUsageInfo & ValueUsageInfo.Write) != 0;
 
-    public static bool IsNameOnly(this ValueUsageInfo valueUsageInfo)
-        => (valueUsageInfo & ValueUsageInfo.Name) != 0;
+        public bool IsNameOnly()
+            => (valueUsageInfo & ValueUsageInfo.Name) != 0;
 
-    public static bool IsReference(this ValueUsageInfo valueUsageInfo)
-        => (valueUsageInfo & ValueUsageInfo.Reference) != 0;
+        public bool IsReference()
+            => (valueUsageInfo & ValueUsageInfo.Reference) != 0;
+    }
 }

@@ -11,46 +11,52 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static partial class IOperationExtensions
     {
-        public static bool IsInsideCatchRegion([NotNullWhen(returnValue: true)] this IOperation? operation, ControlFlowGraph cfg)
+        extension([NotNullWhen(true)] IOperation? operation)
         {
-            if (operation == null)
+            public bool IsInsideCatchRegion(ControlFlowGraph cfg)
             {
-                return false;
-            }
-
-            foreach (var block in cfg.Blocks)
-            {
-                var isCatchRegionBlock = false;
-                var currentRegion = block.EnclosingRegion;
-                while (currentRegion != null)
+                if (operation == null)
                 {
-                    switch (currentRegion.Kind)
-                    {
-                        case ControlFlowRegionKind.Catch:
-                            isCatchRegionBlock = true;
-                            break;
-                    }
-
-                    currentRegion = currentRegion.EnclosingRegion;
+                    return false;
                 }
 
-                if (isCatchRegionBlock)
+                foreach (var block in cfg.Blocks)
                 {
-                    foreach (var descendant in block.DescendantOperations())
+                    var isCatchRegionBlock = false;
+                    var currentRegion = block.EnclosingRegion;
+                    while (currentRegion != null)
                     {
-                        if (operation == descendant)
+                        switch (currentRegion.Kind)
                         {
-                            return true;
+                            case ControlFlowRegionKind.Catch:
+                                isCatchRegionBlock = true;
+                                break;
+                        }
+
+                        currentRegion = currentRegion.EnclosingRegion;
+                    }
+
+                    if (isCatchRegionBlock)
+                    {
+                        foreach (var descendant in block.DescendantOperations())
+                        {
+                            if (operation == descendant)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
-            }
 
-            return false;
+                return false;
+            }
         }
 
-        public static bool IsLValueFlowCaptureReference(this IFlowCaptureReferenceOperation flowCaptureReference)
+        extension(IFlowCaptureReferenceOperation flowCaptureReference)
+        {
+            public bool IsLValueFlowCaptureReference()
             => flowCaptureReference.Parent is IAssignmentOperation assignment &&
                assignment.Target == flowCaptureReference;
+        }
     }
 }

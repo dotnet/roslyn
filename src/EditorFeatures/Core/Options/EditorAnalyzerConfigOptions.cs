@@ -61,6 +61,9 @@ internal sealed class EditorAnalyzerConfigOptions : AnalyzerConfigOptions
 
 internal static partial class EditorOptionsExtensions
 {
-    public static StructuredAnalyzerConfigOptions ToAnalyzerConfigOptions(this IEditorOptions editorOptions, StructuredAnalyzerConfigOptions fallbackOptions)
+    extension(IEditorOptions editorOptions)
+    {
+        public StructuredAnalyzerConfigOptions ToAnalyzerConfigOptions(StructuredAnalyzerConfigOptions fallbackOptions)
         => StructuredAnalyzerConfigOptions.Create(new EditorAnalyzerConfigOptions(editorOptions), fallbackOptions);
+    }
 }

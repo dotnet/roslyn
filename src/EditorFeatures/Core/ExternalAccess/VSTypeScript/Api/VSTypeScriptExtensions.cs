@@ -13,27 +13,39 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 internal static class VSTypeScriptExtensions
 {
-    public static void ApplyTextChanges(this Workspace workspace, DocumentId id, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
+    extension(Workspace workspace)
+    {
+        public void ApplyTextChanges(DocumentId id, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         => Editor.Shared.Extensions.IWorkspaceExtensions.ApplyTextChanges(workspace, id, textChanges, cancellationToken);
+    }
 
-    public static SnapshotPoint? GetCaretPoint(this ITextView textView, ITextBuffer subjectBuffer)
+    extension(ITextView textView)
+    {
+        public SnapshotPoint? GetCaretPoint(ITextBuffer subjectBuffer)
         => Editor.Shared.Extensions.ITextViewExtensions.GetCaretPoint(textView, subjectBuffer);
 
-    public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point)
-        => Editor.Shared.Extensions.ITextViewExtensions.TryMoveCaretToAndEnsureVisible(textView, point);
+        public bool TryMoveCaretToAndEnsureVisible(SnapshotPoint point)
+            => Editor.Shared.Extensions.ITextViewExtensions.TryMoveCaretToAndEnsureVisible(textView, point);
 
-    public static SnapshotPoint? GetCaretPoint(this ITextView textView, Predicate<ITextSnapshot> match)
-        => Editor.Shared.Extensions.ITextViewExtensions.GetCaretPoint(textView, match);
+        public SnapshotPoint? GetCaretPoint(Predicate<ITextSnapshot> match)
+            => Editor.Shared.Extensions.ITextViewExtensions.GetCaretPoint(textView, match);
 
-    public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, VirtualSnapshotPoint point)
-        => Editor.Shared.Extensions.ITextViewExtensions.TryMoveCaretToAndEnsureVisible(textView, point);
+        public bool TryMoveCaretToAndEnsureVisible(VirtualSnapshotPoint point)
+            => Editor.Shared.Extensions.ITextViewExtensions.TryMoveCaretToAndEnsureVisible(textView, point);
+    }
 
-    public static SnapshotSpan? TryGetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
+    extension(ITextSnapshot snapshot)
+    {
+        public SnapshotSpan? TryGetSpan(int startLine, int startIndex, int endLine, int endIndex)
         => Text.Shared.Extensions.ITextSnapshotExtensions.TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex);
 
-    public static void GetLineAndCharacter(this ITextSnapshot snapshot, int position, out int lineNumber, out int characterIndex)
-        => Text.Shared.Extensions.ITextSnapshotExtensions.GetLineAndCharacter(snapshot, position, out lineNumber, out characterIndex);
+        public void GetLineAndCharacter(int position, out int lineNumber, out int characterIndex)
+            => Text.Shared.Extensions.ITextSnapshotExtensions.GetLineAndCharacter(snapshot, position, out lineNumber, out characterIndex);
+    }
 
-    public static int GetColumnFromLineOffset(this string line, int endPosition, int tabSize)
+    extension(string line)
+    {
+        public int GetColumnFromLineOffset(int endPosition, int tabSize)
         => Shared.Extensions.StringExtensions.GetColumnFromLineOffset(line, endPosition, tabSize);
+    }
 }

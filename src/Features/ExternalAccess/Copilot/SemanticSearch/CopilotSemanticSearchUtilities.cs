@@ -36,11 +36,17 @@ internal static class CopilotSemanticSearchUtilities
     public static PortableExecutableReference GetMetadataReference(SolutionServices services, string resolvedPath, MetadataReferenceProperties properties)
         => services.GetRequiredService<IMetadataService>().GetReference(resolvedPath, properties);
 
-    public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart>? displayParts)
+    extension(IEnumerable<SymbolDisplayPart>? displayParts)
+    {
+        public ImmutableArray<TaggedText> ToTaggedText()
         => TaggedTextExtensions.ToTaggedText(displayParts);
+    }
 
-    public static SyntaxNode FindNode(this Location location, bool findInsideTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
+    extension(Location location)
+    {
+        public SyntaxNode FindNode(bool findInsideTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
         => location.SourceTree!.GetRoot(cancellationToken).FindNode(location.SourceSpan, findInsideTrivia, getInnermostNodeForTie);
+    }
 
     public static Task FindReferencesAsync(Solution solution, ISymbol symbol, Action<ReferenceLocation> callback, CancellationToken cancellationToken)
         => SymbolFinder.FindReferencesAsync(

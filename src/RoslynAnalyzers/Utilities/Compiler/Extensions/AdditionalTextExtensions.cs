@@ -14,7 +14,10 @@ namespace Analyzer.Utilities.Extensions
         private static readonly Encoding s_utf8bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
         private static readonly SourceText s_emptySourceText = SourceText.From("", s_utf8bom, SourceHashAlgorithm.Sha256);
 
-        public static SourceText GetTextOrEmpty(this AdditionalText text, CancellationToken cancellationToken)
+        extension(AdditionalText text)
+        {
+            public SourceText GetTextOrEmpty(CancellationToken cancellationToken)
             => text.GetText(cancellationToken) ?? s_emptySourceText;
+        }
     }
 }

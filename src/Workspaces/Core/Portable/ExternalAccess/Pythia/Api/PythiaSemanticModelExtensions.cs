@@ -9,7 +9,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 
 internal static class PythiaSemanticModelExtensions
 {
-    public static ISymbol GetEnclosingNamedTypeOrAssembly(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+    extension(SemanticModel semanticModel)
+    {
+        public ISymbol GetEnclosingNamedTypeOrAssembly(int position, CancellationToken cancellationToken)
         => SemanticModelExtensions.GetEnclosingNamedTypeOrAssembly(semanticModel, position, cancellationToken);
-
+    }
 }

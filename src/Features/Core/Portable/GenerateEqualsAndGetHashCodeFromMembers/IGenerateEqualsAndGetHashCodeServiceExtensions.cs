@@ -10,8 +10,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 
 internal static class IGenerateEqualsAndGetHashCodeServiceExtensions
 {
-    public static Task<IMethodSymbol> GenerateEqualsMethodAsync(
-        this IGenerateEqualsAndGetHashCodeService service, Document document, INamedTypeSymbol namedType,
+    extension(IGenerateEqualsAndGetHashCodeService service)
+    {
+        public Task<IMethodSymbol> GenerateEqualsMethodAsync(
+Document document, INamedTypeSymbol namedType,
         ImmutableArray<ISymbol> members, CancellationToken cancellationToken)
         => service.GenerateEqualsMethodAsync(document, namedType, members, localNameOpt: null, cancellationToken);
+    }
 }

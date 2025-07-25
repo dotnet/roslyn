@@ -10,29 +10,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class StatementSyntaxExtensions
 {
-    public static StatementSyntax WithoutLeadingBlankLinesInTrivia(this StatementSyntax statement)
-        => statement.WithLeadingTrivia(statement.GetLeadingTrivia().WithoutLeadingBlankLines());
-
-    public static StatementSyntax? GetPreviousStatement(this StatementSyntax? statement)
+    extension(StatementSyntax statement)
     {
-        if (statement != null)
-        {
-            var previousToken = statement.GetFirstToken().GetPreviousToken();
-            return previousToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => AreSiblingStatements(s, statement));
-        }
-
-        return null;
+        public StatementSyntax WithoutLeadingBlankLinesInTrivia()
+        => statement.WithLeadingTrivia(statement.GetLeadingTrivia().WithoutLeadingBlankLines());
     }
 
-    public static StatementSyntax? GetNextStatement(this StatementSyntax? statement)
+    extension(StatementSyntax? statement)
     {
-        if (statement != null)
+        public StatementSyntax? GetPreviousStatement()
         {
-            var nextToken = statement.GetLastToken().GetNextToken();
-            return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => AreSiblingStatements(s, statement));
+            if (statement != null)
+            {
+                var previousToken = statement.GetFirstToken().GetPreviousToken();
+                return previousToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => AreSiblingStatements(s, statement));
+            }
+
+            return null;
         }
 
-        return null;
+        public StatementSyntax? GetNextStatement()
+        {
+            if (statement != null)
+            {
+                var nextToken = statement.GetLastToken().GetNextToken();
+                return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => AreSiblingStatements(s, statement));
+            }
+
+            return null;
+        }
     }
 
     private static bool AreSiblingStatements(StatementSyntax first, StatementSyntax second)

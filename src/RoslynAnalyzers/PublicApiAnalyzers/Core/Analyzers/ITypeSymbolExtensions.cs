@@ -8,7 +8,10 @@ namespace Analyzer.Utilities.Lightup
 {
     internal static class ITypeSymbolExtensions
     {
-        public static NullableAnnotation NullableAnnotation(this ITypeSymbol typeSymbol)
+        extension(ITypeSymbol typeSymbol)
+        {
+            public NullableAnnotation NullableAnnotation()
             => typeSymbol.NullableAnnotation;
+        }
     }
 }

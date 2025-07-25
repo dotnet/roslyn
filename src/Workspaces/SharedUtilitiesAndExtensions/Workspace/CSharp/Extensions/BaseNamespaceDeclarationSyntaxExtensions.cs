@@ -10,23 +10,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class BaseNamespaceDeclarationSyntaxExtensions
 {
-    public static TNamespaceDeclarationSyntax AddUsingDirectives<TNamespaceDeclarationSyntax>(
-        this TNamespaceDeclarationSyntax namespaceDeclaration,
+    extension<TNamespaceDeclarationSyntax>(TNamespaceDeclarationSyntax namespaceDeclaration) where TNamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
+    {
+        public TNamespaceDeclarationSyntax AddUsingDirectives(
         IList<UsingDirectiveSyntax> usingDirectives,
         bool placeSystemNamespaceFirst,
-        params SyntaxAnnotation[] annotations) where TNamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
-    {
-        if (usingDirectives.Count == 0)
-            return namespaceDeclaration;
+        params SyntaxAnnotation[] annotations)
+        {
+            if (usingDirectives.Count == 0)
+                return namespaceDeclaration;
 
-        var newUsings = new List<UsingDirectiveSyntax>();
-        newUsings.AddRange(namespaceDeclaration.Usings);
-        newUsings.AddRange(usingDirectives);
+            var newUsings = new List<UsingDirectiveSyntax>();
+            newUsings.AddRange(namespaceDeclaration.Usings);
+            newUsings.AddRange(usingDirectives);
 
-        newUsings.SortUsingDirectives(namespaceDeclaration.Usings, placeSystemNamespaceFirst);
-        newUsings = [.. newUsings.Select(u => u.WithAdditionalAnnotations(annotations))];
+            newUsings.SortUsingDirectives(namespaceDeclaration.Usings, placeSystemNamespaceFirst);
+            newUsings = [.. newUsings.Select(u => u.WithAdditionalAnnotations(annotations))];
 
-        var newNamespace = namespaceDeclaration.WithUsings([.. newUsings]);
-        return (TNamespaceDeclarationSyntax)newNamespace;
+            var newNamespace = namespaceDeclaration.WithUsings([.. newUsings]);
+            return (TNamespaceDeclarationSyntax)newNamespace;
+        }
     }
 }

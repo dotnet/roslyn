@@ -8,10 +8,13 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal static class WorkspaceConfigurationOptionsStorage
 {
-    public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions()
         => new(
             SourceGeneratorExecution: globalOptions.GetOption(SourceGeneratorExecution),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
+    }
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);

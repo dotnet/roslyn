@@ -8,15 +8,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISymbolExtensions
 {
-    public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
+    extension(ISymbol symbol)
     {
-        return DeclarationModifiers.None
-            .WithIsStatic(symbol.IsStatic)
-            .WithIsAbstract(symbol.IsAbstract)
-            .WithIsUnsafe(symbol.RequiresUnsafeModifier())
-            .WithIsVirtual(symbol.IsVirtual)
-            .WithIsOverride(symbol.IsOverride)
-            .WithIsSealed(symbol.IsSealed)
-            .WithIsRequired(symbol.IsRequired());
+        public DeclarationModifiers GetSymbolModifiers()
+        {
+            return DeclarationModifiers.None
+                .WithIsStatic(symbol.IsStatic)
+                .WithIsAbstract(symbol.IsAbstract)
+                .WithIsUnsafe(symbol.RequiresUnsafeModifier())
+                .WithIsVirtual(symbol.IsVirtual)
+                .WithIsOverride(symbol.IsOverride)
+                .WithIsSealed(symbol.IsSealed)
+                .WithIsRequired(symbol.IsRequired());
+        }
     }
 }

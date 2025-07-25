@@ -26,18 +26,32 @@ internal static class DefinitionItemFactory
         memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining);
 
-    public static DefinitionItem ToNonClassifiedDefinitionItem(
-        this ISymbol definition,
+    extension(ISymbol definition)
+    {
+        public DefinitionItem ToNonClassifiedDefinitionItem(
         Solution solution,
         bool includeHiddenLocations)
         => ToNonClassifiedDefinitionItem(definition, solution, FindReferencesSearchOptions.Default, includeHiddenLocations);
 
-    public static DefinitionItem ToNonClassifiedDefinitionItem(
-        this ISymbol definition,
-        Solution solution,
-        FindReferencesSearchOptions options,
-        bool includeHiddenLocations)
-        => ToNonClassifiedDefinitionItem(definition, definition.Locations, solution, options, isPrimary: false, includeHiddenLocations);
+        public DefinitionItem ToNonClassifiedDefinitionItem(
+            Solution solution,
+            FindReferencesSearchOptions options,
+            bool includeHiddenLocations)
+            => ToNonClassifiedDefinitionItem(definition, definition.Locations, solution, options, isPrimary: false, includeHiddenLocations);
+
+        public async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
+            OptionsProvider<ClassificationOptions> classificationOptions,
+            Solution solution,
+            FindReferencesSearchOptions options,
+            bool isPrimary,
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
+        {
+            var sourceLocations = GetSourceLocations(definition, definition.Locations, solution, includeHiddenLocations);
+            var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
+            return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
+        }
+    }
 
     private static DefinitionItem ToNonClassifiedDefinitionItem(
         ISymbol definition,
@@ -58,36 +72,24 @@ internal static class DefinitionItemFactory
             isPrimary);
     }
 
-    public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
-        this ISymbol definition,
+    extension(SymbolGroup group)
+    {
+        public async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
         OptionsProvider<ClassificationOptions> classificationOptions,
         Solution solution,
         FindReferencesSearchOptions options,
         bool isPrimary,
         bool includeHiddenLocations,
         CancellationToken cancellationToken)
-    {
-        var sourceLocations = GetSourceLocations(definition, definition.Locations, solution, includeHiddenLocations);
-        var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
-        return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
-    }
+        {
+            // Make a single definition item that knows about all the locations of all the symbols in the group.
+            var definition = group.Symbols.First();
+            var locations = group.Symbols.SelectManyAsArray(s => s.Locations);
 
-    public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
-        this SymbolGroup group,
-        OptionsProvider<ClassificationOptions> classificationOptions,
-        Solution solution,
-        FindReferencesSearchOptions options,
-        bool isPrimary,
-        bool includeHiddenLocations,
-        CancellationToken cancellationToken)
-    {
-        // Make a single definition item that knows about all the locations of all the symbols in the group.
-        var definition = group.Symbols.First();
-        var locations = group.Symbols.SelectManyAsArray(s => s.Locations);
-
-        var sourceLocations = GetSourceLocations(definition, locations, solution, includeHiddenLocations);
-        var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
-        return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
+            var sourceLocations = GetSourceLocations(definition, locations, solution, includeHiddenLocations);
+            var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
+            return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
+        }
     }
 
     private static DefinitionItem ToDefinitionItem(
@@ -145,11 +147,14 @@ internal static class DefinitionItemFactory
             nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
     }
 
-    internal static ImmutableDictionary<string, string> WithMetadataSymbolProperties(this ImmutableDictionary<string, string> properties, ISymbol symbol, ProjectId originatingProjectId)
+    extension(ImmutableDictionary<string, string> properties)
+    {
+        internal ImmutableDictionary<string, string> WithMetadataSymbolProperties(ISymbol symbol, ProjectId originatingProjectId)
         => properties
             .Add(DefinitionItem.MetadataSymbolKey, SymbolKey.CreateString(symbol))
             .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdGuid, originatingProjectId.Id.ToString())
             .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdDebugName, originatingProjectId.DebugName ?? "");
+    }
 
     internal static AssemblyLocation GetMetadataLocation(IAssemblySymbol assembly, Solution solution, out ProjectId originatingProjectId)
     {
@@ -281,36 +286,38 @@ internal static class DefinitionItemFactory
         return properties;
     }
 
-    public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
-        this ReferenceLocation referenceLocation,
+    extension(ReferenceLocation referenceLocation)
+    {
+        public async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
         OptionsProvider<ClassificationOptions> optionsProvider,
         DefinitionItem definitionItem,
         bool includeHiddenLocations,
         CancellationToken cancellationToken)
-    {
-        var location = referenceLocation.Location;
-
-        Debug.Assert(location.IsInSource);
-        if (!location.IsVisibleSourceLocation() &&
-            !includeHiddenLocations)
         {
-            return null;
+            var location = referenceLocation.Location;
+
+            Debug.Assert(location.IsInSource);
+            if (!location.IsVisibleSourceLocation() &&
+                !includeHiddenLocations)
+            {
+                return null;
+            }
+
+            var document = referenceLocation.Document;
+            var sourceSpan = location.SourceSpan;
+
+            var options = await optionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
+
+            // We don't want to classify obsolete symbols as it is very expensive, and it's not necessary for find all
+            // references to strike out code in the window displaying results.
+            options = options with { ClassifyObsoleteSymbols = false };
+
+            var documentSpan = new DocumentSpan(document, sourceSpan);
+            var classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
+
+            return new SourceReferenceItem(
+                definitionItem, documentSpan, classifiedSpans, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }
-
-        var document = referenceLocation.Document;
-        var sourceSpan = location.SourceSpan;
-
-        var options = await optionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
-
-        // We don't want to classify obsolete symbols as it is very expensive, and it's not necessary for find all
-        // references to strike out code in the window displaying results.
-        options = options with { ClassifyObsoleteSymbols = false };
-
-        var documentSpan = new DocumentSpan(document, sourceSpan);
-        var classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-            documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
-
-        return new SourceReferenceItem(
-            definitionItem, documentSpan, classifiedSpans, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
     }
 }

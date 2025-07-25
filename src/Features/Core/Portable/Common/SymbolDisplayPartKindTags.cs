@@ -8,30 +8,33 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class SymbolDisplayPartKindTags
 {
-    public static SymbolDisplayPartKind GetSymbolDisplayPartKind(this INamedTypeSymbol namedType)
+    extension(INamedTypeSymbol namedType)
     {
-        if (namedType.IsEnumType())
-            return SymbolDisplayPartKind.EnumName;
+        public SymbolDisplayPartKind GetSymbolDisplayPartKind()
+        {
+            if (namedType.IsEnumType())
+                return SymbolDisplayPartKind.EnumName;
 
-        if (namedType.IsDelegateType())
-            return SymbolDisplayPartKind.DelegateName;
+            if (namedType.IsDelegateType())
+                return SymbolDisplayPartKind.DelegateName;
 
-        if (namedType.IsInterfaceType())
-            return SymbolDisplayPartKind.InterfaceName;
+            if (namedType.IsInterfaceType())
+                return SymbolDisplayPartKind.InterfaceName;
 
-        if (namedType.IsRecord)
-            return namedType.IsValueType ? SymbolDisplayPartKind.RecordStructName : SymbolDisplayPartKind.RecordClassName;
+            if (namedType.IsRecord)
+                return namedType.IsValueType ? SymbolDisplayPartKind.RecordStructName : SymbolDisplayPartKind.RecordClassName;
 
-        if (namedType.IsStructType())
-            return SymbolDisplayPartKind.StructName;
+            if (namedType.IsStructType())
+                return SymbolDisplayPartKind.StructName;
 
-        if (namedType.IsModuleType())
-            return SymbolDisplayPartKind.ModuleName;
+            if (namedType.IsModuleType())
+                return SymbolDisplayPartKind.ModuleName;
 
-        if (namedType.IsErrorType())
-            return SymbolDisplayPartKind.ErrorTypeName;
+            if (namedType.IsErrorType())
+                return SymbolDisplayPartKind.ErrorTypeName;
 
-        return SymbolDisplayPartKind.ClassName;
+            return SymbolDisplayPartKind.ClassName;
+        }
     }
 
     public static string GetTag(SymbolDisplayPartKind kind)

@@ -9,13 +9,16 @@ namespace Microsoft.CodeAnalysis.Editor.Wpf;
 
 internal static class GlyphExtensions
 {
-    public static ImageMoniker GetImageMoniker(this Glyph glyph)
+    extension(Glyph glyph)
     {
-        var imageId = glyph.GetImageId();
-        return new ImageMoniker()
+        public ImageMoniker GetImageMoniker()
         {
-            Guid = imageId.Guid,
-            Id = imageId.Id
-        };
+            var imageId = glyph.GetImageId();
+            return new ImageMoniker()
+            {
+                Guid = imageId.Guid,
+                Id = imageId.Id
+            };
+        }
     }
 }

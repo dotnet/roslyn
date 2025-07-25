@@ -13,192 +13,199 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISymbolExtensions2
 {
-    public static Glyph GetGlyph(this ISymbol symbol)
+    extension(ISymbol symbol)
     {
-        Glyph publicIcon;
-
-        switch (symbol.Kind)
+        public Glyph GetGlyph()
         {
-            case SymbolKind.Alias:
-                return ((IAliasSymbol)symbol).Target.GetGlyph();
+            Glyph publicIcon;
 
-            case SymbolKind.Assembly:
-                return Glyph.Assembly;
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Alias:
+                    return ((IAliasSymbol)symbol).Target.GetGlyph();
 
-            case SymbolKind.ArrayType:
-                return Glyph.ClassPublic;
+                case SymbolKind.Assembly:
+                    return Glyph.Assembly;
 
-            case SymbolKind.DynamicType:
-                return Glyph.ClassPublic;
+                case SymbolKind.ArrayType:
+                    return Glyph.ClassPublic;
 
-            case SymbolKind.Event:
-                publicIcon = Glyph.EventPublic;
-                break;
+                case SymbolKind.DynamicType:
+                    return Glyph.ClassPublic;
 
-            case SymbolKind.Field:
-                var containingType = symbol.ContainingType;
-                if (containingType != null && containingType.TypeKind == TypeKind.Enum)
-                {
-                    return Glyph.EnumMemberPublic;
-                }
+                case SymbolKind.Event:
+                    publicIcon = Glyph.EventPublic;
+                    break;
 
-                publicIcon = ((IFieldSymbol)symbol).IsConst ? Glyph.ConstantPublic : Glyph.FieldPublic;
-                break;
-
-            case SymbolKind.Label:
-                return Glyph.Label;
-
-            case SymbolKind.Local:
-            case SymbolKind.Discard:
-                return Glyph.Local;
-
-            case SymbolKind.NamedType:
-            case SymbolKind.ErrorType:
-                {
-                    switch (((INamedTypeSymbol)symbol).TypeKind)
+                case SymbolKind.Field:
+                    var containingType = symbol.ContainingType;
+                    if (containingType != null && containingType.TypeKind == TypeKind.Enum)
                     {
-                        case TypeKind.Extension:
-                        case TypeKind.Class:
-                            publicIcon = Glyph.ClassPublic;
-                            break;
+                        return Glyph.EnumMemberPublic;
+                    }
 
-                        case TypeKind.Delegate:
-                            publicIcon = Glyph.DelegatePublic;
-                            break;
+                    publicIcon = ((IFieldSymbol)symbol).IsConst ? Glyph.ConstantPublic : Glyph.FieldPublic;
+                    break;
 
-                        case TypeKind.Enum:
-                            publicIcon = Glyph.EnumPublic;
-                            break;
+                case SymbolKind.Label:
+                    return Glyph.Label;
 
-                        case TypeKind.Interface:
-                            publicIcon = Glyph.InterfacePublic;
-                            break;
+                case SymbolKind.Local:
+                case SymbolKind.Discard:
+                    return Glyph.Local;
 
-                        case TypeKind.Module:
-                            publicIcon = Glyph.ModulePublic;
-                            break;
+                case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
+                    {
+                        switch (((INamedTypeSymbol)symbol).TypeKind)
+                        {
+                            case TypeKind.Extension:
+                            case TypeKind.Class:
+                                publicIcon = Glyph.ClassPublic;
+                                break;
 
-                        case TypeKind.Struct:
-                            publicIcon = Glyph.StructurePublic;
-                            break;
+                            case TypeKind.Delegate:
+                                publicIcon = Glyph.DelegatePublic;
+                                break;
 
-                        case TypeKind.Error:
-                            return Glyph.Error;
+                            case TypeKind.Enum:
+                                publicIcon = Glyph.EnumPublic;
+                                break;
 
-                        default:
-                            throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
+                            case TypeKind.Interface:
+                                publicIcon = Glyph.InterfacePublic;
+                                break;
+
+                            case TypeKind.Module:
+                                publicIcon = Glyph.ModulePublic;
+                                break;
+
+                            case TypeKind.Struct:
+                                publicIcon = Glyph.StructurePublic;
+                                break;
+
+                            case TypeKind.Error:
+                                return Glyph.Error;
+
+                            default:
+                                throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
+                        }
+
+                        break;
+                    }
+
+                case SymbolKind.Method:
+                    {
+                        var methodSymbol = (IMethodSymbol)symbol;
+
+                        if (methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion or MethodKind.BuiltinOperator)
+                        {
+                            publicIcon = Glyph.OperatorPublic;
+                        }
+                        else if (methodSymbol.IsExtensionMethod ||
+                                 methodSymbol.MethodKind == MethodKind.ReducedExtension ||
+                                 methodSymbol.ContainingType?.IsExtension is true)
+                        {
+                            publicIcon = Glyph.ExtensionMethodPublic;
+                        }
+                        else
+                        {
+                            publicIcon = Glyph.MethodPublic;
+                        }
                     }
 
                     break;
-                }
 
-            case SymbolKind.Method:
-                {
-                    var methodSymbol = (IMethodSymbol)symbol;
+                case SymbolKind.Namespace:
+                    return Glyph.Namespace;
 
-                    if (methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion or MethodKind.BuiltinOperator)
+                case SymbolKind.NetModule:
+                    return Glyph.Assembly;
+
+                case SymbolKind.Parameter:
+                    return symbol.IsImplicitValueParameter()
+                        ? Glyph.Keyword
+                        : Glyph.Parameter;
+
+                case SymbolKind.PointerType:
+                    return ((IPointerTypeSymbol)symbol).PointedAtType.GetGlyph();
+
+                case SymbolKind.FunctionPointerType:
+                    return Glyph.Intrinsic;
+
+                case SymbolKind.Property:
                     {
-                        publicIcon = Glyph.OperatorPublic;
+                        var propertySymbol = (IPropertySymbol)symbol;
+
+                        if (propertySymbol.IsWithEvents)
+                        {
+                            publicIcon = Glyph.FieldPublic;
+                        }
+                        else
+                        {
+                            publicIcon = Glyph.PropertyPublic;
+                        }
                     }
-                    else if (methodSymbol.IsExtensionMethod ||
-                             methodSymbol.MethodKind == MethodKind.ReducedExtension ||
-                             methodSymbol.ContainingType?.IsExtension is true)
-                    {
-                        publicIcon = Glyph.ExtensionMethodPublic;
-                    }
-                    else
-                    {
-                        publicIcon = Glyph.MethodPublic;
-                    }
-                }
 
-                break;
+                    break;
 
-            case SymbolKind.Namespace:
-                return Glyph.Namespace;
+                case SymbolKind.Preprocessing:
+                    return Glyph.Keyword;
 
-            case SymbolKind.NetModule:
-                return Glyph.Assembly;
+                case SymbolKind.RangeVariable:
+                    return Glyph.RangeVariable;
 
-            case SymbolKind.Parameter:
-                return symbol.IsImplicitValueParameter()
-                    ? Glyph.Keyword
-                    : Glyph.Parameter;
+                case SymbolKind.TypeParameter:
+                    return Glyph.TypeParameter;
 
-            case SymbolKind.PointerType:
-                return ((IPointerTypeSymbol)symbol).PointedAtType.GetGlyph();
+                default:
+                    throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
+            }
 
-            case SymbolKind.FunctionPointerType:
-                return Glyph.Intrinsic;
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.Private:
+                    publicIcon += Glyph.ClassPrivate - Glyph.ClassPublic;
+                    break;
 
-            case SymbolKind.Property:
-                {
-                    var propertySymbol = (IPropertySymbol)symbol;
+                case Accessibility.Protected:
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.ProtectedOrInternal:
+                    publicIcon += Glyph.ClassProtected - Glyph.ClassPublic;
+                    break;
 
-                    if (propertySymbol.IsWithEvents)
-                    {
-                        publicIcon = Glyph.FieldPublic;
-                    }
-                    else
-                    {
-                        publicIcon = Glyph.PropertyPublic;
-                    }
-                }
+                case Accessibility.Internal:
+                    publicIcon += Glyph.ClassInternal - Glyph.ClassPublic;
+                    break;
+            }
 
-                break;
-
-            case SymbolKind.Preprocessing:
-                return Glyph.Keyword;
-
-            case SymbolKind.RangeVariable:
-                return Glyph.RangeVariable;
-
-            case SymbolKind.TypeParameter:
-                return Glyph.TypeParameter;
-
-            default:
-                throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
+            return publicIcon;
         }
 
-        switch (symbol.DeclaredAccessibility)
+        public ImmutableArray<TaggedText> GetDocumentationParts(SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+            => formatter.Format(GetAppropriateDocumentationComment(symbol, semanticModel.Compilation, cancellationToken).SummaryText,
+                symbol, semanticModel, position, CrefFormat, cancellationToken);
+
+        /// <summary>
+        /// Returns the <see cref="DocumentationComment"/> for a symbol, even if it involves going to other symbols to find it.
+        /// </summary>
+        public DocumentationComment GetAppropriateDocumentationComment(Compilation compilation, CancellationToken cancellationToken)
         {
-            case Accessibility.Private:
-                publicIcon += Glyph.ClassPrivate - Glyph.ClassPublic;
-                break;
+            symbol = symbol.OriginalDefinition;
 
-            case Accessibility.Protected:
-            case Accessibility.ProtectedAndInternal:
-            case Accessibility.ProtectedOrInternal:
-                publicIcon += Glyph.ClassProtected - Glyph.ClassPublic;
-                break;
-
-            case Accessibility.Internal:
-                publicIcon += Glyph.ClassInternal - Glyph.ClassPublic;
-                break;
+            return symbol switch
+            {
+                IParameterSymbol parameter => GetParameterDocumentation(parameter, compilation, cancellationToken) ?? DocumentationComment.Empty,
+                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetTypeParameter(typeParam.Name) ?? DocumentationComment.Empty,
+                IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken),
+                IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken),
+                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken),
+            };
         }
 
-        return publicIcon;
-    }
-
-    public static ImmutableArray<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        => formatter.Format(GetAppropriateDocumentationComment(symbol, semanticModel.Compilation, cancellationToken).SummaryText,
-            symbol, semanticModel, position, CrefFormat, cancellationToken);
-
-    /// <summary>
-    /// Returns the <see cref="DocumentationComment"/> for a symbol, even if it involves going to other symbols to find it.
-    /// </summary>
-    public static DocumentationComment GetAppropriateDocumentationComment(this ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
-    {
-        symbol = symbol.OriginalDefinition;
-
-        return symbol switch
-        {
-            IParameterSymbol parameter => GetParameterDocumentation(parameter, compilation, cancellationToken) ?? DocumentationComment.Empty,
-            ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetTypeParameter(typeParam.Name) ?? DocumentationComment.Empty,
-            IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken),
-            IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken),
-            _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken),
-        };
+        public Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
+    SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
+            => c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
     }
 
     private static DocumentationComment? GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
@@ -229,10 +236,6 @@ internal static partial class ISymbolExtensions2
         return containingSymbol.OriginalDefinition.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetParameter(parameter.Name);
     }
 
-    public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
-        this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
-        => c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
-
     public static readonly SymbolDisplayFormat CrefFormat =
         new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -246,18 +249,21 @@ internal static partial class ISymbolExtensions2
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-    private static DocumentationComment GetMethodDocumentation(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken)
+    extension(IMethodSymbol method)
     {
-        switch (method.MethodKind)
+        private DocumentationComment GetMethodDocumentation(Compilation compilation, CancellationToken cancellationToken)
         {
-            case MethodKind.EventAdd:
-            case MethodKind.EventRaise:
-            case MethodKind.EventRemove:
-            case MethodKind.PropertyGet:
-            case MethodKind.PropertySet:
-                return method.AssociatedSymbol?.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken) ?? DocumentationComment.Empty;
-            default:
-                return method.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken);
+            switch (method.MethodKind)
+            {
+                case MethodKind.EventAdd:
+                case MethodKind.EventRaise:
+                case MethodKind.EventRemove:
+                case MethodKind.PropertyGet:
+                case MethodKind.PropertySet:
+                    return method.AssociatedSymbol?.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken) ?? DocumentationComment.Empty;
+                default:
+                    return method.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken);
+            }
         }
     }
 }

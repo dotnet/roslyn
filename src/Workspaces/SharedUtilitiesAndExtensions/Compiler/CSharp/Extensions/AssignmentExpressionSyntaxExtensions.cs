@@ -10,11 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class AssignmentExpressionSyntaxExtensions
 {
-    internal static bool IsDeconstruction(this AssignmentExpressionSyntax assignment)
+    extension(AssignmentExpressionSyntax assignment)
     {
-        var left = assignment.Left;
-        return assignment.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-               assignment.OperatorToken.Kind() == SyntaxKind.EqualsToken &&
-               (left.Kind() == SyntaxKind.TupleExpression || left.Kind() == SyntaxKind.DeclarationExpression);
+        internal bool IsDeconstruction()
+        {
+            var left = assignment.Left;
+            return assignment.Kind() == SyntaxKind.SimpleAssignmentExpression &&
+                   assignment.OperatorToken.Kind() == SyntaxKind.EqualsToken &&
+                   (left.Kind() == SyntaxKind.TupleExpression || left.Kind() == SyntaxKind.DeclarationExpression);
+        }
     }
 }

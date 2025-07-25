@@ -15,338 +15,382 @@ internal static class SharedPoolExtensions
 {
     private const int Threshold = 512;
 
-    public static PooledObject<StringBuilder> GetPooledObject(this ObjectPool<StringBuilder> pool)
+    extension(ObjectPool<StringBuilder> pool)
+    {
+        public PooledObject<StringBuilder> GetPooledObject()
         => PooledObject<StringBuilder>.Create(pool);
 
-    public static PooledObject<StringBuilder> GetPooledObject(this ObjectPool<StringBuilder> pool, out StringBuilder builder)
-    {
-        var pooledObject = PooledObject<StringBuilder>.Create(pool);
-        builder = pooledObject.Object;
-        return pooledObject;
+        public PooledObject<StringBuilder> GetPooledObject(out StringBuilder builder)
+        {
+            var pooledObject = PooledObject<StringBuilder>.Create(pool);
+            builder = pooledObject.Object;
+            return pooledObject;
+        }
+
+        public StringBuilder AllocateAndClear()
+        {
+            var sb = pool.Allocate();
+            sb.Clear();
+
+            return sb;
+        }
+
+        public void ClearAndFree(StringBuilder sb)
+        {
+            if (sb == null)
+            {
+                return;
+            }
+
+            sb.Clear();
+
+            if (sb.Capacity > Threshold)
+            {
+                sb.Capacity = Threshold;
+            }
+
+            pool.Free(sb);
+        }
     }
 
-    public static PooledObject<Stack<TItem>> GetPooledObject<TItem>(this ObjectPool<Stack<TItem>> pool)
+    extension<TItem>(ObjectPool<Stack<TItem>> pool)
+    {
+        public PooledObject<Stack<TItem>> GetPooledObject()
         => PooledObject<Stack<TItem>>.Create(pool);
 
-    public static PooledObject<Queue<TItem>> GetPooledObject<TItem>(this ObjectPool<Queue<TItem>> pool)
-        => PooledObject<Queue<TItem>>.Create(pool);
+        public PooledObject<Stack<TItem>> GetPooledObject(out Stack<TItem> stack)
+        {
+            var pooledObject = PooledObject<Stack<TItem>>.Create(pool);
+            stack = pooledObject.Object;
+            return pooledObject;
+        }
+    }
 
-    public static PooledObject<HashSet<TItem>> GetPooledObject<TItem>(this ObjectPool<HashSet<TItem>> pool)
+    extension<TItem>(ObjectPool<Queue<TItem>> pool)
+    {
+        public PooledObject<Queue<TItem>> GetPooledObject()
+        => PooledObject<Queue<TItem>>.Create(pool);
+    }
+
+    extension<TItem>(ObjectPool<HashSet<TItem>> pool)
+    {
+        public PooledObject<HashSet<TItem>> GetPooledObject()
         => PooledObject<HashSet<TItem>>.Create(pool);
 
-    public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool) where TKey : notnull
-        => PooledObject<Dictionary<TKey, TValue>>.Create(pool);
+        public PooledObject<HashSet<TItem>> GetPooledObject(out HashSet<TItem> set)
+        {
+            var pooledObject = PooledObject<HashSet<TItem>>.Create(pool);
+            set = pooledObject.Object;
+            return pooledObject;
+        }
+    }
 
-    public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool)
+    extension<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool) where TKey : notnull
+    {
+        public PooledObject<Dictionary<TKey, TValue>> GetPooledObject() => PooledObject<Dictionary<TKey, TValue>>.Create(pool);
+
+        public PooledObject<Dictionary<TKey, TValue>> GetPooledObject(out Dictionary<TKey, TValue> dictionary)
+        {
+            var pooledObject = PooledObject<Dictionary<TKey, TValue>>.Create(pool);
+            dictionary = pooledObject.Object;
+            return pooledObject;
+        }
+
+        public Dictionary<TKey, TValue> AllocateAndClear()
+        {
+            var map = pool.Allocate();
+            map.Clear();
+
+            return map;
+        }
+
+        public void ClearAndFree(Dictionary<TKey, TValue> map)
+        {
+            if (map == null)
+            {
+                return;
+            }
+
+            // if map grew too big, don't put it back to pool
+            if (map.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(map);
+                return;
+            }
+
+            map.Clear();
+            pool.Free(map);
+        }
+    }
+
+    extension<TItem>(ObjectPool<List<TItem>> pool)
+    {
+        public PooledObject<List<TItem>> GetPooledObject()
         => PooledObject<List<TItem>>.Create(pool);
 
-    public static PooledObject<SegmentedList<TItem>> GetPooledObject<TItem>(this ObjectPool<SegmentedList<TItem>> pool)
+        public PooledObject<List<TItem>> GetPooledObject(out List<TItem> list)
+        {
+            var pooledObject = PooledObject<List<TItem>>.Create(pool);
+            list = pooledObject.Object;
+            return pooledObject;
+        }
+    }
+
+    extension<TItem>(ObjectPool<SegmentedList<TItem>> pool)
+    {
+        public PooledObject<SegmentedList<TItem>> GetPooledObject()
         => PooledObject<SegmentedList<TItem>>.Create(pool);
 
-    public static PooledObject<Stack<TItem>> GetPooledObject<TItem>(this ObjectPool<Stack<TItem>> pool, out Stack<TItem> stack)
-    {
-        var pooledObject = PooledObject<Stack<TItem>>.Create(pool);
-        stack = pooledObject.Object;
-        return pooledObject;
-    }
-
-    public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool, out List<TItem> list)
-    {
-        var pooledObject = PooledObject<List<TItem>>.Create(pool);
-        list = pooledObject.Object;
-        return pooledObject;
-    }
-
-    public static PooledObject<SegmentedList<TItem>> GetPooledObject<TItem>(this ObjectPool<SegmentedList<TItem>> pool, out SegmentedList<TItem> list)
-    {
-        var pooledObject = PooledObject<SegmentedList<TItem>>.Create(pool);
-        list = pooledObject.Object;
-        return pooledObject;
-    }
-
-    public static PooledObject<HashSet<TItem>> GetPooledObject<TItem>(this ObjectPool<HashSet<TItem>> pool, out HashSet<TItem> set)
-    {
-        var pooledObject = PooledObject<HashSet<TItem>>.Create(pool);
-        set = pooledObject.Object;
-        return pooledObject;
-    }
-
-    public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool, out Dictionary<TKey, TValue> dictionary)
-        where TKey : notnull
-    {
-        var pooledObject = PooledObject<Dictionary<TKey, TValue>>.Create(pool);
-        dictionary = pooledObject.Object;
-        return pooledObject;
-    }
-
-    public static PooledObject<ConcurrentSet<T>> GetPooledObject<T>(this ObjectPool<ConcurrentSet<T>> pool, out ConcurrentSet<T> set)
-        where T : notnull
-    {
-        var pooledObject = PooledObject<ConcurrentSet<T>>.Create(pool);
-        set = pooledObject.Object;
-        return pooledObject;
-    }
-
-    public static PooledObject<T> GetPooledObject<T>(this ObjectPool<T> pool) where T : class
-        => new(pool, p => p.Allocate(), (p, o) => p.Free(o));
-
-    public static StringBuilder AllocateAndClear(this ObjectPool<StringBuilder> pool)
-    {
-        var sb = pool.Allocate();
-        sb.Clear();
-
-        return sb;
-    }
-
-    public static Stack<T> AllocateAndClear<T>(this ObjectPool<Stack<T>> pool)
-    {
-        var set = pool.Allocate();
-        set.Clear();
-
-        return set;
-    }
-
-    public static Queue<T> AllocateAndClear<T>(this ObjectPool<Queue<T>> pool)
-    {
-        var set = pool.Allocate();
-        set.Clear();
-
-        return set;
-    }
-
-    public static HashSet<T> AllocateAndClear<T>(this ObjectPool<HashSet<T>> pool)
-    {
-        var set = pool.Allocate();
-        set.Clear();
-
-        return set;
-    }
-
-    public static ConcurrentSet<T> AllocateAndClear<T>(this ObjectPool<ConcurrentSet<T>> pool) where T : notnull
-    {
-        var set = pool.Allocate();
-        set.Clear();
-
-        return set;
-    }
-
-    public static SegmentedHashSet<T> AllocateAndClear<T>(this ObjectPool<SegmentedHashSet<T>> pool)
-    {
-        var set = pool.Allocate();
-        set.Clear();
-
-        return set;
-    }
-
-    public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
-        where TKey : notnull
-    {
-        var map = pool.Allocate();
-        map.Clear();
-
-        return map;
-    }
-
-    public static List<T> AllocateAndClear<T>(this ObjectPool<List<T>> pool)
-    {
-        var list = pool.Allocate();
-        list.Clear();
-
-        return list;
-    }
-
-    public static SegmentedList<T> AllocateAndClear<T>(this ObjectPool<SegmentedList<T>> pool)
-    {
-        var list = pool.Allocate();
-        list.Clear();
-
-        return list;
-    }
-
-    public static void ClearAndFree(this ObjectPool<StringBuilder> pool, StringBuilder sb)
-    {
-        if (sb == null)
+        public PooledObject<SegmentedList<TItem>> GetPooledObject(out SegmentedList<TItem> list)
         {
-            return;
+            var pooledObject = PooledObject<SegmentedList<TItem>>.Create(pool);
+            list = pooledObject.Object;
+            return pooledObject;
+        }
+    }
+
+    extension<T>(ObjectPool<ConcurrentSet<T>> pool) where T : notnull
+    {
+        public PooledObject<ConcurrentSet<T>> GetPooledObject(out ConcurrentSet<T> set)
+        {
+            var pooledObject = PooledObject<ConcurrentSet<T>>.Create(pool);
+            set = pooledObject.Object;
+            return pooledObject;
         }
 
-        sb.Clear();
-
-        if (sb.Capacity > Threshold)
+        public ConcurrentSet<T> AllocateAndClear()
         {
-            sb.Capacity = Threshold;
+            var set = pool.Allocate();
+            set.Clear();
+
+            return set;
         }
 
-        pool.Free(sb);
+        public void ClearAndFree(ConcurrentSet<T> set)
+        {
+            if (set == null)
+                return;
+
+            // if set grew too big, don't put it back to pool
+            if (set.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(set);
+                return;
+            }
+
+            set.Clear();
+            pool.Free(set);
+        }
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<HashSet<T>> pool, HashSet<T> set)
+    extension<T>(ObjectPool<T> pool) where T : class
     {
-        if (set == null)
-        {
-            return;
-        }
-
-        var count = set.Count;
-        set.Clear();
-
-        if (count > Threshold && pool.TrimOnFree)
-        {
-            set.TrimExcess();
-        }
-
-        pool.Free(set);
+        public PooledObject<T> GetPooledObject() => new(pool, p => p.Allocate(), (p, o) => p.Free(o));
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<SegmentedHashSet<T>> pool, SegmentedHashSet<T> set)
+    extension<T>(ObjectPool<Stack<T>> pool)
     {
-        if (set == null)
+        public Stack<T> AllocateAndClear()
         {
-            return;
+            var set = pool.Allocate();
+            set.Clear();
+
+            return set;
         }
 
-        var count = set.Count;
-        set.Clear();
-
-        if (count > Threshold)
+        public void ClearAndFree(Stack<T> stack)
         {
-            set.TrimExcess();
-        }
+            if (stack == null)
+                return;
 
-        pool.Free(set);
+            var count = stack.Count;
+            stack.Clear();
+
+            if (count > Threshold && pool.TrimOnFree)
+                stack.TrimExcess();
+
+            pool.Free(stack);
+        }
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<ConcurrentSet<T>> pool, ConcurrentSet<T> set) where T : notnull
+    extension<T>(ObjectPool<Queue<T>> pool)
     {
-        if (set == null)
-            return;
-
-        // if set grew too big, don't put it back to pool
-        if (set.Count > Threshold)
+        public Queue<T> AllocateAndClear()
         {
-            pool.ForgetTrackedObject(set);
-            return;
+            var set = pool.Allocate();
+            set.Clear();
+
+            return set;
         }
 
-        set.Clear();
-        pool.Free(set);
+        public void ClearAndFree(Queue<T> set)
+        {
+            if (set == null)
+            {
+                return;
+            }
+
+            var count = set.Count;
+            set.Clear();
+
+            if (count > Threshold)
+            {
+                set.TrimExcess();
+            }
+
+            pool.Free(set);
+        }
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<Stack<T>> pool, Stack<T> stack)
+    extension<T>(ObjectPool<HashSet<T>> pool)
     {
-        if (stack == null)
-            return;
+        public HashSet<T> AllocateAndClear()
+        {
+            var set = pool.Allocate();
+            set.Clear();
 
-        var count = stack.Count;
-        stack.Clear();
+            return set;
+        }
 
-        if (count > Threshold && pool.TrimOnFree)
-            stack.TrimExcess();
+        public void ClearAndFree(HashSet<T> set)
+        {
+            if (set == null)
+            {
+                return;
+            }
 
-        pool.Free(stack);
+            var count = set.Count;
+            set.Clear();
+
+            if (count > Threshold && pool.TrimOnFree)
+            {
+                set.TrimExcess();
+            }
+
+            pool.Free(set);
+        }
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<ConcurrentStack<T>> pool, ConcurrentStack<T> stack)
+    extension<T>(ObjectPool<SegmentedHashSet<T>> pool)
     {
-        if (stack == null)
-            return;
-
-        // if stack grew too big, don't put it back to pool
-        if (stack.Count > Threshold)
+        public SegmentedHashSet<T> AllocateAndClear()
         {
-            pool.ForgetTrackedObject(stack);
-            return;
+            var set = pool.Allocate();
+            set.Clear();
+
+            return set;
         }
 
-        stack.Clear();
-        pool.Free(stack);
+        public void ClearAndFree(SegmentedHashSet<T> set)
+        {
+            if (set == null)
+            {
+                return;
+            }
+
+            var count = set.Count;
+            set.Clear();
+
+            if (count > Threshold)
+            {
+                set.TrimExcess();
+            }
+
+            pool.Free(set);
+        }
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<Queue<T>> pool, Queue<T> set)
+    extension<T>(ObjectPool<List<T>> pool)
     {
-        if (set == null)
+        public List<T> AllocateAndClear()
         {
-            return;
+            var list = pool.Allocate();
+            list.Clear();
+
+            return list;
         }
 
-        var count = set.Count;
-        set.Clear();
-
-        if (count > Threshold)
+        public void ClearAndFree(List<T> list, bool trim = true)
         {
-            set.TrimExcess();
-        }
+            if (list == null)
+            {
+                return;
+            }
 
-        pool.Free(set);
+            list.Clear();
+
+            if (trim && list.Capacity > Threshold)
+            {
+                list.Capacity = Threshold;
+            }
+
+            pool.Free(list);
+        }
     }
 
-    public static void ClearAndFree<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool, Dictionary<TKey, TValue> map)
-        where TKey : notnull
+    extension<T>(ObjectPool<SegmentedList<T>> pool)
     {
-        if (map == null)
+        public SegmentedList<T> AllocateAndClear()
         {
-            return;
+            var list = pool.Allocate();
+            list.Clear();
+
+            return list;
         }
 
-        // if map grew too big, don't put it back to pool
-        if (map.Count > Threshold)
+        public void ClearAndFree(SegmentedList<T> list, bool trim = true)
         {
-            pool.ForgetTrackedObject(map);
-            return;
-        }
+            if (list == null)
+            {
+                return;
+            }
 
-        map.Clear();
-        pool.Free(map);
+            list.Clear();
+
+            if (trim && list.Capacity > Threshold)
+            {
+                list.Capacity = Threshold;
+            }
+
+            pool.Free(list);
+        }
     }
 
-    public static void ClearAndFree<TKey, TValue>(this ObjectPool<ConcurrentDictionary<TKey, TValue>> pool, ConcurrentDictionary<TKey, TValue> map)
-        where TKey : notnull
+    extension<T>(ObjectPool<ConcurrentStack<T>> pool)
     {
-        if (map == null)
-            return;
-
-        // if map grew too big, don't put it back to pool
-        if (map.Count > Threshold)
+        public void ClearAndFree(ConcurrentStack<T> stack)
         {
-            pool.ForgetTrackedObject(map);
-            return;
-        }
+            if (stack == null)
+                return;
 
-        map.Clear();
-        pool.Free(map);
+            // if stack grew too big, don't put it back to pool
+            if (stack.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(stack);
+                return;
+            }
+
+            stack.Clear();
+            pool.Free(stack);
+        }
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<List<T>> pool, List<T> list, bool trim = true)
+    extension<TKey, TValue>(ObjectPool<ConcurrentDictionary<TKey, TValue>> pool) where TKey : notnull
     {
-        if (list == null)
+        public void ClearAndFree(ConcurrentDictionary<TKey, TValue> map)
         {
-            return;
+            if (map == null)
+                return;
+
+            // if map grew too big, don't put it back to pool
+            if (map.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(map);
+                return;
+            }
+
+            map.Clear();
+            pool.Free(map);
         }
-
-        list.Clear();
-
-        if (trim && list.Capacity > Threshold)
-        {
-            list.Capacity = Threshold;
-        }
-
-        pool.Free(list);
-    }
-
-    public static void ClearAndFree<T>(this ObjectPool<SegmentedList<T>> pool, SegmentedList<T> list, bool trim = true)
-    {
-        if (list == null)
-        {
-            return;
-        }
-
-        list.Clear();
-
-        if (trim && list.Capacity > Threshold)
-        {
-            list.Capacity = Threshold;
-        }
-
-        pool.Free(list);
     }
 }

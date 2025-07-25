@@ -67,16 +67,22 @@ internal static class ImplementTypeOptionsStorage
 
 internal static class ImplementTypeOptionsProviders
 {
-    public static ImplementTypeOptions GetImplementTypeOptions(this IOptionsReader reader, string language)
+    extension(IOptionsReader reader)
+    {
+        public ImplementTypeOptions GetImplementTypeOptions(string language)
         => new()
         {
             InsertionBehavior = reader.GetOption(ImplementTypeOptionsStorage.InsertionBehavior, language),
             PropertyGenerationBehavior = reader.GetOption(ImplementTypeOptionsStorage.PropertyGenerationBehavior, language)
         };
+    }
 
-    public static async ValueTask<ImplementTypeOptions> GetImplementTypeOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetImplementTypeOptions(document.Project.Language);
+        public async ValueTask<ImplementTypeOptions> GetImplementTypeOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetImplementTypeOptions(document.Project.Language);
+        }
     }
 }

@@ -8,6 +8,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class ITrackingSpanExtensions
 {
-    public static ITrackingPoint GetStartTrackingPoint(this ITrackingSpan span, PointTrackingMode mode)
+    extension(ITrackingSpan span)
+    {
+        public ITrackingPoint GetStartTrackingPoint(PointTrackingMode mode)
         => span.GetStartPoint(span.TextBuffer.CurrentSnapshot).CreateTrackingPoint(mode);
+    }
 }

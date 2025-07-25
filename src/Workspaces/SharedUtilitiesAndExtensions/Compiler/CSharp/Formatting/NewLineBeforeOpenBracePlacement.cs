@@ -24,7 +24,9 @@ internal enum NewLineBeforeOpenBracePlacement
 
 internal static partial class Extensions
 {
-    public static NewLineBeforeOpenBracePlacement ToNewLineBeforeOpenBracePlacement(this NewLinePlacement value)
+    extension(NewLinePlacement value)
+    {
+        public NewLineBeforeOpenBracePlacement ToNewLineBeforeOpenBracePlacement()
         => (value.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes) ? NewLineBeforeOpenBracePlacement.Types : 0) |
            (value.HasFlag(NewLinePlacement.BeforeOpenBraceInMethods) ? NewLineBeforeOpenBracePlacement.Methods : 0) |
            (value.HasFlag(NewLinePlacement.BeforeOpenBraceInProperties) ? NewLineBeforeOpenBracePlacement.Properties : 0) |
@@ -34,8 +36,11 @@ internal static partial class Extensions
            (value.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers) ? NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers : 0) |
            (value.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ? NewLineBeforeOpenBracePlacement.LambdaExpressionBody : 0) |
            (value.HasFlag(NewLinePlacement.BeforeOpenBraceInAccessors) ? NewLineBeforeOpenBracePlacement.Accessors : 0);
+    }
 
-    public static NewLinePlacement ToNewLinePlacement(this NewLineBeforeOpenBracePlacement value)
+    extension(NewLineBeforeOpenBracePlacement value)
+    {
+        public NewLinePlacement ToNewLinePlacement()
         => (value.HasFlag(NewLineBeforeOpenBracePlacement.Types) ? NewLinePlacement.BeforeOpenBraceInTypes : 0) |
            (value.HasFlag(NewLineBeforeOpenBracePlacement.Methods) ? NewLinePlacement.BeforeOpenBraceInMethods : 0) |
            (value.HasFlag(NewLineBeforeOpenBracePlacement.Properties) ? NewLinePlacement.BeforeOpenBraceInProperties : 0) |
@@ -45,7 +50,11 @@ internal static partial class Extensions
            (value.HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers) ? NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers : 0) |
            (value.HasFlag(NewLineBeforeOpenBracePlacement.LambdaExpressionBody) ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
            (value.HasFlag(NewLineBeforeOpenBracePlacement.Accessors) ? NewLinePlacement.BeforeOpenBraceInAccessors : 0);
+    }
 
-    public static NewLineBeforeOpenBracePlacement WithFlagValue(this NewLineBeforeOpenBracePlacement flags, NewLineBeforeOpenBracePlacement flag, bool value)
+    extension(NewLineBeforeOpenBracePlacement flags)
+    {
+        public NewLineBeforeOpenBracePlacement WithFlagValue(NewLineBeforeOpenBracePlacement flag, bool value)
         => (flags & ~flag) | (value ? flag : 0);
+    }
 }

@@ -12,14 +12,17 @@ namespace Microsoft.CodeAnalysis.Storage;
 
 internal static class PersistentStorageExtensions
 {
-    public static IChecksummedPersistentStorageService GetPersistentStorageService(this SolutionServices services)
+    extension(SolutionServices services)
     {
-        var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
+        public IChecksummedPersistentStorageService GetPersistentStorageService()
+        {
+            var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
 
 #if DOTNET_BUILD_FROM_SOURCE
         return NoOpPersistentStorageService.GetOrThrow(configuration);
 #else
-        return services.GetService<SQLitePersistentStorageService>() ?? NoOpPersistentStorageService.GetOrThrow(configuration);
+            return services.GetService<SQLitePersistentStorageService>() ?? NoOpPersistentStorageService.GetOrThrow(configuration);
 #endif
+        }
     }
 }

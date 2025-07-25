@@ -9,11 +9,14 @@ namespace Microsoft.CodeAnalysis.Structure;
 
 internal static class BlockStructureExtensions
 {
-    public static void Add<TType, TOutliner>(
-        this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>>.Builder builder)
+    extension(ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>>.Builder builder)
+    {
+        public void Add<TType, TOutliner>(
+)
         where TType : SyntaxNode
         where TOutliner : AbstractSyntaxStructureProvider, new()
-    {
-        builder.Add(typeof(TType), [new TOutliner()]);
+        {
+            builder.Add(typeof(TType), [new TOutliner()]);
+        }
     }
 }

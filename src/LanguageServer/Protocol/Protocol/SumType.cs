@@ -885,17 +885,25 @@ internal static class SumTypeUtils
         }
     }
 
-    public static TCommon Unify<TCommon, TDerived>(this SumType<TCommon, TDerived> sumType)
+    extension<TCommon, TDerived>(SumType<TCommon, TDerived> sumType)
         where TCommon : notnull
         where TDerived : notnull, TCommon
+    {
+        public TCommon Unify()
         => sumType.Match(common => common, derived => derived);
+    }
 
-    public static TCommon[] Unify<TCommon, TDerived>(this SumType<TCommon[], TDerived[]> sumType)
-        where TDerived : TCommon
+    extension<TCommon, TDerived>(SumType<TCommon[], TDerived[]> sumType) where TDerived : TCommon
+    {
+        public TCommon[] Unify()
         => sumType.Match(common => common, derived => Array.ConvertAll(derived, d => (TCommon)d));
+    }
 
-    public static Dictionary<TKey, object> AsUntyped<TKey, TValue>(this Dictionary<TKey, TValue> dictionary)
+    extension<TKey, TValue>(Dictionary<TKey, TValue> dictionary)
         where TKey : notnull
         where TValue : notnull, ISumType
+    {
+        public Dictionary<TKey, object> AsUntyped()
         => dictionary.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
+    }
 }

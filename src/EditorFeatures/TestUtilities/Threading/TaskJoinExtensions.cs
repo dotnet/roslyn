@@ -11,28 +11,34 @@ namespace Roslyn.Test.Utilities;
 
 public static class TaskJoinExtensions
 {
-    /// <summary>
-    /// Joins a <see cref="Task"/> to the current thread with a <see cref="Dispatcher"/> message pump in place
-    /// during the join operation.
-    /// </summary>
-    public static void JoinUsingDispatcher(this Task task, CancellationToken cancellationToken)
+    extension(Task task)
     {
-        JoinUsingDispatcherNoResult(task, cancellationToken);
+        /// <summary>
+        /// Joins a <see cref="Task"/> to the current thread with a <see cref="Dispatcher"/> message pump in place
+        /// during the join operation.
+        /// </summary>
+        public void JoinUsingDispatcher(CancellationToken cancellationToken)
+        {
+            JoinUsingDispatcherNoResult(task, cancellationToken);
 
-        // Handle task completion by throwing the appropriate exception on failure
-        task.GetAwaiter().GetResult();
+            // Handle task completion by throwing the appropriate exception on failure
+            task.GetAwaiter().GetResult();
+        }
     }
 
-    /// <summary>
-    /// Joins a <see cref="Task{TResult}"/> to the current thread with a <see cref="Dispatcher"/> message pump in
-    /// place during the join operation.
-    /// </summary>
-    public static TResult JoinUsingDispatcher<TResult>(this Task<TResult> task, CancellationToken cancellationToken)
+    extension<TResult>(Task<TResult> task)
     {
-        JoinUsingDispatcherNoResult(task, cancellationToken);
+        /// <summary>
+        /// Joins a <see cref="Task{TResult}"/> to the current thread with a <see cref="Dispatcher"/> message pump in
+        /// place during the join operation.
+        /// </summary>
+        public TResult JoinUsingDispatcher(CancellationToken cancellationToken)
+        {
+            JoinUsingDispatcherNoResult(task, cancellationToken);
 
-        // Handle task completion by throwing the appropriate exception on failure
-        return task.GetAwaiter().GetResult();
+            // Handle task completion by throwing the appropriate exception on failure
+            return task.GetAwaiter().GetResult();
+        }
     }
 
     private static void JoinUsingDispatcherNoResult(Task task, CancellationToken cancellationToken)

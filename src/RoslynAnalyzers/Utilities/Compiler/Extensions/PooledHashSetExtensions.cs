@@ -10,11 +10,14 @@ namespace Analyzer.Utilities.PooledObjects.Extensions
 {
     internal static class PooledHashSetExtensions
     {
-        public static void AddRange<T>(this PooledHashSet<T> builder, IEnumerable<T> set2)
+        extension<T>(PooledHashSet<T> builder)
         {
-            foreach (var item in set2)
+            public void AddRange(IEnumerable<T> set2)
             {
-                builder.Add(item);
+                foreach (var item in set2)
+                {
+                    builder.Add(item);
+                }
             }
         }
     }

@@ -8,11 +8,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal static class UnitTestingWorkspaceExtensions
 {
-    public static IDisposable RegisterTextDocumentOpenedEventHandler(this Workspace workspace, Action<UnitTestingTextDocumentEventArgsWrapper> action)
+    extension(Workspace workspace)
+    {
+        public IDisposable RegisterTextDocumentOpenedEventHandler(Action<UnitTestingTextDocumentEventArgsWrapper> action)
         => new EventHandlerWrapper(workspace, action, opened: true);
 
-    public static IDisposable RegisterTextDocumentClosedEventHandler(this Workspace workspace, Action<UnitTestingTextDocumentEventArgsWrapper> action)
-        => new EventHandlerWrapper(workspace, action, opened: false);
+        public IDisposable RegisterTextDocumentClosedEventHandler(Action<UnitTestingTextDocumentEventArgsWrapper> action)
+            => new EventHandlerWrapper(workspace, action, opened: false);
+    }
 
     private sealed class EventHandlerWrapper : IDisposable
     {

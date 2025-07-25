@@ -126,9 +126,12 @@ internal readonly partial record struct Checksum(
 
 internal static class ChecksumExtensions
 {
-    public static void AddIfNotNullChecksum(this HashSet<Checksum> checksums, Checksum checksum)
+    extension(HashSet<Checksum> checksums)
     {
-        if (checksum != Checksum.Null)
-            checksums.Add(checksum);
+        public void AddIfNotNullChecksum(Checksum checksum)
+        {
+            if (checksum != Checksum.Null)
+                checksums.Add(checksum);
+        }
     }
 }

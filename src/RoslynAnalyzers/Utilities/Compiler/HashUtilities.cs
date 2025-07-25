@@ -14,13 +14,17 @@ namespace Analyzer.Utilities
 {
     internal static class HashUtilities
     {
-        internal static int GetHashCodeOrDefault<T>(this T? obj)
-            where T : class
+        extension<T>(T? obj) where T : class
+        {
+            internal int GetHashCodeOrDefault()
             => obj?.GetHashCode() ?? 0;
+        }
 
-        internal static int GetHashCodeOrDefault<T>(this T? obj)
-            where T : struct
+        extension<T>(T? obj) where T : struct
+        {
+            internal int GetHashCodeOrDefault()
             => obj?.GetHashCode() ?? 0;
+        }
 
         internal static int Combine<T>(ImmutableArray<T> array)
         {

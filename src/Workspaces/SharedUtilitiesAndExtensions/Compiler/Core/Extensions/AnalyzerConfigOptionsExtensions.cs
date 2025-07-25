@@ -11,63 +11,66 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class AnalyzerConfigOptionsExtensions
 {
-    public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
+    extension(AnalyzerConfigOptions analyzerConfigOptions)
+    {
+        public T GetEditorConfigOption<T>(IOption2 option, T defaultValue)
         => TryGetEditorConfigOption<T>(analyzerConfigOptions, option, out var value) ? value! : defaultValue;
 
-    public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
-        => TryGetEditorConfigOption<CodeStyleOption2<T>>(analyzerConfigOptions, option, out var style) ? style!.Value : defaultValue;
+        public T GetEditorConfigOptionValue<T>(IOption2 option, T defaultValue)
+            => TryGetEditorConfigOption<CodeStyleOption2<T>>(analyzerConfigOptions, option, out var style) ? style!.Value : defaultValue;
 
-    public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, out T value)
-    {
-        Contract.ThrowIfFalse(option.Definition.IsEditorConfigOption);
-
-        if (option.Definition.Type == typeof(NamingStylePreferences))
+        public bool TryGetEditorConfigOption<T>(IOption2 option, out T value)
         {
-            if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions))
-            {
-                var preferences = structuredOptions.GetNamingStylePreferences();
-                value = (T)(object)preferences;
-                return !preferences.IsEmpty;
-            }
-        }
-        else
-        {
-            if (analyzerConfigOptions.TryGetValue(option.Definition.ConfigName, out var stringValue))
-            {
-                // Avoid boxing when reading typed value:
-                if (typeof(T) != typeof(object))
-                {
-                    return ((OptionDefinition<T>)option.Definition).Serializer.TryParseValue(stringValue, out value!);
-                }
+            Contract.ThrowIfFalse(option.Definition.IsEditorConfigOption);
 
-                if (option.Definition.Serializer.TryParse(stringValue, out var objectValue))
+            if (option.Definition.Type == typeof(NamingStylePreferences))
+            {
+                if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions))
                 {
-                    value = (T)objectValue!;
-                    return true;
+                    var preferences = structuredOptions.GetNamingStylePreferences();
+                    value = (T)(object)preferences;
+                    return !preferences.IsEmpty;
                 }
             }
+            else
+            {
+                if (analyzerConfigOptions.TryGetValue(option.Definition.ConfigName, out var stringValue))
+                {
+                    // Avoid boxing when reading typed value:
+                    if (typeof(T) != typeof(object))
+                    {
+                        return ((OptionDefinition<T>)option.Definition).Serializer.TryParseValue(stringValue, out value!);
+                    }
+
+                    if (option.Definition.Serializer.TryParse(stringValue, out var objectValue))
+                    {
+                        value = (T)objectValue!;
+                        return true;
+                    }
+                }
+            }
+
+            value = default!;
+            return false;
         }
 
-        value = default!;
-        return false;
-    }
+        public bool IsCodeStyleSeverityEnabled()
+        {
+            const string EnableCodeStyleSeverityKey = "build_property.EnableCodeStyleSeverity";
 
-    public static bool IsCodeStyleSeverityEnabled(this AnalyzerConfigOptions analyzerConfigOptions)
-    {
-        const string EnableCodeStyleSeverityKey = "build_property.EnableCodeStyleSeverity";
+            return analyzerConfigOptions.TryGetValue(EnableCodeStyleSeverityKey, out var value)
+                && bool.TryParse(value, out var parsedValue)
+                && parsedValue;
+        }
 
-        return analyzerConfigOptions.TryGetValue(EnableCodeStyleSeverityKey, out var value)
-            && bool.TryParse(value, out var parsedValue)
-            && parsedValue;
-    }
+        public bool IsAnalysisLevelGreaterThanOrEquals(int minAnalysisLevel)
+        {
+            // See https://github.com/dotnet/roslyn/pull/70794 for details.
+            const string AnalysisLevelKey = "build_property.EffectiveAnalysisLevelStyle";
 
-    public static bool IsAnalysisLevelGreaterThanOrEquals(this AnalyzerConfigOptions analyzerConfigOptions, int minAnalysisLevel)
-    {
-        // See https://github.com/dotnet/roslyn/pull/70794 for details.
-        const string AnalysisLevelKey = "build_property.EffectiveAnalysisLevelStyle";
-
-        return analyzerConfigOptions.TryGetValue(AnalysisLevelKey, out var value)
-            && double.TryParse(value, out var version)
-            && version >= minAnalysisLevel;
+            return analyzerConfigOptions.TryGetValue(AnalysisLevelKey, out var value)
+                && double.TryParse(value, out var version)
+                && version >= minAnalysisLevel;
+        }
     }
 }

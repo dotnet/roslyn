@@ -274,24 +274,33 @@ internal static class EditAndContinueDiagnosticDescriptors
     public static RudeEditKind GetRudeEditKind(string diagnosticId)
         => IsRudeEdit(diagnosticId) && int.TryParse(diagnosticId[RudeEditDiagnosticIdPrefix.Length..], out var id) ? (RudeEditKind)id : RudeEditKind.None;
 
-    public static bool IsDocumentReadError(this Diagnostic diagnostic)
+    extension(Diagnostic diagnostic)
+    {
+        public bool IsDocumentReadError()
         => diagnostic.Id == s_documentReadErrorId;
 
-    public static bool IsNoEffectDiagnostic(this Diagnostic diagnostic)
-        => s_noEffectDiagnosticIds.Contains(diagnostic.Id);
+        public bool IsNoEffectDiagnostic()
+            => s_noEffectDiagnosticIds.Contains(diagnostic.Id);
 
-    public static bool IsEncDiagnostic(this Diagnostic diagnostic)
-        => IsEncDiagnostic(diagnostic.Id);
+        public bool IsEncDiagnostic()
+            => IsEncDiagnostic(diagnostic.Id);
 
-    public static bool IsRudeEdit(this Diagnostic diagnostic)
-        => IsRudeEdit(diagnostic.Id);
+        public bool IsRudeEdit()
+            => IsRudeEdit(diagnostic.Id);
+    }
 
-    public static DiagnosticSeverity GetSeverity(this RudeEditKind kind)
+    extension(RudeEditKind kind)
+    {
+        public DiagnosticSeverity GetSeverity()
         => GetDescriptor(kind).DefaultSeverity;
 
-    public static bool IsBlocking(this RudeEditKind kind)
-        => kind.GetSeverity() == DiagnosticSeverity.Error;
+        public bool IsBlocking()
+            => kind.GetSeverity() == DiagnosticSeverity.Error;
+    }
 
-    public static bool HasBlockingRudeEdits(this ImmutableArray<RudeEditDiagnostic> diagnostics)
+    extension(ImmutableArray<RudeEditDiagnostic> diagnostics)
+    {
+        public bool HasBlockingRudeEdits()
         => diagnostics.Any(static e => e.Kind.IsBlocking());
+    }
 }

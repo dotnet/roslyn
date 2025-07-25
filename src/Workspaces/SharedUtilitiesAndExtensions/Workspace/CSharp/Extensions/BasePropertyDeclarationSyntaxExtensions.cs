@@ -9,50 +9,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class BasePropertyDeclarationSyntaxExtensions
 {
-    /// <summary>
-    /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
-    /// </summary>
-    public static SyntaxToken TryGetSemicolonToken(this BasePropertyDeclarationSyntax? node)
+    extension(BasePropertyDeclarationSyntax? node)
     {
-        if (node != null)
+        /// <summary>
+        /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
+        /// </summary>
+        public SyntaxToken TryGetSemicolonToken()
         {
-            switch (node.Kind())
+            if (node != null)
             {
-                case SyntaxKind.PropertyDeclaration: return ((PropertyDeclarationSyntax)node).SemicolonToken;
-                case SyntaxKind.IndexerDeclaration: return ((IndexerDeclarationSyntax)node).SemicolonToken;
+                switch (node.Kind())
+                {
+                    case SyntaxKind.PropertyDeclaration: return ((PropertyDeclarationSyntax)node).SemicolonToken;
+                    case SyntaxKind.IndexerDeclaration: return ((IndexerDeclarationSyntax)node).SemicolonToken;
+                }
             }
+
+            return default;
         }
 
-        return default;
-    }
-
-    /// <summary>
-    /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
-    /// </summary>
-    [return: NotNullIfNotNull(nameof(node))]
-    public static BasePropertyDeclarationSyntax? TryWithSemicolonToken(this BasePropertyDeclarationSyntax? node, SyntaxToken semicolonToken)
-    {
-        if (node != null)
+        /// <summary>
+        /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
+        /// </summary>
+        [return: NotNullIfNotNull(nameof(node))]
+        public BasePropertyDeclarationSyntax? TryWithSemicolonToken(SyntaxToken semicolonToken)
         {
-            switch (node.Kind())
+            if (node != null)
             {
-                case SyntaxKind.PropertyDeclaration: return ((PropertyDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
-                case SyntaxKind.IndexerDeclaration: return ((IndexerDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
+                switch (node.Kind())
+                {
+                    case SyntaxKind.PropertyDeclaration: return ((PropertyDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
+                    case SyntaxKind.IndexerDeclaration: return ((IndexerDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
+                }
             }
+
+            return node;
         }
 
-        return node;
+        /// <summary>
+        /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
+        /// </summary>
+        [return: NotNullIfNotNull(nameof(node))]
+        public BasePropertyDeclarationSyntax? TryWithExpressionBody(ArrowExpressionClauseSyntax? expressionBody)
+            => node switch
+            {
+                PropertyDeclarationSyntax property => property.WithExpressionBody(expressionBody),
+                IndexerDeclarationSyntax indexer => indexer.WithExpressionBody(expressionBody),
+                _ => node,
+            };
     }
-
-    /// <summary>
-    /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
-    /// </summary>
-    [return: NotNullIfNotNull(nameof(node))]
-    public static BasePropertyDeclarationSyntax? TryWithExpressionBody(this BasePropertyDeclarationSyntax? node, ArrowExpressionClauseSyntax? expressionBody)
-        => node switch
-        {
-            PropertyDeclarationSyntax property => property.WithExpressionBody(expressionBody),
-            IndexerDeclarationSyntax indexer => indexer.WithExpressionBody(expressionBody),
-            _ => node,
-        };
 }

@@ -10,15 +10,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 internal static class GlobalOptionsExtensions
 {
-    /// <summary>
-    /// Sets options stored in <see cref="IGlobalOptionService"/> that are read by command handlers from the text editor to given <see cref="IEditorOptions"/>.
-    /// </summary>
-    public static void SetEditorOptions(this IGlobalOptionService globalOptions, IEditorOptions editorOptions, string language)
+    extension(IGlobalOptionService globalOptions)
     {
-        editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, globalOptions.GetOption(FormattingOptions2.SmartIndent, language).ToEditorIndentStyle());
-        editorOptions.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, globalOptions.GetOption(FormattingOptions2.NewLine, language));
-        editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, globalOptions.GetOption(FormattingOptions2.TabSize, language));
-        editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, globalOptions.GetOption(FormattingOptions2.IndentationSize, language));
-        editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !globalOptions.GetOption(FormattingOptions2.UseTabs, language));
+        /// <summary>
+        /// Sets options stored in <see cref="IGlobalOptionService"/> that are read by command handlers from the text editor to given <see cref="IEditorOptions"/>.
+        /// </summary>
+        public void SetEditorOptions(IEditorOptions editorOptions, string language)
+        {
+            editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, globalOptions.GetOption(FormattingOptions2.SmartIndent, language).ToEditorIndentStyle());
+            editorOptions.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, globalOptions.GetOption(FormattingOptions2.NewLine, language));
+            editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, globalOptions.GetOption(FormattingOptions2.TabSize, language));
+            editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, globalOptions.GetOption(FormattingOptions2.IndentationSize, language));
+            editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !globalOptions.GetOption(FormattingOptions2.UseTabs, language));
+        }
     }
 }

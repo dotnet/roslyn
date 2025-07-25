@@ -15,256 +15,279 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class ITypeSymbolExtensions
     {
-        public static bool IsPrimitiveType(this ITypeSymbol type)
+        extension(ITypeSymbol type)
         {
-            return type.SpecialType switch
+            public bool IsPrimitiveType()
             {
-                SpecialType.System_Boolean
-                or SpecialType.System_Byte
-                or SpecialType.System_Char
-                or SpecialType.System_Double
-                or SpecialType.System_Int16
-                or SpecialType.System_Int32
-                or SpecialType.System_Int64
-                or SpecialType.System_UInt16
-                or SpecialType.System_UInt32
-                or SpecialType.System_UInt64
-                or SpecialType.System_SByte
-                or SpecialType.System_Single
-                or SpecialType.System_String => true,
-                _ => false,
-            };
-        }
-
-        public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? possibleBase)
-        {
-            if (type == null || possibleBase == null)
-            {
-                return false;
-            }
-
-            switch (possibleBase.TypeKind)
-            {
-                case TypeKind.Class:
-                    if (type.TypeKind == TypeKind.Interface)
-                    {
-                        return false;
-                    }
-
-                    return DerivesFrom(type, possibleBase, baseTypesOnly: true);
-
-                case TypeKind.Interface:
-                    return DerivesFrom(type, possibleBase);
-
-                default:
-                    return false;
-            }
-        }
-
-        public static bool DerivesFrom([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol, [NotNullWhen(returnValue: true)] ITypeSymbol? candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
-        {
-            if (candidateBaseType == null || symbol == null)
-            {
-                return false;
-            }
-
-            if (!baseTypesOnly && candidateBaseType.TypeKind == TypeKind.Interface)
-            {
-                var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
-                if (SymbolEqualityComparer.Default.Equals(candidateBaseType.OriginalDefinition, candidateBaseType))
+                return type.SpecialType switch
                 {
-                    // Candidate base type is not a constructed generic type, so use original definition for interfaces.
-                    allInterfaces = allInterfaces.Select(i => i.OriginalDefinition);
-                }
+                    SpecialType.System_Boolean
+                    or SpecialType.System_Byte
+                    or SpecialType.System_Char
+                    or SpecialType.System_Double
+                    or SpecialType.System_Int16
+                    or SpecialType.System_Int32
+                    or SpecialType.System_Int64
+                    or SpecialType.System_UInt16
+                    or SpecialType.System_UInt32
+                    or SpecialType.System_UInt64
+                    or SpecialType.System_SByte
+                    or SpecialType.System_Single
+                    or SpecialType.System_String => true,
+                    _ => false,
+                };
+            }
 
-                if (allInterfaces.Contains(candidateBaseType))
+            /// <summary>
+            /// Indicates if the given <paramref name="type"/> is disposable,
+            /// and thus can be used in a <code>using</code> or <code>await using</code> statement.
+            /// </summary>
+            public bool IsDisposable(INamedTypeSymbol? iDisposable,
+                INamedTypeSymbol? iAsyncDisposable,
+                INamedTypeSymbol? configuredAsyncDisposable)
+            {
+                if (type.IsReferenceType)
+                {
+                    return IsInterfaceOrImplementsInterface(type, iDisposable)
+                        || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
+                }
+                else if (SymbolEqualityComparer.Default.Equals(type, configuredAsyncDisposable))
                 {
                     return true;
                 }
-            }
 
-            if (checkTypeParameterConstraints && symbol.TypeKind == TypeKind.TypeParameter)
-            {
-                var typeParameterSymbol = (ITypeParameterSymbol)symbol;
-                foreach (var constraintType in typeParameterSymbol.ConstraintTypes)
+#if CODEANALYSIS_V3_OR_BETTER
+                if (type.IsRefLikeType)
                 {
-                    if (constraintType.DerivesFrom(candidateBaseType, baseTypesOnly, checkTypeParameterConstraints))
+                    return type.GetMembers("Dispose").OfType<IMethodSymbol>()
+                        .Any(method => method.HasDisposeSignatureByConvention());
+                }
+#endif
+
+                return false;
+
+                static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+                    => interfaceType != null &&
+                       (SymbolEqualityComparer.Default.Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
+            }
+        }
+
+        extension([NotNullWhen(true)] ITypeSymbol? type)
+        {
+            public bool Inherits([NotNullWhen(returnValue: true)] ITypeSymbol? possibleBase)
+            {
+                if (type == null || possibleBase == null)
+                {
+                    return false;
+                }
+
+                switch (possibleBase.TypeKind)
+                {
+                    case TypeKind.Class:
+                        if (type.TypeKind == TypeKind.Interface)
+                        {
+                            return false;
+                        }
+
+                        return DerivesFrom(type, possibleBase, baseTypesOnly: true);
+
+                    case TypeKind.Interface:
+                        return DerivesFrom(type, possibleBase);
+
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        extension([NotNullWhen(true)] ITypeSymbol? symbol)
+        {
+            public bool DerivesFrom([NotNullWhen(returnValue: true)] ITypeSymbol? candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
+            {
+                if (candidateBaseType == null || symbol == null)
+                {
+                    return false;
+                }
+
+                if (!baseTypesOnly && candidateBaseType.TypeKind == TypeKind.Interface)
+                {
+                    var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
+                    if (SymbolEqualityComparer.Default.Equals(candidateBaseType.OriginalDefinition, candidateBaseType))
+                    {
+                        // Candidate base type is not a constructed generic type, so use original definition for interfaces.
+                        allInterfaces = allInterfaces.Select(i => i.OriginalDefinition);
+                    }
+
+                    if (allInterfaces.Contains(candidateBaseType))
                     {
                         return true;
                     }
                 }
-            }
 
-            while (symbol != null)
-            {
-                if (SymbolEqualityComparer.Default.Equals(symbol, candidateBaseType))
+                if (checkTypeParameterConstraints && symbol.TypeKind == TypeKind.TypeParameter)
                 {
-                    return true;
-                }
-
-                symbol = symbol.BaseType;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Indicates if the given <paramref name="type"/> is disposable,
-        /// and thus can be used in a <code>using</code> or <code>await using</code> statement.
-        /// </summary>
-        public static bool IsDisposable(this ITypeSymbol type,
-            INamedTypeSymbol? iDisposable,
-            INamedTypeSymbol? iAsyncDisposable,
-            INamedTypeSymbol? configuredAsyncDisposable)
-        {
-            if (type.IsReferenceType)
-            {
-                return IsInterfaceOrImplementsInterface(type, iDisposable)
-                    || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
-            }
-            else if (SymbolEqualityComparer.Default.Equals(type, configuredAsyncDisposable))
-            {
-                return true;
-            }
-
-#if CODEANALYSIS_V3_OR_BETTER
-            if (type.IsRefLikeType)
-            {
-                return type.GetMembers("Dispose").OfType<IMethodSymbol>()
-                    .Any(method => method.HasDisposeSignatureByConvention());
-            }
-#endif
-
-            return false;
-
-            static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
-                => interfaceType != null &&
-                   (SymbolEqualityComparer.Default.Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
-        }
-
-        /// <summary>
-        /// Gets all attributes directly applied to the type or inherited from a base type.
-        /// </summary>
-        /// <param name="type">The type symbol.</param>
-        /// <param name="attributeUsageAttribute">The compilation symbol for <see cref="AttributeUsageAttribute"/>.</param>
-        public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type, INamedTypeSymbol? attributeUsageAttribute)
-        {
-            var attributes = new List<AttributeData>();
-            var onlyIncludeInherited = false;
-
-            while (type != null)
-            {
-                var current = type.GetAttributes();
-                if (!onlyIncludeInherited || attributeUsageAttribute is null)
-                {
-                    attributes.AddRange(current);
-                }
-                else
-                {
-                    foreach (var attribute in current)
+                    var typeParameterSymbol = (ITypeParameterSymbol)symbol;
+                    foreach (var constraintType in typeParameterSymbol.ConstraintTypes)
                     {
-                        if (!IsInheritedAttribute(attribute, attributeUsageAttribute))
+                        if (constraintType.DerivesFrom(candidateBaseType, baseTypesOnly, checkTypeParameterConstraints))
                         {
-                            continue;
+                            return true;
                         }
-
-                        attributes.Add(attribute);
                     }
                 }
 
-                type = type.BaseType;
-                onlyIncludeInherited = true;
-            }
-
-            return attributes;
-
-            // Local functions
-            static bool IsInheritedAttribute(AttributeData attributeData, INamedTypeSymbol attributeUsageAttribute)
-            {
-                for (var currentAttributeClass = attributeData.AttributeClass;
-                    currentAttributeClass is object;
-                    currentAttributeClass = currentAttributeClass.BaseType)
+                while (symbol != null)
                 {
-                    foreach (var attributeClassData in currentAttributeClass.GetAttributes())
+                    if (SymbolEqualityComparer.Default.Equals(symbol, candidateBaseType))
                     {
-                        if (!SymbolEqualityComparer.Default.Equals(attributeClassData.AttributeClass, attributeUsageAttribute))
-                        {
-                            continue;
-                        }
+                        return true;
+                    }
 
-                        foreach (var (name, typedConstant) in attributeClassData.NamedArguments)
+                    symbol = symbol.BaseType;
+                }
+
+                return false;
+            }
+        }
+
+        extension(INamedTypeSymbol type)
+        {
+            /// <summary>
+            /// Gets all attributes directly applied to the type or inherited from a base type.
+            /// </summary>
+            /// <param name="type">The type symbol.</param>
+            /// <param name="attributeUsageAttribute">The compilation symbol for <see cref="AttributeUsageAttribute"/>.</param>
+            public IEnumerable<AttributeData> GetApplicableAttributes(INamedTypeSymbol? attributeUsageAttribute)
+            {
+                var attributes = new List<AttributeData>();
+                var onlyIncludeInherited = false;
+
+                while (type != null)
+                {
+                    var current = type.GetAttributes();
+                    if (!onlyIncludeInherited || attributeUsageAttribute is null)
+                    {
+                        attributes.AddRange(current);
+                    }
+                    else
+                    {
+                        foreach (var attribute in current)
                         {
-                            if (name != nameof(AttributeUsageAttribute.Inherited))
+                            if (!IsInheritedAttribute(attribute, attributeUsageAttribute))
                             {
                                 continue;
                             }
 
-                            // The default is true, so use that when explicitly specified and for cases where the value
-                            // is not a boolean (i.e. compilation error scenarios).
-                            return !Equals(false, typedConstant.Value);
+                            attributes.Add(attribute);
                         }
-
-                        // [AttributeUsage] was found, but did not specify Inherited explicitly. The default is true.
-                        return true;
                     }
+
+                    type = type.BaseType;
+                    onlyIncludeInherited = true;
                 }
 
-                // [AttributeUsage] was not found. The default is true.
-                return true;
+                return attributes;
+
+                // Local functions
+                static bool IsInheritedAttribute(AttributeData attributeData, INamedTypeSymbol attributeUsageAttribute)
+                {
+                    for (var currentAttributeClass = attributeData.AttributeClass;
+                        currentAttributeClass is object;
+                        currentAttributeClass = currentAttributeClass.BaseType)
+                    {
+                        foreach (var attributeClassData in currentAttributeClass.GetAttributes())
+                        {
+                            if (!SymbolEqualityComparer.Default.Equals(attributeClassData.AttributeClass, attributeUsageAttribute))
+                            {
+                                continue;
+                            }
+
+                            foreach (var (name, typedConstant) in attributeClassData.NamedArguments)
+                            {
+                                if (name != nameof(AttributeUsageAttribute.Inherited))
+                                {
+                                    continue;
+                                }
+
+                                // The default is true, so use that when explicitly specified and for cases where the value
+                                // is not a boolean (i.e. compilation error scenarios).
+                                return !Equals(false, typedConstant.Value);
+                            }
+
+                            // [AttributeUsage] was found, but did not specify Inherited explicitly. The default is true.
+                            return true;
+                        }
+                    }
+
+                    // [AttributeUsage] was not found. The default is true.
+                    return true;
+                }
             }
         }
 
-        public static IEnumerable<AttributeData> GetApplicableExportAttributes(this INamedTypeSymbol? type, INamedTypeSymbol? exportAttributeV1, INamedTypeSymbol? exportAttributeV2, INamedTypeSymbol? inheritedExportAttribute)
+        extension(INamedTypeSymbol? type)
         {
-            var attributes = new List<AttributeData>();
-            var onlyIncludeInherited = false;
-
-            while (type != null)
+            public IEnumerable<AttributeData> GetApplicableExportAttributes(INamedTypeSymbol? exportAttributeV1, INamedTypeSymbol? exportAttributeV2, INamedTypeSymbol? inheritedExportAttribute)
             {
-                var current = type.GetAttributes();
-                foreach (var attribute in current)
+                var attributes = new List<AttributeData>();
+                var onlyIncludeInherited = false;
+
+                while (type != null)
                 {
-                    if (attribute.AttributeClass.Inherits(inheritedExportAttribute))
+                    var current = type.GetAttributes();
+                    foreach (var attribute in current)
                     {
-                        attributes.Add(attribute);
+                        if (attribute.AttributeClass.Inherits(inheritedExportAttribute))
+                        {
+                            attributes.Add(attribute);
+                        }
+                        else if (!onlyIncludeInherited &&
+                            (attribute.AttributeClass.Inherits(exportAttributeV1) || attribute.AttributeClass.Inherits(exportAttributeV2)))
+                        {
+                            attributes.Add(attribute);
+                        }
                     }
-                    else if (!onlyIncludeInherited &&
-                        (attribute.AttributeClass.Inherits(exportAttributeV1) || attribute.AttributeClass.Inherits(exportAttributeV2)))
+
+                    if (inheritedExportAttribute is null)
                     {
-                        attributes.Add(attribute);
+                        break;
                     }
+
+                    type = type.BaseType;
+                    onlyIncludeInherited = true;
                 }
 
-                if (inheritedExportAttribute is null)
-                {
-                    break;
-                }
-
-                type = type.BaseType;
-                onlyIncludeInherited = true;
+                return attributes;
             }
-
-            return attributes;
         }
 
-        public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
+        extension(ITypeSymbol typeSymbol)
+        {
+            public bool HasValueCopySemantics()
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
+        }
 
-        public static bool CanHoldNullValue([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
+        extension([NotNullWhen(true)] ITypeSymbol? typeSymbol)
+        {
+            public bool CanHoldNullValue()
             => typeSymbol.IsReferenceTypeOrNullableValueType() ||
                typeSymbol?.IsRefLikeType == true ||
                typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
 
-        public static bool IsNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
-            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+            public bool IsNullableValueType()
+                => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
-        public static bool IsReferenceTypeOrNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
-            => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
+            public bool IsReferenceTypeOrNullableValueType()
+                => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
 
-        public static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
-            => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
+            public bool IsNullableOfBoolean()
+                => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
+        }
 
-        public static ITypeSymbol? GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol? typeSymbol)
+        extension(ITypeSymbol? typeSymbol)
+        {
+            public ITypeSymbol? GetUnderlyingValueTupleTypeOrThis()
             => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
+        }
     }
 }

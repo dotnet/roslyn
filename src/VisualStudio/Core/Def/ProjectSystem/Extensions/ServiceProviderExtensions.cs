@@ -9,9 +9,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
 
 internal static class ServiceProviderExtensions
 {
-    public static T GetMefService<T>(this IServiceProvider serviceProvider) where T : class
+    extension(IServiceProvider serviceProvider)
     {
-        var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-        return componentModel.GetService<T>();
+        public T GetMefService<T>() where T : class
+        {
+            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+            return componentModel.GetService<T>();
+        }
     }
 }

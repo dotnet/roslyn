@@ -11,41 +11,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests;
 
 internal static class CSharpServiceTestExtensions
 {
-    /// <summary>
-    /// DFS search to find the first node of a given type.
-    /// </summary>
-    internal static T FindFirstNodeOfType<T>(this SyntaxNode node)
-        where T : SyntaxNode
+    extension(SyntaxNode node)
     {
-        if (node is T)
+        /// <summary>
+        /// DFS search to find the first node of a given type.
+        /// </summary>
+        internal T FindFirstNodeOfType<T>()
+            where T : SyntaxNode
         {
-            return node as T;
-        }
-
-        foreach (var child in node.ChildNodes())
-        {
-            var foundNode = child.FindFirstNodeOfType<T>();
-            if (foundNode != null)
+            if (node is T)
             {
-                return foundNode;
+                return node as T;
             }
+
+            foreach (var child in node.ChildNodes())
+            {
+                var foundNode = child.FindFirstNodeOfType<T>();
+                if (foundNode != null)
+                {
+                    return foundNode;
+                }
+            }
+
+            return null;
         }
 
-        return null;
+        internal T DigToFirstNodeOfType<T>()
+            where T : SyntaxNode
+        {
+            return node.ChildNodes().OfType<T>().First();
+        }
     }
 
-    internal static T DigToFirstNodeOfType<T>(this SyntaxNode node)
-        where T : SyntaxNode
+    extension(SyntaxTree syntaxTree)
     {
-        return node.ChildNodes().OfType<T>().First();
-    }
-
-    internal static T DigToFirstNodeOfType<T>(this SyntaxTree syntaxTree)
+        internal T DigToFirstNodeOfType<T>()
         where T : SyntaxNode
-    {
-        return syntaxTree.GetRoot().DigToFirstNodeOfType<T>();
-    }
+        {
+            return syntaxTree.GetRoot().DigToFirstNodeOfType<T>();
+        }
 
-    internal static TypeDeclarationSyntax DigToFirstTypeDeclaration(this SyntaxTree syntaxTree)
-        => (syntaxTree.GetRoot() as CompilationUnitSyntax).Members.OfType<TypeDeclarationSyntax>().First();
+        internal TypeDeclarationSyntax DigToFirstTypeDeclaration()
+            => (syntaxTree.GetRoot() as CompilationUnitSyntax).Members.OfType<TypeDeclarationSyntax>().First();
+    }
 }

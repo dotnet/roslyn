@@ -32,14 +32,17 @@ internal interface IHierarchyItemToProjectIdMap : IWorkspaceService
 
 internal static class IHierarchyItemToProjectIdMapExtensions
 {
-    /// <inheritdoc cref="IHierarchyItemToProjectIdMap.TryGetProject"/>"/>
-    public static bool TryGetProjectId(this IHierarchyItemToProjectIdMap idMap, IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
+    extension(IHierarchyItemToProjectIdMap idMap)
     {
-        projectId = null;
-        if (!idMap.TryGetProject(hierarchyItem, targetFrameworkMoniker, out var project))
-            return false;
+        /// <inheritdoc cref="IHierarchyItemToProjectIdMap.TryGetProject"/>"/>
+        public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
+        {
+            projectId = null;
+            if (!idMap.TryGetProject(hierarchyItem, targetFrameworkMoniker, out var project))
+                return false;
 
-        projectId = project.Id;
-        return true;
+            projectId = project.Id;
+            return true;
+        }
     }
 }

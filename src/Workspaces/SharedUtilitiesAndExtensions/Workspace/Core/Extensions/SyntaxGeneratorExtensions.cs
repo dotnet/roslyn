@@ -20,18 +20,25 @@ internal static partial class SyntaxGeneratorExtensions
     private const string ObjName = "obj";
     public const string OtherName = "other";
 
-    public static SyntaxNode CreateThrowNotImplementedStatement(
-        this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+    extension(SyntaxGenerator codeDefinitionFactory)
     {
-        return codeDefinitionFactory.ThrowStatement(
-           CreateNewNotImplementedException(codeDefinitionFactory, compilation));
-    }
+        public SyntaxNode CreateThrowNotImplementedStatement(
+Compilation compilation)
+        {
+            return codeDefinitionFactory.ThrowStatement(
+               CreateNewNotImplementedException(codeDefinitionFactory, compilation));
+        }
 
-    public static SyntaxNode CreateThrowNotImplementedExpression(
-        this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-    {
-        return codeDefinitionFactory.ThrowExpression(
-           CreateNewNotImplementedException(codeDefinitionFactory, compilation));
+        public SyntaxNode CreateThrowNotImplementedExpression(
+    Compilation compilation)
+        {
+            return codeDefinitionFactory.ThrowExpression(
+               CreateNewNotImplementedException(codeDefinitionFactory, compilation));
+        }
+
+        public ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
+    Compilation compilation)
+            => [CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation)];
     }
 
     private static SyntaxNode CreateNewNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
@@ -45,36 +52,159 @@ internal static partial class SyntaxGeneratorExtensions
             arguments: []);
     }
 
-    public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
-        this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-        => [CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation)];
-
-    public static ImmutableArray<SyntaxNode> CreateArguments(
-        this SyntaxGenerator factory,
+    extension(SyntaxGenerator factory)
+    {
+        public ImmutableArray<SyntaxNode> CreateArguments(
         ImmutableArray<IParameterSymbol> parameters)
-    {
-        return parameters.SelectAsArray(p => CreateArgument(factory, p));
-    }
+        {
+            return parameters.SelectAsArray(p => CreateArgument(factory, p));
+        }
 
-    private static SyntaxNode CreateArgument(
-        this SyntaxGenerator factory,
-        IParameterSymbol parameter)
-    {
-        return factory.Argument(parameter.RefKind, factory.IdentifierName(parameter.Name));
-    }
+        private SyntaxNode CreateArgument(
+            IParameterSymbol parameter)
+        {
+            return factory.Argument(parameter.RefKind, factory.IdentifierName(parameter.Name));
+        }
 
-    public static SyntaxNode GetDefaultEqualityComparer(
-        this SyntaxGenerator factory,
-        SyntaxGeneratorInternal generatorInternal,
-        Compilation compilation,
-        ITypeSymbol type)
-    {
-        var equalityComparerType = compilation.EqualityComparerOfTType();
-        var typeExpression = equalityComparerType == null
-            ? factory.GenericName(nameof(EqualityComparer<>), type)
-            : generatorInternal.Type(equalityComparerType.Construct(type), typeContext: false);
+        public SyntaxNode GetDefaultEqualityComparer(
+            SyntaxGeneratorInternal generatorInternal,
+            Compilation compilation,
+            ITypeSymbol type)
+        {
+            var equalityComparerType = compilation.EqualityComparerOfTType();
+            var typeExpression = equalityComparerType == null
+                ? factory.GenericName(nameof(EqualityComparer<>), type)
+                : generatorInternal.Type(equalityComparerType.Construct(type), typeContext: false);
 
-        return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
+            return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
+        }
+
+        public ImmutableArray<SyntaxNode> CreateAssignmentStatements(
+            SyntaxGeneratorInternal generatorInternal,
+            SemanticModel semanticModel,
+            ImmutableArray<IParameterSymbol> parameters,
+            IDictionary<string, ISymbol>? parameterToExistingFieldMap,
+            IDictionary<string, string>? parameterToNewFieldMap,
+            bool addNullChecks,
+            bool preferThrowExpression)
+        {
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
+            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
+
+            foreach (var parameter in parameters)
+            {
+                var refKind = parameter.RefKind;
+                var parameterType = parameter.Type;
+                var parameterName = parameter.Name;
+
+                if (refKind == RefKind.Out)
+                {
+                    // If it's an out param, then don't create a field for it.  Instead, assign
+                    // the default value for that type (i.e. "default(...)") to it.
+                    var assignExpression = factory.AssignmentStatement(
+                        factory.IdentifierName(parameterName),
+                        factory.DefaultExpression(parameterType));
+                    var statement = factory.ExpressionStatement(assignExpression);
+                    assignStatements.Add(statement);
+                }
+                else
+                {
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
+                    if (TryGetValue(parameterToExistingFieldMap, parameterName, out var fieldName) ||
+                        TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
+                    {
+                        var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
+                                                 .WithAdditionalAnnotations(Simplifier.Annotation);
+
+                        factory.AddAssignmentStatements(
+                            generatorInternal,
+                            semanticModel, parameter, fieldAccess,
+                            addNullChecks, preferThrowExpression,
+                            nullCheckStatements, assignStatements);
+                    }
+                }
+            }
+
+            return [.. nullCheckStatements, .. assignStatements];
+        }
+
+        public void AddAssignmentStatements(
+             SyntaxGeneratorInternal generatorInternal,
+             SemanticModel semanticModel,
+             IParameterSymbol parameter,
+             SyntaxNode fieldAccess,
+             bool addNullChecks,
+             bool preferThrowExpression,
+             ArrayBuilder<SyntaxNode> nullCheckStatements,
+             ArrayBuilder<SyntaxNode> assignStatements)
+        {
+            // Don't want to add a null check for something of the form `int?`.  The type was
+            // already declared as nullable to indicate that null is ok.  Adding a null check
+            // just disallows something that should be allowed.
+            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
+
+            if (shouldAddNullCheck && preferThrowExpression && generatorInternal.SupportsThrowExpression())
+            {
+                // Generate: this.x = x ?? throw ...
+                assignStatements.Add(CreateAssignWithNullCheckStatement(
+                    factory, semanticModel.Compilation, parameter, fieldAccess));
+            }
+            else
+            {
+                if (shouldAddNullCheck)
+                {
+                    // generate: if (x == null) throw ...
+                    nullCheckStatements.Add(
+                        factory.CreateNullCheckAndThrowStatement(generatorInternal, semanticModel, parameter));
+                }
+
+                // generate: this.x = x;
+                assignStatements.Add(
+                    factory.ExpressionStatement(
+                        factory.AssignmentStatement(
+                            fieldAccess,
+                            factory.IdentifierName(parameter.Name))));
+            }
+        }
+
+        public SyntaxNode CreateAssignWithNullCheckStatement(
+    Compilation compilation, IParameterSymbol parameter, SyntaxNode fieldAccess)
+        {
+            return factory.ExpressionStatement(factory.AssignmentStatement(
+                fieldAccess,
+                factory.CoalesceExpression(
+                    factory.IdentifierName(parameter.Name),
+                    factory.CreateThrowArgumentNullExpression(compilation, parameter))));
+        }
+
+        public SyntaxNode CreateThrowArgumentNullExpression(Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowExpression(CreateNewArgumentNullException(factory, compilation, parameter));
+
+        public SyntaxNode CreateNullCheckAndThrowStatement(
+            SyntaxGeneratorInternal generatorInternal,
+            SemanticModel semanticModel,
+            IParameterSymbol parameter)
+        {
+            var condition = factory.CreateNullCheckExpression(generatorInternal, semanticModel, parameter.Name);
+            var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
+
+            // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
+            return factory.IfStatement(condition, [throwStatement]);
+        }
+        public SyntaxNode CreateNullCheckExpression(
+    SyntaxGeneratorInternal generatorInternal, SemanticModel semanticModel, string identifierName)
+        {
+            var identifier = factory.IdentifierName(identifierName);
+            var nullExpr = factory.NullLiteralExpression();
+            var condition = generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
+                ? generatorInternal.IsPatternExpression(identifier, generatorInternal.ConstantPattern(nullExpr))
+                : factory.ReferenceEqualsExpression(identifier, nullExpr);
+            return condition;
+        }
+
+        public SyntaxNode CreateThrowArgumentNullExceptionStatement(Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowStatement(CreateNewArgumentNullException(factory, compilation, parameter));
     }
 
     private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
@@ -85,179 +215,183 @@ internal static partial class SyntaxGeneratorExtensions
             _ => compilation.GetSpecialType(SpecialType.System_Object),
         };
 
-    public static SyntaxNode IsPatternExpression(this SyntaxGeneratorInternal generator, SyntaxNode expression, SyntaxNode pattern)
+    extension(SyntaxGeneratorInternal generator)
+    {
+        public SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern)
         => generator.IsPatternExpression(expression, isToken: default, pattern);
-
-    /// <summary>
-    /// Generates a call to a method *through* an existing field or property symbol.
-    /// </summary>
-    public static SyntaxNode GenerateDelegateThroughMemberStatement(
-        this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
-    {
-        var through = generator.MemberAccessExpression(
-            CreateDelegateThroughExpression(generator, method, throughMember),
-            method.IsGenericMethod
-                ? generator.GenericName(method.Name, method.TypeArguments)
-                : generator.IdentifierName(method.Name));
-
-        var invocationExpression = generator.InvocationExpression(through, generator.CreateArguments(method.Parameters));
-        return method.ReturnsVoid
-            ? generator.ExpressionStatement(invocationExpression)
-            : generator.ReturnStatement(invocationExpression);
     }
 
-    public static SyntaxNode CreateDelegateThroughExpression(
-        this SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
+    extension(SyntaxGenerator generator)
     {
-        var name = generator.IdentifierName(throughMember.Name);
-        var through = throughMember.IsStatic
-            ? GenerateContainerName(generator, throughMember)
-            // If we're delegating through a primary constructor parameter, we cannot qualify the name at all.
-            : throughMember is IParameterSymbol
-                ? null
-                : generator.ThisExpression();
-
-        through = through is null ? name : generator.MemberAccessExpression(through, name);
-
-        var throughMemberType = throughMember.GetMemberType();
-        if (throughMemberType != null &&
-            member.ContainingType is { TypeKind: TypeKind.Interface } interfaceBeingImplemented)
+        /// <summary>
+        /// Generates a call to a method *through* an existing field or property symbol.
+        /// </summary>
+        public SyntaxNode GenerateDelegateThroughMemberStatement(
+    IMethodSymbol method, ISymbol throughMember)
         {
-            // In the case of 'implement interface through field / property', we need to know what
-            // interface we are implementing so that we can insert casts to this interface on every
-            // usage of the field in the generated code. Without these casts we would end up generating
-            // code that fails compilation in certain situations.
-            // 
-            // For example consider the following code.
-            //      class C : IReadOnlyList<int> { int[] field; }
-            // When applying the 'implement interface through field' code fix in the above example,
-            // we need to generate the following code to implement the Count property on IReadOnlyList<int>
-            //      class C : IReadOnlyList<int> { int[] field; int Count { get { ((IReadOnlyList<int>)field).Count; } ...}
-            // as opposed to the following code which will fail to compile (because the array field
-            // doesn't have a property named .Count) -
-            //      class C : IReadOnlyList<int> { int[] field; int Count { get { field.Count; } ...}
-            //
-            // The 'InterfaceTypes' property on the state object always contains only one item
-            // in the case of C# i.e. it will contain exactly the interface we are trying to implement.
-            // This is also the case most of the time in the case of VB, except in certain error conditions
-            // (recursive / circular cases) where the span of the squiggle for the corresponding 
-            // diagnostic (BC30149) changes and 'InterfaceTypes' ends up including all interfaces
-            // in the Implements clause. For the purposes of inserting the above cast, we ignore the
-            // uncommon case and optimize for the common one - in other words, we only apply the cast
-            // in cases where we can unambiguously figure out which interface we are trying to implement.
-            if (!throughMemberType.Equals(interfaceBeingImplemented))
+            var through = generator.MemberAccessExpression(
+                CreateDelegateThroughExpression(generator, method, throughMember),
+                method.IsGenericMethod
+                    ? generator.GenericName(method.Name, method.TypeArguments)
+                    : generator.IdentifierName(method.Name));
+
+            var invocationExpression = generator.InvocationExpression(through, generator.CreateArguments(method.Parameters));
+            return method.ReturnsVoid
+                ? generator.ExpressionStatement(invocationExpression)
+                : generator.ReturnStatement(invocationExpression);
+        }
+
+        public SyntaxNode CreateDelegateThroughExpression(
+    ISymbol member, ISymbol throughMember)
+        {
+            var name = generator.IdentifierName(throughMember.Name);
+            var through = throughMember.IsStatic
+                ? GenerateContainerName(generator, throughMember)
+                // If we're delegating through a primary constructor parameter, we cannot qualify the name at all.
+                : throughMember is IParameterSymbol
+                    ? null
+                    : generator.ThisExpression();
+
+            through = through is null ? name : generator.MemberAccessExpression(through, name);
+
+            var throughMemberType = throughMember.GetMemberType();
+            if (throughMemberType != null &&
+                member.ContainingType is { TypeKind: TypeKind.Interface } interfaceBeingImplemented)
             {
-                through = generator.CastExpression(interfaceBeingImplemented,
-                    through.WithAdditionalAnnotations(Simplifier.Annotation));
-            }
-            else if (throughMember is IPropertySymbol { IsStatic: false, ExplicitInterfaceImplementations: [var explicitlyImplementedProperty, ..] })
-            {
-                // If we are implementing through an explicitly implemented property, we need to cast 'this' to
-                // the explicitly implemented interface type before calling the member, as in:
-                //       ((IA)this).Prop.Member();
+                // In the case of 'implement interface through field / property', we need to know what
+                // interface we are implementing so that we can insert casts to this interface on every
+                // usage of the field in the generated code. Without these casts we would end up generating
+                // code that fails compilation in certain situations.
+                // 
+                // For example consider the following code.
+                //      class C : IReadOnlyList<int> { int[] field; }
+                // When applying the 'implement interface through field' code fix in the above example,
+                // we need to generate the following code to implement the Count property on IReadOnlyList<int>
+                //      class C : IReadOnlyList<int> { int[] field; int Count { get { ((IReadOnlyList<int>)field).Count; } ...}
+                // as opposed to the following code which will fail to compile (because the array field
+                // doesn't have a property named .Count) -
+                //      class C : IReadOnlyList<int> { int[] field; int Count { get { field.Count; } ...}
                 //
-                var explicitImplementationCast = generator.CastExpression(
-                    explicitlyImplementedProperty.ContainingType,
-                    generator.ThisExpression());
+                // The 'InterfaceTypes' property on the state object always contains only one item
+                // in the case of C# i.e. it will contain exactly the interface we are trying to implement.
+                // This is also the case most of the time in the case of VB, except in certain error conditions
+                // (recursive / circular cases) where the span of the squiggle for the corresponding 
+                // diagnostic (BC30149) changes and 'InterfaceTypes' ends up including all interfaces
+                // in the Implements clause. For the purposes of inserting the above cast, we ignore the
+                // uncommon case and optimize for the common one - in other words, we only apply the cast
+                // in cases where we can unambiguously figure out which interface we are trying to implement.
+                if (!throughMemberType.Equals(interfaceBeingImplemented))
+                {
+                    through = generator.CastExpression(interfaceBeingImplemented,
+                        through.WithAdditionalAnnotations(Simplifier.Annotation));
+                }
+                else if (throughMember is IPropertySymbol { IsStatic: false, ExplicitInterfaceImplementations: [var explicitlyImplementedProperty, ..] })
+                {
+                    // If we are implementing through an explicitly implemented property, we need to cast 'this' to
+                    // the explicitly implemented interface type before calling the member, as in:
+                    //       ((IA)this).Prop.Member();
+                    //
+                    var explicitImplementationCast = generator.CastExpression(
+                        explicitlyImplementedProperty.ContainingType,
+                        generator.ThisExpression());
 
-                through = generator.MemberAccessExpression(explicitImplementationCast,
-                    generator.IdentifierName(explicitlyImplementedProperty.Name));
+                    through = generator.MemberAccessExpression(explicitImplementationCast,
+                        generator.IdentifierName(explicitlyImplementedProperty.Name));
 
-                through = through.WithAdditionalAnnotations(Simplifier.Annotation);
+                    through = through.WithAdditionalAnnotations(Simplifier.Annotation);
+                }
             }
-        }
 
-        return through.WithAdditionalAnnotations(Simplifier.Annotation);
+            return through.WithAdditionalAnnotations(Simplifier.Annotation);
 
-        // local functions
+            // local functions
 
-        static SyntaxNode GenerateContainerName(SyntaxGenerator factory, ISymbol throughMember)
-        {
-            var classOrStructType = throughMember.ContainingType;
-            return classOrStructType.IsGenericType
-                ? factory.GenericName(classOrStructType.Name, classOrStructType.TypeArguments)
-                : factory.IdentifierName(classOrStructType.Name);
-        }
-    }
-
-    public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
-        this SyntaxGenerator generator,
-        Compilation compilation,
-        IPropertySymbol property,
-        IPropertySymbol? conflictingProperty,
-        ISymbol? throughMember,
-        bool preferAutoProperties)
-    {
-        if (throughMember != null)
-        {
-            var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
-            var expression = property.IsIndexer
-                ? throughExpression
-                : generator.MemberAccessExpression(
-                    throughExpression, generator.IdentifierName(property.Name));
-
-            if (property.Parameters.Length > 0)
+            static SyntaxNode GenerateContainerName(SyntaxGenerator factory, ISymbol throughMember)
             {
-                var arguments = generator.CreateArguments(property.Parameters);
-                expression = generator.ElementAccessExpression(expression, arguments);
+                var classOrStructType = throughMember.ContainingType;
+                return classOrStructType.IsGenericType
+                    ? factory.GenericName(classOrStructType.Name, classOrStructType.TypeArguments)
+                    : factory.IdentifierName(classOrStructType.Name);
             }
-
-            return [generator.ReturnStatement(expression)];
         }
 
-        if (preferAutoProperties)
-            return default;
-
-        // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
-        if (conflictingProperty is { GetMethod: not null, Parameters.Length: 0 } &&
-            property is { GetMethod: not null, Parameters.Length: 0 })
+        public ImmutableArray<SyntaxNode> GetGetAccessorStatements(
+            Compilation compilation,
+            IPropertySymbol property,
+            IPropertySymbol? conflictingProperty,
+            ISymbol? throughMember,
+            bool preferAutoProperties)
         {
-            if (compilation.ClassifyCommonConversion(conflictingProperty.Type, property.Type) is { Exists: true, IsImplicit: true })
-                return [generator.ReturnStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name))];
-        }
-
-        return generator.CreateThrowNotImplementedStatementBlock(compilation);
-    }
-
-    public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
-        this SyntaxGenerator generator,
-        Compilation compilation,
-        IPropertySymbol property,
-        IPropertySymbol? conflictingProperty,
-        ISymbol? throughMember,
-        bool preferAutoProperties)
-    {
-        if (throughMember != null)
-        {
-            var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
-            var expression = property.IsIndexer
-                ? throughExpression
-                : generator.MemberAccessExpression(
-                    throughExpression, generator.IdentifierName(property.Name));
-
-            if (property.Parameters.Length > 0)
+            if (throughMember != null)
             {
-                var arguments = generator.CreateArguments(property.Parameters);
-                expression = generator.ElementAccessExpression(expression, arguments);
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
+
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters);
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                return [generator.ReturnStatement(expression)];
             }
 
-            expression = generator.AssignmentStatement(expression, generator.IdentifierName("value"));
+            if (preferAutoProperties)
+                return default;
 
-            return [generator.ExpressionStatement(expression)];
+            // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
+            if (conflictingProperty is { GetMethod: not null, Parameters.Length: 0 } &&
+                property is { GetMethod: not null, Parameters.Length: 0 })
+            {
+                if (compilation.ClassifyCommonConversion(conflictingProperty.Type, property.Type) is { Exists: true, IsImplicit: true })
+                    return [generator.ReturnStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name))];
+            }
+
+            return generator.CreateThrowNotImplementedStatementBlock(compilation);
         }
 
-        if (preferAutoProperties)
-            return default;
-
-        // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
-        if (conflictingProperty is { SetMethod.Parameters.Length: 1 } &&
-            property is { SetMethod.Parameters: [var parameter] })
+        public ImmutableArray<SyntaxNode> GetSetAccessorStatements(
+            Compilation compilation,
+            IPropertySymbol property,
+            IPropertySymbol? conflictingProperty,
+            ISymbol? throughMember,
+            bool preferAutoProperties)
         {
-            if (compilation.ClassifyCommonConversion(property.Type, conflictingProperty.Type) is { Exists: true, IsImplicit: true })
-                return [generator.ExpressionStatement(generator.AssignmentStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name), generator.IdentifierName(parameter.Name)))];
-        }
+            if (throughMember != null)
+            {
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
 
-        return generator.CreateThrowNotImplementedStatementBlock(compilation);
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters);
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                expression = generator.AssignmentStatement(expression, generator.IdentifierName("value"));
+
+                return [generator.ExpressionStatement(expression)];
+            }
+
+            if (preferAutoProperties)
+                return default;
+
+            // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
+            if (conflictingProperty is { SetMethod.Parameters.Length: 1 } &&
+                property is { SetMethod.Parameters: [var parameter] })
+            {
+                if (compilation.ClassifyCommonConversion(property.Type, conflictingProperty.Type) is { Exists: true, IsImplicit: true })
+                    return [generator.ExpressionStatement(generator.AssignmentStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name), generator.IdentifierName(parameter.Name)))];
+            }
+
+            return generator.CreateThrowNotImplementedStatementBlock(compilation);
+        }
     }
 
     private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)
@@ -332,110 +466,6 @@ internal static partial class SyntaxGeneratorExtensions
         return result.ToImmutableAndClear();
     }
 
-    public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
-        this SyntaxGenerator factory,
-        SyntaxGeneratorInternal generatorInternal,
-        SemanticModel semanticModel,
-        ImmutableArray<IParameterSymbol> parameters,
-        IDictionary<string, ISymbol>? parameterToExistingFieldMap,
-        IDictionary<string, string>? parameterToNewFieldMap,
-        bool addNullChecks,
-        bool preferThrowExpression)
-    {
-        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
-        using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
-
-        foreach (var parameter in parameters)
-        {
-            var refKind = parameter.RefKind;
-            var parameterType = parameter.Type;
-            var parameterName = parameter.Name;
-
-            if (refKind == RefKind.Out)
-            {
-                // If it's an out param, then don't create a field for it.  Instead, assign
-                // the default value for that type (i.e. "default(...)") to it.
-                var assignExpression = factory.AssignmentStatement(
-                    factory.IdentifierName(parameterName),
-                    factory.DefaultExpression(parameterType));
-                var statement = factory.ExpressionStatement(assignExpression);
-                assignStatements.Add(statement);
-            }
-            else
-            {
-                // For non-out parameters, create a field and assign the parameter to it.
-                // TODO: I'm not sure that's what we really want for ref parameters.
-                if (TryGetValue(parameterToExistingFieldMap, parameterName, out var fieldName) ||
-                    TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
-                {
-                    var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
-                                             .WithAdditionalAnnotations(Simplifier.Annotation);
-
-                    factory.AddAssignmentStatements(
-                        generatorInternal,
-                        semanticModel, parameter, fieldAccess,
-                        addNullChecks, preferThrowExpression,
-                        nullCheckStatements, assignStatements);
-                }
-            }
-        }
-
-        return [.. nullCheckStatements, .. assignStatements];
-    }
-
-    public static void AddAssignmentStatements(
-         this SyntaxGenerator factory,
-         SyntaxGeneratorInternal generatorInternal,
-         SemanticModel semanticModel,
-         IParameterSymbol parameter,
-         SyntaxNode fieldAccess,
-         bool addNullChecks,
-         bool preferThrowExpression,
-         ArrayBuilder<SyntaxNode> nullCheckStatements,
-         ArrayBuilder<SyntaxNode> assignStatements)
-    {
-        // Don't want to add a null check for something of the form `int?`.  The type was
-        // already declared as nullable to indicate that null is ok.  Adding a null check
-        // just disallows something that should be allowed.
-        var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
-
-        if (shouldAddNullCheck && preferThrowExpression && generatorInternal.SupportsThrowExpression())
-        {
-            // Generate: this.x = x ?? throw ...
-            assignStatements.Add(CreateAssignWithNullCheckStatement(
-                factory, semanticModel.Compilation, parameter, fieldAccess));
-        }
-        else
-        {
-            if (shouldAddNullCheck)
-            {
-                // generate: if (x == null) throw ...
-                nullCheckStatements.Add(
-                    factory.CreateNullCheckAndThrowStatement(generatorInternal, semanticModel, parameter));
-            }
-
-            // generate: this.x = x;
-            assignStatements.Add(
-                factory.ExpressionStatement(
-                    factory.AssignmentStatement(
-                        fieldAccess,
-                        factory.IdentifierName(parameter.Name))));
-        }
-    }
-
-    public static SyntaxNode CreateAssignWithNullCheckStatement(
-        this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter, SyntaxNode fieldAccess)
-    {
-        return factory.ExpressionStatement(factory.AssignmentStatement(
-            fieldAccess,
-            factory.CoalesceExpression(
-                factory.IdentifierName(parameter.Name),
-                factory.CreateThrowArgumentNullExpression(compilation, parameter))));
-    }
-
-    public static SyntaxNode CreateThrowArgumentNullExpression(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
-        => factory.ThrowExpression(CreateNewArgumentNullException(factory, compilation, parameter));
-
     private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
     {
         var type = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
@@ -444,30 +474,4 @@ internal static partial class SyntaxGeneratorExtensions
             factory.NameOfExpression(
                 factory.IdentifierName(parameter.Name))).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
     }
-
-    public static SyntaxNode CreateNullCheckAndThrowStatement(
-        this SyntaxGenerator factory,
-        SyntaxGeneratorInternal generatorInternal,
-        SemanticModel semanticModel,
-        IParameterSymbol parameter)
-    {
-        var condition = factory.CreateNullCheckExpression(generatorInternal, semanticModel, parameter.Name);
-        var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
-
-        // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
-        return factory.IfStatement(condition, [throwStatement]);
-    }
-    public static SyntaxNode CreateNullCheckExpression(
-        this SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, SemanticModel semanticModel, string identifierName)
-    {
-        var identifier = factory.IdentifierName(identifierName);
-        var nullExpr = factory.NullLiteralExpression();
-        var condition = generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
-            ? generatorInternal.IsPatternExpression(identifier, generatorInternal.ConstantPattern(nullExpr))
-            : factory.ReferenceEqualsExpression(identifier, nullExpr);
-        return condition;
-    }
-
-    public static SyntaxNode CreateThrowArgumentNullExceptionStatement(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
-        => factory.ThrowStatement(CreateNewArgumentNullException(factory, compilation, parameter));
 }

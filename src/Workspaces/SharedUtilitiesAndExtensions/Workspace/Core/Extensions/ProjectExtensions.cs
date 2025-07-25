@@ -14,40 +14,70 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ProjectExtensions
 {
-    public static TLanguageService? GetLanguageService<TLanguageService>(this Project? project) where TLanguageService : class, ILanguageService
+    extension(Project? project)
+    {
+        public TLanguageService? GetLanguageService<TLanguageService>() where TLanguageService : class, ILanguageService
 #if CODE_STYLE
         => project?.GetExtendedLanguageServices().GetService<TLanguageService>();
+    }
+
+    extension(Project project)
+    {
 #else
         => project?.Services.GetService<TLanguageService>();
+    }
+
+    extension(Project project)
+    {
 #endif
 
-    public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Project project) where TLanguageService : class, ILanguageService
+        public TLanguageService GetRequiredLanguageService<TLanguageService>() where TLanguageService : class, ILanguageService
 #if CODE_STYLE
-        => project.GetExtendedLanguageServices().GetRequiredService<TLanguageService>();
+            => project.GetExtendedLanguageServices().GetRequiredService<TLanguageService>();
 #else
-        => project.Services.GetRequiredService<TLanguageService>();
+            => project.Services.GetRequiredService<TLanguageService>();
 #endif
 
 #pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
-    /// <summary>
-    /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
-    /// </summary>
-    public static HostLanguageServices GetExtendedLanguageServices(this Project project)
+        /// <summary>
+        /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
+        /// </summary>
+        public HostLanguageServices GetExtendedLanguageServices()
 #if !WORKSPACE
-        => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
+            => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
 #else
-        => project.Solution.Services.GetExtendedLanguageServices(project.Language);
+            => project.Solution.Services.GetExtendedLanguageServices(project.Language);
 #endif
 
 #pragma warning restore RS0030 // Do not used banned APIs
 
-    public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
-        => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic: null);
+        public string? TryGetAnalyzerConfigPathForProjectConfiguration()
+            => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic: null);
 
-    public static string? TryGetAnalyzerConfigPathForDiagnosticConfiguration(this Project project, Diagnostic diagnostic)
-    {
-        Debug.Assert(diagnostic != null);
-        return TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic);
+        public string? TryGetAnalyzerConfigPathForDiagnosticConfiguration(Diagnostic diagnostic)
+        {
+            Debug.Assert(diagnostic != null);
+            return TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic);
+        }
+
+        public AnalyzerConfigDocument? TryGetExistingAnalyzerConfigDocumentAtPath(string analyzerConfigPath)
+        {
+            Debug.Assert(analyzerConfigPath != null);
+            Debug.Assert(PathUtilities.IsAbsolute(analyzerConfigPath));
+
+            return project.AnalyzerConfigDocuments.FirstOrDefault(d => d.FilePath == analyzerConfigPath);
+        }
+
+        public async Task<Compilation> GetRequiredCompilationAsync(CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0, project.Name));
+            }
+
+            return compilation;
+        }
     }
 
     private static string? TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(Project project, Diagnostic? diagnostic)
@@ -96,24 +126,5 @@ internal static partial class ProjectExtensions
         var solutionOrProjectDirectoryPath = PathUtilities.GetDirectoryName(solutionOrProjectFilePath);
         // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
         return PathUtilities.CombineAbsoluteAndRelativePaths(solutionOrProjectDirectoryPath!, ".editorconfig");
-    }
-
-    public static AnalyzerConfigDocument? TryGetExistingAnalyzerConfigDocumentAtPath(this Project project, string analyzerConfigPath)
-    {
-        Debug.Assert(analyzerConfigPath != null);
-        Debug.Assert(PathUtilities.IsAbsolute(analyzerConfigPath));
-
-        return project.AnalyzerConfigDocuments.FirstOrDefault(d => d.FilePath == analyzerConfigPath);
-    }
-
-    public static async Task<Compilation> GetRequiredCompilationAsync(this Project project, CancellationToken cancellationToken)
-    {
-        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (compilation == null)
-        {
-            throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0, project.Name));
-        }
-
-        return compilation;
     }
 }

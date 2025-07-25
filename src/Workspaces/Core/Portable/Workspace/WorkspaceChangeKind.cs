@@ -127,6 +127,9 @@ public enum WorkspaceChangeKind
 
 internal static class WorkspaceChangeKindExtensions
 {
-    public static bool IsValid(this WorkspaceChangeKind kind)
+    extension(WorkspaceChangeKind kind)
+    {
+        public bool IsValid()
         => kind is >= WorkspaceChangeKind.SolutionChanged and <= WorkspaceChangeKind.AnalyzerConfigDocumentChanged;
+    }
 }

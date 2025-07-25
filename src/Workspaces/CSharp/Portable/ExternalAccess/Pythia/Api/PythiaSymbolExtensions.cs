@@ -8,33 +8,47 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 
 internal static class PythiaSymbolExtensions
 {
-    public static string ToNameDisplayString(this ISymbol symbol)
+    extension(ISymbol symbol)
+    {
+        public string ToNameDisplayString()
         => Shared.Extensions.ISymbolExtensions.ToNameDisplayString(symbol);
 
-    public static ITypeSymbol? GetMemberType(this ISymbol symbol)
-        => Shared.Extensions.ISymbolExtensions.GetMemberType(symbol);
+        public ITypeSymbol? GetMemberType()
+            => Shared.Extensions.ISymbolExtensions.GetMemberType(symbol);
 
-    public static ITypeSymbol? GetSymbolType(this ISymbol? symbol)
+        public bool IsAccessibleWithin(ISymbol within, ITypeSymbol? throughType = null)
+            => Shared.Extensions.ISymbolExtensions.IsAccessibleWithin(symbol, within, throughType);
+
+        public bool IsExtensionMethod()
+            => Shared.Extensions.ISymbolExtensions.IsExtensionMethod(symbol);
+    }
+
+    extension(ISymbol? symbol)
+    {
+        public ITypeSymbol? GetSymbolType()
         => Shared.Extensions.ISymbolExtensions.GetSymbolType(symbol);
 
-    public static ISymbol? GetAnySymbol(this SymbolInfo info)
+        public ISymbol? GetOriginalUnreducedDefinition()
+            => Shared.Extensions.ISymbolExtensions.GetOriginalUnreducedDefinition(symbol);
+
+        public bool IsAwaitableNonDynamic(SemanticModel semanticModel, int position)
+            => Shared.Extensions.ISymbolExtensions.IsAwaitableNonDynamic(symbol, semanticModel, position);
+    }
+
+    extension(SymbolInfo info)
+    {
+        public ISymbol? GetAnySymbol()
         => Shared.Extensions.SymbolInfoExtensions.GetAnySymbol(info);
+    }
 
-    public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
-        => Shared.Extensions.ISymbolExtensions.FilterToVisibleAndBrowsableSymbols(symbols, hideAdvancedMembers, compilation, inclusionFilter: static s => true);
+    extension<T>(ImmutableArray<T> symbols) where T : ISymbol
+    {
+        public ImmutableArray<T> FilterToVisibleAndBrowsableSymbols(bool hideAdvancedMembers, Compilation compilation) => Shared.Extensions.ISymbolExtensions.FilterToVisibleAndBrowsableSymbols(symbols, hideAdvancedMembers, compilation, inclusionFilter: static s => true);
+    }
 
-    public static bool IsAccessibleWithin(this ISymbol symbol, ISymbol within, ITypeSymbol? throughType = null)
-        => Shared.Extensions.ISymbolExtensions.IsAccessibleWithin(symbol, within, throughType);
-
-    public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)
+    extension(IMethodSymbol method1)
+    {
+        public bool? IsMoreSpecificThan(IMethodSymbol method2)
         => Shared.Extensions.IMethodSymbolExtensions.IsMoreSpecificThan(method1, method2);
-
-    public static ISymbol? GetOriginalUnreducedDefinition(this ISymbol? symbol)
-        => Shared.Extensions.ISymbolExtensions.GetOriginalUnreducedDefinition(symbol);
-
-    public static bool IsAwaitableNonDynamic(this ISymbol? symbol, SemanticModel semanticModel, int position)
-        => Shared.Extensions.ISymbolExtensions.IsAwaitableNonDynamic(symbol, semanticModel, position);
-
-    public static bool IsExtensionMethod(this ISymbol symbol)
-        => Shared.Extensions.ISymbolExtensions.IsExtensionMethod(symbol);
+    }
 }

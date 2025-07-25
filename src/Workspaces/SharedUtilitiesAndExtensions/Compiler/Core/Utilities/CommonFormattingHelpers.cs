@@ -42,119 +42,128 @@ internal static class CommonFormattingHelpers
         return 0;
     };
 
-    public static IEnumerable<(SyntaxToken, SyntaxToken)> ConvertToTokenPairs(this SyntaxNode root, IReadOnlyList<TextSpan> spans)
+    extension(SyntaxNode root)
     {
-        Contract.ThrowIfNull(root);
-        Contract.ThrowIfFalse(spans.Count > 0);
-
-        if (spans.Count == 1)
+        public IEnumerable<(SyntaxToken, SyntaxToken)> ConvertToTokenPairs(IReadOnlyList<TextSpan> spans)
         {
-            // special case, if there is only one span, return right away
-            yield return root.ConvertToTokenPair(spans[0]);
-            yield break;
-        }
+            Contract.ThrowIfNull(root);
+            Contract.ThrowIfFalse(spans.Count > 0);
 
-        var previousOne = root.ConvertToTokenPair(spans[0]);
-
-        // iterate through each spans and make sure each one doesn't overlap each other
-        for (var i = 1; i < spans.Count; i++)
-        {
-            var currentOne = root.ConvertToTokenPair(spans[i]);
-            if (currentOne.Item1.SpanStart <= previousOne.Item2.Span.End)
+            if (spans.Count == 1)
             {
-                // oops, looks like two spans are overlapping each other. merge them
-                previousOne = ValueTuple.Create(previousOne.Item1, previousOne.Item2.Span.End < currentOne.Item2.Span.End ? currentOne.Item2 : previousOne.Item2);
-                continue;
+                // special case, if there is only one span, return right away
+                yield return root.ConvertToTokenPair(spans[0]);
+                yield break;
             }
 
-            // okay, looks like things are in good shape
+            var previousOne = root.ConvertToTokenPair(spans[0]);
+
+            // iterate through each spans and make sure each one doesn't overlap each other
+            for (var i = 1; i < spans.Count; i++)
+            {
+                var currentOne = root.ConvertToTokenPair(spans[i]);
+                if (currentOne.Item1.SpanStart <= previousOne.Item2.Span.End)
+                {
+                    // oops, looks like two spans are overlapping each other. merge them
+                    previousOne = ValueTuple.Create(previousOne.Item1, previousOne.Item2.Span.End < currentOne.Item2.Span.End ? currentOne.Item2 : previousOne.Item2);
+                    continue;
+                }
+
+                // okay, looks like things are in good shape
+                yield return previousOne;
+
+                // move to next one
+                previousOne = currentOne;
+            }
+
+            // give out the last one
             yield return previousOne;
-
-            // move to next one
-            previousOne = currentOne;
         }
 
-        // give out the last one
-        yield return previousOne;
+        public ValueTuple<SyntaxToken, SyntaxToken> ConvertToTokenPair(TextSpan textSpan)
+        {
+            Contract.ThrowIfNull(root);
+            Contract.ThrowIfTrue(textSpan.IsEmpty);
+
+            var startToken = root.FindToken(textSpan.Start);
+
+            // empty token, get previous non-zero length token
+            if (startToken.IsMissing)
+            {
+                // if there is no previous token, startToken will be set to SyntaxKind.None
+                startToken = startToken.GetPreviousToken();
+            }
+
+            // span is on leading trivia
+            if (textSpan.Start < startToken.SpanStart)
+            {
+                // if there is no previous token, startToken will be set to SyntaxKind.None
+                startToken = startToken.GetPreviousToken();
+            }
+
+            // adjust position where we try to search end token
+            var endToken = (root.FullSpan.End <= textSpan.End) ?
+                root.GetLastToken(includeZeroWidth: true) : root.FindToken(textSpan.End);
+
+            // empty token, get next token
+            if (endToken.IsMissing)
+            {
+                endToken = endToken.GetNextToken();
+            }
+
+            // span is on trailing trivia
+            if (endToken.Span.End < textSpan.End)
+            {
+                endToken = endToken.GetNextToken();
+            }
+
+            // make sure tokens are not SyntaxKind.None
+            startToken = (startToken.RawKind != 0) ? startToken : root.GetFirstToken(includeZeroWidth: true);
+            endToken = (endToken.RawKind != 0) ? endToken : root.GetLastToken(includeZeroWidth: true);
+
+            // token is in right order
+            Contract.ThrowIfFalse(startToken.Equals(endToken) || startToken.Span.End <= endToken.SpanStart);
+            return ValueTuple.Create(startToken, endToken);
+        }
+
+        public bool IsInvalidTokenRange(SyntaxToken startToken, SyntaxToken endToken)
+        {
+            // given token must be token exist excluding EndOfFile token.
+            if (startToken.RawKind == 0 || endToken.RawKind == 0)
+            {
+                return true;
+            }
+
+            if (startToken.Equals(endToken))
+            {
+                return false;
+            }
+
+            // regular case. 
+            // start token can't be end of file token and start token must be before end token if it's not the same token.
+            return root.FullSpan.End == startToken.SpanStart || startToken.FullSpan.End > endToken.FullSpan.Start;
+        }
     }
 
-    public static ValueTuple<SyntaxToken, SyntaxToken> ConvertToTokenPair(this SyntaxNode root, TextSpan textSpan)
+    extension(SyntaxTree tree)
     {
-        Contract.ThrowIfNull(root);
-        Contract.ThrowIfTrue(textSpan.IsEmpty);
-
-        var startToken = root.FindToken(textSpan.Start);
-
-        // empty token, get previous non-zero length token
-        if (startToken.IsMissing)
+        public int GetTokenColumn(SyntaxToken token, int tabSize)
         {
-            // if there is no previous token, startToken will be set to SyntaxKind.None
-            startToken = startToken.GetPreviousToken();
+            Contract.ThrowIfNull(tree);
+            Contract.ThrowIfTrue(token.RawKind == 0);
+
+            var startPosition = token.SpanStart;
+            var line = tree.GetText().Lines.GetLineFromPosition(startPosition);
+
+            return line.GetColumnFromLineOffset(startPosition - line.Start, tabSize);
         }
-
-        // span is on leading trivia
-        if (textSpan.Start < startToken.SpanStart)
-        {
-            // if there is no previous token, startToken will be set to SyntaxKind.None
-            startToken = startToken.GetPreviousToken();
-        }
-
-        // adjust position where we try to search end token
-        var endToken = (root.FullSpan.End <= textSpan.End) ?
-            root.GetLastToken(includeZeroWidth: true) : root.FindToken(textSpan.End);
-
-        // empty token, get next token
-        if (endToken.IsMissing)
-        {
-            endToken = endToken.GetNextToken();
-        }
-
-        // span is on trailing trivia
-        if (endToken.Span.End < textSpan.End)
-        {
-            endToken = endToken.GetNextToken();
-        }
-
-        // make sure tokens are not SyntaxKind.None
-        startToken = (startToken.RawKind != 0) ? startToken : root.GetFirstToken(includeZeroWidth: true);
-        endToken = (endToken.RawKind != 0) ? endToken : root.GetLastToken(includeZeroWidth: true);
-
-        // token is in right order
-        Contract.ThrowIfFalse(startToken.Equals(endToken) || startToken.Span.End <= endToken.SpanStart);
-        return ValueTuple.Create(startToken, endToken);
     }
 
-    public static bool IsInvalidTokenRange(this SyntaxNode root, SyntaxToken startToken, SyntaxToken endToken)
+    extension(SourceText text)
     {
-        // given token must be token exist excluding EndOfFile token.
-        if (startToken.RawKind == 0 || endToken.RawKind == 0)
-        {
-            return true;
-        }
-
-        if (startToken.Equals(endToken))
-        {
-            return false;
-        }
-
-        // regular case. 
-        // start token can't be end of file token and start token must be before end token if it's not the same token.
-        return root.FullSpan.End == startToken.SpanStart || startToken.FullSpan.End > endToken.FullSpan.Start;
-    }
-
-    public static int GetTokenColumn(this SyntaxTree tree, SyntaxToken token, int tabSize)
-    {
-        Contract.ThrowIfNull(tree);
-        Contract.ThrowIfTrue(token.RawKind == 0);
-
-        var startPosition = token.SpanStart;
-        var line = tree.GetText().Lines.GetLineFromPosition(startPosition);
-
-        return line.GetColumnFromLineOffset(startPosition - line.Start, tabSize);
-    }
-
-    public static string GetText(this SourceText text, SyntaxToken token1, SyntaxToken token2)
+        public string GetText(SyntaxToken token1, SyntaxToken token2)
         => (token1.RawKind == 0) ? text.ToString(TextSpan.FromBounds(0, token2.SpanStart)) : text.ToString(TextSpan.FromBounds(token1.Span.End, token2.SpanStart));
+    }
 
     public static string GetTextBetween(SyntaxToken token1, SyntaxToken token2)
     {

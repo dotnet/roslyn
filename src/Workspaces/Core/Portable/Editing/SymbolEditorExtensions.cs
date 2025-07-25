@@ -13,89 +13,89 @@ namespace Microsoft.CodeAnalysis.Editing;
 
 public static class SymbolEditorExtensions
 {
-    /// <summary>
-    /// Gets the reference to the declaration of the base or interface type as part of the symbol's declaration. 
-    /// </summary>
-    public static async Task<SyntaxNode> GetBaseOrInterfaceDeclarationReferenceAsync(
-        this SymbolEditor editor,
-        ISymbol symbol,
-        ITypeSymbol baseOrInterfaceType,
-        CancellationToken cancellationToken = default)
+    extension(SymbolEditor editor)
     {
-        if (baseOrInterfaceType == null)
+        /// <summary>
+        /// Gets the reference to the declaration of the base or interface type as part of the symbol's declaration. 
+        /// </summary>
+        public async Task<SyntaxNode> GetBaseOrInterfaceDeclarationReferenceAsync(
+            ISymbol symbol,
+            ITypeSymbol baseOrInterfaceType,
+            CancellationToken cancellationToken = default)
         {
-            throw new ArgumentNullException(nameof(baseOrInterfaceType));
-        }
-
-        if (baseOrInterfaceType.TypeKind != TypeKind.Error)
-        {
-            baseOrInterfaceType = (ITypeSymbol)(await editor.GetCurrentSymbolAsync(baseOrInterfaceType, cancellationToken).ConfigureAwait(false));
-        }
-
-        // look for the base or interface declaration in all declarations of the symbol
-        var currentDecls = await editor.GetCurrentDeclarationsAsync(symbol, cancellationToken).ConfigureAwait(false);
-
-        foreach (var decl in currentDecls)
-        {
-            var doc = editor.OriginalSolution.GetDocument(decl.SyntaxTree);
-            var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var gen = SyntaxGenerator.GetGenerator(doc);
-
-            var typeRef = gen.GetBaseAndInterfaceTypes(decl).FirstOrDefault(r => model.GetTypeInfo(r, cancellationToken).Type.Equals(baseOrInterfaceType));
-            if (typeRef != null)
+            if (baseOrInterfaceType == null)
             {
-                return typeRef;
+                throw new ArgumentNullException(nameof(baseOrInterfaceType));
             }
+
+            if (baseOrInterfaceType.TypeKind != TypeKind.Error)
+            {
+                baseOrInterfaceType = (ITypeSymbol)(await editor.GetCurrentSymbolAsync(baseOrInterfaceType, cancellationToken).ConfigureAwait(false));
+            }
+
+            // look for the base or interface declaration in all declarations of the symbol
+            var currentDecls = await editor.GetCurrentDeclarationsAsync(symbol, cancellationToken).ConfigureAwait(false);
+
+            foreach (var decl in currentDecls)
+            {
+                var doc = editor.OriginalSolution.GetDocument(decl.SyntaxTree);
+                var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var gen = SyntaxGenerator.GetGenerator(doc);
+
+                var typeRef = gen.GetBaseAndInterfaceTypes(decl).FirstOrDefault(r => model.GetTypeInfo(r, cancellationToken).Type.Equals(baseOrInterfaceType));
+                if (typeRef != null)
+                {
+                    return typeRef;
+                }
+            }
+
+            return null;
         }
 
-        return null;
-    }
-
-    /// <summary>
-    /// Changes the base type of the symbol.
-    /// </summary>
-    public static async Task<ISymbol> SetBaseTypeAsync(
-        this SymbolEditor editor,
-        INamedTypeSymbol symbol,
-        Func<SyntaxGenerator, SyntaxNode> getNewBaseType,
-        CancellationToken cancellationToken = default)
-    {
-        var baseType = symbol.BaseType;
-
-        if (baseType != null)
+        /// <summary>
+        /// Changes the base type of the symbol.
+        /// </summary>
+        public async Task<ISymbol> SetBaseTypeAsync(
+            INamedTypeSymbol symbol,
+            Func<SyntaxGenerator, SyntaxNode> getNewBaseType,
+            CancellationToken cancellationToken = default)
         {
-            // find existing declaration of the base type
-            var typeRef = await editor.GetBaseOrInterfaceDeclarationReferenceAsync(symbol, baseType, cancellationToken).ConfigureAwait(false);
-            if (typeRef != null)
+            var baseType = symbol.BaseType;
+
+            if (baseType != null)
             {
-                return await editor.EditOneDeclarationAsync(
-                    symbol,
-                    typeRef.GetLocation(),
-                    (e, d) => e.ReplaceNode(typeRef, getNewBaseType(e.Generator)),
-                    cancellationToken).ConfigureAwait(false);
+                // find existing declaration of the base type
+                var typeRef = await editor.GetBaseOrInterfaceDeclarationReferenceAsync(symbol, baseType, cancellationToken).ConfigureAwait(false);
+                if (typeRef != null)
+                {
+                    return await editor.EditOneDeclarationAsync(
+                        symbol,
+                        typeRef.GetLocation(),
+                        (e, d) => e.ReplaceNode(typeRef, getNewBaseType(e.Generator)),
+                        cancellationToken).ConfigureAwait(false);
+                }
             }
+
+            // couldn't find the existing reference to change, so add it to one of the declarations
+            return await editor.EditOneDeclarationAsync(symbol, (e, decl) =>
+            {
+                var newBaseType = getNewBaseType(e.Generator);
+                if (newBaseType != null)
+                {
+                    e.ReplaceNode(decl, (d, g) => g.AddBaseType(d, newBaseType));
+                }
+            }, cancellationToken).ConfigureAwait(false);
         }
 
-        // couldn't find the existing reference to change, so add it to one of the declarations
-        return await editor.EditOneDeclarationAsync(symbol, (e, decl) =>
+        /// <summary>
+        /// Changes the base type of the symbol.
+        /// </summary>
+        public Task<ISymbol> SetBaseTypeAsync(
+            INamedTypeSymbol symbol,
+            ITypeSymbol newBaseType,
+            CancellationToken cancellationToken = default)
         {
-            var newBaseType = getNewBaseType(e.Generator);
-            if (newBaseType != null)
-            {
-                e.ReplaceNode(decl, (d, g) => g.AddBaseType(d, newBaseType));
-            }
-        }, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Changes the base type of the symbol.
-    /// </summary>
-    public static Task<ISymbol> SetBaseTypeAsync(
-        this SymbolEditor editor,
-        INamedTypeSymbol symbol,
-        ITypeSymbol newBaseType,
-        CancellationToken cancellationToken = default)
-    {
-        return editor.SetBaseTypeAsync(symbol, g => newBaseType != null ? g.TypeExpression(newBaseType) : null, cancellationToken);
+            return editor.SetBaseTypeAsync(symbol, g => newBaseType != null ? g.TypeExpression(newBaseType) : null, cancellationToken);
+        }
     }
 }

@@ -13,22 +13,25 @@ internal readonly record struct ProjectDiagnostics(ProjectId ProjectId, Immutabl
 
 internal static partial class Extensions
 {
-    public static ImmutableArray<DiagnosticData> ToDiagnosticData(this ImmutableArray<ProjectDiagnostics> diagnostics, Solution solution)
+    extension(ImmutableArray<ProjectDiagnostics> diagnostics)
     {
-        using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
-
-        foreach (var (projectId, projectDiagnostics) in diagnostics)
+        public ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution)
         {
-            var project = solution.GetRequiredProject(projectId);
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
 
-            foreach (var diagnostic in projectDiagnostics)
+            foreach (var (projectId, projectDiagnostics) in diagnostics)
             {
-                var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                var data = document != null ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
-                result.Add(data);
-            }
-        }
+                var project = solution.GetRequiredProject(projectId);
 
-        return result.ToImmutableAndClear();
+                foreach (var diagnostic in projectDiagnostics)
+                {
+                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
+                    var data = document != null ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
+                    result.Add(data);
+                }
+            }
+
+            return result.ToImmutableAndClear();
+        }
     }
 }

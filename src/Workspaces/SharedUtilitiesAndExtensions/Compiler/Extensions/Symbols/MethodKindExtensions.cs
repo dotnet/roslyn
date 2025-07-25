@@ -8,6 +8,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class MethodKindExtensions
 {
-    public static bool IsPropertyAccessor(this MethodKind kind)
+    extension(MethodKind kind)
+    {
+        public bool IsPropertyAccessor()
         => kind is MethodKind.PropertyGet or MethodKind.PropertySet;
+    }
 }

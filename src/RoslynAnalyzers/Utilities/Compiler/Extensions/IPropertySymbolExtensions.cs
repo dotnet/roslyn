@@ -12,38 +12,41 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class IPropertySymbolExtensions
     {
-        /// <summary>
-        /// Check if a property is an auto-property.
-        /// TODO: Remove this helper when https://github.com/dotnet/roslyn/issues/46682 is handled.
-        /// </summary>
-        public static bool IsAutoProperty(this IPropertySymbol propertySymbol)
-            => propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && propertySymbol.Equals(f.AssociatedSymbol));
-
-        public static ImmutableArray<IPropertySymbol> GetOriginalDefinitions(this IPropertySymbol propertySymbol)
+        extension(IPropertySymbol propertySymbol)
         {
-            ImmutableArray<IPropertySymbol>.Builder originalDefinitionsBuilder = ImmutableArray.CreateBuilder<IPropertySymbol>();
+            /// <summary>
+            /// Check if a property is an auto-property.
+            /// TODO: Remove this helper when https://github.com/dotnet/roslyn/issues/46682 is handled.
+            /// </summary>
+            public bool IsAutoProperty()
+                => propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && propertySymbol.Equals(f.AssociatedSymbol));
 
-            if (propertySymbol.IsOverride && (propertySymbol.OverriddenProperty != null))
+            public ImmutableArray<IPropertySymbol> GetOriginalDefinitions()
             {
-                originalDefinitionsBuilder.Add(propertySymbol.OverriddenProperty);
+                ImmutableArray<IPropertySymbol>.Builder originalDefinitionsBuilder = ImmutableArray.CreateBuilder<IPropertySymbol>();
+
+                if (propertySymbol.IsOverride && (propertySymbol.OverriddenProperty != null))
+                {
+                    originalDefinitionsBuilder.Add(propertySymbol.OverriddenProperty);
+                }
+
+                if (!propertySymbol.ExplicitInterfaceImplementations.IsEmpty)
+                {
+                    originalDefinitionsBuilder.AddRange(propertySymbol.ExplicitInterfaceImplementations);
+                }
+
+                var typeSymbol = propertySymbol.ContainingType;
+                var methodSymbolName = propertySymbol.Name;
+
+                originalDefinitionsBuilder.AddRange(typeSymbol.AllInterfaces
+                    .SelectMany(m => m.GetMembers(methodSymbolName))
+                    .OfType<IPropertySymbol>()
+                    .Where(m => propertySymbol.Parameters.Length == m.Parameters.Length
+                                && propertySymbol.IsIndexer == m.IsIndexer
+                                && typeSymbol.FindImplementationForInterfaceMember(m) != null));
+
+                return originalDefinitionsBuilder.ToImmutable();
             }
-
-            if (!propertySymbol.ExplicitInterfaceImplementations.IsEmpty)
-            {
-                originalDefinitionsBuilder.AddRange(propertySymbol.ExplicitInterfaceImplementations);
-            }
-
-            var typeSymbol = propertySymbol.ContainingType;
-            var methodSymbolName = propertySymbol.Name;
-
-            originalDefinitionsBuilder.AddRange(typeSymbol.AllInterfaces
-                .SelectMany(m => m.GetMembers(methodSymbolName))
-                .OfType<IPropertySymbol>()
-                .Where(m => propertySymbol.Parameters.Length == m.Parameters.Length
-                            && propertySymbol.IsIndexer == m.IsIndexer
-                            && typeSymbol.FindImplementationForInterfaceMember(m) != null));
-
-            return originalDefinitionsBuilder.ToImmutable();
         }
     }
 }

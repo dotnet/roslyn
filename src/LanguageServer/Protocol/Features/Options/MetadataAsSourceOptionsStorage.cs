@@ -8,13 +8,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
 internal static class MetadataAsSourceOptionsStorage
 {
-    public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public MetadataAsSourceOptions GetMetadataAsSourceOptions()
         => new()
         {
             NavigateToDecompiledSources = globalOptions.GetOption(NavigateToDecompiledSources),
             AlwaysUseDefaultSymbolServers = globalOptions.GetOption(AlwaysUseDefaultSymbolServers),
             NavigateToSourceLinkAndEmbeddedSources = globalOptions.GetOption(NavigateToSourceLinkAndEmbeddedSources),
         };
+    }
 
     private static readonly OptionGroup s_navigationOptionGroup = new(name: "navigation", description: "");
 

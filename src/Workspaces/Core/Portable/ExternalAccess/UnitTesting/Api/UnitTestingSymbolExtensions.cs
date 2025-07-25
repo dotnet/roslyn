@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal static class UnitTestingSymbolExtensions
 {
-    public static string GetSymbolKeyString(this ISymbol symbol, CancellationToken cancellationToken)
+    extension(ISymbol symbol)
+    {
+        public string GetSymbolKeyString(CancellationToken cancellationToken)
         => SymbolKey.Create(symbol, cancellationToken).ToString();
-
+    }
 }

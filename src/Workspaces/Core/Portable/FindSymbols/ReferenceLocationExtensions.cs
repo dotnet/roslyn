@@ -13,36 +13,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 
 internal static class ReferenceLocationExtensions
 {
-    public static async Task<Dictionary<ISymbol, List<Location>>> FindReferencingSymbolsAsync(
-        this IEnumerable<ReferenceLocation> referenceLocations,
-        CancellationToken cancellationToken)
+    extension(IEnumerable<ReferenceLocation> referenceLocations)
     {
-        var documentGroups = referenceLocations.GroupBy(loc => loc.Document);
-        var projectGroups = documentGroups.GroupBy(g => g.Key.Project);
-        var result = new Dictionary<ISymbol, List<Location>>();
-
-        foreach (var projectGroup in projectGroups)
+        public async Task<Dictionary<ISymbol, List<Location>>> FindReferencingSymbolsAsync(
+        CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var documentGroups = referenceLocations.GroupBy(loc => loc.Document);
+            var projectGroups = documentGroups.GroupBy(g => g.Key.Project);
+            var result = new Dictionary<ISymbol, List<Location>>();
 
-            var project = projectGroup.Key;
-            if (project.SupportsCompilation)
+            foreach (var projectGroup in projectGroups)
             {
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                foreach (var documentGroup in projectGroup)
+                var project = projectGroup.Key;
+                if (project.SupportsCompilation)
                 {
-                    var document = documentGroup.Key;
-                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    AddSymbols(semanticModel, documentGroup, result);
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    foreach (var documentGroup in projectGroup)
+                    {
+                        var document = documentGroup.Key;
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        AddSymbols(semanticModel, documentGroup, result);
+                    }
+
+                    // Keep compilation alive so that GetSemanticModelAsync remains cheap
+                    GC.KeepAlive(compilation);
                 }
-
-                // Keep compilation alive so that GetSemanticModelAsync remains cheap
-                GC.KeepAlive(compilation);
             }
-        }
 
-        return result;
+            return result;
+        }
     }
 
     private static void AddSymbols(

@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 
 internal static class FixAllContextExtensions
 {
-    public static string GetDefaultFixAllTitle(this FixAllContext context)
+    extension(FixAllContext context)
+    {
+        public string GetDefaultFixAllTitle()
         => FixAllHelper.GetDefaultFixAllTitle(context.Scope, title: context.DiagnosticIds.First(), context.Document!, context.Project);
+    }
 }

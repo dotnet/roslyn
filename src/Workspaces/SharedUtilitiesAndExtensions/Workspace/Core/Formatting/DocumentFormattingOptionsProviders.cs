@@ -12,16 +12,22 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal static class DocumentFormattingOptionsProviders
 {
-    public static DocumentFormattingOptions GetDocumentFormattingOptions(this IOptionsReader options)
+    extension(IOptionsReader options)
+    {
+        public DocumentFormattingOptions GetDocumentFormattingOptions()
         => new()
         {
             FileHeaderTemplate = options.GetOption(CodeStyleOptions2.FileHeaderTemplate),
             InsertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine)
         };
+    }
 
-    public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetDocumentFormattingOptions();
+        public async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetDocumentFormattingOptions();
+        }
     }
 }

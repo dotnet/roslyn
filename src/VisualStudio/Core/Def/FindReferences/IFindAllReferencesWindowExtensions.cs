@@ -10,9 +10,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
 internal static class IFindAllReferencesWindowExtensions
 {
-    public static ColumnState2 GetDefinitionColumn(this IFindAllReferencesWindow window)
+    extension(IFindAllReferencesWindow window)
     {
-        return (ColumnState2)window.TableControl.ColumnStates.First(
-            s => s.Name == StandardTableColumnDefinitions2.Definition);
+        public ColumnState2 GetDefinitionColumn()
+        {
+            return (ColumnState2)window.TableControl.ColumnStates.First(
+                s => s.Name == StandardTableColumnDefinitions2.Definition);
+        }
     }
 }

@@ -20,23 +20,29 @@ internal static partial class INamespaceOrTypeSymbolExtensions
     private static readonly SymbolDisplayFormat s_shortNameFormat = new(
         miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.ExpandNullable);
 
-    public static string GetShortName(this INamespaceOrTypeSymbol symbol)
+    extension(INamespaceOrTypeSymbol symbol)
+    {
+        public string GetShortName()
         => symbol.ToDisplayString(s_shortNameFormat);
 
-    public static IEnumerable<IPropertySymbol> GetIndexers(this INamespaceOrTypeSymbol? symbol)
-    {
-        return symbol == null
-            ? []
-            : symbol.GetMembers(WellKnownMemberNames.Indexer).OfType<IPropertySymbol>().Where(p => p.IsIndexer);
+        public IReadOnlyList<string> GetNameParts()
+            => s_namespaceOrTypeToNameMap.GetValue(symbol, static symbol =>
+            {
+                var result = new List<string>();
+                GetNameParts(symbol, result);
+                return result;
+            });
     }
 
-    public static IReadOnlyList<string> GetNameParts(this INamespaceOrTypeSymbol symbol)
-        => s_namespaceOrTypeToNameMap.GetValue(symbol, static symbol =>
+    extension(INamespaceOrTypeSymbol? symbol)
+    {
+        public IEnumerable<IPropertySymbol> GetIndexers()
         {
-            var result = new List<string>();
-            GetNameParts(symbol, result);
-            return result;
-        });
+            return symbol == null
+                ? []
+                : symbol.GetMembers(WellKnownMemberNames.Indexer).OfType<IPropertySymbol>().Where(p => p.IsIndexer);
+        }
+    }
 
     public static int CompareNameParts(
         IReadOnlyList<string> names1, IReadOnlyList<string> names2,
@@ -83,29 +89,31 @@ internal static partial class INamespaceOrTypeSymbolExtensions
         result.Add(namespaceOrTypeSymbol.Name);
     }
 
-    /// <summary>
-    /// Lazily returns all nested types contained (recursively) within this namespace or type.
-    /// In case of a type, it is included itself as the first result.
-    /// </summary>
-    public static IEnumerable<INamedTypeSymbol> GetAllTypes(
-        this INamespaceOrTypeSymbol namespaceOrTypeSymbol,
-        CancellationToken cancellationToken)
+    extension(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
     {
-        using var _ = ArrayBuilder<INamespaceOrTypeSymbol>.GetInstance(out var stack);
-        stack.Push(namespaceOrTypeSymbol);
-
-        while (stack.TryPop(out var current))
+        /// <summary>
+        /// Lazily returns all nested types contained (recursively) within this namespace or type.
+        /// In case of a type, it is included itself as the first result.
+        /// </summary>
+        public IEnumerable<INamedTypeSymbol> GetAllTypes(
+            CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (current is INamespaceSymbol currentNs)
+            using var _ = ArrayBuilder<INamespaceOrTypeSymbol>.GetInstance(out var stack);
+            stack.Push(namespaceOrTypeSymbol);
+
+            while (stack.TryPop(out var current))
             {
-                stack.AddRange(currentNs.GetMembers());
-            }
-            else
-            {
-                var namedType = (INamedTypeSymbol)current;
-                stack.AddRange(namedType.GetTypeMembers());
-                yield return namedType;
+                cancellationToken.ThrowIfCancellationRequested();
+                if (current is INamespaceSymbol currentNs)
+                {
+                    stack.AddRange(currentNs.GetMembers());
+                }
+                else
+                {
+                    var namedType = (INamedTypeSymbol)current;
+                    stack.AddRange(namedType.GetTypeMembers());
+                    yield return namedType;
+                }
             }
         }
     }

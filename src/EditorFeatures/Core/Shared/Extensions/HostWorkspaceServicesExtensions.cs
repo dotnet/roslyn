@@ -16,30 +16,47 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class HostWorkspaceServicesExtensions
 {
-    public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
-        this SolutionServices workspaceServices, ITextBuffer textBuffer)
+    extension(SolutionServices workspaceServices)
     {
-        return workspaceServices.GetProjectServices(textBuffer.ContentType);
-    }
-
-    public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
-        this SolutionServices workspaceServices, IContentType contentType)
-    {
-        foreach (var language in workspaceServices.SupportedLanguagesArray)
+        public CodeAnalysis.Host.LanguageServices? GetProjectServices(
+ITextBuffer textBuffer)
         {
-            if (LanguageMatches(language, contentType, workspaceServices))
-                return workspaceServices.GetLanguageServices(language);
+            return workspaceServices.GetProjectServices(textBuffer.ContentType);
         }
 
-        return null;
+        public CodeAnalysis.Host.LanguageServices? GetProjectServices(
+    IContentType contentType)
+        {
+            foreach (var language in workspaceServices.SupportedLanguagesArray)
+            {
+                if (LanguageMatches(language, contentType, workspaceServices))
+                    return workspaceServices.GetLanguageServices(language);
+            }
+
+            return null;
+        }
+
+        internal IList<T> SelectMatchingExtensionValues<T, TMetadata>(
+            IEnumerable<Lazy<T, TMetadata>> items,
+            IContentType contentType)
+            where TMetadata : ILanguageMetadata
+        {
+            if (items == null)
+                return [];
+
+            return [.. items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).Select(lazy => lazy.Value)];
+        }
     }
 
-    /// <summary>
-    /// Returns the name of the language (see <see cref="LanguageNames"/>) associated with the specified buffer. 
-    /// </summary>
-    internal static string? GetLanguageName(this ITextBuffer buffer)
-        => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace) ?
-           workspace.Services.SolutionServices.GetProjectServices(buffer.ContentType)?.Language : null;
+    extension(ITextBuffer buffer)
+    {
+        /// <summary>
+        /// Returns the name of the language (see <see cref="LanguageNames"/>) associated with the specified buffer. 
+        /// </summary>
+        internal string? GetLanguageName()
+            => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace) ?
+               workspace.Services.SolutionServices.GetProjectServices(buffer.ContentType)?.Language : null;
+    }
 
     /// <summary>
     /// A cache of host services -> (language name -> content type name).
@@ -81,18 +98,6 @@ internal static class HostWorkspaceServicesExtensions
         return hostWorkspaceServices.SupportedLanguages.ToDictionary(
             l => l,
             l => hostWorkspaceServices.GetLanguageServices(l).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType().TypeName);
-    }
-
-    internal static IList<T> SelectMatchingExtensionValues<T, TMetadata>(
-        this SolutionServices workspaceServices,
-        IEnumerable<Lazy<T, TMetadata>> items,
-        IContentType contentType)
-        where TMetadata : ILanguageMetadata
-    {
-        if (items == null)
-            return [];
-
-        return [.. items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).Select(lazy => lazy.Value)];
     }
 
     private static bool LanguageMatches(

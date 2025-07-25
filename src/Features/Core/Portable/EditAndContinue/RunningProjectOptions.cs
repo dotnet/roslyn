@@ -22,43 +22,45 @@ internal readonly struct RunningProjectOptions
 
 internal static class RunningProjectOptionsFactory
 {
-    public static ImmutableDictionary<ProjectId, RunningProjectOptions> ToRunningProjectOptions<TInfo>(
-        this ImmutableArray<TInfo> runningProjects,
+    extension<TInfo>(ImmutableArray<TInfo> runningProjects)
+    {
+        public ImmutableDictionary<ProjectId, RunningProjectOptions> ToRunningProjectOptions(
         Solution solution,
         Func<TInfo, (string projectPath, string targetFramework, bool restartAutomatically)> translator)
-    {
-        // Invariants guaranteed by the debugger:
-        // - Running projects does nto contain duplicate ids.
-        // - TFM is always specified for SDK projects event if the project doesn't multi-target, it is empty for legacy projects.
-
-        var runningProjectsByPathAndTfm = runningProjects
-            .Select(info =>
-            {
-                var (filePath, targetFramework, restartAutomatically) = translator(info);
-                return KeyValuePair.Create((filePath, targetFramework is { Length: > 0 } tfm ? tfm : null), restartAutomatically);
-            })
-            .ToImmutableDictionary(PathAndTfmComparer.Instance);
-
-        var result = ImmutableDictionary.CreateBuilder<ProjectId, RunningProjectOptions>();
-
-        foreach (var project in solution.Projects)
         {
-            if (project.FilePath == null)
+            // Invariants guaranteed by the debugger:
+            // - Running projects does nto contain duplicate ids.
+            // - TFM is always specified for SDK projects event if the project doesn't multi-target, it is empty for legacy projects.
+
+            var runningProjectsByPathAndTfm = runningProjects
+                .Select(info =>
+                {
+                    var (filePath, targetFramework, restartAutomatically) = translator(info);
+                    return KeyValuePair.Create((filePath, targetFramework is { Length: > 0 } tfm ? tfm : null), restartAutomatically);
+                })
+                .ToImmutableDictionary(PathAndTfmComparer.Instance);
+
+            var result = ImmutableDictionary.CreateBuilder<ProjectId, RunningProjectOptions>();
+
+            foreach (var project in solution.Projects)
             {
-                continue;
+                if (project.FilePath == null)
+                {
+                    continue;
+                }
+
+                // Roslyn project name does not include TFM if the project is not multi-targeted (flavor is null).
+                // The key comparer ignores TFM if null and therefore returns a random entry that has the same file path.
+                // Since projects without TFM can only have at most one entry in the dictionary the random entry is that single value.
+                if (runningProjectsByPathAndTfm.TryGetValue((project.FilePath, project.State.NameAndFlavor.flavor), out var restartAutomatically))
+                {
+                    result.Add(project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = restartAutomatically });
+                    continue;
+                }
             }
 
-            // Roslyn project name does not include TFM if the project is not multi-targeted (flavor is null).
-            // The key comparer ignores TFM if null and therefore returns a random entry that has the same file path.
-            // Since projects without TFM can only have at most one entry in the dictionary the random entry is that single value.
-            if (runningProjectsByPathAndTfm.TryGetValue((project.FilePath, project.State.NameAndFlavor.flavor), out var restartAutomatically))
-            {
-                result.Add(project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = restartAutomatically });
-                continue;
-            }
+            return result.ToImmutableDictionary();
         }
-
-        return result.ToImmutableDictionary();
     }
 
     private sealed class PathAndTfmComparer : IEqualityComparer<(string path, string? tfm)>

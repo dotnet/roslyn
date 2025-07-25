@@ -16,108 +16,115 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class IFindReferencesResultExtensions
 {
-    public static IEnumerable<Location> GetDefinitionLocationsToShow(
-        this ISymbol definition)
+    extension(ISymbol definition)
     {
-        return definition.IsKind(SymbolKind.Namespace)
-            ? [definition.Locations.First()]
-            : definition.Locations;
-    }
-
-    public static ImmutableArray<ReferencedSymbol> FilterToItemsToShow(
-        this ImmutableArray<ReferencedSymbol> result, FindReferencesSearchOptions options)
-    {
-        return result.WhereAsArray(r => ShouldShow(r, options));
-    }
-
-    public static bool ShouldShow(
-        this ReferencedSymbol referencedSymbol, FindReferencesSearchOptions options)
-    {
-        // If the reference has any locations then we will present it.
-        if (referencedSymbol.Locations.Any())
+        public IEnumerable<Location> GetDefinitionLocationsToShow(
+)
         {
-            return true;
+            return definition.IsKind(SymbolKind.Namespace)
+                ? [definition.Locations.First()]
+                : definition.Locations;
         }
 
-        return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations(
-            options, showMetadataSymbolsWithoutReferences: true);
-    }
-
-    public static bool ShouldShowWithNoReferenceLocations(
-        this ISymbol definition, FindReferencesSearchOptions options, bool showMetadataSymbolsWithoutReferences)
-    {
-        if (options.DisplayAllDefinitions)
+        public bool ShouldShowWithNoReferenceLocations(
+    FindReferencesSearchOptions options, bool showMetadataSymbolsWithoutReferences)
         {
-            return true;
-        }
+            if (options.DisplayAllDefinitions)
+            {
+                return true;
+            }
 
-        // If the definition is implicit and we have no references, then we don't want to
-        // clutter the UI with it.
-        if (definition.IsImplicitlyDeclared)
-        {
+            // If the definition is implicit and we have no references, then we don't want to
+            // clutter the UI with it.
+            if (definition.IsImplicitlyDeclared)
+            {
+                return false;
+            }
+
+            // If we're associating property references with an accessor, then we don't want to show
+            // a property if it is has no references.  Similarly, if we're associated associating
+            // everything with the property, then we don't want to include accessors if there are no
+            // references to them.
+            if (options.AssociatePropertyReferencesWithSpecificAccessor)
+            {
+                if (definition.Kind == SymbolKind.Property)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (definition.IsPropertyAccessor())
+                {
+                    return false;
+                }
+            }
+
+            // Otherwise we still show the item even if there are no references to it.
+            // And it's at least a source definition.
+            if (definition.Locations.Any(static loc => loc.IsInSource))
+            {
+                return true;
+            }
+
+            if (showMetadataSymbolsWithoutReferences &&
+                definition.Locations.Any(static loc => loc.IsInMetadata))
+            {
+                return true;
+            }
+
             return false;
         }
-
-        // If we're associating property references with an accessor, then we don't want to show
-        // a property if it is has no references.  Similarly, if we're associated associating
-        // everything with the property, then we don't want to include accessors if there are no
-        // references to them.
-        if (options.AssociatePropertyReferencesWithSpecificAccessor)
-        {
-            if (definition.Kind == SymbolKind.Property)
-            {
-                return false;
-            }
-        }
-        else
-        {
-            if (definition.IsPropertyAccessor())
-            {
-                return false;
-            }
-        }
-
-        // Otherwise we still show the item even if there are no references to it.
-        // And it's at least a source definition.
-        if (definition.Locations.Any(static loc => loc.IsInSource))
-        {
-            return true;
-        }
-
-        if (showMetadataSymbolsWithoutReferences &&
-            definition.Locations.Any(static loc => loc.IsInMetadata))
-        {
-            return true;
-        }
-
-        return false;
     }
 
-    public static ImmutableArray<ReferencedSymbol> FilterToAliasMatches(
-        this ImmutableArray<ReferencedSymbol> result,
-        IAliasSymbol? aliasSymbol)
+    extension(ImmutableArray<ReferencedSymbol> result)
     {
-        if (aliasSymbol == null)
+        public ImmutableArray<ReferencedSymbol> FilterToItemsToShow(
+FindReferencesSearchOptions options)
         {
-            return result;
+            return result.WhereAsArray(r => ShouldShow(r, options));
         }
 
-        var q = from r in result
-                let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol)).ToImmutableArray()
-                where aliasLocations.Any()
-                select new ReferencedSymbol(r.Definition, aliasLocations);
+        public ImmutableArray<ReferencedSymbol> FilterToAliasMatches(
+            IAliasSymbol? aliasSymbol)
+        {
+            if (aliasSymbol == null)
+            {
+                return result;
+            }
 
-        return [.. q];
+            var q = from r in result
+                    let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol)).ToImmutableArray()
+                    where aliasLocations.Any()
+                    select new ReferencedSymbol(r.Definition, aliasLocations);
+
+            return [.. q];
+        }
+
+        public ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNames(
+            Solution solution,
+            ISymbol symbol)
+        {
+            return symbol.IsOrdinaryMethod()
+                ? FilterNonMatchingMethodNamesWorker(result, solution, symbol)
+                : result;
+        }
     }
 
-    public static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNames(
-        this ImmutableArray<ReferencedSymbol> result,
-        Solution solution,
-        ISymbol symbol)
+    extension(ReferencedSymbol referencedSymbol)
     {
-        return symbol.IsOrdinaryMethod()
-            ? FilterNonMatchingMethodNamesWorker(result, solution, symbol)
-            : result;
+        public bool ShouldShow(
+FindReferencesSearchOptions options)
+        {
+            // If the reference has any locations then we will present it.
+            if (referencedSymbol.Locations.Any())
+            {
+                return true;
+            }
+
+            return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations(
+                options, showMetadataSymbolsWithoutReferences: true);
+        }
     }
 
     private static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNamesWorker(

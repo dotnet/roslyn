@@ -8,7 +8,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static partial class CompilationUnitSyntaxExtensions
 {
-    public static bool IsTopLevelProgram(this CompilationUnitSyntax compilationUnit)
+    extension(CompilationUnitSyntax compilationUnit)
+    {
+        public bool IsTopLevelProgram()
         // Only need to check first member as having any other member type before a global statement is not legal.
         => compilationUnit.Members is [GlobalStatementSyntax, ..];
+    }
 }

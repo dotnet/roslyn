@@ -10,38 +10,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 
 internal static class SourceTextExtensions
 {
-    public static VsTextSpan GetVsTextSpanForSpan(this SourceText text, TextSpan textSpan)
+    extension(SourceText text)
     {
-        text.GetLinesAndOffsets(textSpan, out var startLine, out var startOffset, out var endLine, out var endOffset);
-
-        return new VsTextSpan()
+        public VsTextSpan GetVsTextSpanForSpan(TextSpan textSpan)
         {
-            iStartLine = startLine,
-            iStartIndex = startOffset,
-            iEndLine = endLine,
-            iEndIndex = endOffset
-        };
-    }
+            text.GetLinesAndOffsets(textSpan, out var startLine, out var startOffset, out var endLine, out var endOffset);
+
+            return new VsTextSpan()
+            {
+                iStartLine = startLine,
+                iStartIndex = startOffset,
+                iEndLine = endLine,
+                iEndIndex = endOffset
+            };
+        }
 
 #pragma warning disable IDE0060 // Remove unused parameter - 'text' is used for API consistency with other extension methods in this file.
-    public static VsTextSpan GetVsTextSpanForLineOffset(this SourceText text, int lineNumber, int offset)
+        public VsTextSpan GetVsTextSpanForLineOffset(int lineNumber, int offset)
 #pragma warning restore IDE0060 // Remove unused parameter
-    {
-        return new VsTextSpan
         {
-            iStartLine = lineNumber,
-            iStartIndex = offset,
-            iEndLine = lineNumber,
-            iEndIndex = offset
-        };
-    }
+            return new VsTextSpan
+            {
+                iStartLine = lineNumber,
+                iStartIndex = offset,
+                iEndLine = lineNumber,
+                iEndIndex = offset
+            };
+        }
 
-    public static VsTextSpan GetVsTextSpanForPosition(this SourceText text, int position, int virtualSpace)
-    {
-        text.GetLineAndOffset(position, out var lineNumber, out var offset);
+        public VsTextSpan GetVsTextSpanForPosition(int position, int virtualSpace)
+        {
+            text.GetLineAndOffset(position, out var lineNumber, out var offset);
 
-        offset += virtualSpace;
+            offset += virtualSpace;
 
-        return text.GetVsTextSpanForLineOffset(lineNumber, offset);
+            return text.GetVsTextSpanForLineOffset(lineNumber, offset);
+        }
     }
 }

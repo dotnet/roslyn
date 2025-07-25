@@ -9,10 +9,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Extensions;
 
 internal static class BulkObservableCollectionExtensions
 {
-    public static BulkOperationDisposable<T> GetBulkOperation<T>(this BulkObservableCollection<T> collection)
+    extension<T>(BulkObservableCollection<T> collection)
     {
-        collection.BeginBulkOperation();
-        return new BulkOperationDisposable<T>(collection);
+        public BulkOperationDisposable<T> GetBulkOperation()
+        {
+            collection.BeginBulkOperation();
+            return new BulkOperationDisposable<T>(collection);
+        }
     }
 
     public readonly struct BulkOperationDisposable<T>(BulkObservableCollection<T> collection)

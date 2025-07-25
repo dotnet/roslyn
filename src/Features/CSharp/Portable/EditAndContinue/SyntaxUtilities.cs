@@ -130,8 +130,11 @@ internal static partial class SyntaxUtilities
         Debug.Assert(false);
     }
 
-    public static bool ContainsGlobalStatements(this CompilationUnitSyntax compilationUnit)
+    extension(CompilationUnitSyntax compilationUnit)
+    {
+        public bool ContainsGlobalStatements()
         => compilationUnit.Members is [GlobalStatementSyntax, ..];
+    }
 
     public static bool Any(TypeParameterListSyntax? list)
         => list != null && list.ChildNodesAndTokens().Count != 0;

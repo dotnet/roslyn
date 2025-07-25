@@ -9,14 +9,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal static class SyntaxAnnotationExtensions
 {
-    public static TSymbol AddAnnotationToSymbol<TSymbol>(
-        this SyntaxAnnotation annotation,
+    extension(SyntaxAnnotation annotation)
+    {
+        public TSymbol AddAnnotationToSymbol<TSymbol>(
         TSymbol symbol)
         where TSymbol : ISymbol
-    {
-        Contract.ThrowIfFalse(symbol is CodeGenerationSymbol);
-        var codeGenSymbol = (CodeGenerationSymbol)(object)symbol;
-        return (TSymbol)(object)codeGenSymbol.WithAdditionalAnnotations(annotation);
+        {
+            Contract.ThrowIfFalse(symbol is CodeGenerationSymbol);
+            var codeGenSymbol = (CodeGenerationSymbol)(object)symbol;
+            return (TSymbol)(object)codeGenSymbol.WithAdditionalAnnotations(annotation);
+        }
     }
 
     internal static SyntaxAnnotation[] CombineAnnotations(

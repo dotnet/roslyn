@@ -11,67 +11,73 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class IParameterSymbolExtensions
 {
-    public static bool IsRefOrOut(this IParameterSymbol symbol)
+    extension(IParameterSymbol symbol)
     {
-        switch (symbol.RefKind)
+        public bool IsRefOrOut()
         {
-            case RefKind.Ref:
-            case RefKind.Out:
-                return true;
-            default:
-                return false;
+            switch (symbol.RefKind)
+            {
+                case RefKind.Ref:
+                case RefKind.Out:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 
-    public static IPropertySymbol? GetAssociatedSynthesizedRecordProperty(this IParameterSymbol parameter, CancellationToken cancellationToken)
+    extension(IParameterSymbol parameter)
     {
-        if (parameter is
-            {
-                DeclaringSyntaxReferences.Length: > 0,
-                ContainingSymbol: IMethodSymbol
-                {
-                    MethodKind: MethodKind.Constructor,
-                    DeclaringSyntaxReferences.Length: > 0,
-                    ContainingType: { IsRecord: true } containingType,
-                } constructor,
-            })
+        public IPropertySymbol? GetAssociatedSynthesizedRecordProperty(CancellationToken cancellationToken)
         {
-            // ok, we have a record constructor.  This might be the primary constructor or not.
-            var parameterSyntax = parameter.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-            var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-            if (containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken)))
-            {
-                // this was a primary constructor. see if we can map this parameter to a corresponding synthesized property 
-                foreach (var member in containingType.GetMembers(parameter.Name))
+            if (parameter is
                 {
-                    if (member is IPropertySymbol { DeclaringSyntaxReferences.Length: > 0 } property &&
-                        property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) == parameterSyntax)
+                    DeclaringSyntaxReferences.Length: > 0,
+                    ContainingSymbol: IMethodSymbol
                     {
-                        return property;
+                        MethodKind: MethodKind.Constructor,
+                        DeclaringSyntaxReferences.Length: > 0,
+                        ContainingType: { IsRecord: true } containingType,
+                    } constructor,
+                })
+            {
+                // ok, we have a record constructor.  This might be the primary constructor or not.
+                var parameterSyntax = parameter.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                if (containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken)))
+                {
+                    // this was a primary constructor. see if we can map this parameter to a corresponding synthesized property 
+                    foreach (var member in containingType.GetMembers(parameter.Name))
+                    {
+                        if (member is IPropertySymbol { DeclaringSyntaxReferences.Length: > 0 } property &&
+                            property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) == parameterSyntax)
+                        {
+                            return property;
+                        }
                     }
                 }
             }
+
+            return null;
         }
 
-        return null;
-    }
-
-    public static bool IsPrimaryConstructor(this IParameterSymbol parameter, CancellationToken cancellationToken)
-    {
-        if (parameter is
-            {
-                ContainingSymbol: IMethodSymbol
-                {
-                    MethodKind: MethodKind.Constructor,
-                    DeclaringSyntaxReferences: [var constructorReference, ..],
-                    ContainingType: { } containingType,
-                } constructor,
-            })
+        public bool IsPrimaryConstructor(CancellationToken cancellationToken)
         {
-            var constructorSyntax = constructorReference.GetSyntax(cancellationToken);
-            return containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken));
-        }
+            if (parameter is
+                {
+                    ContainingSymbol: IMethodSymbol
+                    {
+                        MethodKind: MethodKind.Constructor,
+                        DeclaringSyntaxReferences: [var constructorReference, ..],
+                        ContainingType: { } containingType,
+                    } constructor,
+                })
+            {
+                var constructorSyntax = constructorReference.GetSyntax(cancellationToken);
+                return containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken));
+            }
 
-        return false;
+            return false;
+        }
     }
 }

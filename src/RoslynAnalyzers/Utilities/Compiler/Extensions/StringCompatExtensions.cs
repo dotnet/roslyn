@@ -8,17 +8,20 @@ namespace System
 {
     internal static class StringCompatExtensions
     {
-        public static bool Contains(this string str, string value, StringComparison comparisonType)
+        extension(string str)
         {
-            return str.IndexOf(value, comparisonType) >= 0;
-        }
+            public bool Contains(string value, StringComparison comparisonType)
+            {
+                return str.IndexOf(value, comparisonType) >= 0;
+            }
 
-        public static string Replace(this string str, string oldValue, string? newValue, StringComparison comparisonType)
-        {
-            if (comparisonType != StringComparison.Ordinal)
-                throw new NotSupportedException();
+            public string Replace(string oldValue, string? newValue, StringComparison comparisonType)
+            {
+                if (comparisonType != StringComparison.Ordinal)
+                    throw new NotSupportedException();
 
-            return str.Replace(oldValue, newValue);
+                return str.Replace(oldValue, newValue);
+            }
         }
     }
 }

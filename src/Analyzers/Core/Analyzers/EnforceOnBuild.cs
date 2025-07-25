@@ -36,6 +36,9 @@ internal enum EnforceOnBuild
 
 internal static class EnforceOnBuildExtensions
 {
-    public static string ToCustomTag(this EnforceOnBuild enforceOnBuild)
+    extension(EnforceOnBuild enforceOnBuild)
+    {
+        public string ToCustomTag()
         => $"{nameof(EnforceOnBuild)}_{enforceOnBuild}";
+    }
 }

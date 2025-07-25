@@ -10,45 +10,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static partial class TypeSyntaxExtensions
 {
-    public static bool IsVoid(this TypeSyntax typeSyntax)
+    extension(TypeSyntax typeSyntax)
+    {
+        public bool IsVoid()
         => typeSyntax is PredefinedTypeSyntax predefinedType &&
            predefinedType.Keyword.IsKind(SyntaxKind.VoidKeyword);
 
-    public static bool IsPartial(this TypeSyntax typeSyntax)
-    {
-        return typeSyntax is IdentifierNameSyntax &&
-            ((IdentifierNameSyntax)typeSyntax).Identifier.IsKind(SyntaxKind.PartialKeyword);
+        public bool IsPartial()
+        {
+            return typeSyntax is IdentifierNameSyntax &&
+                ((IdentifierNameSyntax)typeSyntax).Identifier.IsKind(SyntaxKind.PartialKeyword);
+        }
+
+        /// <summary>
+        /// Determines whether the specified TypeSyntax is actually 'var'.
+        /// </summary>
+        public bool IsTypeInferred(SemanticModel semanticModel)
+        {
+            if (!typeSyntax.IsVar)
+            {
+                return false;
+            }
+
+            if (semanticModel.GetAliasInfo(typeSyntax) != null)
+            {
+                return false;
+            }
+
+            var type = semanticModel.GetTypeInfo(typeSyntax).Type;
+            if (type == null)
+            {
+                return false;
+            }
+
+            if (type.Name == "var")
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 
-    /// <summary>
-    /// Determines whether the specified TypeSyntax is actually 'var'.
-    /// </summary>
-    public static bool IsTypeInferred(this TypeSyntax typeSyntax, SemanticModel semanticModel)
+    extension(TypeSyntax type)
     {
-        if (!typeSyntax.IsVar)
-        {
-            return false;
-        }
-
-        if (semanticModel.GetAliasInfo(typeSyntax) != null)
-        {
-            return false;
-        }
-
-        var type = semanticModel.GetTypeInfo(typeSyntax).Type;
-        if (type == null)
-        {
-            return false;
-        }
-
-        if (type.Name == "var")
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
+        public TypeSyntax StripRefIfNeeded()
         => type is RefTypeSyntax refType ? refType.Type : type;
+    }
 }

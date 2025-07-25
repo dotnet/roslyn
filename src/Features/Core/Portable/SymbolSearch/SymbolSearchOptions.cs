@@ -94,7 +94,9 @@ internal static class SymbolSearchOptionsStorage
 
 internal static class SymbolSearchOptionsProviders
 {
-    internal static SymbolSearchOptions GetSymbolSearchOptions(this IOptionsReader options, string language)
+    extension(IOptionsReader options)
+    {
+        internal SymbolSearchOptions GetSymbolSearchOptions(string language)
         => new()
         {
             SearchReferenceAssemblies = options.GetOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, language),
@@ -103,10 +105,14 @@ internal static class SymbolSearchOptionsProviders
             SearchUnreferencedProjectSourceSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchUnreferencedProjectSourceSymbols, language),
             SearchUnreferencedMetadataSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchUnreferencedMetadataSymbols, language),
         };
+    }
 
-    public static async ValueTask<SymbolSearchOptions> GetSymbolSearchOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetSymbolSearchOptions(document.Project.Language);
+        public async ValueTask<SymbolSearchOptions> GetSymbolSearchOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetSymbolSearchOptions(document.Project.Language);
+        }
     }
 }

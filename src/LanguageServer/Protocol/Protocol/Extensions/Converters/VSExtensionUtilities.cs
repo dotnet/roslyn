@@ -13,17 +13,20 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </summary>
 internal static class VSExtensionUtilities
 {
-    /// <summary>
-    /// Adds <see cref="VSExtensionConverter{TBase, TExtension}"/> to the <paramref name="options"/> allowing to
-    /// deserialize the JSON stream into objects which include Visual Studio specific extensions.
-    ///
-    /// For example, it allows to correctly deserialize the <see cref="CodeAction.Diagnostics"/> entries of a
-    /// 'codeAction/resolve' request into <see cref="VSDiagnostic"/> objects even if <see cref="CodeAction.Diagnostics"/>
-    /// is defined as an array of <see cref="Diagnostic"/>.
-    /// </summary>
-    internal static void AddVSExtensionConverters(this JsonSerializerOptions options)
+    extension(JsonSerializerOptions options)
     {
-        AddConverters(options.Converters);
+        /// <summary>
+        /// Adds <see cref="VSExtensionConverter{TBase, TExtension}"/> to the <paramref name="options"/> allowing to
+        /// deserialize the JSON stream into objects which include Visual Studio specific extensions.
+        ///
+        /// For example, it allows to correctly deserialize the <see cref="CodeAction.Diagnostics"/> entries of a
+        /// 'codeAction/resolve' request into <see cref="VSDiagnostic"/> objects even if <see cref="CodeAction.Diagnostics"/>
+        /// is defined as an array of <see cref="Diagnostic"/>.
+        /// </summary>
+        internal void AddVSExtensionConverters()
+        {
+            AddConverters(options.Converters);
+        }
     }
 
     private static void AddConverters(IList<JsonConverter> converters)

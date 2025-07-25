@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SyntaxGeneratorExtensions
 {
-    public static IMethodSymbol CreateEqualsMethod(
-        this SyntaxGenerator factory,
+    extension(SyntaxGenerator factory)
+    {
+        public IMethodSymbol CreateEqualsMethod(
         SyntaxGeneratorInternal generatorInternal,
         Compilation compilation,
         ParseOptions parseOptions,
@@ -33,70 +34,73 @@ internal static partial class SyntaxGeneratorExtensions
         ImmutableArray<ISymbol> symbols,
         string localNameOpt,
         SyntaxAnnotation statementAnnotation)
-    {
-        var statements = CreateEqualsMethodStatements(
-            factory, generatorInternal, compilation, parseOptions, containingType, symbols, localNameOpt);
-        statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
-
-        return CreateEqualsMethod(compilation, statements);
-    }
-
-    public static IMethodSymbol CreateEqualsMethod(this Compilation compilation, ImmutableArray<SyntaxNode> statements)
-    {
-        return CodeGenerationSymbolFactory.CreateMethodSymbol(
-            attributes: default,
-            accessibility: Accessibility.Public,
-            modifiers: DeclarationModifiers.Override,
-            returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
-            refKind: RefKind.None,
-            explicitInterfaceImplementations: default,
-            name: EqualsName,
-            typeParameters: default,
-            parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)],
-            statements: statements);
-    }
-
-    public static IMethodSymbol CreateIEquatableEqualsMethod(
-        this SyntaxGenerator factory,
-        SyntaxGeneratorInternal generatorInternal,
-        SemanticModel semanticModel,
-        INamedTypeSymbol containingType,
-        ImmutableArray<ISymbol> symbols,
-        INamedTypeSymbol constructedEquatableType,
-        SyntaxAnnotation statementAnnotation)
-    {
-        var statements = CreateIEquatableEqualsMethodStatements(
-            factory, generatorInternal, semanticModel.Compilation, semanticModel.SyntaxTree.Options, containingType, symbols);
-        statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
-
-        var methodSymbol = constructedEquatableType
-            .GetMembers(EqualsName)
-            .OfType<IMethodSymbol>()
-            .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
-
-        var originalParameter = methodSymbol.Parameters.First();
-
-        // Replace `[AllowNull] Foo` with `Foo` or `Foo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
-        var parameters = ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(
-            originalParameter,
-            type: constructedEquatableType.GetTypeArguments()[0],
-            attributes: ImmutableArray<AttributeData>.Empty));
-
-        if (generatorInternal.RequiresExplicitImplementationForInterfaceMembers)
         {
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                methodSymbol,
-                modifiers: DeclarationModifiers.None,
-                explicitInterfaceImplementations: [methodSymbol],
-                parameters: parameters,
-                statements: statements);
+            var statements = CreateEqualsMethodStatements(
+                factory, generatorInternal, compilation, parseOptions, containingType, symbols, localNameOpt);
+            statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
+
+            return CreateEqualsMethod(compilation, statements);
         }
-        else
+
+        public IMethodSymbol CreateIEquatableEqualsMethod(
+            SyntaxGeneratorInternal generatorInternal,
+            SemanticModel semanticModel,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> symbols,
+            INamedTypeSymbol constructedEquatableType,
+            SyntaxAnnotation statementAnnotation)
+        {
+            var statements = CreateIEquatableEqualsMethodStatements(
+                factory, generatorInternal, semanticModel.Compilation, semanticModel.SyntaxTree.Options, containingType, symbols);
+            statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
+
+            var methodSymbol = constructedEquatableType
+                .GetMembers(EqualsName)
+                .OfType<IMethodSymbol>()
+                .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+
+            var originalParameter = methodSymbol.Parameters.First();
+
+            // Replace `[AllowNull] Foo` with `Foo` or `Foo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
+            var parameters = ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                originalParameter,
+                type: constructedEquatableType.GetTypeArguments()[0],
+                attributes: ImmutableArray<AttributeData>.Empty));
+
+            if (generatorInternal.RequiresExplicitImplementationForInterfaceMembers)
+            {
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    methodSymbol,
+                    modifiers: DeclarationModifiers.None,
+                    explicitInterfaceImplementations: [methodSymbol],
+                    parameters: parameters,
+                    statements: statements);
+            }
+            else
+            {
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    methodSymbol,
+                    modifiers: DeclarationModifiers.None,
+                    parameters: parameters,
+                    statements: statements);
+            }
+        }
+    }
+
+    extension(Compilation compilation)
+    {
+        public IMethodSymbol CreateEqualsMethod(ImmutableArray<SyntaxNode> statements)
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                methodSymbol,
-                modifiers: DeclarationModifiers.None,
-                parameters: parameters,
+                attributes: default,
+                accessibility: Accessibility.Public,
+                modifiers: DeclarationModifiers.Override,
+                returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
+                refKind: RefKind.None,
+                explicitInterfaceImplementations: default,
+                name: EqualsName,
+                typeParameters: default,
+                parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)],
                 statements: statements);
         }
     }
@@ -354,29 +358,32 @@ internal static partial class SyntaxGeneratorExtensions
         }
     }
 
+    extension(ITypeSymbol containingType)
+    {
 #nullable enable
 
-    [return: NotNullIfNotNull(nameof(fallback))]
-    public static string? GetLocalName(this ITypeSymbol containingType, string? fallback = "v")
-    {
-        // Don't want to do things like `String string`.  That's not idiomatic in .net.
-        if (!containingType.IsSpecialType())
+        [return: NotNullIfNotNull(nameof(fallback))]
+        public string? GetLocalName(string? fallback = "v")
         {
-            var name = containingType.Name;
-            if (name.Length > 0)
+            // Don't want to do things like `String string`.  That's not idiomatic in .net.
+            if (!containingType.IsSpecialType())
             {
-                using var parts = TemporaryArray<TextSpan>.Empty;
-                StringBreaker.AddWordParts(name, ref parts.AsRef());
-                for (var i = parts.Count - 1; i >= 0; i--)
+                var name = containingType.Name;
+                if (name.Length > 0)
                 {
-                    var p = parts[i];
-                    if (p.Length > 0 && char.IsLetter(name[p.Start]))
-                        return name.Substring(p.Start, p.Length).ToCamelCase();
+                    using var parts = TemporaryArray<TextSpan>.Empty;
+                    StringBreaker.AddWordParts(name, ref parts.AsRef());
+                    for (var i = parts.Count - 1; i >= 0; i--)
+                    {
+                        var p = parts[i];
+                        if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                            return name.Substring(p.Start, p.Length).ToCamelCase();
+                    }
                 }
             }
-        }
 
-        return fallback;
+            return fallback;
+        }
     }
 
     private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
@@ -448,8 +455,9 @@ internal static partial class SyntaxGeneratorExtensions
         return existingMethods.Any();
     }
 
-    public static ImmutableArray<ISymbol> CreateMemberDelegatingConstructor(
-        this SyntaxGenerator factory,
+    extension(SyntaxGenerator factory)
+    {
+        public ImmutableArray<ISymbol> CreateMemberDelegatingConstructor(
         SyntaxGeneratorInternal generatorInternal,
         SemanticModel semanticModel,
         string typeName,
@@ -462,28 +470,29 @@ internal static partial class SyntaxGeneratorExtensions
         bool preferThrowExpression,
         bool generateProperties,
         bool isContainedInUnsafeType)
-    {
-        var newMembers = generateProperties
-            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
-            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
-        var statements = factory.CreateAssignmentStatements(
-            generatorInternal, semanticModel,
-            parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
-            addNullChecks, preferThrowExpression).SelectAsArray(
-                s => s.WithAdditionalAnnotations(Simplifier.Annotation));
+        {
+            var newMembers = generateProperties
+                ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
+                : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
+            var statements = factory.CreateAssignmentStatements(
+                generatorInternal, semanticModel,
+                parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
+                addNullChecks, preferThrowExpression).SelectAsArray(
+                    s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
-        var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-            attributes: default,
-            accessibility: accessibility,
-            modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
-            typeName: typeName,
-            parameters: parameters,
-            statements: statements,
-            thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
-                ? []
-                : default);
+            var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                attributes: default,
+                accessibility: accessibility,
+                modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
+                typeName: typeName,
+                parameters: parameters,
+                statements: statements,
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
+                    ? []
+                    : default);
 
-        return newMembers.Concat(constructor);
+            return newMembers.Concat(constructor);
+        }
     }
 
     private static bool ShouldGenerateThisConstructorCall(

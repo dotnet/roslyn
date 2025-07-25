@@ -11,15 +11,18 @@ namespace Microsoft.CodeAnalysis.Indentation;
 
 internal static class IndentationOptionsStorage
 {
-    public static async Task<IndentationOptions> GetIndentationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        return new IndentationOptions(formattingOptions)
+        public async Task<IndentationOptions> GetIndentationOptionsAsync(IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
-            AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(document.Project.Language),
-            IndentStyle = globalOptions.GetOption(SmartIndent, document.Project.Language)
-        };
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            return new IndentationOptions(formattingOptions)
+            {
+                AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(document.Project.Language),
+                IndentStyle = globalOptions.GetOption(SmartIndent, document.Project.Language)
+            };
+        }
     }
 
     public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent => FormattingOptions2.SmartIndent;

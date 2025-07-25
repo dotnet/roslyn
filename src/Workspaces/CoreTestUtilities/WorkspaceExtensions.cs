@@ -12,52 +12,61 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 
 public static partial class WorkspaceExtensions
 {
-    public static DocumentId AddDocument(this Workspace workspace, ProjectId projectId, IEnumerable<string> folders, string name, SourceText initialText, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+    extension(Workspace workspace)
     {
-        var id = projectId.CreateDocumentId(name, folders);
-        var oldSolution = workspace.CurrentSolution;
-        var newSolution = oldSolution.AddDocument(id, name, initialText, folders).GetDocument(id)!.WithSourceCodeKind(sourceCodeKind).Project.Solution;
-        workspace.TryApplyChanges(newSolution);
-        return id;
-    }
-
-    public static void RemoveDocument(this Workspace workspace, DocumentId documentId)
-    {
-        var oldSolution = workspace.CurrentSolution;
-        var newSolution = oldSolution.RemoveDocument(documentId);
-        workspace.TryApplyChanges(newSolution);
-    }
-
-    public static void UpdateDocument(this Workspace workspace, DocumentId documentId, SourceText newText)
-    {
-        var oldSolution = workspace.CurrentSolution;
-        var newSolution = oldSolution.WithDocumentText(documentId, newText);
-        workspace.TryApplyChanges(newSolution);
-    }
-
-    /// <summary>
-    /// Create a new DocumentId based on a name and optional folders
-    /// </summary>
-    public static DocumentId CreateDocumentId(this ProjectId projectId, string name, IEnumerable<string>? folders = null)
-    {
-        if (folders != null)
+        public DocumentId AddDocument(ProjectId projectId, IEnumerable<string> folders, string name, SourceText initialText, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
-            var uniqueName = string.Join("/", folders) + "/" + name;
-            return DocumentId.CreateNewId(projectId, uniqueName);
+            var id = projectId.CreateDocumentId(name, folders);
+            var oldSolution = workspace.CurrentSolution;
+            var newSolution = oldSolution.AddDocument(id, name, initialText, folders).GetDocument(id)!.WithSourceCodeKind(sourceCodeKind).Project.Solution;
+            workspace.TryApplyChanges(newSolution);
+            return id;
         }
-        else
+
+        public void RemoveDocument(DocumentId documentId)
         {
-            return DocumentId.CreateNewId(projectId, name);
+            var oldSolution = workspace.CurrentSolution;
+            var newSolution = oldSolution.RemoveDocument(documentId);
+            workspace.TryApplyChanges(newSolution);
+        }
+
+        public void UpdateDocument(DocumentId documentId, SourceText newText)
+        {
+            var oldSolution = workspace.CurrentSolution;
+            var newSolution = oldSolution.WithDocumentText(documentId, newText);
+            workspace.TryApplyChanges(newSolution);
+        }
+
+        internal EventWaiter VerifyWorkspaceChangedEvent(Action<WorkspaceChangeEventArgs> action)
+        {
+            var wew = new EventWaiter();
+            _ = workspace.RegisterWorkspaceChangedHandler(wew.Wrap(action));
+            return wew;
         }
     }
 
-    public static IEnumerable<Project> GetProjectsByName(this Solution solution, string name)
+    extension(ProjectId projectId)
+    {
+        /// <summary>
+        /// Create a new DocumentId based on a name and optional folders
+        /// </summary>
+        public DocumentId CreateDocumentId(string name, IEnumerable<string>? folders = null)
+        {
+            if (folders != null)
+            {
+                var uniqueName = string.Join("/", folders) + "/" + name;
+                return DocumentId.CreateNewId(projectId, uniqueName);
+            }
+            else
+            {
+                return DocumentId.CreateNewId(projectId, name);
+            }
+        }
+    }
+
+    extension(Solution solution)
+    {
+        public IEnumerable<Project> GetProjectsByName(string name)
         => solution.Projects.Where(p => string.Compare(p.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
-
-    internal static EventWaiter VerifyWorkspaceChangedEvent(this Workspace workspace, Action<WorkspaceChangeEventArgs> action)
-    {
-        var wew = new EventWaiter();
-        _ = workspace.RegisterWorkspaceChangedHandler(wew.Wrap(action));
-        return wew;
     }
 }

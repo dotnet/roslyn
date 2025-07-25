@@ -6,29 +6,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 internal static class LanguageVersionExtensions
 {
-    public static bool IsCSharp14OrAbove(this LanguageVersion languageVersion)
+    extension(LanguageVersion languageVersion)
+    {
+        public bool IsCSharp14OrAbove()
         => languageVersion >= LanguageVersion.Preview;
 
-    public static bool IsCSharp13OrAbove(this LanguageVersion languageVersion)
-        => languageVersion >= LanguageVersion.CSharp13;
+        public bool IsCSharp13OrAbove()
+            => languageVersion >= LanguageVersion.CSharp13;
 
-    public static bool IsCSharp12OrAbove(this LanguageVersion languageVersion)
-        => languageVersion >= LanguageVersion.CSharp12;
+        public bool IsCSharp12OrAbove()
+            => languageVersion >= LanguageVersion.CSharp12;
 
-    public static bool IsCSharp11OrAbove(this LanguageVersion languageVersion)
-        => languageVersion >= LanguageVersion.CSharp11;
+        public bool IsCSharp11OrAbove()
+            => languageVersion >= LanguageVersion.CSharp11;
 
-    public static bool HasConstantInterpolatedStrings(this LanguageVersion languageVersion)
-        => languageVersion >= LanguageVersion.CSharp10;
+        public bool HasConstantInterpolatedStrings()
+            => languageVersion >= LanguageVersion.CSharp10;
 
-    public static bool SupportsCollectionExpressions(this LanguageVersion languageVersion)
-        => languageVersion.IsCSharp12OrAbove();
+        public bool SupportsCollectionExpressions()
+            => languageVersion.IsCSharp12OrAbove();
 
-    public static bool SupportsPrimaryConstructors(this LanguageVersion languageVersion)
-        => languageVersion.IsCSharp12OrAbove();
+        public bool SupportsPrimaryConstructors()
+            => languageVersion.IsCSharp12OrAbove();
 
-    public static bool SupportsExtensions(this LanguageVersion languageVersion)
-        => languageVersion.IsCSharp14OrAbove();
+        public bool SupportsExtensions()
+            => languageVersion.IsCSharp14OrAbove();
+    }
 
     /// <remarks>
     /// Corresponds to Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.CSharpNext.

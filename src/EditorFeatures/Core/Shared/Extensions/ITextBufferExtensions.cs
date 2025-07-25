@@ -13,43 +13,74 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static partial class ITextBufferExtensions
 {
-    internal static bool IsInLspEditorContext(this ITextBuffer buffer)
+    extension(ITextBuffer buffer)
     {
-        if (buffer.TryGetWorkspace(out var workspace))
+        internal bool IsInLspEditorContext()
         {
-            var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
-            return workspaceContextService.IsInLspEditorContext();
+            if (buffer.TryGetWorkspace(out var workspace))
+            {
+                var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                return workspaceContextService.IsInLspEditorContext();
+            }
+
+            return false;
         }
 
-        return false;
+        internal bool TryGetWorkspace([NotNullWhen(true)] out Workspace? workspace)
+            => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace);
+
+        /// <summary>
+        /// Checks if a buffer supports refactorings.
+        /// </summary>
+        internal bool SupportsRefactorings()
+            => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsRefactorings(buffer);
+
+        /// <summary>
+        /// Checks if a buffer supports rename.
+        /// </summary>
+        internal bool SupportsRename()
+            => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsRename(buffer);
+
+        /// <summary>
+        /// Checks if a buffer supports code fixes.
+        /// </summary>
+        internal bool SupportsCodeFixes()
+            => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsCodeFixes(buffer);
+
+        /// <summary>
+        /// Checks if a buffer supports navigation.
+        /// </summary>
+        internal bool SupportsNavigationToAnyPosition()
+            => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsNavigationToAnyPosition(buffer);
+
+        public ITextSnapshot ApplyChange(TextChange change)
+        {
+            if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
+            {
+                return containedDocument.ApplyChanges([change]);
+            }
+
+            using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+            edit.Replace(change.Span.ToSpan(), change.NewText);
+            return edit.Apply();
+        }
+
+        public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes)
+        {
+            if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
+            {
+                return containedDocument.ApplyChanges(changes);
+            }
+
+            using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+            foreach (var change in changes)
+            {
+                edit.Replace(change.Span.ToSpan(), change.NewText);
+            }
+
+            return edit.Apply();
+        }
     }
-
-    internal static bool TryGetWorkspace(this ITextBuffer buffer, [NotNullWhen(true)] out Workspace? workspace)
-        => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace);
-
-    /// <summary>
-    /// Checks if a buffer supports refactorings.
-    /// </summary>
-    internal static bool SupportsRefactorings(this ITextBuffer buffer)
-        => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsRefactorings(buffer);
-
-    /// <summary>
-    /// Checks if a buffer supports rename.
-    /// </summary>
-    internal static bool SupportsRename(this ITextBuffer buffer)
-        => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsRename(buffer);
-
-    /// <summary>
-    /// Checks if a buffer supports code fixes.
-    /// </summary>
-    internal static bool SupportsCodeFixes(this ITextBuffer buffer)
-        => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsCodeFixes(buffer);
-
-    /// <summary>
-    /// Checks if a buffer supports navigation.
-    /// </summary>
-    internal static bool SupportsNavigationToAnyPosition(this ITextBuffer buffer)
-        => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsNavigationToAnyPosition(buffer);
 
     private static bool TryGetSupportsFeatureService(ITextBuffer buffer, [NotNullWhen(true)] out ITextBufferSupportsFeatureService? service)
     {
@@ -60,33 +91,5 @@ internal static partial class ITextBufferExtensions
         }
 
         return service != null;
-    }
-
-    public static ITextSnapshot ApplyChange(this ITextBuffer buffer, TextChange change)
-    {
-        if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
-        {
-            return containedDocument.ApplyChanges([change]);
-        }
-
-        using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
-        edit.Replace(change.Span.ToSpan(), change.NewText);
-        return edit.Apply();
-    }
-
-    public static ITextSnapshot ApplyChanges(this ITextBuffer buffer, IEnumerable<TextChange> changes)
-    {
-        if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
-        {
-            return containedDocument.ApplyChanges(changes);
-        }
-
-        using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
-        foreach (var change in changes)
-        {
-            edit.Replace(change.Span.ToSpan(), change.NewText);
-        }
-
-        return edit.Apply();
     }
 }

@@ -41,15 +41,21 @@ internal static class MemberDisplayOptionsStorage
 
 internal static class MemberDisplayOptionsProviders
 {
-    public static MemberDisplayOptions GetMemberDisplayOptions(this IOptionsReader reader, string language)
+    extension(IOptionsReader reader)
+    {
+        public MemberDisplayOptions GetMemberDisplayOptions(string language)
         => new()
         {
             HideAdvancedMembers = reader.GetOption(MemberDisplayOptionsStorage.HideAdvancedMembers, language)
         };
+    }
 
-    public static async ValueTask<MemberDisplayOptions> GetMemberDisplayOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetMemberDisplayOptions(document.Project.Language);
+        public async ValueTask<MemberDisplayOptions> GetMemberDisplayOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetMemberDisplayOptions(document.Project.Language);
+        }
     }
 }

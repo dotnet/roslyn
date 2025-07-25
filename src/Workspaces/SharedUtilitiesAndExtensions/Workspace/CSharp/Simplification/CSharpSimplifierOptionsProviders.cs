@@ -10,9 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
 internal static class CSharpSimplifierOptionsProviders
 {
-    public static async ValueTask<CSharpSimplifierOptions> GetCSharpSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return new CSharpSimplifierOptions(configOptions);
+        public async ValueTask<CSharpSimplifierOptions> GetCSharpSimplifierOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return new CSharpSimplifierOptions(configOptions);
+        }
     }
 }

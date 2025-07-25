@@ -8,41 +8,42 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class IRefactorNotifyServiceExtensions
 {
-    public static bool TryOnBeforeGlobalSymbolRenamed(
-        this IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+    extension(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+    {
+        public bool TryOnBeforeGlobalSymbolRenamed(
         Workspace workspace,
         IEnumerable<DocumentId> changedDocuments,
         ISymbol symbol,
         string newName,
         bool throwOnFailure)
-    {
-        foreach (var refactorNotifyService in refactorNotifyServices)
         {
-            if (!refactorNotifyService.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
+            foreach (var refactorNotifyService in refactorNotifyServices)
             {
-                return false;
+                if (!refactorNotifyService.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        return true;
-    }
-
-    public static bool TryOnAfterGlobalSymbolRenamed(
-        this IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-        Workspace workspace,
-        IEnumerable<DocumentId> changedDocuments,
-        ISymbol symbol,
-        string newName,
-        bool throwOnFailure)
-    {
-        foreach (var refactorNotifyService in refactorNotifyServices)
+        public bool TryOnAfterGlobalSymbolRenamed(
+            Workspace workspace,
+            IEnumerable<DocumentId> changedDocuments,
+            ISymbol symbol,
+            string newName,
+            bool throwOnFailure)
         {
-            if (!refactorNotifyService.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
+            foreach (var refactorNotifyService in refactorNotifyServices)
             {
-                return false;
+                if (!refactorNotifyService.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
+                {
+                    return false;
+                }
             }
-        }
 
-        return true;
+            return true;
+        }
     }
 }

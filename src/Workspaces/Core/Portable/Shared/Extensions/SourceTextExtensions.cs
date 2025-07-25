@@ -33,162 +33,170 @@ internal static partial class SourceTextExtensions
     /// </summary>
     private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], ObjectPoolCount);
 
-    public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
+    extension(SourceText text)
     {
-        var line = text.Lines.GetLineFromPosition(position);
-
-        lineNumber = line.LineNumber;
-        offset = position - line.Start;
-    }
-
-    public static int GetOffset(this SourceText text, int position)
-    {
-        GetLineAndOffset(text, position, out _, out var offset);
-        return offset;
-    }
-
-    public static void GetLinesAndOffsets(
-        this SourceText text,
-        TextSpan textSpan,
-        out int startLineNumber,
-        out int startOffset,
-        out int endLineNumber,
-        out int endOffset)
-    {
-        text.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
-        text.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
-    }
-
-    public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
-    {
-        var ranges = newText.GetChangeRanges(oldText);
-        if (ranges.Count == 0)
+        public void GetLineAndOffset(int position, out int lineNumber, out int offset)
         {
-            return default;
+            var line = text.Lines.GetLineFromPosition(position);
+
+            lineNumber = line.LineNumber;
+            offset = position - line.Start;
         }
 
-        // simple case.
-        if (ranges.Count == 1)
+        public int GetOffset(int position)
         {
-            return ranges[0];
+            GetLineAndOffset(text, position, out _, out var offset);
+            return offset;
         }
 
-        return TextChangeRange.Collapse(ranges);
-    }
-
-    public static int IndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)
-    {
-        var length = text.Length - value.Length;
-        var normalized = caseSensitive ? value : CaseInsensitiveComparison.ToLower(value);
-
-        for (var i = startIndex; i <= length; i++)
+        public void GetLinesAndOffsets(
+            TextSpan textSpan,
+            out int startLineNumber,
+            out int startOffset,
+            out int endLineNumber,
+            out int endOffset)
         {
-            var match = true;
-            for (var j = 0; j < normalized.Length; j++)
+            text.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
+            text.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
+        }
+
+        public int IndexOf(string value, int startIndex, bool caseSensitive)
+        {
+            var length = text.Length - value.Length;
+            var normalized = caseSensitive ? value : CaseInsensitiveComparison.ToLower(value);
+
+            for (var i = startIndex; i <= length; i++)
             {
-                // just use indexer of source text. perf of indexer depends on actual implementation of SourceText.
-                // * all of our implementation at editor layer should provide either O(1) or O(log n).
-                //
-                // only one implementation we have that could have bad indexer perf is CompositeText with heavily modified text
-                // at compiler layer but I believe that being used in find all reference will be very rare if not none.
-                if (!Match(normalized[j], text[i + j], caseSensitive))
+                var match = true;
+                for (var j = 0; j < normalized.Length; j++)
                 {
-                    match = false;
-                    break;
+                    // just use indexer of source text. perf of indexer depends on actual implementation of SourceText.
+                    // * all of our implementation at editor layer should provide either O(1) or O(log n).
+                    //
+                    // only one implementation we have that could have bad indexer perf is CompositeText with heavily modified text
+                    // at compiler layer but I believe that being used in find all reference will be very rare if not none.
+                    if (!Match(normalized[j], text[i + j], caseSensitive))
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    return i;
                 }
             }
 
-            if (match)
-            {
-                return i;
-            }
+            return -1;
         }
 
-        return -1;
-    }
-
-    public static int LastIndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)
-    {
-        var normalized = caseSensitive ? value : CaseInsensitiveComparison.ToLower(value);
-        startIndex = startIndex + normalized.Length > text.Length
-            ? text.Length - normalized.Length
-            : startIndex;
-
-        for (var i = startIndex; i >= 0; i--)
+        public int LastIndexOf(string value, int startIndex, bool caseSensitive)
         {
-            var match = true;
-            for (var j = 0; j < normalized.Length; j++)
+            var normalized = caseSensitive ? value : CaseInsensitiveComparison.ToLower(value);
+            startIndex = startIndex + normalized.Length > text.Length
+                ? text.Length - normalized.Length
+                : startIndex;
+
+            for (var i = startIndex; i >= 0; i--)
             {
-                // just use indexer of source text. perf of indexer depends on actual implementation of SourceText.
-                // * all of our implementation at editor layer should provide either O(1) or O(log n).
-                //
-                // only one implementation we have that could have bad indexer perf is CompositeText with heavily modified text
-                // at compiler layer but I believe that being used in find all reference will be very rare if not none.
-                if (!Match(normalized[j], text[i + j], caseSensitive))
+                var match = true;
+                for (var j = 0; j < normalized.Length; j++)
                 {
-                    match = false;
-                    break;
+                    // just use indexer of source text. perf of indexer depends on actual implementation of SourceText.
+                    // * all of our implementation at editor layer should provide either O(1) or O(log n).
+                    //
+                    // only one implementation we have that could have bad indexer perf is CompositeText with heavily modified text
+                    // at compiler layer but I believe that being used in find all reference will be very rare if not none.
+                    if (!Match(normalized[j], text[i + j], caseSensitive))
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    return i;
                 }
             }
 
-            if (match)
-            {
-                return i;
-            }
+            return -1;
         }
 
-        return -1;
+        public bool ContentEquals(int position, string value)
+        {
+            if (position + value.Length > text.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (text[position + i] != value[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int IndexOfNonWhiteSpace(int start, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                if (!char.IsWhiteSpace(text[start + i]))
+                {
+                    return start + i;
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    extension(SourceText newText)
+    {
+        public TextChangeRange GetEncompassingTextChangeRange(SourceText oldText)
+        {
+            var ranges = newText.GetChangeRanges(oldText);
+            if (ranges.Count == 0)
+            {
+                return default;
+            }
+
+            // simple case.
+            if (ranges.Count == 1)
+            {
+                return ranges[0];
+            }
+
+            return TextChangeRange.Collapse(ranges);
+        }
     }
 
     private static bool Match(char normalizedLeft, char right, bool caseSensitive)
         => caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
 
-    public static bool ContentEquals(this SourceText text, int position, string value)
+    extension(SourceText sourceText)
     {
-        if (position + value.Length > text.Length)
+        public void WriteTo(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            return false;
-        }
+            // Source length
+            var length = sourceText.Length;
+            writer.WriteInt32(length);
 
-        for (var i = 0; i < value.Length; i++)
-        {
-            if (text[position + i] != value[i])
+            // if source is small, no point on optimizing. just write out string
+            if (length < SourceTextLengthThreshold)
             {
-                return false;
+                writer.WriteString(sourceText.ToString());
             }
-        }
-
-        return true;
-    }
-
-    public static int IndexOfNonWhiteSpace(this SourceText text, int start, int length)
-    {
-        for (var i = 0; i < length; i++)
-        {
-            if (!char.IsWhiteSpace(text[start + i]))
+            else
             {
-                return start + i;
+                // if bigger, write out as chunks
+                WriteChunksTo(sourceText, writer, length, cancellationToken);
             }
-        }
-
-        return -1;
-    }
-
-    public static void WriteTo(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
-    {
-        // Source length
-        var length = sourceText.Length;
-        writer.WriteInt32(length);
-
-        // if source is small, no point on optimizing. just write out string
-        if (length < SourceTextLengthThreshold)
-        {
-            writer.WriteString(sourceText.ToString());
-        }
-        else
-        {
-            // if bigger, write out as chunks
-            WriteChunksTo(sourceText, writer, length, cancellationToken);
         }
     }
 

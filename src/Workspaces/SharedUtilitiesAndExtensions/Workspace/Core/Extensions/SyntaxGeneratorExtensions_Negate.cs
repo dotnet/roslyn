@@ -30,109 +30,109 @@ internal static partial class SyntaxGeneratorExtensions
             { BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr },
         }.ToImmutableDictionary();
 
-    public static SyntaxNode Negate(
-        this SyntaxGenerator generator,
+    extension(SyntaxGenerator generator)
+    {
+        public SyntaxNode Negate(
         SyntaxGeneratorInternal generatorInternal,
         SyntaxNode expression,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
-    {
-        return Negate(generator, generatorInternal, expression, semanticModel, negateBinary: true, cancellationToken);
-    }
-
-    public static SyntaxNode Negate(
-        this SyntaxGenerator generator,
-        SyntaxGeneratorInternal generatorInternal,
-        SyntaxNode expressionOrPattern,
-        SemanticModel semanticModel,
-        bool negateBinary,
-        CancellationToken cancellationToken)
-    {
-        return Negate(generator, generatorInternal, expressionOrPattern, semanticModel, negateBinary, patternValueType: null, cancellationToken);
-    }
-
-    public static SyntaxNode Negate(
-        this SyntaxGenerator generator,
-        SyntaxGeneratorInternal generatorInternal,
-        SyntaxNode expressionOrPattern,
-        SemanticModel semanticModel,
-        bool negateBinary,
-        SpecialType? patternValueType,
-        CancellationToken cancellationToken)
-    {
-        var options = semanticModel.SyntaxTree.Options;
-        var syntaxFacts = generatorInternal.SyntaxFacts;
-
-        if (syntaxFacts.IsParenthesizedExpression(expressionOrPattern))
         {
-            return generatorInternal.AddParentheses(
-                generator.Negate(
-                    generatorInternal,
-                    syntaxFacts.GetExpressionOfParenthesizedExpression(expressionOrPattern),
-                    semanticModel,
-                    negateBinary,
-                    cancellationToken))
-                .WithTriviaFrom(expressionOrPattern);
+            return Negate(generator, generatorInternal, expression, semanticModel, negateBinary: true, cancellationToken);
         }
 
-        if (negateBinary && syntaxFacts.IsBinaryExpression(expressionOrPattern))
-            return GetNegationOfBinaryExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
-
-        if (syntaxFacts.IsLiteralExpression(expressionOrPattern))
-            return GetNegationOfLiteralExpression(expressionOrPattern, generator, semanticModel);
-
-        if (syntaxFacts.IsLogicalNotExpression(expressionOrPattern))
-            return GetNegationOfLogicalNotExpression(expressionOrPattern, syntaxFacts);
-
-        if (negateBinary && syntaxFacts.IsIsPatternExpression(expressionOrPattern))
-            return GetNegationOfIsPatternExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
-
-        if (syntaxFacts.IsParenthesizedPattern(expressionOrPattern))
+        public SyntaxNode Negate(
+            SyntaxGeneratorInternal generatorInternal,
+            SyntaxNode expressionOrPattern,
+            SemanticModel semanticModel,
+            bool negateBinary,
+            CancellationToken cancellationToken)
         {
-            // Push the negation inside the parenthesized pattern.
-            return generatorInternal.AddParentheses(
-                generator.Negate(
-                    generatorInternal,
-                    syntaxFacts.GetPatternOfParenthesizedPattern(expressionOrPattern),
-                    semanticModel,
-                    negateBinary,
-                    cancellationToken))
-                .WithTriviaFrom(expressionOrPattern);
+            return Negate(generator, generatorInternal, expressionOrPattern, semanticModel, negateBinary, patternValueType: null, cancellationToken);
         }
 
-        if (negateBinary && syntaxFacts.IsBinaryPattern(expressionOrPattern))
-            return GetNegationOfBinaryPattern(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
-
-        if (syntaxFacts.IsConstantPattern(expressionOrPattern))
-            return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, patternValueType);
-
-        if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
-            return GetNegationOfUnaryPattern(expressionOrPattern, generator, generatorInternal, syntaxFacts);
-
-        if (syntaxFacts.IsIsTypeExpression(expressionOrPattern))
+        public SyntaxNode Negate(
+            SyntaxGeneratorInternal generatorInternal,
+            SyntaxNode expressionOrPattern,
+            SemanticModel semanticModel,
+            bool negateBinary,
+            SpecialType? patternValueType,
+            CancellationToken cancellationToken)
         {
-            syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
-            if (syntaxFacts.SupportsNotPattern(options))
-                return generatorInternal.IsPatternExpression(expression, generatorInternal.NotPattern(type));
+            var options = semanticModel.SyntaxTree.Options;
+            var syntaxFacts = generatorInternal.SyntaxFacts;
 
-            if (syntaxFacts.SupportsIsNotTypeExpression(options))
-                return generatorInternal.IsNotTypeExpression(expression, type);
+            if (syntaxFacts.IsParenthesizedExpression(expressionOrPattern))
+            {
+                return generatorInternal.AddParentheses(
+                    generator.Negate(
+                        generatorInternal,
+                        syntaxFacts.GetExpressionOfParenthesizedExpression(expressionOrPattern),
+                        semanticModel,
+                        negateBinary,
+                        cancellationToken))
+                    .WithTriviaFrom(expressionOrPattern);
+            }
+
+            if (negateBinary && syntaxFacts.IsBinaryExpression(expressionOrPattern))
+                return GetNegationOfBinaryExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
+
+            if (syntaxFacts.IsLiteralExpression(expressionOrPattern))
+                return GetNegationOfLiteralExpression(expressionOrPattern, generator, semanticModel);
+
+            if (syntaxFacts.IsLogicalNotExpression(expressionOrPattern))
+                return GetNegationOfLogicalNotExpression(expressionOrPattern, syntaxFacts);
+
+            if (negateBinary && syntaxFacts.IsIsPatternExpression(expressionOrPattern))
+                return GetNegationOfIsPatternExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
+
+            if (syntaxFacts.IsParenthesizedPattern(expressionOrPattern))
+            {
+                // Push the negation inside the parenthesized pattern.
+                return generatorInternal.AddParentheses(
+                    generator.Negate(
+                        generatorInternal,
+                        syntaxFacts.GetPatternOfParenthesizedPattern(expressionOrPattern),
+                        semanticModel,
+                        negateBinary,
+                        cancellationToken))
+                    .WithTriviaFrom(expressionOrPattern);
+            }
+
+            if (negateBinary && syntaxFacts.IsBinaryPattern(expressionOrPattern))
+                return GetNegationOfBinaryPattern(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
+
+            if (syntaxFacts.IsConstantPattern(expressionOrPattern))
+                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, patternValueType);
+
+            if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
+                return GetNegationOfUnaryPattern(expressionOrPattern, generator, generatorInternal, syntaxFacts);
+
+            if (syntaxFacts.IsIsTypeExpression(expressionOrPattern))
+            {
+                syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+                if (syntaxFacts.SupportsNotPattern(options))
+                    return generatorInternal.IsPatternExpression(expression, generatorInternal.NotPattern(type));
+
+                if (syntaxFacts.SupportsIsNotTypeExpression(options))
+                    return generatorInternal.IsNotTypeExpression(expression, type);
+            }
+
+            if (syntaxFacts.IsIsNotTypeExpression(expressionOrPattern))
+            {
+                syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+                return generator.IsTypeExpression(expression, type);
+            }
+
+            if (syntaxFacts.IsRelationalPattern(expressionOrPattern))
+            {
+                return GetNegationOfRelationalPattern(expressionOrPattern, generatorInternal, patternValueType);
+            }
+
+            return syntaxFacts.IsAnyPattern(expressionOrPattern)
+                ? generatorInternal.NotPattern(expressionOrPattern)
+                : generator.LogicalNotExpression(expressionOrPattern);
         }
-
-        if (syntaxFacts.IsIsNotTypeExpression(expressionOrPattern))
-        {
-            syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
-            return generator.IsTypeExpression(expression, type);
-        }
-
-        if (syntaxFacts.IsRelationalPattern(expressionOrPattern))
-        {
-            return GetNegationOfRelationalPattern(expressionOrPattern, generatorInternal, patternValueType);
-        }
-
-        return syntaxFacts.IsAnyPattern(expressionOrPattern)
-            ? generatorInternal.NotPattern(expressionOrPattern)
-            : generator.LogicalNotExpression(expressionOrPattern);
     }
 
     private static SyntaxNode GetNegationOfBinaryExpression(

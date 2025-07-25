@@ -9,9 +9,11 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class IDictionaryExtensions
     {
-        public static bool IsEqualTo<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, IReadOnlyDictionary<TKey, TValue> other)
-            where TKey : notnull
+        extension<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> dictionary) where TKey : notnull
+        {
+            public bool IsEqualTo(IReadOnlyDictionary<TKey, TValue> other)
             => dictionary.Count == other.Count &&
                 dictionary.Keys.All(key => other.ContainsKey(key) && dictionary[key]?.Equals(other[key]) == true);
+        }
     }
 }

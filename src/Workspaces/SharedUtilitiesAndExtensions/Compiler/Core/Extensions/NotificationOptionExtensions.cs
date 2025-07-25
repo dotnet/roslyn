@@ -8,6 +8,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle;
 
 internal static class NotificationOptionExtensions
 {
-    public static string ToEditorConfigString(this NotificationOption2 notificationOption)
+    extension(NotificationOption2 notificationOption)
+    {
+        public string ToEditorConfigString()
         => notificationOption.Severity.ToEditorConfigString();
+    }
 }

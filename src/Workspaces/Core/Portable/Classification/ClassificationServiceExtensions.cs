@@ -12,46 +12,45 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal static partial class ClassificationServiceExtensions
 {
-    public static void AddSyntacticClassifications(
-        this IClassificationService classificationService,
+    extension(IClassificationService classificationService)
+    {
+        public void AddSyntacticClassifications(
         SolutionServices services,
         SyntaxNode? root,
         TextSpan textSpan,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
-    {
-        classificationService.AddSyntacticClassifications(services, root, [textSpan], result, cancellationToken);
-    }
+        {
+            classificationService.AddSyntacticClassifications(services, root, [textSpan], result, cancellationToken);
+        }
 
-    public static Task AddSyntacticClassificationsAsync(
-        this IClassificationService classificationService,
-        Document document,
-        TextSpan textSpan,
-        SegmentedList<ClassifiedSpan> result,
-        CancellationToken cancellationToken)
-    {
-        return classificationService.AddSyntacticClassificationsAsync(document, [textSpan], result, cancellationToken);
-    }
+        public Task AddSyntacticClassificationsAsync(
+            Document document,
+            TextSpan textSpan,
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
+        {
+            return classificationService.AddSyntacticClassificationsAsync(document, [textSpan], result, cancellationToken);
+        }
 
-    public static Task AddSemanticClassificationsAsync(
-        this IClassificationService classificationService,
-        Document document,
-        TextSpan textSpan,
-        ClassificationOptions options,
-        SegmentedList<ClassifiedSpan> result,
-        CancellationToken cancellationToken)
-    {
-        return classificationService.AddSemanticClassificationsAsync(document, [textSpan], options, result, cancellationToken);
-    }
+        public Task AddSemanticClassificationsAsync(
+            Document document,
+            TextSpan textSpan,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
+        {
+            return classificationService.AddSemanticClassificationsAsync(document, [textSpan], options, result, cancellationToken);
+        }
 
-    public static Task AddEmbeddedLanguageClassificationsAsync(
-        this IClassificationService classificationService,
-        Document document,
-        TextSpan textSpan,
-        ClassificationOptions options,
-        SegmentedList<ClassifiedSpan> result,
-        CancellationToken cancellationToken)
-    {
-        return classificationService.AddEmbeddedLanguageClassificationsAsync(document, [textSpan], options, result, cancellationToken);
+        public Task AddEmbeddedLanguageClassificationsAsync(
+            Document document,
+            TextSpan textSpan,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
+        {
+            return classificationService.AddEmbeddedLanguageClassificationsAsync(document, [textSpan], options, result, cancellationToken);
+        }
     }
 }

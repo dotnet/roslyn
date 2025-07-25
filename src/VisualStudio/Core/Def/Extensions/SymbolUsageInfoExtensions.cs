@@ -8,55 +8,58 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class SymbolUsageInfoExtensions
 {
-    /// <summary>
-    /// Converts our internal symbol usage info representation to platform layer's representation <see
-    /// cref="SymbolReferenceKinds"/>
-    /// </summary>
-    public static SymbolReferenceKinds ToSymbolReferenceKinds(this SymbolUsageInfo symbolUsageInfo)
+    extension(SymbolUsageInfo symbolUsageInfo)
     {
-        var kinds = SymbolReferenceKinds.None;
-
-        if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+        /// <summary>
+        /// Converts our internal symbol usage info representation to platform layer's representation <see
+        /// cref="SymbolReferenceKinds"/>
+        /// </summary>
+        public SymbolReferenceKinds ToSymbolReferenceKinds()
         {
-            var usageInfo = symbolUsageInfo.ValueUsageInfoOpt.Value;
-            if (usageInfo.IsReadFrom())
-                kinds |= SymbolReferenceKinds.Read;
+            var kinds = SymbolReferenceKinds.None;
 
-            if (usageInfo.IsWrittenTo())
-                kinds |= SymbolReferenceKinds.Write;
+            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.ValueUsageInfoOpt.Value;
+                if (usageInfo.IsReadFrom())
+                    kinds |= SymbolReferenceKinds.Read;
 
-            if (usageInfo.IsReference())
-                kinds |= SymbolReferenceKinds.Reference;
+                if (usageInfo.IsWrittenTo())
+                    kinds |= SymbolReferenceKinds.Write;
 
-            if (usageInfo.IsNameOnly())
-                kinds |= SymbolReferenceKinds.Name;
+                if (usageInfo.IsReference())
+                    kinds |= SymbolReferenceKinds.Reference;
+
+                if (usageInfo.IsNameOnly())
+                    kinds |= SymbolReferenceKinds.Name;
+            }
+
+            if (symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Qualified) != 0)
+                    kinds |= SymbolReferenceKinds.Qualified;
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeArgument) != 0)
+                    kinds |= SymbolReferenceKinds.TypeArgument;
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeConstraint) != 0)
+                    kinds |= SymbolReferenceKinds.TypeConstraint;
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Base) != 0)
+                    kinds |= SymbolReferenceKinds.BaseType;
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.ObjectCreation) != 0)
+                    kinds |= SymbolReferenceKinds.Construct;
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Import) != 0)
+                    kinds |= SymbolReferenceKinds.Import;
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.NamespaceDeclaration) != 0)
+                    kinds |= SymbolReferenceKinds.Declare;
+            }
+
+            return kinds;
         }
-
-        if (symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.HasValue)
-        {
-            var usageInfo = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
-            if ((usageInfo & TypeOrNamespaceUsageInfo.Qualified) != 0)
-                kinds |= SymbolReferenceKinds.Qualified;
-
-            if ((usageInfo & TypeOrNamespaceUsageInfo.TypeArgument) != 0)
-                kinds |= SymbolReferenceKinds.TypeArgument;
-
-            if ((usageInfo & TypeOrNamespaceUsageInfo.TypeConstraint) != 0)
-                kinds |= SymbolReferenceKinds.TypeConstraint;
-
-            if ((usageInfo & TypeOrNamespaceUsageInfo.Base) != 0)
-                kinds |= SymbolReferenceKinds.BaseType;
-
-            if ((usageInfo & TypeOrNamespaceUsageInfo.ObjectCreation) != 0)
-                kinds |= SymbolReferenceKinds.Construct;
-
-            if ((usageInfo & TypeOrNamespaceUsageInfo.Import) != 0)
-                kinds |= SymbolReferenceKinds.Import;
-
-            if ((usageInfo & TypeOrNamespaceUsageInfo.NamespaceDeclaration) != 0)
-                kinds |= SymbolReferenceKinds.Declare;
-        }
-
-        return kinds;
     }
 }

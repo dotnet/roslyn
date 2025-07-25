@@ -121,9 +121,12 @@ internal static class IWpfDifferenceViewerExtensions
             => !double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0;
     }
 
-    public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, IThreadingContext threadingContext, double minWidth = 400.0, CancellationToken cancellationToken = default)
+    extension(IWpfDifferenceViewer diffViewer)
     {
-        var helper = new SizeToFitHelper(threadingContext, diffViewer, minWidth);
-        return helper.SizeToFitAsync(cancellationToken);
+        public Task SizeToFitAsync(IThreadingContext threadingContext, double minWidth = 400.0, CancellationToken cancellationToken = default)
+        {
+            var helper = new SizeToFitHelper(threadingContext, diffViewer, minWidth);
+            return helper.SizeToFitAsync(cancellationToken);
+        }
     }
 }

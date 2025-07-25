@@ -39,6 +39,9 @@ internal abstract class AbstractPrecedenceService<
 
 internal static class PrecedenceServiceExtensions
 {
-    public static PrecedenceKind GetPrecedenceKind(this IPrecedenceService service, SyntaxNode expression)
+    extension(IPrecedenceService service)
+    {
+        public PrecedenceKind GetPrecedenceKind(SyntaxNode expression)
         => service.GetPrecedenceKind(service.GetOperatorPrecedence(expression));
+    }
 }

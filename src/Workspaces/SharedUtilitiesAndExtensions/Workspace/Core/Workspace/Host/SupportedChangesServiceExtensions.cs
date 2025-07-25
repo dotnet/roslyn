@@ -6,9 +6,15 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class SupportedChangesServiceExtensions
 {
-    public static bool CanApplyChange(this Solution solution, ApplyChangesKind kind)
+    extension(Solution solution)
+    {
+        public bool CanApplyChange(ApplyChangesKind kind)
         => solution.Services.GetRequiredService<ISupportedChangesService>().CanApplyChange(kind);
+    }
 
-    public static bool CanApplyParseOptionChange(this Project project, ParseOptions oldOptions, ParseOptions newOptions)
+    extension(Project project)
+    {
+        public bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions)
         => project.Solution.Services.GetRequiredService<ISupportedChangesService>().CanApplyParseOptionChange(oldOptions, newOptions, project);
+    }
 }

@@ -20,17 +20,23 @@ internal readonly record struct AddImportOptions(
 
 internal static class AddImportOptionsProviders
 {
-    public static AddImportOptions GetAddImportOptions(this IOptionsReader options, LanguageServices languageServices, SymbolSearchOptions searchOptions, bool allowImportsInHiddenRegions)
+    extension(IOptionsReader options)
+    {
+        public AddImportOptions GetAddImportOptions(LanguageServices languageServices, SymbolSearchOptions searchOptions, bool allowImportsInHiddenRegions)
         => new()
         {
             SearchOptions = searchOptions,
             CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions),
             MemberDisplayOptions = options.GetMemberDisplayOptions(languageServices.Language)
         };
+    }
 
-    public static async ValueTask<AddImportOptions> GetAddImportOptionsAsync(this Document document, SymbolSearchOptions searchOptions, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetAddImportOptions(document.Project.Services, searchOptions, document.AllowImportsInHiddenRegions());
+        public async ValueTask<AddImportOptions> GetAddImportOptionsAsync(SymbolSearchOptions searchOptions, CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetAddImportOptions(document.Project.Services, searchOptions, document.AllowImportsInHiddenRegions());
+        }
     }
 }

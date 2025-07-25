@@ -407,14 +407,17 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        internal static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol member)
+        extension(ISymbol member)
         {
-            return member.Kind switch
+            internal ImmutableArray<IParameterSymbol> GetParameters()
             {
-                SymbolKind.Method => ((IMethodSymbol)member).Parameters,
-                SymbolKind.Property => ((IPropertySymbol)member).Parameters,
-                _ => ImmutableArray<IParameterSymbol>.Empty,
-            };
+                return member.Kind switch
+                {
+                    SymbolKind.Method => ((IMethodSymbol)member).Parameters,
+                    SymbolKind.Property => ((IPropertySymbol)member).Parameters,
+                    _ => ImmutableArray<IParameterSymbol>.Empty,
+                };
+            }
         }
     }
 }

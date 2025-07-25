@@ -28,15 +28,18 @@ internal interface IAddMissingImportsFeatureService : ILanguageService
 
 internal static class IAddMissingImportsFeatureServiceExtensions
 {
-    /// <summary>
-    /// Attempts to add missing imports to the document within the provided <paramref name="textSpan"/>. The imports
-    /// added will not add references to the project. 
-    /// </summary>
-    public static async Task<Document> AddMissingImportsAsync(
-        this IAddMissingImportsFeatureService service, Document document, TextSpan textSpan, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    extension(IAddMissingImportsFeatureService service)
     {
-        var analysisResult = await service.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        return await service.AddMissingImportsAsync(
-            document, analysisResult, progressTracker, cancellationToken).ConfigureAwait(false);
+        /// <summary>
+        /// Attempts to add missing imports to the document within the provided <paramref name="textSpan"/>. The imports
+        /// added will not add references to the project. 
+        /// </summary>
+        public async Task<Document> AddMissingImportsAsync(
+    Document document, TextSpan textSpan, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+        {
+            var analysisResult = await service.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            return await service.AddMissingImportsAsync(
+                document, analysisResult, progressTracker, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Serialization;
 
 internal static class SerializationExtensions
 {
-    public static WellKnownSynchronizationKind GetWellKnownSynchronizationKind(this object value)
+    extension(object value)
+    {
+        public WellKnownSynchronizationKind GetWellKnownSynchronizationKind()
         => value switch
         {
             SolutionCompilationStateChecksums => WellKnownSynchronizationKind.SolutionCompilationState,
@@ -32,11 +34,15 @@ internal static class SerializationExtensions
             ImmutableDictionary<string, StructuredAnalyzerConfigOptions> => WellKnownSynchronizationKind.FallbackAnalyzerOptions,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
+    }
 
-    public static CompilationOptions FixUpCompilationOptions(this ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
+    extension(ProjectInfo.ProjectAttributes info)
     {
-        return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
-                                 .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info), Path.GetTempPath()));
+        public CompilationOptions FixUpCompilationOptions(CompilationOptions compilationOptions)
+        {
+            return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
+                                     .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info), Path.GetTempPath()));
+        }
     }
 
     private static XmlFileResolver GetXmlResolver(string? filePath)

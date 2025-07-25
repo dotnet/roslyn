@@ -8,9 +8,12 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions;
 
 internal static class SnapshotPointExtensions
 {
-    public static void Deconstruct(this SnapshotPoint snapshotPoint, out ITextSnapshot snapshot, out int position)
+    extension(SnapshotPoint snapshotPoint)
     {
-        snapshot = snapshotPoint.Snapshot;
-        position = snapshotPoint.Position;
+        public void Deconstruct(out ITextSnapshot snapshot, out int position)
+        {
+            snapshot = snapshotPoint.Snapshot;
+            position = snapshotPoint.Position;
+        }
     }
 }

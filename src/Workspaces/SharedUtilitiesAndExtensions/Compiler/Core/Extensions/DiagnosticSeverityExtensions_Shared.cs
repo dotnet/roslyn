@@ -8,15 +8,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class DiagnosticSeverityExtensions
 {
-    public static string ToEditorConfigString(this DiagnosticSeverity diagnosticSeverity)
+    extension(DiagnosticSeverity diagnosticSeverity)
     {
-        return diagnosticSeverity switch
+        public string ToEditorConfigString()
         {
-            DiagnosticSeverity.Hidden => EditorConfigSeverityStrings.Silent,
-            DiagnosticSeverity.Info => EditorConfigSeverityStrings.Suggestion,
-            DiagnosticSeverity.Warning => EditorConfigSeverityStrings.Warning,
-            DiagnosticSeverity.Error => EditorConfigSeverityStrings.Error,
-            _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity)
-        };
+            return diagnosticSeverity switch
+            {
+                DiagnosticSeverity.Hidden => EditorConfigSeverityStrings.Silent,
+                DiagnosticSeverity.Info => EditorConfigSeverityStrings.Suggestion,
+                DiagnosticSeverity.Warning => EditorConfigSeverityStrings.Warning,
+                DiagnosticSeverity.Error => EditorConfigSeverityStrings.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity)
+            };
+        }
     }
 }

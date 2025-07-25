@@ -6,9 +6,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal static class ControlFlowBranchExtensions
     {
-        public static bool IsBackEdge(this ControlFlowBranch controlFlowBranch)
+        extension(ControlFlowBranch controlFlowBranch)
+        {
+            public bool IsBackEdge()
             => controlFlowBranch?.Source != null &&
                controlFlowBranch.Destination != null &&
                controlFlowBranch.Source.Ordinal >= controlFlowBranch.Destination.Ordinal;
+        }
     }
 }

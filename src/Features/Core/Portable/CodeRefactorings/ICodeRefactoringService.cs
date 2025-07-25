@@ -19,6 +19,9 @@ internal interface ICodeRefactoringService
 
 internal static class ICodeRefactoringServiceExtensions
 {
-    public static Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(this ICodeRefactoringService service, TextDocument document, TextSpan state, CancellationToken cancellationToken)
+    extension(ICodeRefactoringService service)
+    {
+        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(TextDocument document, TextSpan state, CancellationToken cancellationToken)
         => service.GetRefactoringsAsync(document, state, priority: null, cancellationToken);
+    }
 }

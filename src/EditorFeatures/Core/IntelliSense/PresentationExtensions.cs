@@ -11,26 +11,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 
 internal static class PresentationExtensions
 {
-    internal static ImmutableArray<object> ToInteractiveVsTextAdornments(
-        this ImmutableArray<TaggedText> taggedTexts,
+    extension(ImmutableArray<TaggedText> taggedTexts)
+    {
+        internal ImmutableArray<object> ToInteractiveVsTextAdornments(
         INavigationActionFactory? navigationActionFactory)
         => taggedTexts.ToInteractiveTextElements(navigationActionFactory).SelectAsArray(ToVsElement);
+    }
 
-    public static VisualStudio.Text.Adornments.ImageElement ToVsElement(this QuickInfoGlyphElement element)
+    extension(QuickInfoGlyphElement element)
+    {
+        public VisualStudio.Text.Adornments.ImageElement ToVsElement()
         => new(element.Glyph.GetImageId());
+    }
 
-    public static VisualStudio.Text.Adornments.ClassifiedTextRun ToVsRun(this QuickInfoClassifiedTextRun run)
+    extension(QuickInfoClassifiedTextRun run)
+    {
+        public VisualStudio.Text.Adornments.ClassifiedTextRun ToVsRun()
         => run.NavigationAction is not null
             ? new(run.ClassificationTypeName, run.Text, run.NavigationAction, run.Tooltip, (VisualStudio.Text.Adornments.ClassifiedTextRunStyle)run.Style)
             : new(run.ClassificationTypeName, run.Text, (VisualStudio.Text.Adornments.ClassifiedTextRunStyle)run.Style);
+    }
 
-    public static VisualStudio.Text.Adornments.ClassifiedTextElement ToVsElement(this QuickInfoClassifiedTextElement element)
+    extension(QuickInfoClassifiedTextElement element)
+    {
+        public VisualStudio.Text.Adornments.ClassifiedTextElement ToVsElement()
         => new(element.Runs.Select(ToVsRun));
+    }
 
-    public static VisualStudio.Text.Adornments.ContainerElement ToVsElement(this QuickInfoContainerElement element)
+    extension(QuickInfoContainerElement element)
+    {
+        public VisualStudio.Text.Adornments.ContainerElement ToVsElement()
         => new((VisualStudio.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(ToVsElement));
+    }
 
-    public static object ToVsElement(this QuickInfoElement value)
+    extension(QuickInfoElement value)
+    {
+        public object ToVsElement()
         => value switch
         {
             QuickInfoGlyphElement element => element.ToVsElement(),
@@ -39,4 +55,5 @@ internal static class PresentationExtensions
 
             _ => value
         };
+    }
 }

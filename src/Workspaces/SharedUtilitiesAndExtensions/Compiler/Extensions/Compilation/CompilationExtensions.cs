@@ -26,350 +26,353 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class CompilationExtensions
 {
-    public static ImmutableArray<Compilation> GetReferencedCompilations(this Compilation compilation)
+    extension(Compilation compilation)
     {
-        var builder = ArrayBuilder<Compilation>.GetInstance();
-
-        foreach (var reference in compilation.References.OfType<CompilationReference>())
+        public ImmutableArray<Compilation> GetReferencedCompilations()
         {
-            builder.Add(reference.Compilation);
-        }
+            var builder = ArrayBuilder<Compilation>.GetInstance();
 
-        var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
-        while (previous != null)
-        {
-            builder.Add(previous);
-            previous = previous.ScriptCompilationInfo?.PreviousScriptCompilation;
-        }
-
-        return builder.ToImmutableAndFree();
-    }
-
-    public static ImmutableArray<IAssemblySymbol> GetReferencedAssemblySymbols(this Compilation compilation, bool excludePreviousSubmissions = false)
-    {
-        // The first module of every assembly is its source module and the source
-        // module always has the list of all referenced assemblies.
-        var referencedAssemblySymbols = compilation.Assembly.Modules.First().ReferencedAssemblySymbols;
-
-        if (excludePreviousSubmissions)
-        {
-            return referencedAssemblySymbols;
-        }
-
-        // Do a quick check first to avoid unnecessary allocations in case this is not a script compilation.
-        var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
-        if (previous is null)
-        {
-            return referencedAssemblySymbols;
-        }
-
-        var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
-        builder.AddRange(referencedAssemblySymbols);
-
-        while (previous != null)
-        {
-            builder.Add(previous.Assembly);
-            previous = previous.ScriptCompilationInfo?.PreviousScriptCompilation;
-        }
-
-        return builder.ToImmutableAndFree();
-    }
-
-    public static INamedTypeSymbol? ArgumentExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
-
-    public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
-
-    public static INamedTypeSymbol? ArgumentOutOfRangeExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ArgumentOutOfRangeException).FullName!);
-
-    public static INamedTypeSymbol? ArrayType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
-
-    public static INamedTypeSymbol? AttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
-
-    public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
-
-    public static INamedTypeSymbol? CollectionOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName!);
-
-    public static INamedTypeSymbol? ExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
-
-    public static INamedTypeSymbol? DebuggerDisplayAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName!);
-
-    public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
-
-    public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
-
-    public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
-
-    public static INamedTypeSymbol? DesignerGeneratedAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute");
-
-    public static INamedTypeSymbol? HideModuleNameAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
-
-    public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
-
-    public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
-
-    public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
-
-    public static INamedTypeSymbol? NotImplementedExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName!);
-
-    public static INamedTypeSymbol? EqualityComparerOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName!);
-
-    public static INamedTypeSymbol? ActionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Action).FullName!);
-
-    public static INamedTypeSymbol? ExpressionOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
-
-    public static INamedTypeSymbol? EditorBrowsableAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EditorBrowsableAttribute).FullName!);
-
-    public static INamedTypeSymbol? EditorBrowsableStateType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EditorBrowsableState).FullName!);
-
-    public static INamedTypeSymbol? TaskType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Task).FullName!);
-
-    public static INamedTypeSymbol? TaskOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Task<>).FullName!);
-
-    public static INamedTypeSymbol? ValueTaskType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
-
-    public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
-
-    public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);
-
-    public static INamedTypeSymbol? IEnumerableOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
-
-    public static INamedTypeSymbol? IEnumeratorOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName!);
-
-    public static INamedTypeSymbol? IListOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IList<>).FullName!);
-
-    public static INamedTypeSymbol? IReadOnlyListOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName!);
-
-    public static INamedTypeSymbol? ISetOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ISet<>).FullName!);
-
-    public static INamedTypeSymbol? IReadOnlySetOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName!);
-
-    public static INamedTypeSymbol? IAsyncEnumerableOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");
-
-    public static INamedTypeSymbol? IAsyncEnumeratorOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerator`1");
-
-    public static INamedTypeSymbol? ImmutableArrayOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName!);
-
-    public static INamedTypeSymbol? SerializableAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName!);
-
-    public static INamedTypeSymbol? CoClassType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(CoClassAttribute).FullName!);
-
-    public static INamedTypeSymbol? ComAliasNameAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ComAliasNameAttribute).FullName!);
-
-    public static INamedTypeSymbol? SuppressMessageAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(SuppressMessageAttribute).FullName!);
-
-    public static INamedTypeSymbol? TupleElementNamesAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName!);
-
-    public static INamedTypeSymbol? NativeIntegerAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute");
-
-    public static INamedTypeSymbol? DynamicAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName!);
-
-    public static INamedTypeSymbol? LazyOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName!);
-
-    public static INamedTypeSymbol? ISerializableType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ISerializable).FullName!);
-
-    public static INamedTypeSymbol? SerializationInfoType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(SerializationInfo).FullName!);
-
-    public static INamedTypeSymbol? StreamingContextType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(StreamingContext).FullName!);
-
-    public static INamedTypeSymbol? OnDeserializingAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnDeserializingAttribute).FullName!);
-
-    public static INamedTypeSymbol? OnDeserializedAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnDeserializedAttribute).FullName!);
-
-    public static INamedTypeSymbol? OnSerializingAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnSerializingAttribute).FullName!);
-
-    public static INamedTypeSymbol? OnSerializedAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName!);
-
-    public static INamedTypeSymbol? ComRegisterFunctionAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName!);
-
-    public static INamedTypeSymbol? ComUnregisterFunctionAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ComUnregisterFunctionAttribute).FullName!);
-
-    public static INamedTypeSymbol? ConditionalAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ConditionalAttribute).FullName!);
-
-    public static INamedTypeSymbol? ObsoleteAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName!);
-
-    public static INamedTypeSymbol? SystemCompositionImportingConstructorAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Composition.ImportingConstructorAttribute");
-
-    public static INamedTypeSymbol? SystemComponentModelCompositionImportingConstructorAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
-
-    public static INamedTypeSymbol? SystemIDisposableType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IDisposable).FullName!);
-
-    public static INamedTypeSymbol? NotNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(NotNullAttribute).FullName!);
-
-    public static INamedTypeSymbol? MaybeNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(MaybeNullAttribute).FullName!);
-
-    public static INamedTypeSymbol? MaybeNullWhenAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(MaybeNullWhenAttribute).FullName!);
-
-    public static INamedTypeSymbol? AllowNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(AllowNullAttribute).FullName!);
-
-    public static INamedTypeSymbol? DisallowNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName!);
-
-    public static INamedTypeSymbol? DataMemberAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName!);
-
-    public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
-
-    public static INamedTypeSymbol? AsyncMethodBuilderAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AsyncMethodBuilderAttribute");
-
-    public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
-
-    public static INamedTypeSymbol? ValueTupleType(this Compilation compilation, int arity)
-        => compilation.GetTypeByMetadataName($"System.ValueTuple`{arity}");
-
-    public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
-
-    public static INamedTypeSymbol? ReadOnlySpanOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!);
-
-    public static INamedTypeSymbol? SpanOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Span<>).FullName!);
-
-    public static INamedTypeSymbol? InterpolatedStringHandlerAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerAttribute).FullName!);
-
-    /// <summary>
-    /// Gets a type by its metadata name to use for code analysis within a <see cref="Compilation"/>. This method
-    /// attempts to find the "best" symbol to use for code analysis, which is the symbol matching the first of the
-    /// following rules.
-    ///
-    /// <list type="number">
-    ///   <item><description>
-    ///     If only one type with the given name is found within the compilation and its referenced assemblies, that
-    ///     type is returned regardless of accessibility.
-    ///   </description></item>
-    ///   <item><description>
-    ///     If the current <paramref name="compilation"/> defines the symbol, that symbol is returned.
-    ///   </description></item>
-    ///   <item><description>
-    ///     If exactly one referenced assembly defines the symbol in a manner that makes it visible to the current
-    ///     <paramref name="compilation"/>, that symbol is returned.
-    ///   </description></item>
-    ///   <item><description>
-    ///     Otherwise, this method returns <see langword="null"/>.
-    ///   </description></item>
-    /// </list>
-    /// </summary>
-    /// <param name="compilation">The <see cref="Compilation"/> to consider for analysis.</param>
-    /// <param name="fullyQualifiedMetadataName">The fully-qualified metadata type name to find.</param>
-    /// <returns>The symbol to use for code analysis; otherwise, <see langword="null"/>.</returns>
-    public static INamedTypeSymbol? GetBestTypeByMetadataName(this Compilation compilation, string fullyQualifiedMetadataName)
-    {
-        INamedTypeSymbol? type = null;
-
-        foreach (var currentType in compilation.GetTypesByMetadataName(fullyQualifiedMetadataName))
-        {
-            if (ReferenceEquals(currentType.ContainingAssembly, compilation.Assembly))
+            foreach (var reference in compilation.References.OfType<CompilationReference>())
             {
-                Debug.Assert(type is null);
-                return currentType;
+                builder.Add(reference.Compilation);
             }
 
-            switch (currentType.GetResultantVisibility())
+            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            while (previous != null)
             {
-                case SymbolVisibility.Public:
-                case SymbolVisibility.Internal when currentType.ContainingAssembly.GivesAccessTo(compilation.Assembly):
-                    break;
-
-                default:
-                    continue;
+                builder.Add(previous);
+                previous = previous.ScriptCompilationInfo?.PreviousScriptCompilation;
             }
 
-            if (type is object)
-            {
-                // Multiple visible types with the same metadata name are present
-                return null;
-            }
-
-            type = currentType;
+            return builder.ToImmutableAndFree();
         }
 
-        return type;
-    }
-
-    /// <summary>
-    /// Gets implicit method, that wraps top-level statements.
-    /// </summary>
-    public static IMethodSymbol? GetTopLevelStatementsMethod(this Compilation compilation)
-    {
-        foreach (var candidateTopLevelType in compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0))
+        public ImmutableArray<IAssemblySymbol> GetReferencedAssemblySymbols(bool excludePreviousSubmissions = false)
         {
-            foreach (var candidateMember in candidateTopLevelType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName))
+            // The first module of every assembly is its source module and the source
+            // module always has the list of all referenced assemblies.
+            var referencedAssemblySymbols = compilation.Assembly.Modules.First().ReferencedAssemblySymbols;
+
+            if (excludePreviousSubmissions)
             {
-                if (candidateMember is IMethodSymbol method)
-                    return method;
+                return referencedAssemblySymbols;
             }
+
+            // Do a quick check first to avoid unnecessary allocations in case this is not a script compilation.
+            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previous is null)
+            {
+                return referencedAssemblySymbols;
+            }
+
+            var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
+            builder.AddRange(referencedAssemblySymbols);
+
+            while (previous != null)
+            {
+                builder.Add(previous.Assembly);
+                previous = previous.ScriptCompilationInfo?.PreviousScriptCompilation;
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
-        return null;
-    }
+        public INamedTypeSymbol? ArgumentExceptionType()
+            => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
 
-    public static INamedTypeSymbol? TryGetCallingConventionSymbol(this Compilation compilation, string callingConvention)
-        => compilation.GetBestTypeByMetadataName($"System.Runtime.CompilerServices.CallConv{callingConvention}");
+        public INamedTypeSymbol? ArgumentNullExceptionType()
+            => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+
+        public INamedTypeSymbol? ArgumentOutOfRangeExceptionType()
+            => compilation.GetTypeByMetadataName(typeof(ArgumentOutOfRangeException).FullName!);
+
+        public INamedTypeSymbol? ArrayType()
+            => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
+
+        public INamedTypeSymbol? AttributeType()
+            => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
+
+        public INamedTypeSymbol? BlockingCollectionOfTType()
+            => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
+
+        public INamedTypeSymbol? CollectionOfTType()
+            => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName!);
+
+        public INamedTypeSymbol? ExceptionType()
+            => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
+
+        public INamedTypeSymbol? DebuggerDisplayAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName!);
+
+        public INamedTypeSymbol? StructLayoutAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+
+        public INamedTypeSymbol? InlineArrayAttributeType()
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
+
+        public INamedTypeSymbol? DesignerCategoryAttributeType()
+            => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
+
+        public INamedTypeSymbol? DesignerGeneratedAttributeType()
+            => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute");
+
+        public INamedTypeSymbol? HideModuleNameAttribute()
+            => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
+
+        public INamedTypeSymbol? ThreadStaticAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+
+        public INamedTypeSymbol? FormattableStringType()
+            => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
+
+        public INamedTypeSymbol? EventArgsType()
+            => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
+
+        public INamedTypeSymbol? NotImplementedExceptionType()
+            => compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName!);
+
+        public INamedTypeSymbol? EqualityComparerOfTType()
+            => compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName!);
+
+        public INamedTypeSymbol? ActionType()
+            => compilation.GetTypeByMetadataName(typeof(Action).FullName!);
+
+        public INamedTypeSymbol? ExpressionOfTType()
+            => compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+
+        public INamedTypeSymbol? EditorBrowsableAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(EditorBrowsableAttribute).FullName!);
+
+        public INamedTypeSymbol? EditorBrowsableStateType()
+            => compilation.GetTypeByMetadataName(typeof(EditorBrowsableState).FullName!);
+
+        public INamedTypeSymbol? TaskType()
+            => compilation.GetTypeByMetadataName(typeof(Task).FullName!);
+
+        public INamedTypeSymbol? TaskOfTType()
+            => compilation.GetTypeByMetadataName(typeof(Task<>).FullName!);
+
+        public INamedTypeSymbol? ValueTaskType()
+            => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
+
+        public INamedTypeSymbol? ValueTaskOfTType()
+            => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+        public INamedTypeSymbol? IEnumerableType()
+            => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);
+
+        public INamedTypeSymbol? IEnumerableOfTType()
+            => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
+
+        public INamedTypeSymbol? IEnumeratorOfTType()
+            => compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName!);
+
+        public INamedTypeSymbol? IListOfTType()
+            => compilation.GetTypeByMetadataName(typeof(IList<>).FullName!);
+
+        public INamedTypeSymbol? IReadOnlyListOfTType()
+            => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName!);
+
+        public INamedTypeSymbol? ISetOfTType()
+            => compilation.GetTypeByMetadataName(typeof(ISet<>).FullName!);
+
+        public INamedTypeSymbol? IReadOnlySetOfTType()
+            => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName!);
+
+        public INamedTypeSymbol? IAsyncEnumerableOfTType()
+            => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");
+
+        public INamedTypeSymbol? IAsyncEnumeratorOfTType()
+            => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerator`1");
+
+        public INamedTypeSymbol? ImmutableArrayOfTType()
+            => compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName!);
+
+        public INamedTypeSymbol? SerializableAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName!);
+
+        public INamedTypeSymbol? CoClassType()
+            => compilation.GetTypeByMetadataName(typeof(CoClassAttribute).FullName!);
+
+        public INamedTypeSymbol? ComAliasNameAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(ComAliasNameAttribute).FullName!);
+
+        public INamedTypeSymbol? SuppressMessageAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(SuppressMessageAttribute).FullName!);
+
+        public INamedTypeSymbol? TupleElementNamesAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName!);
+
+        public INamedTypeSymbol? NativeIntegerAttributeType()
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute");
+
+        public INamedTypeSymbol? DynamicAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName!);
+
+        public INamedTypeSymbol? LazyOfTType()
+            => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName!);
+
+        public INamedTypeSymbol? ISerializableType()
+            => compilation.GetTypeByMetadataName(typeof(ISerializable).FullName!);
+
+        public INamedTypeSymbol? SerializationInfoType()
+            => compilation.GetTypeByMetadataName(typeof(SerializationInfo).FullName!);
+
+        public INamedTypeSymbol? StreamingContextType()
+            => compilation.GetTypeByMetadataName(typeof(StreamingContext).FullName!);
+
+        public INamedTypeSymbol? OnDeserializingAttribute()
+            => compilation.GetTypeByMetadataName(typeof(OnDeserializingAttribute).FullName!);
+
+        public INamedTypeSymbol? OnDeserializedAttribute()
+            => compilation.GetTypeByMetadataName(typeof(OnDeserializedAttribute).FullName!);
+
+        public INamedTypeSymbol? OnSerializingAttribute()
+            => compilation.GetTypeByMetadataName(typeof(OnSerializingAttribute).FullName!);
+
+        public INamedTypeSymbol? OnSerializedAttribute()
+            => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName!);
+
+        public INamedTypeSymbol? ComRegisterFunctionAttribute()
+            => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName!);
+
+        public INamedTypeSymbol? ComUnregisterFunctionAttribute()
+            => compilation.GetTypeByMetadataName(typeof(ComUnregisterFunctionAttribute).FullName!);
+
+        public INamedTypeSymbol? ConditionalAttribute()
+            => compilation.GetTypeByMetadataName(typeof(ConditionalAttribute).FullName!);
+
+        public INamedTypeSymbol? ObsoleteAttribute()
+            => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName!);
+
+        public INamedTypeSymbol? SystemCompositionImportingConstructorAttribute()
+            => compilation.GetTypeByMetadataName("System.Composition.ImportingConstructorAttribute");
+
+        public INamedTypeSymbol? SystemComponentModelCompositionImportingConstructorAttribute()
+            => compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
+
+        public INamedTypeSymbol? SystemIDisposableType()
+            => compilation.GetTypeByMetadataName(typeof(IDisposable).FullName!);
+
+        public INamedTypeSymbol? NotNullAttribute()
+            => compilation.GetTypeByMetadataName(typeof(NotNullAttribute).FullName!);
+
+        public INamedTypeSymbol? MaybeNullAttribute()
+            => compilation.GetTypeByMetadataName(typeof(MaybeNullAttribute).FullName!);
+
+        public INamedTypeSymbol? MaybeNullWhenAttribute()
+            => compilation.GetTypeByMetadataName(typeof(MaybeNullWhenAttribute).FullName!);
+
+        public INamedTypeSymbol? AllowNullAttribute()
+            => compilation.GetTypeByMetadataName(typeof(AllowNullAttribute).FullName!);
+
+        public INamedTypeSymbol? DisallowNullAttribute()
+            => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName!);
+
+        public INamedTypeSymbol? DataMemberAttribute()
+            => compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName!);
+
+        public INamedTypeSymbol? DataContractAttribute()
+            => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
+
+        public INamedTypeSymbol? AsyncMethodBuilderAttribute()
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AsyncMethodBuilderAttribute");
+
+        public INamedTypeSymbol? CancellationTokenType()
+            => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
+
+        public INamedTypeSymbol? ValueTupleType(int arity)
+            => compilation.GetTypeByMetadataName($"System.ValueTuple`{arity}");
+
+        public INamedTypeSymbol? ListOfTType()
+            => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
+
+        public INamedTypeSymbol? ReadOnlySpanOfTType()
+            => compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!);
+
+        public INamedTypeSymbol? SpanOfTType()
+            => compilation.GetTypeByMetadataName(typeof(Span<>).FullName!);
+
+        public INamedTypeSymbol? InterpolatedStringHandlerAttributeType()
+            => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerAttribute).FullName!);
+
+        /// <summary>
+        /// Gets a type by its metadata name to use for code analysis within a <see cref="Compilation"/>. This method
+        /// attempts to find the "best" symbol to use for code analysis, which is the symbol matching the first of the
+        /// following rules.
+        ///
+        /// <list type="number">
+        ///   <item><description>
+        ///     If only one type with the given name is found within the compilation and its referenced assemblies, that
+        ///     type is returned regardless of accessibility.
+        ///   </description></item>
+        ///   <item><description>
+        ///     If the current <paramref name="compilation"/> defines the symbol, that symbol is returned.
+        ///   </description></item>
+        ///   <item><description>
+        ///     If exactly one referenced assembly defines the symbol in a manner that makes it visible to the current
+        ///     <paramref name="compilation"/>, that symbol is returned.
+        ///   </description></item>
+        ///   <item><description>
+        ///     Otherwise, this method returns <see langword="null"/>.
+        ///   </description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="compilation">The <see cref="Compilation"/> to consider for analysis.</param>
+        /// <param name="fullyQualifiedMetadataName">The fully-qualified metadata type name to find.</param>
+        /// <returns>The symbol to use for code analysis; otherwise, <see langword="null"/>.</returns>
+        public INamedTypeSymbol? GetBestTypeByMetadataName(string fullyQualifiedMetadataName)
+        {
+            INamedTypeSymbol? type = null;
+
+            foreach (var currentType in compilation.GetTypesByMetadataName(fullyQualifiedMetadataName))
+            {
+                if (ReferenceEquals(currentType.ContainingAssembly, compilation.Assembly))
+                {
+                    Debug.Assert(type is null);
+                    return currentType;
+                }
+
+                switch (currentType.GetResultantVisibility())
+                {
+                    case SymbolVisibility.Public:
+                    case SymbolVisibility.Internal when currentType.ContainingAssembly.GivesAccessTo(compilation.Assembly):
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                if (type is object)
+                {
+                    // Multiple visible types with the same metadata name are present
+                    return null;
+                }
+
+                type = currentType;
+            }
+
+            return type;
+        }
+
+        /// <summary>
+        /// Gets implicit method, that wraps top-level statements.
+        /// </summary>
+        public IMethodSymbol? GetTopLevelStatementsMethod()
+        {
+            foreach (var candidateTopLevelType in compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0))
+            {
+                foreach (var candidateMember in candidateTopLevelType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName))
+                {
+                    if (candidateMember is IMethodSymbol method)
+                        return method;
+                }
+            }
+
+            return null;
+        }
+
+        public INamedTypeSymbol? TryGetCallingConventionSymbol(string callingConvention)
+            => compilation.GetBestTypeByMetadataName($"System.Runtime.CompilerServices.CallConv{callingConvention}");
+    }
 }

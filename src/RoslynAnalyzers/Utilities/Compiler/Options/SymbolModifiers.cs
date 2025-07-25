@@ -32,59 +32,65 @@ namespace Analyzer.Utilities
 
     internal static class SymbolModifiersExtensions
     {
-        public static bool Contains(this SymbolModifiers modifiers, SymbolModifiers modifiersToCheck)
-            => (modifiers & modifiersToCheck) == modifiersToCheck;
-
-        public static SymbolModifiers GetSymbolModifiers(this ISymbol symbol)
+        extension(SymbolModifiers modifiers)
         {
-            var modifiers = SymbolModifiers.None;
-            if (symbol.IsStatic)
-            {
-                modifiers |= SymbolModifiers.Static;
-            }
+            public bool Contains(SymbolModifiers modifiersToCheck)
+            => (modifiers & modifiersToCheck) == modifiersToCheck;
+        }
 
-            if (symbol.IsConst())
+        extension(ISymbol symbol)
+        {
+            public SymbolModifiers GetSymbolModifiers()
             {
-                modifiers |= SymbolModifiers.Const;
-            }
+                var modifiers = SymbolModifiers.None;
+                if (symbol.IsStatic)
+                {
+                    modifiers |= SymbolModifiers.Static;
+                }
 
-            if (symbol.IsReadOnly())
-            {
-                modifiers |= SymbolModifiers.ReadOnly;
-            }
+                if (symbol.IsConst())
+                {
+                    modifiers |= SymbolModifiers.Const;
+                }
 
-            if (symbol.IsAbstract)
-            {
-                modifiers |= SymbolModifiers.Abstract;
-            }
+                if (symbol.IsReadOnly())
+                {
+                    modifiers |= SymbolModifiers.ReadOnly;
+                }
 
-            if (symbol.IsVirtual)
-            {
-                modifiers |= SymbolModifiers.Virtual;
-            }
+                if (symbol.IsAbstract)
+                {
+                    modifiers |= SymbolModifiers.Abstract;
+                }
 
-            if (symbol.IsOverride)
-            {
-                modifiers |= SymbolModifiers.Override;
-            }
+                if (symbol.IsVirtual)
+                {
+                    modifiers |= SymbolModifiers.Virtual;
+                }
 
-            if (symbol.IsSealed)
-            {
-                modifiers |= SymbolModifiers.Sealed;
-            }
+                if (symbol.IsOverride)
+                {
+                    modifiers |= SymbolModifiers.Override;
+                }
 
-            if (symbol.IsExtern)
-            {
-                modifiers |= SymbolModifiers.Extern;
-            }
+                if (symbol.IsSealed)
+                {
+                    modifiers |= SymbolModifiers.Sealed;
+                }
 
-            if (symbol is IMethodSymbol method &&
-                method.IsAsync)
-            {
-                modifiers |= SymbolModifiers.Async;
-            }
+                if (symbol.IsExtern)
+                {
+                    modifiers |= SymbolModifiers.Extern;
+                }
 
-            return modifiers;
+                if (symbol is IMethodSymbol method &&
+                    method.IsAsync)
+                {
+                    modifiers |= SymbolModifiers.Async;
+                }
+
+                return modifiers;
+            }
         }
     }
 }

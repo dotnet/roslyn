@@ -17,38 +17,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class TypeDeclarationSyntaxExtensions
 {
-    public static IList<bool> GetInsertionIndices(this TypeDeclarationSyntax destination, CancellationToken cancellationToken)
+    extension(TypeDeclarationSyntax destination)
     {
-        var members = destination.Members;
-
-        var indices = new List<bool>();
-        if (members is not [var firstMember, ..])
+        public IList<bool> GetInsertionIndices(CancellationToken cancellationToken)
         {
-            var start = destination.OpenBraceToken.Span.End;
-            var end = GetEndToken(destination).SpanStart;
+            var members = destination.Members;
 
-            indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
-        }
-        else
-        {
-            var start = destination.OpenBraceToken.Span.End;
-            var end = firstMember.SpanStart;
-            indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
-
-            for (var i = 0; i < members.Count - 1; i++)
+            var indices = new List<bool>();
+            if (members is not [var firstMember, ..])
             {
-                var member1 = members[i];
-                var member2 = members[i + 1];
+                var start = destination.OpenBraceToken.Span.End;
+                var end = GetEndToken(destination).SpanStart;
 
-                indices.Add(!destination.OverlapsHiddenPosition(member1, member2, cancellationToken));
+                indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
+            }
+            else
+            {
+                var start = destination.OpenBraceToken.Span.End;
+                var end = firstMember.SpanStart;
+                indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
+
+                for (var i = 0; i < members.Count - 1; i++)
+                {
+                    var member1 = members[i];
+                    var member2 = members[i + 1];
+
+                    indices.Add(!destination.OverlapsHiddenPosition(member1, member2, cancellationToken));
+                }
+
+                start = members.Last().Span.End;
+                end = GetEndToken(destination).SpanStart;
+                indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
             }
 
-            start = members.Last().Span.End;
-            end = GetEndToken(destination).SpanStart;
-            indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
+            return indices;
         }
-
-        return indices;
     }
 
     private static SyntaxToken GetEndToken(SyntaxNode node)
@@ -67,31 +70,34 @@ internal static class TypeDeclarationSyntaxExtensions
         return lastToken;
     }
 
-    public static IEnumerable<BaseTypeSyntax> GetAllBaseListTypes(this TypeDeclarationSyntax typeNode, SemanticModel model, CancellationToken cancellationToken)
+    extension(TypeDeclarationSyntax typeNode)
     {
-        Contract.ThrowIfNull(typeNode);
-
-        if (typeNode.Modifiers.Any(SyntaxKind.PartialKeyword))
+        public IEnumerable<BaseTypeSyntax> GetAllBaseListTypes(SemanticModel model, CancellationToken cancellationToken)
         {
-            var typeSymbol = model.GetRequiredDeclaredSymbol(typeNode, cancellationToken);
-            if (typeSymbol.DeclaringSyntaxReferences.Length >= 2)
+            Contract.ThrowIfNull(typeNode);
+
+            if (typeNode.Modifiers.Any(SyntaxKind.PartialKeyword))
             {
-                using var _ = ArrayBuilder<BaseTypeSyntax>.GetInstance(out var baseListTypes);
-
-                foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
+                var typeSymbol = model.GetRequiredDeclaredSymbol(typeNode, cancellationToken);
+                if (typeSymbol.DeclaringSyntaxReferences.Length >= 2)
                 {
-                    if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList.Types: var baseTypes })
-                        baseListTypes.AddRange(baseTypes);
+                    using var _ = ArrayBuilder<BaseTypeSyntax>.GetInstance(out var baseListTypes);
+
+                    foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList.Types: var baseTypes })
+                            baseListTypes.AddRange(baseTypes);
+                    }
+
+                    return baseListTypes.ToImmutableAndClear();
                 }
-
-                return baseListTypes.ToImmutableAndClear();
             }
+
+            if (typeNode.BaseList != null)
+                return typeNode.BaseList.Types;
+
+            return [];
         }
-
-        if (typeNode.BaseList != null)
-            return typeNode.BaseList.Types;
-
-        return [];
     }
 
     private static SyntaxToken EnsureToken(SyntaxToken token, SyntaxKind kind, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)
@@ -144,13 +150,19 @@ internal static class TypeDeclarationSyntaxExtensions
         return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
     }
 
-    public static TypeDeclarationSyntax EnsureOpenAndCloseBraceTokens(this TypeDeclarationSyntax typeDeclaration)
+    extension(TypeDeclarationSyntax typeDeclaration)
     {
-        return (TypeDeclarationSyntax)EnsureHasBraces(typeDeclaration, typeDeclaration.Members.Count > 0);
+        public TypeDeclarationSyntax EnsureOpenAndCloseBraceTokens()
+        {
+            return (TypeDeclarationSyntax)EnsureHasBraces(typeDeclaration, typeDeclaration.Members.Count > 0);
+        }
     }
 
-    public static EnumDeclarationSyntax EnsureOpenAndCloseBraceTokens(this EnumDeclarationSyntax typeDeclaration)
+    extension(EnumDeclarationSyntax typeDeclaration)
     {
-        return (EnumDeclarationSyntax)EnsureHasBraces(typeDeclaration, typeDeclaration.Members.Count > 0);
+        public EnumDeclarationSyntax EnsureOpenAndCloseBraceTokens()
+        {
+            return (EnumDeclarationSyntax)EnsureHasBraces(typeDeclaration, typeDeclaration.Members.Count > 0);
+        }
     }
 }

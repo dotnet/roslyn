@@ -29,18 +29,21 @@ namespace Analyzer.Utilities
 
     internal static class SymbolVisibilityGroupExtensions
     {
-        public static bool Contains(this SymbolVisibilityGroup symbolVisibilityGroup, SymbolVisibility symbolVisibility)
+        extension(SymbolVisibilityGroup symbolVisibilityGroup)
         {
-            return symbolVisibility switch
+            public bool Contains(SymbolVisibility symbolVisibility)
             {
-                SymbolVisibility.Public => (symbolVisibilityGroup & SymbolVisibilityGroup.Public) != 0,
+                return symbolVisibility switch
+                {
+                    SymbolVisibility.Public => (symbolVisibilityGroup & SymbolVisibilityGroup.Public) != 0,
 
-                SymbolVisibility.Internal => (symbolVisibilityGroup & SymbolVisibilityGroup.Internal) != 0,
+                    SymbolVisibility.Internal => (symbolVisibilityGroup & SymbolVisibilityGroup.Internal) != 0,
 
-                SymbolVisibility.Private => (symbolVisibilityGroup & SymbolVisibilityGroup.Private) != 0,
+                    SymbolVisibility.Private => (symbolVisibilityGroup & SymbolVisibilityGroup.Private) != 0,
 
-                _ => throw new ArgumentOutOfRangeException(nameof(symbolVisibility), symbolVisibility, null),
-            };
+                    _ => throw new ArgumentOutOfRangeException(nameof(symbolVisibility), symbolVisibility, null),
+                };
+            }
         }
     }
 }

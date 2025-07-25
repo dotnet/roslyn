@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class BaseArgumentListSyntaxExtensions
 {
-    public static SyntaxToken GetOpenToken(this BaseArgumentListSyntax node)
+    extension(BaseArgumentListSyntax node)
+    {
+        public SyntaxToken GetOpenToken()
         => node switch
         {
             ArgumentListSyntax list => list.OpenParenToken,
@@ -16,11 +18,12 @@ internal static class BaseArgumentListSyntaxExtensions
             _ => default,
         };
 
-    public static SyntaxToken GetCloseToken(this BaseArgumentListSyntax node)
-        => node switch
-        {
-            ArgumentListSyntax list => list.CloseParenToken,
-            BracketedArgumentListSyntax bracketedList => bracketedList.CloseBracketToken,
-            _ => default,
-        };
+        public SyntaxToken GetCloseToken()
+            => node switch
+            {
+                ArgumentListSyntax list => list.CloseParenToken,
+                BracketedArgumentListSyntax bracketedList => bracketedList.CloseBracketToken,
+                _ => default,
+            };
+    }
 }

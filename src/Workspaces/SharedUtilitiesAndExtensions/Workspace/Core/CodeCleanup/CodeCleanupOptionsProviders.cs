@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup;
 
 internal static class CodeCleanupOptionsProviders
 {
-    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
+    extension(IOptionsReader options)
+    {
+        public CodeCleanupOptions GetCodeCleanupOptions(LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
         => new()
         {
             FormattingOptions = options.GetSyntaxFormattingOptions(languageServices),
@@ -23,11 +25,15 @@ internal static class CodeCleanupOptionsProviders
             AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions),
             DocumentFormattingOptions = options.GetDocumentFormattingOptions(),
         };
+    }
 
-    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeCleanupOptions(document.Project.GetExtendedLanguageServices().LanguageServices, document.AllowImportsInHiddenRegions());
+        public async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return configOptions.GetCodeCleanupOptions(document.Project.GetExtendedLanguageServices().LanguageServices, document.AllowImportsInHiddenRegions());
+        }
     }
 
     public static CodeCleanupOptions GetDefault(LanguageServices languageServices)

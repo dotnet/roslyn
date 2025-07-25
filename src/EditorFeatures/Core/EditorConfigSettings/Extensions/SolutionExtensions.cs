@@ -11,74 +11,77 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 
 internal static class SolutionExtensions
 {
-    public static ImmutableArray<Project> GetProjectsUnderEditorConfigFile(this Solution solution, string pathToEditorConfigFile)
+    extension(Solution solution)
     {
-        var directoryPathToCheck = Path.GetDirectoryName(pathToEditorConfigFile);
-        if (directoryPathToCheck is null)
+        public ImmutableArray<Project> GetProjectsUnderEditorConfigFile(string pathToEditorConfigFile)
         {
-            // we have been given an invalid file path
-            return [];
-        }
-
-        var directoryInfoToCheck = new DirectoryInfo(directoryPathToCheck);
-        var builder = ArrayBuilder<Project>.GetInstance();
-        foreach (var project in solution.Projects)
-        {
-            if (!TryGetFolderContainingProject(project, out var projectDirectory))
+            var directoryPathToCheck = Path.GetDirectoryName(pathToEditorConfigFile);
+            if (directoryPathToCheck is null)
             {
-                // Certain ASP.NET scenarios will create artificial projects that do not exist on disk
-                continue;
+                // we have been given an invalid file path
+                return [];
             }
 
-            if (ContainsPath(directoryInfoToCheck, projectDirectory))
+            var directoryInfoToCheck = new DirectoryInfo(directoryPathToCheck);
+            var builder = ArrayBuilder<Project>.GetInstance();
+            foreach (var project in solution.Projects)
             {
-                builder.Add(project);
-            }
-        }
+                if (!TryGetFolderContainingProject(project, out var projectDirectory))
+                {
+                    // Certain ASP.NET scenarios will create artificial projects that do not exist on disk
+                    continue;
+                }
 
-        return builder.ToImmutableAndFree();
-
-        static bool TryGetFolderContainingProject(Project project, [NotNullWhen(true)] out DirectoryInfo? directoryInfo)
-        {
-            directoryInfo = null;
-            if (project.FilePath is null)
-            {
-                return false;
-            }
-
-            var fileDirectoryInfo = new DirectoryInfo(project.FilePath);
-            if (fileDirectoryInfo.Parent is null)
-            {
-                return false;
+                if (ContainsPath(directoryInfoToCheck, projectDirectory))
+                {
+                    builder.Add(project);
+                }
             }
 
-            directoryInfo = fileDirectoryInfo.Parent;
-            return true;
-        }
+            return builder.ToImmutableAndFree();
 
-        static bool ContainsPath(DirectoryInfo directoryContainingEditorConfig, DirectoryInfo projectDirectory)
-        {
-            if (directoryContainingEditorConfig.FullName == projectDirectory.FullName)
+            static bool TryGetFolderContainingProject(Project project, [NotNullWhen(true)] out DirectoryInfo? directoryInfo)
             {
+                directoryInfo = null;
+                if (project.FilePath is null)
+                {
+                    return false;
+                }
+
+                var fileDirectoryInfo = new DirectoryInfo(project.FilePath);
+                if (fileDirectoryInfo.Parent is null)
+                {
+                    return false;
+                }
+
+                directoryInfo = fileDirectoryInfo.Parent;
                 return true;
             }
 
-            // walk up each folder for the project and see if it matches
-            // example match:
-            // C:\source\roslyn\.editorconfig
-            // C:\source\roslyn\src\project.csproj
-
-            while (projectDirectory.Parent is not null)
+            static bool ContainsPath(DirectoryInfo directoryContainingEditorConfig, DirectoryInfo projectDirectory)
             {
-                if (projectDirectory.Parent.FullName == directoryContainingEditorConfig.FullName)
+                if (directoryContainingEditorConfig.FullName == projectDirectory.FullName)
                 {
                     return true;
                 }
 
-                projectDirectory = projectDirectory.Parent;
-            }
+                // walk up each folder for the project and see if it matches
+                // example match:
+                // C:\source\roslyn\.editorconfig
+                // C:\source\roslyn\src\project.csproj
 
-            return false;
+                while (projectDirectory.Parent is not null)
+                {
+                    if (projectDirectory.Parent.FullName == directoryContainingEditorConfig.FullName)
+                    {
+                        return true;
+                    }
+
+                    projectDirectory = projectDirectory.Parent;
+                }
+
+                return false;
+            }
         }
     }
 }

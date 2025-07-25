@@ -47,27 +47,30 @@ namespace Analyzer.Utilities
 
     internal static class DisposeAnalysisKindExtensions
     {
-        public static bool AreExceptionPathsAndMayBeNotDisposedViolationsEnabled(this DisposeAnalysisKind disposeAnalysisKind)
+        extension(DisposeAnalysisKind disposeAnalysisKind)
+        {
+            public bool AreExceptionPathsAndMayBeNotDisposedViolationsEnabled()
             => disposeAnalysisKind.AreExceptionPathsEnabled() && disposeAnalysisKind.AreMayBeNotDisposedViolationsEnabled();
 
-        public static bool AreExceptionPathsEnabled(this DisposeAnalysisKind disposeAnalysisKind)
-        {
-            return disposeAnalysisKind switch
+            public bool AreExceptionPathsEnabled()
             {
-                DisposeAnalysisKind.NonExceptionPaths
-                or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
-                _ => true,
-            };
-        }
+                return disposeAnalysisKind switch
+                {
+                    DisposeAnalysisKind.NonExceptionPaths
+                    or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
+                    _ => true,
+                };
+            }
 
-        public static bool AreMayBeNotDisposedViolationsEnabled(this DisposeAnalysisKind disposeAnalysisKind)
-        {
-            return disposeAnalysisKind switch
+            public bool AreMayBeNotDisposedViolationsEnabled()
             {
-                DisposeAnalysisKind.AllPathsOnlyNotDisposed
-                or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
-                _ => true,
-            };
+                return disposeAnalysisKind switch
+                {
+                    DisposeAnalysisKind.AllPathsOnlyNotDisposed
+                    or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
+                    _ => true,
+                };
+            }
         }
     }
 }

@@ -35,11 +35,14 @@ internal static class SymReaderTestHelpers
             => throw new NotImplementedException();
     }
 
-    public static (ImmutableArray<byte> PEImage, ImmutableArray<byte> PdbImage) EmitToArrays(this Compilation compilation, EmitOptions options)
+    extension(Compilation compilation)
     {
-        var pdbStream = new MemoryStream();
-        var peImage = compilation.EmitToArray(options, pdbStream: pdbStream);
-        return (peImage, pdbStream.ToImmutable());
+        public (ImmutableArray<byte> PEImage, ImmutableArray<byte> PdbImage) EmitToArrays(EmitOptions options)
+        {
+            var pdbStream = new MemoryStream();
+            var peImage = compilation.EmitToArray(options, pdbStream: pdbStream);
+            return (peImage, pdbStream.ToImmutable());
+        }
     }
 
     public static ISymUnmanagedReader5 OpenDummySymReader(ImmutableArray<byte> pdbImage)

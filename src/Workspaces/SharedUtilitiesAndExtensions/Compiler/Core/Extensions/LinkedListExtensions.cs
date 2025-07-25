@@ -8,18 +8,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class LinkedListExtensions
 {
-    public static void AddRangeAtHead<T>(this LinkedList<T> list, IEnumerable<T> values)
+    extension<T>(LinkedList<T> list)
     {
-        LinkedListNode<T>? currentNode = null;
-        foreach (var value in values)
+        public void AddRangeAtHead(IEnumerable<T> values)
         {
-            if (currentNode == null)
+            LinkedListNode<T>? currentNode = null;
+            foreach (var value in values)
             {
-                currentNode = list.AddFirst(value);
-            }
-            else
-            {
-                currentNode = list.AddAfter(currentNode, value);
+                if (currentNode == null)
+                {
+                    currentNode = list.AddFirst(value);
+                }
+                else
+                {
+                    currentNode = list.AddAfter(currentNode, value);
+                }
             }
         }
     }

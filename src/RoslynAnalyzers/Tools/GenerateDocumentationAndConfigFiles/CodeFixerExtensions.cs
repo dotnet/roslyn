@@ -17,54 +17,57 @@ namespace GenerateDocumentationAndConfigFiles
 {
     public static class FixerExtensions
     {
-        /// <summary>
-        /// Get all the <see cref="CodeFixProvider"/>s that are implemented in the given <see cref="AnalyzerFileReference"/>
-        /// </summary>
-        /// <returns>An array of <see cref="CodeFixProvider"/>s</returns>
-        public static ImmutableArray<CodeFixProvider> GetFixers(this AnalyzerFileReference analyzerFileReference)
+        extension(AnalyzerFileReference analyzerFileReference)
         {
-            if (analyzerFileReference == null)
+            /// <summary>
+            /// Get all the <see cref="CodeFixProvider"/>s that are implemented in the given <see cref="AnalyzerFileReference"/>
+            /// </summary>
+            /// <returns>An array of <see cref="CodeFixProvider"/>s</returns>
+            public ImmutableArray<CodeFixProvider> GetFixers()
             {
-                return ImmutableArray<CodeFixProvider>.Empty;
-            }
-
-            ImmutableArray<CodeFixProvider>.Builder? builder = null;
-
-            try
-            {
-                Assembly analyzerAssembly = analyzerFileReference.GetAssembly();
-                IEnumerable<TypeInfo> typeInfos = analyzerAssembly.DefinedTypes;
-
-                foreach (TypeInfo typeInfo in typeInfos)
+                if (analyzerFileReference == null)
                 {
-                    if (typeInfo.IsSubclassOf(typeof(CodeFixProvider)))
+                    return ImmutableArray<CodeFixProvider>.Empty;
+                }
+
+                ImmutableArray<CodeFixProvider>.Builder? builder = null;
+
+                try
+                {
+                    Assembly analyzerAssembly = analyzerFileReference.GetAssembly();
+                    IEnumerable<TypeInfo> typeInfos = analyzerAssembly.DefinedTypes;
+
+                    foreach (TypeInfo typeInfo in typeInfos)
                     {
-                        try
+                        if (typeInfo.IsSubclassOf(typeof(CodeFixProvider)))
                         {
-                            ExportCodeFixProviderAttribute? attribute = typeInfo.GetCustomAttribute<ExportCodeFixProviderAttribute>();
-                            if (attribute != null)
+                            try
                             {
-                                builder ??= ImmutableArray.CreateBuilder<CodeFixProvider>();
-                                var fixer = (CodeFixProvider?)Activator.CreateInstance(typeInfo.AsType());
-                                if (HasImplementation(fixer))
+                                ExportCodeFixProviderAttribute? attribute = typeInfo.GetCustomAttribute<ExportCodeFixProviderAttribute>();
+                                if (attribute != null)
                                 {
-                                    builder.Add(fixer);
+                                    builder ??= ImmutableArray.CreateBuilder<CodeFixProvider>();
+                                    var fixer = (CodeFixProvider?)Activator.CreateInstance(typeInfo.AsType());
+                                    if (HasImplementation(fixer))
+                                    {
+                                        builder.Add(fixer);
+                                    }
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error creating instance of {typeInfo.FullName} in {analyzerFileReference.FullPath}\r\n{ex.Message}\r\n{ex}");
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error creating instance of {typeInfo.FullName} in {analyzerFileReference.FullPath}\r\n{ex.Message}\r\n{ex}");
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error processing analyzer file reference: {analyzerFileReference.FullPath}\r\n{ex.Message}\r\n{ex}");
-            }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing analyzer file reference: {analyzerFileReference.FullPath}\r\n{ex.Message}\r\n{ex}");
+                }
 
-            return builder != null ? builder.ToImmutable() : ImmutableArray<CodeFixProvider>.Empty;
+                return builder != null ? builder.ToImmutable() : ImmutableArray<CodeFixProvider>.Empty;
+            }
         }
 
         /// <summary>

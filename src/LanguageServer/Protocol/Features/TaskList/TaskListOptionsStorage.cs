@@ -12,10 +12,13 @@ internal static class TaskListOptionsStorage
     public static readonly Option2<ImmutableArray<string>> Descriptors = new("dotnet_task_list_storage_descriptors", TaskListOptions.Default.Descriptors);
     public static readonly Option2<bool> ComputeTaskListItemsForClosedFiles = new("dotnet_compute_task_list_items_for_closed_files", defaultValue: true);
 
-    public static TaskListOptions GetTaskListOptions(this IGlobalOptionService globalOptions)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public TaskListOptions GetTaskListOptions()
         => new()
         {
             Descriptors = globalOptions.GetOption(Descriptors),
             ComputeForClosedFiles = globalOptions.GetOption(ComputeTaskListItemsForClosedFiles)
         };
+    }
 }

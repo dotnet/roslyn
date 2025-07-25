@@ -6,17 +6,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class ConversionExtensions
 {
-    public static bool IsIdentityOrImplicitReference(this Conversion conversion)
+    extension(Conversion conversion)
     {
-        return conversion.IsIdentity ||
-            (conversion.IsImplicit && conversion.IsReference);
-    }
+        public bool IsIdentityOrImplicitReference()
+        {
+            return conversion.IsIdentity ||
+                (conversion.IsImplicit && conversion.IsReference);
+        }
 
-    public static bool IsImplicitUserDefinedConversion(this Conversion conversion)
-    {
-        return conversion.IsUserDefined &&
-            conversion.MethodSymbol != null &&
-            conversion.MethodSymbol.MethodKind == MethodKind.Conversion &&
-            conversion.MethodSymbol.Name == "op_Implicit";
+        public bool IsImplicitUserDefinedConversion()
+        {
+            return conversion.IsUserDefined &&
+                conversion.MethodSymbol != null &&
+                conversion.MethodSymbol.MethodKind == MethodKind.Conversion &&
+                conversion.MethodSymbol.Name == "op_Implicit";
+        }
     }
 }

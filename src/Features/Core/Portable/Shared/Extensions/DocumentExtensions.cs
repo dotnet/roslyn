@@ -17,102 +17,102 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class DocumentExtensions
 {
-    public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+    extension(Document document)
+    {
+        public async Task<Document> ReplaceNodeAsync<TNode>(TNode oldNode, TNode newNode, CancellationToken cancellationToken)
         where TNode : SyntaxNode
-    {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return document.ReplaceNode(root, oldNode, newNode);
-    }
-
-    public static Document ReplaceNodeSynchronously<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
-        where TNode : SyntaxNode
-    {
-        var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-        return document.ReplaceNode(root, oldNode, newNode);
-    }
-
-    public static Document ReplaceNode<TNode>(this Document document, SyntaxNode root, TNode oldNode, TNode newNode)
-        where TNode : SyntaxNode
-    {
-        Debug.Assert(document.GetRequiredSyntaxRootSynchronously(CancellationToken.None) == root);
-        var newRoot = root.ReplaceNode(oldNode, newNode);
-        return document.WithSyntaxRoot(newRoot);
-    }
-
-    public static async Task<Document> ReplaceNodesAsync(this Document document,
-        IEnumerable<SyntaxNode> nodes,
-        Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
-        CancellationToken cancellationToken)
-    {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var newRoot = root.ReplaceNodes(nodes, computeReplacementNode);
-        return document.WithSyntaxRoot(newRoot);
-    }
-
-    public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
-        this Document document,
-        IEqualityComparer<T> comparer,
-        Func<Document, Task<ImmutableArray<T>>> getItemsWorker)
-    {
-        var totalItems = new HashSet<T>(comparer);
-
-        var values = await getItemsWorker(document).ConfigureAwait(false);
-        totalItems.AddRange(values.NullToEmpty());
-
-        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
         {
-            values = await getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return document.ReplaceNode(root, oldNode, newNode);
+        }
+
+        public Document ReplaceNodeSynchronously<TNode>(TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+            where TNode : SyntaxNode
+        {
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            return document.ReplaceNode(root, oldNode, newNode);
+        }
+
+        public Document ReplaceNode<TNode>(SyntaxNode root, TNode oldNode, TNode newNode)
+            where TNode : SyntaxNode
+        {
+            Debug.Assert(document.GetRequiredSyntaxRootSynchronously(CancellationToken.None) == root);
+            var newRoot = root.ReplaceNode(oldNode, newNode);
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        public async Task<Document> ReplaceNodesAsync(IEnumerable<SyntaxNode> nodes,
+            Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
+            CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = root.ReplaceNodes(nodes, computeReplacementNode);
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        public async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
+            IEqualityComparer<T> comparer,
+            Func<Document, Task<ImmutableArray<T>>> getItemsWorker)
+        {
+            var totalItems = new HashSet<T>(comparer);
+
+            var values = await getItemsWorker(document).ConfigureAwait(false);
             totalItems.AddRange(values.NullToEmpty());
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+            {
+                values = await getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)).ConfigureAwait(false);
+                totalItems.AddRange(values.NullToEmpty());
+            }
+
+            return [.. totalItems];
         }
 
-        return [.. totalItems];
-    }
-
-    public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
-        this Document document,
-        Func<Document, CancellationToken, Task<bool>> contextChecker,
-        CancellationToken cancellationToken)
-    {
-        if (await contextChecker(document, cancellationToken).ConfigureAwait(false))
+        public async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
+            Func<Document, CancellationToken, Task<bool>> contextChecker,
+            CancellationToken cancellationToken)
         {
-            return true;
-        }
-
-        var solution = document.Project.Solution;
-        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
-        {
-            var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
-            if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
+            if (await contextChecker(document, cancellationToken).ConfigureAwait(false))
             {
                 return true;
             }
+
+            var solution = document.Project.Solution;
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+            {
+                var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
+                if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
-        return false;
-    }
-
-    public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, CancellationToken cancellationToken)
-    {
-        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var rule in rules)
+        public async Task<NamingRule> GetApplicableNamingRuleAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
-            if (rule.SymbolSpecification.AppliesTo(symbol))
-                return rule;
+            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var rule in rules)
+            {
+                if (rule.SymbolSpecification.AppliesTo(symbol))
+                    return rule;
+            }
+
+            throw ExceptionUtilities.Unreachable();
         }
 
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-        this Document document, SymbolKindOrTypeKind kind, Modifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
-    {
-        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var rule in rules)
+        public async Task<NamingRule> GetApplicableNamingRuleAsync(
+    SymbolKindOrTypeKind kind, Modifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
         {
-            if (rule.SymbolSpecification.AppliesTo(kind, modifiers, accessibility))
-                return rule;
-        }
+            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var rule in rules)
+            {
+                if (rule.SymbolSpecification.AppliesTo(kind, modifiers, accessibility))
+                    return rule;
+            }
 
-        throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

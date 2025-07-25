@@ -32,12 +32,15 @@ internal interface ICodeFixService
 
 internal static class ICodeFixServiceExtensions
 {
-    public static IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(this ICodeFixService service, TextDocument document, TextSpan range, CancellationToken cancellationToken)
+    extension(ICodeFixService service)
+    {
+        public IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(TextDocument document, TextSpan range, CancellationToken cancellationToken)
         => service.StreamFixesAsync(document, range, new DefaultCodeActionRequestPriorityProvider(), cancellationToken);
 
-    public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan range, CancellationToken cancellationToken)
-        => service.StreamFixesAsync(document, range, cancellationToken).ToImmutableArrayAsync(cancellationToken);
+        public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(TextDocument document, TextSpan range, CancellationToken cancellationToken)
+            => service.StreamFixesAsync(document, range, cancellationToken).ToImmutableArrayAsync(cancellationToken);
 
-    public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan textSpan, ICodeActionRequestPriorityProvider priorityProvider, CancellationToken cancellationToken)
-        => service.StreamFixesAsync(document, textSpan, priorityProvider, cancellationToken).ToImmutableArrayAsync(cancellationToken);
+        public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(TextDocument document, TextSpan textSpan, ICodeActionRequestPriorityProvider priorityProvider, CancellationToken cancellationToken)
+            => service.StreamFixesAsync(document, textSpan, priorityProvider, cancellationToken).ToImmutableArrayAsync(cancellationToken);
+    }
 }

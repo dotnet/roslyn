@@ -18,20 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static partial class CompilationUnitSyntaxExtensions
 {
-    public static bool CanAddUsingDirectives(
-        this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
+    extension(SyntaxNode contextNode)
     {
-        if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
+        public bool CanAddUsingDirectives(
+bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
-            var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-            var root = (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
-            var span = GetUsingsSpan(root, namespaceDeclaration);
+            if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
+            {
+                var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
+                var root = (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
+                var span = GetUsingsSpan(root, namespaceDeclaration);
 
-            if (contextNode.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken))
-                return false;
+                if (contextNode.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken))
+                    return false;
+            }
+
+            return true;
         }
-
-        return true;
     }
 
     private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax? namespaceDeclaration)
@@ -63,78 +66,78 @@ internal static partial class CompilationUnitSyntaxExtensions
         }
     }
 
-    public static CompilationUnitSyntax AddUsingDirective(
-        this CompilationUnitSyntax root,
+    extension(CompilationUnitSyntax root)
+    {
+        public CompilationUnitSyntax AddUsingDirective(
         UsingDirectiveSyntax usingDirective,
         SyntaxNode contextNode,
         bool placeSystemNamespaceFirst,
         params SyntaxAnnotation[] annotations)
-    {
-        return root.AddUsingDirectives([usingDirective], contextNode, placeSystemNamespaceFirst, annotations);
-    }
-
-    public static CompilationUnitSyntax AddUsingDirectives(
-        this CompilationUnitSyntax root,
-        IList<UsingDirectiveSyntax> usingDirectives,
-        SyntaxNode contextNode,
-        bool placeSystemNamespaceFirst,
-        params SyntaxAnnotation[] annotations)
-    {
-        if (!usingDirectives.Any())
         {
-            return root;
+            return root.AddUsingDirectives([usingDirective], contextNode, placeSystemNamespaceFirst, annotations);
         }
 
-        var firstOuterNamespaceWithUsings = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-        if (firstOuterNamespaceWithUsings == null)
+        public CompilationUnitSyntax AddUsingDirectives(
+            IList<UsingDirectiveSyntax> usingDirectives,
+            SyntaxNode contextNode,
+            bool placeSystemNamespaceFirst,
+            params SyntaxAnnotation[] annotations)
         {
-            return root.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, annotations);
-        }
-        else
-        {
-            var newNamespace = firstOuterNamespaceWithUsings.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, annotations);
-            return root.ReplaceNode(firstOuterNamespaceWithUsings, newNamespace);
-        }
-    }
-
-    public static CompilationUnitSyntax AddUsingDirectives(
-        this CompilationUnitSyntax root,
-        IList<UsingDirectiveSyntax> usingDirectives,
-        bool placeSystemNamespaceFirst,
-        params SyntaxAnnotation[] annotations)
-    {
-        if (usingDirectives.Count == 0)
-        {
-            return root;
-        }
-
-        var usings = AddUsingDirectives(root, usingDirectives);
-
-        // Keep usings sorted if they were originally sorted.
-        usings.SortUsingDirectives(root.Usings, placeSystemNamespaceFirst);
-
-        var addBlankLine = false;
-        if (root.Externs.Count == 0)
-        {
-            (root, addBlankLine) = AddImportHelpers.MoveTrivia(
-                CSharpSyntaxFacts.Instance, root, root.Usings, usings);
-        }
-
-        var rootWithNewUsings = root.WithUsings(
-            [.. usings.Select(u => u.WithAdditionalAnnotations(annotations))]);
-        if (addBlankLine)
-        {
-            var lastUsing = rootWithNewUsings.Usings.Last();
-            var nextToken = lastUsing.GetLastToken(includeZeroWidth: true, includeSkipped: true).GetNextTokenOrEndOfFile(includeZeroWidth: true, includeSkipped: true);
-            var endOfLine = lastUsing.GetTrailingTrivia().LastOrDefault(CSharpSyntaxFacts.Instance.IsEndOfLineTrivia);
-            Debug.Assert(!endOfLine.IsKind(SyntaxKind.None));
-            if (!endOfLine.IsKind(SyntaxKind.None))
+            if (!usingDirectives.Any())
             {
-                rootWithNewUsings = rootWithNewUsings.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(endOfLine));
+                return root;
+            }
+
+            var firstOuterNamespaceWithUsings = contextNode.GetInnermostNamespaceDeclarationWithUsings();
+            if (firstOuterNamespaceWithUsings == null)
+            {
+                return root.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, annotations);
+            }
+            else
+            {
+                var newNamespace = firstOuterNamespaceWithUsings.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, annotations);
+                return root.ReplaceNode(firstOuterNamespaceWithUsings, newNamespace);
             }
         }
 
-        return rootWithNewUsings;
+        public CompilationUnitSyntax AddUsingDirectives(
+            IList<UsingDirectiveSyntax> usingDirectives,
+            bool placeSystemNamespaceFirst,
+            params SyntaxAnnotation[] annotations)
+        {
+            if (usingDirectives.Count == 0)
+            {
+                return root;
+            }
+
+            var usings = AddUsingDirectives(root, usingDirectives);
+
+            // Keep usings sorted if they were originally sorted.
+            usings.SortUsingDirectives(root.Usings, placeSystemNamespaceFirst);
+
+            var addBlankLine = false;
+            if (root.Externs.Count == 0)
+            {
+                (root, addBlankLine) = AddImportHelpers.MoveTrivia(
+                    CSharpSyntaxFacts.Instance, root, root.Usings, usings);
+            }
+
+            var rootWithNewUsings = root.WithUsings(
+                [.. usings.Select(u => u.WithAdditionalAnnotations(annotations))]);
+            if (addBlankLine)
+            {
+                var lastUsing = rootWithNewUsings.Usings.Last();
+                var nextToken = lastUsing.GetLastToken(includeZeroWidth: true, includeSkipped: true).GetNextTokenOrEndOfFile(includeZeroWidth: true, includeSkipped: true);
+                var endOfLine = lastUsing.GetTrailingTrivia().LastOrDefault(CSharpSyntaxFacts.Instance.IsEndOfLineTrivia);
+                Debug.Assert(!endOfLine.IsKind(SyntaxKind.None));
+                if (!endOfLine.IsKind(SyntaxKind.None))
+                {
+                    rootWithNewUsings = rootWithNewUsings.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(endOfLine));
+                }
+            }
+
+            return rootWithNewUsings;
+        }
     }
 
     private static List<UsingDirectiveSyntax> AddUsingDirectives(
