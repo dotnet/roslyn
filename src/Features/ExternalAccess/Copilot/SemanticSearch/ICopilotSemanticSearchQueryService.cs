@@ -17,6 +17,7 @@ internal interface ICopilotSemanticSearchQueryService
     CompileQueryResult CompileQuery(
         SolutionServices services,
         string query,
+        string referenceAssembliesDir,
         TraceSource traceSource,
         CancellationToken cancellationToken);
 

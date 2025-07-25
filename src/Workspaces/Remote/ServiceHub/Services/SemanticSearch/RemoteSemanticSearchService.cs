@@ -52,13 +52,14 @@ internal sealed class RemoteSemanticSearchService(
     /// </summary>
     public ValueTask<CompileQueryResult> CompileQueryAsync(
         string query,
+        string referenceAssembliesDir,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(cancellationToken =>
         {
             var services = GetWorkspaceServices();
             var service = GetRequiredService<ISemanticSearchQueryService>();
-            var result = service.CompileQuery(services, query, TraceLogger, cancellationToken);
+            var result = service.CompileQuery(services, query, referenceAssembliesDir, TraceLogger, cancellationToken);
 
             return ValueTask.FromResult(result);
         }, cancellationToken);
