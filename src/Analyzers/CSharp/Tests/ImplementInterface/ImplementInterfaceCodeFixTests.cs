@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -11900,4 +11901,27 @@ class Goo : [|IComparable|]
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
+
+    [Fact]
+    public Task TestImplementIDisposable_DisposePattern_LF_EndOfLine()
+         => new VerifyCS.Test
+         {
+             TestCode = """
+                using System;
+                class C : {|CS0535:IDisposable|}{|CS1513:|}{|CS1514:|}
+                """.Replace("\r\n", "\n"),
+             FixedCode = $$"""
+                using System;
+                class C : IDisposable
+                {
+                    private bool disposedValue;
+
+                {{DisposePattern("protected virtual ", "C", "public void ")}}
+                }
+                """.Replace("\r\n", "\n"),
+             CodeActionIndex = 1,
+             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+             Options = { { FormattingOptions2.NewLine, "\n" } },
+         }.RunAsync();
 }
