@@ -58,8 +58,13 @@ internal sealed class SolutionChecksumUpdater
 
         _shutdownToken = shutdownToken;
 
+        // A time span of Short is chosen here to ensure that the batching favors fewer but larger batches.
+        // During solution load a large number of WorkspaceChange events might be raised over a few seconds,
+        // and in performance tests a 50ms delay was found to be causing a lot of extra memory churn synchronizing
+        // things OOP. Short didn't cause a similar issue; it's possible this will need to be fine tuned for something in
+        // the middle.
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
-            DelayTimeSpan.NearImmediate,
+            DelayTimeSpan.Short,
             SynchronizePrimaryWorkspaceAsync,
             listener,
             shutdownToken);
