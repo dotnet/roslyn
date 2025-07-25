@@ -33,7 +33,7 @@ internal sealed class EditAndContinueLanguageService(
     Lazy<IManagedHotReloadService> debuggerService,
     PdbMatchingSourceTextProvider sourceTextProvider,
     IEditAndContinueLogReporter logReporter,
-    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3
+    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3, IEditAndContinueSolutionProvider
 {
     private sealed class NoSessionException : InvalidOperationException
     {
