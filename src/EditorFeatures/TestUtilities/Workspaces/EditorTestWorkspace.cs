@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -25,12 +27,15 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 public sealed partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
     private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
+
+    public List<string> ChangedSourceGeneratedDocumentFileNames { get; } = [];
 
     private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = [];
 
@@ -520,5 +525,15 @@ public sealed partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDo
         }
 
         return (reference, image);
+    }
+
+    internal override void ApplyMappedFileChanges(SolutionChanges solutionChanges)
+    {
+        foreach (var (docId, _) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        {
+            var document = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+            Assert.NotNull(document.FilePath);
+            ChangedSourceGeneratedDocumentFileNames.Add(Path.GetFileName(document.FilePath));
+        }
     }
 }

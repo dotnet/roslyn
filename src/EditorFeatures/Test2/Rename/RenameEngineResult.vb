@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return locations
         End Function
 
-        Private Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
+        Public Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
                 Dim newLocation = ConflictResolution.GetResolutionTextSpan(location.SourceSpan, documentId)
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Try
         End Sub
 
-        Private Sub AssertLocationReferencedAs(location As Location, type As RelatedLocationType)
+        Public Sub AssertLocationReferencedAs(location As Location, type As RelatedLocationType)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
                 Dim reference = _unassertedRelatedLocations.SingleOrDefault(
