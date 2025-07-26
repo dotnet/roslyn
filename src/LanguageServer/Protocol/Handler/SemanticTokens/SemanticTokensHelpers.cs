@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -21,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 internal static class SemanticTokensHelpers
 {
-    private static readonly ObjectPool<List<int>> s_tokenListPool = new(() => new List<int>(capacity: 1000));
-
     /// <param name="ranges">The ranges to get semantic tokens for.  If <c>null</c> then the entire document will be
     /// processed.</param>
     internal static async Task<int[]> HandleRequestHelperAsync(
@@ -242,12 +239,9 @@ internal static class SemanticTokensHelpers
 
         var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
 
-        using var pooledData = s_tokenListPool.GetPooledObject();
-        var data = pooledData.Object;
+        var data = new int[5 * classifiedSpans.Count];
 
-        // Items in the pool may not have been cleared
-        data.Clear();
-
+        var i = 0;
         for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
         {
             currentClassifiedSpanIndex = ComputeNextToken(
@@ -256,14 +250,14 @@ internal static class SemanticTokensHelpers
                 out var deltaLine, out var startCharacterDelta, out var tokenLength,
                 out var tokenType, out var tokenModifiers);
 
-            data.Add(deltaLine);
-            data.Add(startCharacterDelta);
-            data.Add(tokenLength);
-            data.Add(tokenType);
-            data.Add(tokenModifiers);
+            data[i++] = deltaLine;
+            data[i++] = startCharacterDelta;
+            data[i++] = tokenLength;
+            data[i++] = tokenType;
+            data[i++] = tokenModifiers;
         }
 
-        return [.. data];
+        return data;
     }
 
     private static int ComputeNextToken(
