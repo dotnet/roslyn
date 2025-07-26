@@ -657,7 +657,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
                     var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
                     var mappedTextChanges = await mappingService.GetMappedTextChangesAsync(
-                        oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                        oldDocument, newDocument, cancellationToken).ConfigureAwait(true);
                     foreach (var (filePath, textChange) in mappedTextChanges)
                     {
                         filePathToMappedTextChanges.Add(filePath, (textChange, projectChanges.ProjectId));
@@ -672,7 +672,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 // so the mapper has something to compare to.
                 foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
                 {
-                    var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                    var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(true);
                     Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
                 }
 
@@ -680,7 +680,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 {
                     var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
                     var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
-                    var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                    var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(true);
                     foreach (var (filePath, textChange) in mappedTextChanges)
                     {
                         filePathToMappedTextChanges.Add(filePath, (textChange, docId.ProjectId));

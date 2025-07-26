@@ -54,7 +54,6 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingService(
         }
 
         return changesBuilder.ToImmutableAndClear();
-
     }
 
     public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)

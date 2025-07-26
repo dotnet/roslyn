@@ -13,60 +13,57 @@ namespace Microsoft.CodeAnalysis;
 
 public readonly struct SolutionChanges
 {
-    private readonly Solution _newSolution;
-    private readonly Solution _oldSolution;
-
-    internal Solution OldSolution => _oldSolution;
-    internal Solution NewSolution => _newSolution;
+    internal Solution OldSolution { get; }
+    internal Solution NewSolution { get; }
 
     internal SolutionChanges(Solution newSolution, Solution oldSolution)
     {
-        _newSolution = newSolution;
-        _oldSolution = oldSolution;
+        NewSolution = newSolution;
+        OldSolution = oldSolution;
     }
 
     public IEnumerable<Project> GetAddedProjects()
     {
-        foreach (var id in _newSolution.ProjectIds)
+        foreach (var id in NewSolution.ProjectIds)
         {
-            if (!_oldSolution.ContainsProject(id))
+            if (!OldSolution.ContainsProject(id))
             {
-                yield return _newSolution.GetRequiredProject(id);
+                yield return NewSolution.GetRequiredProject(id);
             }
         }
     }
 
     public IEnumerable<ProjectChanges> GetProjectChanges()
     {
-        var old = _oldSolution;
+        var old = OldSolution;
 
         // if the project states are different then there is a change.
-        foreach (var id in _newSolution.ProjectIds)
+        foreach (var id in NewSolution.ProjectIds)
         {
-            var newState = _newSolution.GetProjectState(id);
+            var newState = NewSolution.GetProjectState(id);
             var oldState = old.GetProjectState(id);
             if (oldState != null && newState != null && newState != oldState)
             {
-                yield return _newSolution.GetRequiredProject(id).GetChanges(_oldSolution.GetRequiredProject(id));
+                yield return NewSolution.GetRequiredProject(id).GetChanges(OldSolution.GetRequiredProject(id));
             }
         }
     }
 
     public IEnumerable<Project> GetRemovedProjects()
     {
-        foreach (var id in _oldSolution.ProjectIds)
+        foreach (var id in OldSolution.ProjectIds)
         {
-            if (!_newSolution.ContainsProject(id))
+            if (!NewSolution.ContainsProject(id))
             {
-                yield return _oldSolution.GetRequiredProject(id);
+                yield return OldSolution.GetRequiredProject(id);
             }
         }
     }
 
     public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
     {
-        var oldAnalyzerReferences = new HashSet<AnalyzerReference>(_oldSolution.AnalyzerReferences);
-        foreach (var analyzerReference in _newSolution.AnalyzerReferences)
+        var oldAnalyzerReferences = new HashSet<AnalyzerReference>(OldSolution.AnalyzerReferences);
+        foreach (var analyzerReference in NewSolution.AnalyzerReferences)
         {
             if (!oldAnalyzerReferences.Contains(analyzerReference))
             {
@@ -77,8 +74,8 @@ public readonly struct SolutionChanges
 
     public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
     {
-        var newAnalyzerReferences = new HashSet<AnalyzerReference>(_newSolution.AnalyzerReferences);
-        foreach (var analyzerReference in _oldSolution.AnalyzerReferences)
+        var newAnalyzerReferences = new HashSet<AnalyzerReference>(NewSolution.AnalyzerReferences);
+        foreach (var analyzerReference in OldSolution.AnalyzerReferences)
         {
             if (!newAnalyzerReferences.Contains(analyzerReference))
             {
@@ -97,18 +94,18 @@ public readonly struct SolutionChanges
     /// </remarks>
     internal IEnumerable<DocumentId> GetExplicitlyChangedSourceGeneratedDocuments()
     {
-        if (_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty)
+        if (NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty)
             return [];
 
         using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
-        foreach (var (id, _) in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        foreach (var (id, _) in NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
         {
-            var oldState = _oldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
+            var oldState = OldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
             oldStateBuilder.AddIfNotNull(oldState);
         }
 
         var oldStates = new TextDocumentStates<SourceGeneratedDocumentState>(oldStateBuilder);
-        return _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.GetChangedStateIds(
+        return NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.GetChangedStateIds(
             oldStates,
             ignoreUnchangedContent: true,
             ignoreUnchangeableDocuments: false);

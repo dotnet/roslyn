@@ -939,7 +939,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         {
             if (documentId.IsSourceGenerated)
             {
-                var document = await finalSolution.GetDocumentAsync(documentId, includeSourceGenerated: true, CancellationToken.None).ConfigureAwait(false);
+                var document = await finalSolution.GetDocumentAsync(documentId, includeSourceGenerated: true, CancellationToken.None).ConfigureAwait(true);
                 Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
             }
 
@@ -947,6 +947,10 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
                 ? finalSolution.WithDocumentSyntaxRoot(documentId, newRoot)
                 : finalSolution.WithDocumentText(documentId, newText);
 
+            // WithDocumentName doesn't support source generated documents, and there should be no circumstance were they'd
+            // be renamed anyway. Given rename only supports Razor generated documents, and those are always named for the Razor
+            // file they come from, and nothing in Roslyn knows to rename those documents, we can safely skip this step. Razor
+            // may process the results of this rename and rename the document if it needs to later.
             if (!documentId.IsSourceGenerated)
             {
                 finalSolution = finalSolution.WithDocumentName(documentId, newName);
