@@ -240,7 +240,6 @@ internal static class SemanticTokensHelpers
         var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
         var data = AllocateTokenArray(classifiedSpans);
 
-        var i = 0;
         for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
         {
             currentClassifiedSpanIndex = ComputeNextToken(
@@ -249,25 +248,23 @@ internal static class SemanticTokensHelpers
                 out var deltaLine, out var startCharacterDelta, out var tokenLength,
                 out var tokenType, out var tokenModifiers);
 
-            data[i++] = deltaLine;
-            data[i++] = startCharacterDelta;
-            data[i++] = tokenLength;
-            data[i++] = tokenType;
-            data[i++] = tokenModifiers;
+            data.Add(deltaLine);
+            data.Add(startCharacterDelta);
+            data.Add(tokenLength);
+            data.Add(tokenType);
+            data.Add(tokenModifiers);
         }
 
-        Contract.ThrowIfFalse(i == data.Length, "The number of computed tokens does not match the expected size.");
-
-        return data;
+        return data.MoveToArray();
     }
 
     // This method allocates an array of integers to hold the semantic tokens data.
     // NOTE: The number of items in the array is based on the number of unique classified spans
     // in the provided list and is closely tied with how ComputeNextToken's loop works
-    private static int[] AllocateTokenArray(SegmentedList<ClassifiedSpan> classifiedSpans)
+    private static FixedSizeArrayBuilder<int> AllocateTokenArray(SegmentedList<ClassifiedSpan> classifiedSpans)
     {
         if (classifiedSpans.Count == 0)
-            return Array.Empty<int>();
+            return new FixedSizeArrayBuilder<int>(0);
 
         var uniqueSpanCount = 1;
         var lastSpan = classifiedSpans[0].TextSpan;
@@ -282,7 +279,7 @@ internal static class SemanticTokensHelpers
             }
         }
 
-        return new int[5 * uniqueSpanCount];
+        return new FixedSizeArrayBuilder<int>(5 * uniqueSpanCount);
     }
 
     private static int ComputeNextToken(
