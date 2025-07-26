@@ -68,7 +68,7 @@ internal sealed class SimpleFindUsagesContext : FindUsagesContext
 
     public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
     {
-        await foreach (var reference in references)
+        await foreach (var reference in references.ConfigureAwait(false))
         {
             lock (_gate)
             {

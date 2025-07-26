@@ -136,7 +136,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
 
     public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
     {
-        await foreach (var reference in references)
+        await foreach (var reference in references.ConfigureAwait(false))
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {

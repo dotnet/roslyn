@@ -212,7 +212,7 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         }
         else
         {
-            await foreach (var reference in references)
+            await foreach (var reference in references.ConfigureAwait(false))
                 _state.References.Add(reference);
         }
     }

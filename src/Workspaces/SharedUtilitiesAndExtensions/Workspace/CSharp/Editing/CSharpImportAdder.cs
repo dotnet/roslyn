@@ -148,7 +148,7 @@ internal sealed class CSharpImportAdder() : ImportAdderService
                 consumeItems: static async (items, args, cancellationToken) =>
                 {
                     var (_, _, conflicts) = args;
-                    await foreach (var conflict in items)
+                    await foreach (var conflict in items.ConfigureAwait(false))
                         conflicts.Add(conflict);
                 },
                 args: (self: this, containsAnonymousMethods, conflicts),

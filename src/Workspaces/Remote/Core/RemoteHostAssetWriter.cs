@@ -101,7 +101,7 @@ internal readonly struct RemoteHostAssetWriter(
         // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
         var foundChecksumCount = 0;
 
-        await foreach (var (checksum, asset) in checksumsAndAssets)
+        await foreach (var (checksum, asset) in checksumsAndAssets.ConfigureAwait(false))
         {
             await WriteSingleAssetToPipeAsync(
                 pooledStream.Object, objectWriter, checksum, asset, cancellationToken).ConfigureAwait(false);

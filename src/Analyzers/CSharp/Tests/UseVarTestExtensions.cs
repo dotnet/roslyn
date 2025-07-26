@@ -22,83 +22,86 @@ internal static class UseVarTestExtensions
     private static readonly CodeStyleOption2<bool> offWithError = new(false, NotificationOption2.Error);
     private static readonly CodeStyleOption2<bool> onWithError = new(true, NotificationOption2.Error);
 
-    public static OptionsCollection PreferExplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, offWithError },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError },
-        };
+    extension(AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
+    {
+        public OptionsCollection PreferExplicitTypeWithError()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithError },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError },
+            };
 
-    public static OptionsCollection PreferImplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, onWithError },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithError },
-        };
+        public OptionsCollection PreferImplicitTypeWithError()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithError },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithError },
+            };
 
-    public static OptionsCollection PreferExplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, offWithWarning },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithWarning },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithWarning },
-        };
+        public OptionsCollection PreferExplicitTypeWithWarning()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithWarning },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithWarning },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithWarning },
+            };
 
-    public static OptionsCollection PreferImplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, onWithWarning },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithWarning },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithWarning },
-        };
+        public OptionsCollection PreferImplicitTypeWithWarning()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithWarning },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithWarning },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithWarning },
+            };
 
-    public static OptionsCollection PreferExplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
-        };
+        public OptionsCollection PreferExplicitTypeWithInfo()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
 
-    public static OptionsCollection PreferImplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
-        };
+        public OptionsCollection PreferImplicitTypeWithInfo()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
-    public static OptionsCollection PreferExplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, offWithSilent },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent },
-        };
+        public OptionsCollection PreferExplicitTypeWithSilent()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent },
+            };
 
-    public static OptionsCollection PreferImplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
-        };
+        public OptionsCollection PreferImplicitTypeWithSilent()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
-    public static OptionsCollection PreferExplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, offWithNone },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithNone },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithNone },
-        };
+        public OptionsCollection PreferExplicitTypeWithNone()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithNone },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithNone },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithNone },
+            };
 
-    public static OptionsCollection PreferImplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest_NoEditor<TestHostDocument, TestHostProject, TestHostSolution, TestWorkspace> test)
-        => new(test.GetLanguage())
-        {
-            { CSharpCodeStyleOptions.VarElsewhere, onWithNone },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithNone },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithNone },
-        };
+        public OptionsCollection PreferImplicitTypeWithNone()
+            => new(test.GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithNone },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithNone },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithNone },
+            };
+    }
 }

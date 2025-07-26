@@ -351,7 +351,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         IAsyncEnumerable<ImmutableArray<SymbolReference>> reader,
         CancellationTokenSource linkedTokenSource)
     {
-        await foreach (var symbolReferences in reader)
+        await foreach (var symbolReferences in reader.ConfigureAwait(false))
         {
             linkedTokenSource.Token.ThrowIfCancellationRequested();
             AddRange(allSymbolReferences, symbolReferences);
