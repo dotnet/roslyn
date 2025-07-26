@@ -238,8 +238,7 @@ internal static class SemanticTokensHelpers
         var lastStartCharacter = 0;
 
         var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
-
-        var data = new int[5 * classifiedSpans.Count];
+        var data = AllocateTokenArray(classifiedSpans);
 
         var i = 0;
         for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
@@ -257,7 +256,33 @@ internal static class SemanticTokensHelpers
             data[i++] = tokenModifiers;
         }
 
+        Contract.ThrowIfFalse(i == data.Length, "The number of computed tokens does not match the expected size.");
+
         return data;
+    }
+
+    // This method allocates an array of integers to hold the semantic tokens data.
+    // NOTE: The number of items in the array is based on the number of unique classified spans
+    // in the provided list and is closely tied with how ComputeNextToken's loop works
+    private static int[] AllocateTokenArray(SegmentedList<ClassifiedSpan> classifiedSpans)
+    {
+        if (classifiedSpans.Count == 0)
+            return Array.Empty<int>();
+
+        var uniqueSpanCount = 1;
+        var lastSpan = classifiedSpans[0].TextSpan;
+
+        for (var index = 1; index < classifiedSpans.Count; index++)
+        {
+            var currentSpan = classifiedSpans[index].TextSpan;
+            if (currentSpan != lastSpan)
+            {
+                uniqueSpanCount++;
+                lastSpan = currentSpan;
+            }
+        }
+
+        return new int[5 * uniqueSpanCount];
     }
 
     private static int ComputeNextToken(
@@ -309,6 +334,8 @@ internal static class SemanticTokensHelpers
         var tokenTypeIndex = 0;
 
         // Classified spans with the same text span should be combined into one token.
+        // NOTE: The update of currentClassifiedSpanIndex is closely tied to the allocation
+        // of the data array in AllocateTokenArray.
         while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
         {
             var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;
