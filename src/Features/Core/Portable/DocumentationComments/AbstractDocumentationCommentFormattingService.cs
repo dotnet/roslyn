@@ -309,10 +309,22 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
 
     private static void AppendTextFromNode(FormatterState state, XNode node, Compilation compilation)
     {
-        if (node.NodeType is XmlNodeType.Text or XmlNodeType.CDATA)
+        if (node is XText textNode)
         {
-            // cast is safe since XCData inherits XText
-            AppendTextFromTextNode(state, (XText)node);
+            if (textNode.NodeType == XmlNodeType.Text)
+            {
+                AppendTextFromTextNode(state, textNode);
+            }
+            else if (textNode.NodeType == XmlNodeType.CDATA)
+            {
+                state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
+                state.MarkBeginOrEndPara();
+                AppendTextFromTextNode(state, textNode);
+                state.MarkBeginOrEndPara();
+                state.PopStyle();
+            }
+
+            return;
         }
 
         if (node.NodeType != XmlNodeType.Element)
@@ -402,8 +414,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             state.NextListItem();
         }
 
-        if (name is DocumentationCommentXmlNames.ParaElementName
-            or DocumentationCommentXmlNames.CodeElementName)
+        if (name is DocumentationCommentXmlNames.ParaElementName or
+                    DocumentationCommentXmlNames.CodeElementName)
         {
             state.MarkBeginOrEndPara();
         }
@@ -417,8 +429,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             AppendTextFromNode(state, childNode, compilation);
         }
 
-        if (name is DocumentationCommentXmlNames.ParaElementName
-            or DocumentationCommentXmlNames.CodeElementName)
+        if (name is DocumentationCommentXmlNames.ParaElementName or
+                    DocumentationCommentXmlNames.CodeElementName)
         {
             state.MarkBeginOrEndPara();
         }
