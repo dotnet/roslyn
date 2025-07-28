@@ -167,7 +167,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSea
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.GetQueryDocumentFilePath() -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.GetQueryDocumentId(Microsoft.CodeAnalysis.Solution! solution) -> Microsoft.CodeAnalysis.DocumentId!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.GetWorkspaceChangeKind(Microsoft.CodeAnalysis.Solution! oldSolution, Microsoft.CodeAnalysis.Solution! newSolution) -> (Microsoft.CodeAnalysis.WorkspaceChangeKind changeKind, Microsoft.CodeAnalysis.ProjectId? projectId, Microsoft.CodeAnalysis.DocumentId? documentId)
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.SetQueryText(Microsoft.CodeAnalysis.Solution! solution, string? query) -> Microsoft.CodeAnalysis.Solution!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.SetQueryText(Microsoft.CodeAnalysis.Solution! solution, string? query, string! referenceAssembliesDir) -> Microsoft.CodeAnalysis.Solution!
 Microsoft.CodeAnalysis.SemanticSearch.SemanticSearchCopilotServiceWrapper
 Microsoft.CodeAnalysis.SemanticSearch.SemanticSearchCopilotServiceWrapper.SemanticSearchCopilotServiceWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotServiceImpl!>? impl) -> void
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Equals(object? obj) -> bool
