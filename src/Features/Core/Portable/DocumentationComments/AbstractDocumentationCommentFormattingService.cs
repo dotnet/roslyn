@@ -313,14 +313,12 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         {
             if (textNode.NodeType == XmlNodeType.Text)
             {
-                AppendTextFromTextNode(state, textNode);
+                AppendTextFromTextNode(state, textNode, replaceNewLineWithPara: false);
             }
             else if (textNode.NodeType == XmlNodeType.CDATA)
             {
                 state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
-                state.MarkBeginOrEndPara();
-                AppendTextFromTextNode(state, textNode);
-                state.MarkBeginOrEndPara();
+                AppendTextFromTextNode(state, textNode, replaceNewLineWithPara: true);
                 state.PopStyle();
             }
 
@@ -556,13 +554,19 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         return value;
     }
 
-    private static void AppendTextFromTextNode(FormatterState state, XText element)
+    private static void AppendTextFromTextNode(FormatterState state, XText element, bool replaceNewLineWithPara)
     {
         var rawText = element.Value;
         if ((state.Style & TaggedTextStyle.PreserveWhitespace) == TaggedTextStyle.PreserveWhitespace)
         {
-            // Don't normalize code from middle. Only trim leading/trailing new lines.
+            if (replaceNewLineWithPara && rawText is ['\n', ..])
+                state.MarkBeginOrEndPara();
+
             state.AppendString(rawText.Trim('\n'));
+
+            if (replaceNewLineWithPara && rawText is [.., '\n'])
+                state.MarkBeginOrEndPara();
+
             return;
         }
 
