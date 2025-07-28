@@ -19,6 +19,8 @@
     <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.tgz" />
     <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.zip" />
 
+    <FileExtensionSignInfo Update=".nupkg" CertificateName="None" />
+
     <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
 
     <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
@@ -61,4 +63,5 @@
     <FileSignInfo Include="Microsoft.VisualStudio.Threading.dll" CertificateName="MicrosoftSHA2" />
     <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
   </ItemGroup>
+
 </Project>

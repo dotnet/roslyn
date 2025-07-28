@@ -124,6 +124,15 @@
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Validation]"
     },
+    "dev/dibarbet/test_sign_nuget": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[testsignnuget]"
+    },
     "dev15.9.x-vs-deps": {
       "nugetKind": "PerBuildPreRelease",
       "vsBranch": "rel/d15.9"
