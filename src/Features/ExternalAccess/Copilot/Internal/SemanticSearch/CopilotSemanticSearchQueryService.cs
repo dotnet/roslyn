@@ -42,11 +42,11 @@ internal sealed class CopilotSemanticSearchQueryService(
                 cancellationToken);
     }
 
-    public CompileQueryResult CompileQuery(SolutionServices services, string query, TraceSource traceSource, CancellationToken cancellationToken)
+    public CompileQueryResult CompileQuery(SolutionServices services, string query, string referenceAssembliesDir, TraceSource traceSource, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(impl);
 
-        var result = impl.CompileQuery(services, query, traceSource, cancellationToken);
+        var result = impl.CompileQuery(services, query, referenceAssembliesDir, traceSource, cancellationToken);
         return new(
             new(result.QueryId.Id),
             result.CompilationErrors.SelectAsArray(static e => new QueryCompilationError(e.Id, e.Message, e.Span)),

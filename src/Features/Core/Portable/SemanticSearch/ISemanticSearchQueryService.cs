@@ -15,9 +15,11 @@ internal interface ISemanticSearchQueryService
     /// Compiles a query. The query has to be executed or discarded.
     /// </summary>
     /// <param name="query">Query (top-level code).</param>
+    /// <param name="referenceAssembliesDir">Directory containing reference assemblies.</param>
     CompileQueryResult CompileQuery(
         SolutionServices services,
         string query,
+        string referenceAssembliesDir,
         TraceSource traceSource,
         CancellationToken cancellationToken);
 
