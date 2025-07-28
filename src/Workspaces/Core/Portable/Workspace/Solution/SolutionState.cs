@@ -39,7 +39,11 @@ internal sealed partial class SolutionState
 
     /// <summary>
     /// The content version of the workspace this solution is from.  This monotonically increases in the
-    /// workspace whenever the content of its <see cref="SolutionState"/> snapshot changes.
+    /// workspace whenever the content of its <see cref="SolutionState"/> snapshot changes.  Importantly,
+    /// this does not change when the SolutionState stays the same, but the workspace's <see cref="Solution.CompilationState"/>'s
+    /// <see cref="SourceGeneratorExecutionVersionMap"/> changes.  That ensures that requests from the host
+    /// to rerun source generators do not block subsequent requests to update the solution's content in
+    /// <see cref="Workspace.TryApplyChanges(Solution)"/>.
     /// </summary>
     public int ContentVersion { get; }
     public string? WorkspaceKind { get; }
