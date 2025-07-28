@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -72,6 +73,7 @@ internal sealed class CSharpFixReturnTypeCodeFixProvider()
         if (declarationTypeToFix is null)
             return default;
 
+        var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var returnedType = semanticModel.GetTypeInfo(returnedValue, cancellationToken).Type;
 
@@ -85,7 +87,8 @@ internal sealed class CSharpFixReturnTypeCodeFixProvider()
 
         returnedType ??= semanticModel.Compilation.ObjectType;
 
-        TypeSyntax fixedDeclaration;
+        var fixedDeclaration = returnedType.GenerateTypeSyntax(allowVar: false);
+
         if (isAsync)
         {
             var previousReturnType = semanticModel.GetTypeInfo(declarationTypeToFix, cancellationToken).Type;
@@ -112,11 +115,8 @@ internal sealed class CSharpFixReturnTypeCodeFixProvider()
             if (taskType is null)
                 return default;
 
-            fixedDeclaration = taskType.Construct(returnedType).GenerateTypeSyntax(allowVar: false);
-        }
-        else
-        {
-            fixedDeclaration = returnedType.GenerateTypeSyntax(allowVar: false);
+            var taskTypeSyntax = taskType.GenerateTypeSyntax(allowVar: false);
+            fixedDeclaration = (TypeSyntax)syntaxGenerator.WithTypeArguments(taskTypeSyntax, fixedDeclaration);
         }
 
         fixedDeclaration = fixedDeclaration.WithAdditionalAnnotations(Simplifier.Annotation).WithTriviaFrom(declarationTypeToFix);

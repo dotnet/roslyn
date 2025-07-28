@@ -460,4 +460,56 @@ public sealed class FixReturnTypeTests
             """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79630")]
+    public Task TestAnonymousTypeElement1()
+        => VerifyCS.VerifyCodeFixAsync("""
+            class C
+            {
+                public void Method()
+                {
+                    var v = new { A = 0, B = 1 };
+                    var a = new[] { v };
+                    {|CS0127:return|} v;
+                }
+            }
+            """, """
+            class C
+            {
+                public object Method()
+                {
+                    var v = new { A = 0, B = 1 };
+                    var a = new[] { v };
+                    return v;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79630")]
+    public Task TestAnonymousTypeElement2()
+        => VerifyCS.VerifyCodeFixAsync("""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task Method()
+                {
+                    var v = new { A = 0, B = 1 };
+                    var a = new[] { v };
+                    {|CS0127:return|} v;
+                }
+            }
+            """, """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task<object> Method()
+                {
+                    var v = new { A = 0, B = 1 };
+                    var a = new[] { v };
+                    return v;
+                }
+            }
+            """);
 }
