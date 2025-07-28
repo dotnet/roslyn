@@ -1482,10 +1482,10 @@ internal sealed partial class SolutionCompilationState
             frozenSourceGeneratedDocumentStates: new TextDocumentStates<SourceGeneratedDocumentState>(documentStates.Values));
     }
 
-    public SolutionCompilationState WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
+    public SolutionCompilationState WithNewWorkspace(string? workspaceKind, int solutionStateContentVersion, SolutionServices services)
     {
         return this.Branch(
-            this.SolutionState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+            this.SolutionState.WithNewWorkspace(workspaceKind, solutionStateContentVersion, services));
     }
 
     public SolutionCompilationState WithOptions(SolutionOptionSet options)
