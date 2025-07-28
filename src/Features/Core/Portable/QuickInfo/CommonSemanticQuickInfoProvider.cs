@@ -188,6 +188,8 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
+    protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
+
     private (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(
         SolutionServices services, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, CancellationToken cancellationToken)
     {
@@ -257,9 +259,6 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                 => node.Ancestors().FirstOrDefault(a => a.RawKind == syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression);
         }
     }
-
-    protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
-        => default;
 
     protected ImmutableArray<ISymbol> BindSymbols(
         SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
