@@ -1574,31 +1574,23 @@ public sealed partial class ServiceHubServicesTests
         SourceGeneratorExecutionPreference sourceGeneratorExecution,
         bool majorVersionUpdate)
     {
-        using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService), typeof(TestWorkspaceConfigurationService)]);
+        using var workspace = TestWorkspace.CreateCSharp(
+            "// First file",
+            composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(typeof(TestWorkspaceConfigurationService)));
 
         var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
         // want to access the true workspace solution (which will be a fork of the solution we're producing here).
-        var projectId1 = ProjectId.CreateNewId();
-
-        var project1 = workspace.CurrentSolution
-            .AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
-            .GetRequiredProject(projectId1);
-        var tempDoc = project1.AddDocument("X.cs", SourceText.From("// "));
-        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-        var noCompilationProject = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName);
-        Assert.True(workspace.SetCurrentSolution(_ => noCompilationProject.Solution, WorkspaceChangeKind.SolutionChanged));
-
         var initialSolution = workspace.CurrentSolution;
         var initialExecutionMap = initialSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
 
+        var projectId1 = initialSolution.Projects.Single().Id;
         Assert.True(initialExecutionMap.ContainsKey(projectId1));
-        Assert.True(initialExecutionMap.ContainsKey(noCompilationProject.Id));
 
         // Simulate the host making a change to the sg execution version, to force generators to rerun.
-        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: majorVersionUpdate);
+        var forceRegeneration = majorVersionUpdate;
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
         await WaitForSourceGeneratorsAsync(workspace);
 
         var solutionWithChangedExecutionVersion = workspace.CurrentSolution;
@@ -1608,27 +1600,44 @@ public sealed partial class ServiceHubServicesTests
         var solutionWithDocumentAdded = initialSolution.AddDocument(
             DocumentId.CreateNewId(projectId1), "Y.cs", "// Contents");
 
+        var expectVersionChange = sourceGeneratorExecution is SourceGeneratorExecutionPreference.Balanced || forceRegeneration;
+
+        // The content forked solution should have an SG execution version *less than* the one we just changed.
+        // Note: this will be patched up once we call TryApplyChanges.
+        if (expectVersionChange)
+        {
+            Assert.True(
+                solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]
+                > solutionWithDocumentAdded.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+        }
+        else
+        {
+            Assert.Equal(
+                solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1],
+                solutionWithDocumentAdded.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+        }
+
         Assert.True(workspace.TryApplyChanges(solutionWithDocumentAdded));
 
         var finalSolution = workspace.CurrentSolution;
         Assert.Equal(2, finalSolution.Projects.Single().Documents.Count());
 
-        if (sourceGeneratorExecution is SourceGeneratorExecutionPreference.Automatic)
+        if (expectVersionChange)
         {
-            // In automatic mode, nothing should change wrt to execution versions.
-            Assert.Equal(initialExecutionMap[projectId1], solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
-            Assert.Equal(initialExecutionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+            // In balanced (or if we forced regen) mode, the execution version should have been updated to the new value.
+            Assert.NotEqual(initialExecutionMap[projectId1], solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+            Assert.NotEqual(initialExecutionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
         }
         else
         {
-            // In balanced mode, the execution version should have been updated to the new value.
-            Assert.NotEqual(initialExecutionMap[projectId1], solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
-            Assert.NotEqual(initialExecutionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
-
-            // *And* the final execution version for the project should match the changed execution version,
-            // proving that the content change happened, but didn't drop the execution version change.
-            Assert.Equal(solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+            // In automatic mode, nothing should change wrt to execution versions (unless we specified force-regenerate).
+            Assert.Equal(initialExecutionMap[projectId1], solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+            Assert.Equal(initialExecutionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
         }
+
+        // The final execution version for the project should match the changed execution version, no matter what.
+        // Proving that the content change happened, but didn't drop the execution version change.
+        Assert.Equal(solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
     }
 
     [Fact]
