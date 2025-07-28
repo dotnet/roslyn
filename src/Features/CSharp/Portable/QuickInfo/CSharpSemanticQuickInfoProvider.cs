@@ -83,23 +83,23 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-    protected override (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
+    protected override (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(
+        SemanticModel semanticModel,
+        ISymbol symbol,
+        SyntaxNode node,
+        CancellationToken cancellationToken)
     {
         // Anything less than C# 8 we just won't show anything, even if the compiler could theoretically give analysis
         var parseOptions = (CSharpParseOptions)semanticModel.SyntaxTree!.Options;
         if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-        {
             return default;
-        }
 
         // If the user doesn't have nullable enabled, don't show anything. For now we're not trying to be more precise if the user has just annotations or just
         // warnings. If the user has annotations off then things that are oblivious might become non-null (which is a lie) and if the user has warnings off then
         // that probably implies they're not actually trying to know if their code is correct. We can revisit this if we have specific user scenarios.
         var nullableContext = semanticModel.GetNullableContext(node.SpanStart);
         if (!nullableContext.WarningsEnabled() || !nullableContext.AnnotationsEnabled())
-        {
             return default;
-        }
 
         // Although GetTypeInfo can return nullability for uses of all sorts of things, it's not always useful for quick info.
         // For example, if you have a call to a method with a nullable return, the fact it can be null is already captured
@@ -128,9 +128,7 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
         }
 
         if (symbol.GetMemberType() is { IsValueType: false, NullableAnnotation: NullableAnnotation.None })
-        {
             return (NullableAnnotation.None, NullableFlowState.NotNull);
-        }
 
         var typeInfo = semanticModel.GetTypeInfo(node, cancellationToken);
 
@@ -139,9 +137,7 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
         // Nullable<int>, which isn't exactly the same. To avoid confusion and
         // extra noise, we won't show nullable flow state for value types
         if (typeInfo.Type?.IsValueType == true)
-        {
             return default;
-        }
 
         var nullability = typeInfo.Nullability;
         return (nullability.Annotation, nullability.FlowState);

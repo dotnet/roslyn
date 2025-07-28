@@ -186,9 +186,10 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
-    protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
+    protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
+        => default;
 
-    private TokenInformation BindToken(
+    protected ImmutableArray<ISymbol> BindSymbols(
         SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
     {
         var languageServices = services.GetLanguageServices(semanticModel.Language);
@@ -203,26 +204,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken), checkAccessibility: true);
         AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : [], checkAccessibility: false);
 
-        if (filteredSymbols is [var firstSymbol, ..])
-        {
-            var isAwait = syntaxFacts.IsAwaitKeyword(token);
-            var nullabilityInfo = bindableParent != null
-                ? GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken)
-                : default;
-
-            return new TokenInformation(filteredSymbols.ToImmutableAndClear(), isAwait, nullabilityInfo);
-        }
-
-        // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
-        // least bind it to a type.
-        if (syntaxFacts.IsOperator(token))
-        {
-            var typeInfo = semanticModel.GetTypeInfo(token.Parent!, cancellationToken);
-            if (IsOk(typeInfo.Type))
-                return new TokenInformation([typeInfo.Type]);
-        }
-
-        return default;
+        return filteredSymbols.ToImmutableAndClear();
 
         void AddSymbols(ImmutableArray<ISymbol> symbols, bool checkAccessibility)
         {
@@ -238,6 +220,38 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                     filteredSymbols.Add(symbol);
             }
         }
+    }
+
+    private TokenInformation BindToken(
+        SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+    {
+        var filteredSymbols = BindSymbols(services, semanticModel, token, cancellationToken);
+
+        var languageServices = services.GetLanguageServices(semanticModel.Language);
+        var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
+
+        var bindableParent = syntaxFacts.TryGetBindableParent(token);
+
+        if (filteredSymbols is [var firstSymbol, ..])
+        {
+            var isAwait = syntaxFacts.IsAwaitKeyword(token);
+            var nullabilityInfo = bindableParent != null
+                ? GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken)
+                : default;
+
+            return new TokenInformation(filteredSymbols, isAwait, nullabilityInfo);
+        }
+
+        // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
+        // least bind it to a type.
+        if (syntaxFacts.IsOperator(token))
+        {
+            var typeInfo = semanticModel.GetTypeInfo(token.Parent!, cancellationToken);
+            if (IsOk(typeInfo.Type))
+                return new TokenInformation([typeInfo.Type]);
+        }
+
+        return default;
     }
 
     private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, SolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
