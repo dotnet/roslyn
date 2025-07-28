@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 /// </item>
 /// <item>
 /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' syntax construct that both C# and VB have.  For
-/// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionsyntax.Expression in both C# and
+/// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionSyntax.Expression in both C# and
 /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
 /// For nodes that only have a single child, these functions can stay here.  For nodes with multiple children, these should migrate
 /// to <see cref="ISyntaxFactsExtensions"/> and be built off of 'GetPartsOfXXX'.
@@ -537,6 +537,7 @@ internal interface ISyntaxFacts
     void GetPartsOfImplicitObjectCreationExpression(SyntaxNode node, out SyntaxToken keyword, out SyntaxNode argumentList, out SyntaxNode? initializer);
     void GetPartsOfParameter(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode? @default);
     void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
+    void GetPartsOfPostfixUnaryExpression(SyntaxNode node, out SyntaxNode operand, out SyntaxToken operatorToken);
     void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand);
     void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right);
     void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
