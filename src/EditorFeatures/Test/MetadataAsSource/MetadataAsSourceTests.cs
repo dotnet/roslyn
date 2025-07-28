@@ -5961,7 +5961,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             {
                 //
                 // {{FeaturesResources.Summary_colon}}
-                //     Represents the '<<' operator.
+                //     Represents the
+                //
+                //     '<<'
+                //
+                //     operator.
                 [|LeftShift|] = 8
             }
             """, includeXmlDocComments: true);
