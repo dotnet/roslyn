@@ -22,8 +22,7 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
 {
     [WpfFact]
     public void ClosedRegularlyAfterAsterisk()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              *$$
@@ -32,12 +31,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
              */$$
             """);
-    }
 
     [WpfFact]
     public void ClosedAfterAsteriskSpace1()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              * $$
@@ -46,44 +43,36 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
              */$$
             """);
-    }
 
     [WpfFact]
     public void ClosedAfterAsteriskSpace2()
-    {
-        Verify("""
+        => Verify("""
             /*
              * $$
             """, """
             /*
              */$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterSlashAsteriskSpace()
-    {
-        Verify("""
+        => Verify("""
             /* $$
             """, """
             /* /$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterSlashDoubleAsteriskSpace()
-    {
-        Verify("""
+        => Verify("""
             /** $$
             """, """
             /** /$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterSpaceWithoutAsterisk()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
                $$
@@ -92,12 +81,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
                /$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk1()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
             ** $$
@@ -106,12 +93,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
             ** /$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk2()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
             /* $$
@@ -120,12 +105,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
             /* /$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk3()
-    {
-        Verify("""
+        => Verify("""
                 /*
                  *
             a    * $$
@@ -134,12 +117,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
                  *
             a    * /$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor1()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              * $$/
@@ -148,12 +129,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
              * /$$/
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor2()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              * $$*
@@ -162,12 +141,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
              * /$$*
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor3()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              * $$ a
@@ -176,12 +153,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
              * /$$ a
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithWhitespaceAfterCursor()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              * $$ 
@@ -190,12 +165,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
              * /$$ 
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskDoubleSpace()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              *  $$
@@ -204,12 +177,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
              *
              *  /$$
             """);
-    }
 
     [WpfFact]
     public void ClosedAfterAsteriskSpaceWithNothingBeforeAsterisk()
-    {
-        Verify("""
+        => Verify("""
                 /*
                  *
             * $$
@@ -218,12 +189,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
                  *
             */$$
             """);
-    }
 
     [WpfFact]
     public void ClosedAfterAsteriskSpaceWithTabsBeforeAsterisk()
-    {
-        VerifyTabs("""
+        => VerifyTabs("""
                 /*
                  *
             <tab><tab>* $$
@@ -232,12 +201,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
                  *
             <tab><tab>*/$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceWithOptionOff()
-    {
-        Verify("""
+        => Verify("""
             /*
              *
              * $$
@@ -250,12 +217,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             globalOptions.SetGlobalOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false);
         });
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceOutsideComment()
-    {
-        Verify("""
+        => Verify("""
             / *
               *
               * $$
@@ -264,12 +229,10 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
               *
               * /$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceInsideString()
-    {
-        Verify("""
+        => Verify("""
             class C
             {
                 string s = @"
@@ -284,37 +247,28 @@ public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<Ty
                  *
                  * /$$
             """);
-    }
 
     [WpfFact]
     public void ClosedAfterAsteriskSpaceEndOfFile()
-    {
-        Verify("""
+        => Verify("""
             /*
              * $$
             """, """
             /*
              */$$
             """);
-    }
 
     [WpfFact]
     public void NotClosedAfterAsteriskSpaceStartOfFile()
-    {
-        Verify(@"* $$", @"* /$$");
-    }
+        => Verify(@"* $$", @"* /$$");
 
     [WpfFact]
     public void NotClosedAfterSpaceStartOfFile()
-    {
-        Verify(@" $$", @" /$$");
-    }
+        => Verify(@" $$", @" /$$");
 
     [WpfFact]
     public void NotClosedAtStartOfFile()
-    {
-        Verify(@"$$", @"/$$");
-    }
+        => Verify(@"$$", @"/$$");
 
     protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
         => EditorTestWorkspace.CreateCSharp(initialMarkup);

@@ -1896,7 +1896,8 @@ public sealed class SymbolEquivalenceComparerTests
     [Fact]
     public void CustomModifiers_Methods1()
     {
-        const string ilSource = """
+        MetadataReference r1, r2;
+        using (var tempAssembly = IlasmUtilities.CreateTempAssembly("""
             .class public C
             {
               .method public instance int32 [] modopt([mscorlib]System.Int64) F(         // 0
@@ -1931,9 +1932,7 @@ public sealed class SymbolEquivalenceComparerTests
                   throw
               }
             }
-            """;
-        MetadataReference r1, r2;
-        using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
+            """))
         {
             var bytes = File.ReadAllBytes(tempAssembly.Path);
             r1 = MetadataReference.CreateFromImage(bytes);

@@ -54,9 +54,7 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
             cancellationToken).ConfigureAwait(false);
 
         var renameReplacementInfo = await renameLocationSet.ResolveConflictsAsync(
-            symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(newName),
-            nonConflictSymbolKeys: default,
-            cancellationToken).ConfigureAwait(false);
+            symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(newName), cancellationToken).ConfigureAwait(false);
 
         if (!renameReplacementInfo.IsSuccessful ||
             !renameReplacementInfo.ReplacementTextValid)

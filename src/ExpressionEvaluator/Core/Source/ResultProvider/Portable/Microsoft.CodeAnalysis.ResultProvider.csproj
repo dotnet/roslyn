@@ -10,7 +10,7 @@
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- IPooled is not available in ResultProvider -->
-    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER</DefineConstants>
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
 
     <!--
       Workaround: https://github.com/dotnet/roslyn/issues/78392

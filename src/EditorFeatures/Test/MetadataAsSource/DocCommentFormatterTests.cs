@@ -36,51 +36,40 @@ public sealed class DocCommentFormatterTests
 
     [Fact]
     public void Summary()
-    {
-        TestFormat("<summary>This is a summary.</summary>", $@"{FeaturesResources.Summary_colon}
+        => TestFormat("<summary>This is a summary.</summary>", $@"{FeaturesResources.Summary_colon}
     This is a summary.");
-    }
 
     [Fact]
     public void Wrapping1()
-    {
-        TestFormat("<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>", $@"{FeaturesResources.Summary_colon}
+        => TestFormat("<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>", $@"{FeaturesResources.Summary_colon}
     I am the very model of a modern major general. This is a very long comment. And
     getting longer by the minute.");
-    }
 
     [Fact]
     public void Wrapping2()
-    {
-        TestFormat("<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>", $@"{FeaturesResources.Summary_colon}
+        => TestFormat("<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>", $@"{FeaturesResources.Summary_colon}
     I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe
     minute.");
-    }
 
     [Fact]
     public void Exception()
-    {
-        TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>", $@"{WorkspacesResources.Exceptions_colon}
+        => TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>", $@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException");
-    }
 
     [Fact]
     public void MultipleExceptionTags()
-    {
-        TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>
+        => TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>
 <exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>", $@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException
 
   T:System.InvalidOperationException:
     throws InvalidOperationException");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
     public void MultipleExceptionTagsWithSameType()
-    {
-        TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException for reason X</exception>
+        => TestFormat(@"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException for reason X</exception>
 <exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>
 <exception cref=""T:System.NotImplementedException"">also throws NotImplementedException for reason Y</exception>", $@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
@@ -91,26 +80,20 @@ public sealed class DocCommentFormatterTests
 
   T:System.InvalidOperationException:
     throws InvalidOperationException");
-    }
 
     [Fact]
     public void Returns()
-    {
-        TestFormat(@"<returns>A string is returned</returns>", $@"{FeaturesResources.Returns_colon}
+        => TestFormat(@"<returns>A string is returned</returns>", $@"{FeaturesResources.Returns_colon}
     A string is returned");
-    }
 
     [Fact]
     public void Value()
-    {
-        TestFormat(@"<value>A string value</value>", $@"{FeaturesResources.Value_colon}
+        => TestFormat(@"<value>A string value</value>", $@"{FeaturesResources.Value_colon}
     A string value");
-    }
 
     [Fact]
     public void SummaryAndParams()
-    {
-        TestFormat(@"<summary>This is the summary.</summary>
+        => TestFormat(@"<summary>This is the summary.</summary>
 <param name=""a"">The param named 'a'</param>
 <param name=""b"">The param named 'b'</param>", $@"{FeaturesResources.Summary_colon}
     This is the summary.
@@ -121,24 +104,20 @@ public sealed class DocCommentFormatterTests
 
   b:
     The param named 'b'");
-    }
 
     [Fact]
     public void TypeParameters()
-    {
-        TestFormat(@"<typeparam name=""T"">The type param named 'T'</typeparam>
+        => TestFormat(@"<typeparam name=""T"">The type param named 'T'</typeparam>
 <typeparam name=""U"">The type param named 'U'</typeparam>", $@"{FeaturesResources.Type_parameters_colon}
   T:
     The type param named 'T'
 
   U:
     The type param named 'U'");
-    }
 
     [Fact]
     public void FormatEverything()
-    {
-        TestFormat(@"<summary>
+        => TestFormat(@"<summary>
 This is a summary of something.
 </summary>
 <param name=""a"">The param named 'a'.</param>
@@ -190,5 +169,4 @@ This is a summary of something.
 
 {FeaturesResources.Remarks_colon}
     This doc comment is really not very remarkable.");
-    }
 }

@@ -919,7 +919,7 @@ internal static class CastSimplifier
                 return false;
 
             // Check if 'y' has the same type as 'z'.
-            if (!otherSideType.Equals(thisSideRewrittenType))
+            if (!otherSideType.Equals(thisSideRewrittenType, SymbolEqualityComparer.IncludeNullability))
                 return false;
 
             // Now check that with the (T) cast removed, that the outer `x ? y : z` is still

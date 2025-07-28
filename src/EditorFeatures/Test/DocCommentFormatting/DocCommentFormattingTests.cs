@@ -32,14 +32,11 @@ public sealed class DocCommentFormattingTests
 
     [Fact]
     public void CTag()
-    {
-        TestFormat("Class <c>Point</c> models a point in a two-dimensional plane.", "Class Point models a point in a two-dimensional plane.");
-    }
+        => TestFormat("Class <c>Point</c> models a point in a two-dimensional plane.", "Class Point models a point in a two-dimensional plane.");
 
     [Fact]
     public void ExampleAndCodeTags()
-    {
-        TestFormat("""
+        => TestFormat("""
             This method changes the point's location by the given x- and y-offsets.
                         <example>For example:
                         <code>
@@ -49,12 +46,10 @@ public sealed class DocCommentFormattingTests
                         results in <c>p</c>'s having the value (2,8).
                         </example>
             """, "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\n            Point p = new Point(3,5);\r\n            p.Translate(-1,3);\r\n            \r\n\r\nresults in p's having the value (2,8).");
-    }
 
     [Fact]
     public void ListTag()
-    {
-        TestFormat("""
+        => TestFormat("""
             Here is an example of a bulleted list:
                     <list type="bullet">
                     <item>
@@ -64,13 +59,11 @@ public sealed class DocCommentFormattingTests
                     <description>Item 2.</description>
                     </item>
                     </list>
-            """, "Here is an example of a bulleted list:\r\n\r\n• Item 1. • Item 2.");
-    }
+            """, "Here is an example of a bulleted list:\r\n\r\n• Item 1.\r\n• Item 2.");
 
     [Fact]
     public void ParaTag()
-    {
-        TestFormat("""
+        => TestFormat("""
             This is the entry point of the Point class testing program.
                     <para>This program tests each method and operator, and
                     is intended to be run after any non-trivial maintenance has
@@ -80,80 +73,58 @@ public sealed class DocCommentFormattingTests
 
             This program tests each method and operator, and is intended to be run after any non-trivial maintenance has been performed on the Point class.
             """);
-    }
 
     [Fact]
     public void TestPermissionTag()
-    {
-        TestFormat(@"<permission cref=""System.Security.PermissionSet"">Everyone can access this method.</permission>", @"Everyone can access this method.");
-    }
+        => TestFormat(@"<permission cref=""System.Security.PermissionSet"">Everyone can access this method.</permission>", @"Everyone can access this method.");
 
     [Fact]
     public void SeeTag()
-    {
-        TestFormat(@"<see cref=""AnotherFunction""/>", @"AnotherFunction");
-    }
+        => TestFormat(@"<see cref=""AnotherFunction""/>", @"AnotherFunction");
 
     [Fact]
     public void SeeAlsoTag()
-    {
-        TestFormat(@"<seealso cref=""AnotherFunction""/>", @"AnotherFunction");
-    }
+        => TestFormat(@"<seealso cref=""AnotherFunction""/>", @"AnotherFunction");
 
     [Fact]
     public void ValueTag()
-    {
-        TestFormat(@"<value>Property <c>X</c> represents the point's x-coordinate.</value>", @"Property X represents the point's x-coordinate.");
-    }
+        => TestFormat(@"<value>Property <c>X</c> represents the point's x-coordinate.</value>", @"Property X represents the point's x-coordinate.");
 
     [Fact]
     public void TestParamRefTag()
-    {
-        TestFormat("""
+        => TestFormat("""
             This constructor initializes the new Point to 
             (<paramref name="xor"/>,<paramref name="yor"/>).
             """, "This constructor initializes the new Point to (xor,yor).");
-    }
 
     [Fact]
     public void TestTypeParamRefTag()
-    {
-        TestFormat(@"This method fetches data and returns a list of  <typeparamref name=""Z""/>.", @"This method fetches data and returns a list of Z.");
-    }
+        => TestFormat(@"This method fetches data and returns a list of  <typeparamref name=""Z""/>.", @"This method fetches data and returns a list of Z.");
 
     [Fact]
     public void Whitespace1()
-    {
-        TestFormat("  This has extra whitespace.  ", "This has extra whitespace.");
-    }
+        => TestFormat("  This has extra whitespace.  ", "This has extra whitespace.");
 
     [Fact]
     public void Whitespace2()
-    {
-        TestFormat("""
+        => TestFormat("""
             This has extra
             whitespace.
             """, "This has extra whitespace.");
-    }
 
     [Fact]
     public void Whitespace3()
-    {
-        TestFormat("This  has  extra  whitespace.", "This has extra whitespace.");
-    }
+        => TestFormat("This  has  extra  whitespace.", "This has extra whitespace.");
 
     [Fact]
     public void Paragraphs1()
-    {
-        TestFormat("""
+        => TestFormat("""
             <para>This is part of a paragraph.</para>
             """, "This is part of a paragraph.");
-    }
 
     [Fact]
     public void Paragraphs2()
-    {
-        TestFormat("""
+        => TestFormat("""
             <para>This is part of a paragraph.</para>
             <para>This is also part of a paragraph.</para>
             """, """
@@ -161,12 +132,10 @@ public sealed class DocCommentFormattingTests
 
             This is also part of a paragraph.
             """);
-    }
 
     [Fact]
     public void Paragraphs3()
-    {
-        TestFormat("""
+        => TestFormat("""
             This is a summary.
             <para>This is part of a paragraph.</para>
             """, """
@@ -174,24 +143,20 @@ public sealed class DocCommentFormattingTests
 
             This is part of a paragraph.
             """);
-    }
 
     [Fact]
     public void Paragraphs4()
-    {
-        TestFormat("""
+        => TestFormat("""
             <para>This is part of a paragraph.</para> This is part of the summary, too.
             """, """
             This is part of a paragraph.
 
             This is part of the summary, too.
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
     public void Paragraphs5()
-    {
-        TestFormat("""
+        => TestFormat("""
             <para>This is part of a<br/>paragraph.</para>
             <para>This is also part of a paragraph.</para>
             """, """
@@ -200,15 +165,13 @@ public sealed class DocCommentFormattingTests
 
             This is also part of a paragraph.
             """);
-    }
 
     [Theory]
     [InlineData("<br/><br/>")]
     [InlineData("<br/><br/><br/>")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/32838")]
     public void Paragraphs6(string lineBreak)
-    {
-        TestFormat($"""
+        => TestFormat($"""
             <para>This is part of a{lineBreak}paragraph.</para>
             <para>This is also part of a paragraph.</para>
             """, """
@@ -218,77 +181,52 @@ public sealed class DocCommentFormattingTests
 
             This is also part of a paragraph.
             """);
-    }
 
     [Fact]
     public void See1()
-    {
-        TestFormat(@"See <see cref=""T:System.Object"" />", "See System.Object");
-    }
+        => TestFormat(@"See <see cref=""T:System.Object"" />", "See System.Object");
 
     [Fact]
     public void See2()
-    {
-        TestFormat(@"See <see />", @"See");
-    }
+        => TestFormat(@"See <see />", @"See");
 
     [Fact]
     public void See3()
-    {
-        TestFormat(@"See <see langword=""true"" />", "See true");
-    }
+        => TestFormat(@"See <see langword=""true"" />", "See true");
 
     [Fact]
     public void See4()
-    {
-        TestFormat(@"See <see href=""https://github.com"" />", "See https://github.com");
-    }
+        => TestFormat(@"See <see href=""https://github.com"" />", "See https://github.com");
 
     [Fact]
     public void See5()
-    {
-        TestFormat(@"See <see href=""https://github.com"">GitHub</see>", "See GitHub");
-    }
+        => TestFormat(@"See <see href=""https://github.com"">GitHub</see>", "See GitHub");
 
     [Fact]
     public void See6()
-    {
-        TestFormat(@"See <see href=""https://github.com""></see>", "See https://github.com");
-    }
+        => TestFormat(@"See <see href=""https://github.com""></see>", "See https://github.com");
 
     [Fact]
     public void SeeAlso1()
-    {
-        TestFormat(@"See also <seealso cref=""T:System.Object"" />", @"See also System.Object");
-    }
+        => TestFormat(@"See also <seealso cref=""T:System.Object"" />", @"See also System.Object");
 
     [Fact]
     public void SeeAlso2()
-    {
-        TestFormat(@"See also <seealso />", @"See also");
-    }
+        => TestFormat(@"See also <seealso />", @"See also");
 
     [Fact]
     public void SeeAlso3()
-    {
-        TestFormat(@"See also <seealso langword=""true"" />", "See also true");
-    }
+        => TestFormat(@"See also <seealso langword=""true"" />", "See also true");
 
     [Fact]
     public void SeeAlso4()
-    {
-        TestFormat(@"See also <seealso href=""https://github.com"" />", "See also https://github.com");
-    }
+        => TestFormat(@"See also <seealso href=""https://github.com"" />", "See also https://github.com");
 
     [Fact]
     public void SeeAlso5()
-    {
-        TestFormat(@"See also <seealso href=""https://github.com"">GitHub</seealso>", "See also GitHub");
-    }
+        => TestFormat(@"See also <seealso href=""https://github.com"">GitHub</seealso>", "See also GitHub");
 
     [Fact]
     public void SeeAlso6()
-    {
-        TestFormat(@"See also <seealso href=""https://github.com""></seealso>", "See also https://github.com");
-    }
+        => TestFormat(@"See also <seealso href=""https://github.com""></seealso>", "See also https://github.com");
 }

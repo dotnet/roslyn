@@ -26,7 +26,7 @@ namespace Analyzer.Utilities
     {
         private static readonly ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions> s_cachedOptions = new();
         private static readonly ImmutableHashSet<OutputKind> s_defaultOutputKinds =
-            ImmutableHashSet.CreateRange(Enum.GetValues(typeof(OutputKind)).Cast<OutputKind>());
+            ImmutableHashSet.CreateRange(Enum.GetValues<OutputKind>());
 
         private static bool TryGetSyntaxTreeForOption(ISymbol symbol, [NotNullWhen(returnValue: true)] out SyntaxTree? tree)
         {

@@ -229,7 +229,6 @@ public sealed class ExtractClassTests
                 {
                 }
             }
-
             """;
 
         await new Test
@@ -312,7 +311,6 @@ public sealed class ExtractClassTests
             {
                 public string S { get; set; }
             }
-
             """;
 
         await new Test

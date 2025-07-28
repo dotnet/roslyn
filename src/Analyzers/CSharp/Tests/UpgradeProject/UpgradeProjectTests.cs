@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,18 +19,13 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-public sealed partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class UpgradeProjectTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UpgradeProjectTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpUpgradeProjectCodeFixProvider());
 
     private async Task TestLanguageVersionUpgradedAsync(
-        string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         LanguageVersion expected,
         ParseOptions? parseOptions,
         int index = 0)
@@ -51,7 +47,7 @@ public sealed partial class UpgradeProjectTests : AbstractCSharpDiagnosticProvid
             Assert.Empty(changedDocs);
         }
 
-        await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
+        await TestAsync(initialMarkup, initialMarkup, new(parseOptions)); // no change to markup
     }
 
     private async Task TestLanguageVersionNotUpgradedAsync(string initialMarkup, ParseOptions parseOptions, int index = 0)

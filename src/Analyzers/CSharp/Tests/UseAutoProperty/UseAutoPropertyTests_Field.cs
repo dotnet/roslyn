@@ -63,7 +63,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestFieldWithInitializer()
@@ -93,7 +93,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 } = "";
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestFieldAccessOffOfThis()
@@ -123,7 +123,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestStaticField()
@@ -153,7 +153,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestGetterWithMultipleStatements_Field()
@@ -185,7 +185,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field()
@@ -224,7 +224,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field2()
@@ -260,7 +260,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestSimpleFieldInExpressionBody()
@@ -278,7 +278,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 string P => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestMultipleFields_NoClearChoice()
@@ -341,7 +341,7 @@ public sealed partial class UseAutoPropertyTests
                     set;
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestMultipleFields_PickByName1()
@@ -361,7 +361,7 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => field + y;
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestMultipleFields_PickByName2()
@@ -381,7 +381,7 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => field + y;
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNotWhenAlreadyUsingField()
@@ -526,7 +526,7 @@ public sealed partial class UseAutoPropertyTests
                 {
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNotWithRefArgumentUseOutside()
@@ -579,7 +579,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNotWithRefUseOutside()
@@ -640,7 +640,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNotWithAddressOfOutside()
@@ -695,7 +695,7 @@ public sealed partial class UseAutoPropertyTests
                     set;
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestLazyInit1()
@@ -717,7 +717,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 public List<int> List => field ??= new();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestRefSetAccessor1()
@@ -738,7 +738,7 @@ public sealed partial class UseAutoPropertyTests
             
                 void Set(ref int a, int b) { }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestRefSetAccessor2()
@@ -778,7 +778,7 @@ public sealed partial class UseAutoPropertyTests
                 void Set(ref int a, int b) { }
                 void OnPropChanged() { }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestAttributesOnField()
@@ -797,7 +797,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public int Prop { get; set; }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestAttributesOnField2()
@@ -816,7 +816,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestAttributesOnField3()
@@ -838,7 +838,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestAttributesOnField4()
@@ -862,7 +862,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestAttributesOnField5()
@@ -886,7 +886,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute][PropAttribute2]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestAttributesOnField6()
@@ -908,7 +908,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestAttributesOnField7()
@@ -931,7 +931,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestFieldUsedInObjectInitializer()
@@ -963,7 +963,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere1()
@@ -991,7 +991,7 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere2()
@@ -1019,7 +1019,7 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere3()
@@ -1053,7 +1053,7 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere4()
@@ -1095,7 +1095,7 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNonTrivialGetterWithExternalRead1()
@@ -1181,7 +1181,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 public int I { get; set => field = value / 2; }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNonTrivialGetterWithExternalReadWrite1()
@@ -1243,7 +1243,7 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(I);
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNoSetterWithExternalWrite1()
@@ -1271,7 +1271,7 @@ public sealed partial class UseAutoPropertyTests
                     I = 1;
                 }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestFormatString()
@@ -1288,7 +1288,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 public string Prop => $"{field:prop}";
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNoSetterButWrittenOutside()
@@ -1309,7 +1309,7 @@ public sealed partial class UseAutoPropertyTests
             
                 void M() { Prop = "..."; }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact]
     public Task TestNotWithNameofInAttribute()
@@ -1356,7 +1356,7 @@ public sealed partial class UseAutoPropertyTests
 
                 void M(int i) { }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75516")]
     public Task TestBackingFieldUsedAsArgument2()
@@ -1391,11 +1391,11 @@ public sealed partial class UseAutoPropertyTests
 
                 void M(ref int i) { }
             }
-            """, parseOptions: CSharp14);
+            """, new(parseOptions: CSharp14));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26527")]
     public Task TestFixAllInDocument3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1428,7 +1428,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76790")]
     public Task TestFixAllInDocument4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1460,7 +1460,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76790")]
     public Task TestWrittenInConstructor()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1487,7 +1487,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
     public Task TestReadAndWrite()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1513,7 +1513,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
     public Task TestContractCall()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1547,7 +1547,7 @@ public sealed partial class UseAutoPropertyTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
     public Task TestDelegateInvoke()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

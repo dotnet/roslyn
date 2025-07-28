@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -92,7 +90,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -115,7 +113,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestUpdateAccessorIfAccessWantsBlockAndPropertyWantsExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -141,7 +139,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -164,7 +162,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -226,7 +224,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -249,7 +247,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -272,7 +270,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -295,7 +293,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -337,12 +335,11 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-            options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6), options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
 
     [Fact]
     public Task TestOfferedWithSelectionInsideBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -379,4 +376,27 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }|]
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterPropertyName()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int Goo // comment
+                {
+                    get 
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic));
 }

@@ -706,7 +706,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -745,7 +745,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern1_B()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -782,7 +782,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -823,7 +823,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern2_B()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -862,7 +862,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -905,7 +905,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern3_B()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -946,7 +946,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -991,7 +991,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern5()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1034,7 +1034,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
 
     [Fact]
     public Task FixAllCommonRoslynTestPattern6()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

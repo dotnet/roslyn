@@ -131,7 +131,7 @@ internal sealed class RemoteFindUsagesService(in BrokeredServiceBase.ServiceCons
         public async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SerializableSourceReferenceItem>.GetInstance(out var dehydrated);
-            await foreach (var reference in references)
+            await foreach (var reference in references.ConfigureAwait(false))
             {
                 var dehydratedReference = SerializableSourceReferenceItem.Dehydrate(
                     GetOrAddDefinitionItemId(reference.Definition), reference);

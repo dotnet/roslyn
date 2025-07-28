@@ -447,7 +447,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var A = global::A.X;
                 }
             }
-            """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
+            """, new(CSharpParseOptions.Default, options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
     public Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedName()
@@ -489,7 +489,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var A = N.A.Instance;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
     public Task SuggestOnVariablesUsedInInitalizerExpressionAsLastPartOfQualifiedName()
@@ -529,7 +529,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var A = X.A;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task NotOnAssignmentToInterfaceType()
@@ -598,7 +598,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var s = "hello";
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnIntrinsicType()
@@ -624,7 +624,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var s = 5;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
     public Task SuggestVarOnRefIntrinsicType()
@@ -652,7 +652,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                 }
                 static ref int Ref() => throw null;
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
     public Task WithRefIntrinsicTypeInForeach()
@@ -680,7 +680,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     foreach (ref var x in this) { }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnFrameworkType()
@@ -706,7 +706,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var c = new List<int>();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnUserDefinedType()
@@ -732,7 +732,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var c = new C();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnGenericType()
@@ -758,7 +758,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var c = new C<int>();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnSeeminglyConflictingType()
@@ -784,7 +784,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var c = new var<int>();
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator()
@@ -810,7 +810,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var n1 = new int[4] { 2, 4, 6, 8 };
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator2()
@@ -836,7 +836,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var n1 = new[] { 2, 4, 6, 8 };
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnSingleDimensionalJaggedArrayType()
@@ -868,7 +868,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     };
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnDeclarationWithObjectInitializer()
@@ -904,7 +904,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     public string City { get; set; }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnDeclarationWithCollectionInitializer()
@@ -932,7 +932,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var digits = new List<int> { 1, 2, 3 };
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnDeclarationWithCollectionAndObjectInitializers()
@@ -976,7 +976,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     public string City { get; set; }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnForStatement()
@@ -1006,7 +1006,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnForeachStatement()
@@ -1040,7 +1040,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnQueryExpression()
@@ -1088,7 +1088,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                 }
             }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarInUsingStatement()
@@ -1134,7 +1134,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarOnExplicitConversion()
@@ -1162,7 +1162,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var a = (int)x;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarInConditionalAccessExpression()
@@ -1200,7 +1200,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     return this;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarInCheckedExpression()
@@ -1228,7 +1228,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var intNumber = checked((int)number1);
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarInUnCheckedExpression()
@@ -1256,7 +1256,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var intNumber = unchecked((int)number1);
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarInAwaitExpression()
@@ -1294,7 +1294,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     return string.Empty;
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestVarInParenthesizedExpression()
@@ -1320,7 +1320,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var text = (5);
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
@@ -1395,7 +1395,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var text = default(C);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_Literals()
@@ -1421,7 +1421,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var text = 5;
                 }
             }
-            """, options: ImplicitTypeWhereApparentAndForIntrinsics());
+            """, new(options: ImplicitTypeWhereApparentAndForIntrinsics()));
 
     [Fact]
     public Task DoNotSuggestVarWhereTypeIsEvident_Literals()
@@ -1462,7 +1462,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var c = new C();
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_CastExpression()
@@ -1490,7 +1490,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var date = (DateTime)o;
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
@@ -1590,7 +1590,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             interface IInterface
             {
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_ConversionHelpers()
@@ -1616,7 +1616,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var a = DateTime.Parse("1");
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_CreationHelpers()
@@ -1648,7 +1648,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             {
                 internal static XElement Load() => return null;
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_CreationHelpersWithInferredTypeArguments()
@@ -1674,7 +1674,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var a = Tuple.Create(0, true);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_ConvertToType()
@@ -1702,7 +1702,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var date = Convert.ToDateTime(integralValue);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarWhereTypeIsEvident_IConvertibleToType()
@@ -1732,7 +1732,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     var date = iConv.ToDateTime(null);
                 }
             }
-            """, options: ImplicitTypeWhereApparent());
+            """, new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task SuggestVarNotificationLevelSilent()
@@ -1804,7 +1804,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
         var before = @"class C { static void M() { [|int[]|] s = new int[0]; } }";
 
         //The type is intrinsic and apparent
-        await TestInRegularAndScriptAsync(before, @"class C { static void M() { var s = new int[0]; } }", options: ImplicitTypeEverywhere());
+        await TestInRegularAndScriptAsync(before, @"class C { static void M() { var s = new int[0]; } }", new(options: ImplicitTypeEverywhere()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent())); // Preference of intrinsic types dominates
     }
@@ -1816,9 +1816,9 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
         var after = @"class C { static void M() { var s = new C[0]; } }";
 
         //The type is not intrinsic but apparent
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeEverywhere()));
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeButKeepIntrinsics()));
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeWhereApparent()));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
@@ -1828,8 +1828,8 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
         var after = @"class C { static void M() { var s = new[] { new C() }; } }";
 
         //The type is not intrinsic and not apparent
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeButKeepIntrinsics());
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeEverywhere()));
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeButKeepIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
     }
 
@@ -1857,8 +1857,8 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
         var before = @"class C { static void M() { [|(int a, string)|] s = (a: 1, ""hello""); } }";
         var after = @"class C { static void M() { var s = (a: 1, ""hello""); } }";
 
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparentAndForIntrinsics());
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeEverywhere()));
+        await TestInRegularAndScriptAsync(before, after, new(options: ImplicitTypeWhereApparentAndForIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
     }
 
@@ -1866,7 +1866,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     public async Task SuggestVarOnLocalWithNonApparentTupleType()
     {
         var before = @"class C { static void M(C c) { [|(int a, C b)|] s = (a: 1, b: c); } }";
-        await TestInRegularAndScriptAsync(before, @"class C { static void M(C c) { var s = (a: 1, b: c); } }", options: ImplicitTypeEverywhere());
+        await TestInRegularAndScriptAsync(before, @"class C { static void M(C c) { var s = (a: 1, b: c); } }", new(options: ImplicitTypeEverywhere()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparentAndForIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
     }
@@ -1896,7 +1896,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                 }
             }
             """ + trivial2uple,
-options: ImplicitTypeWhereApparent());
+            new(options: ImplicitTypeWhereApparent()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11095")]
     public Task ValueTupleCreate_2()
@@ -1923,7 +1923,7 @@ options: ImplicitTypeWhereApparent());
                 }
             }
             """ + trivial2uple,
-options: ImplicitTypeWhereApparent());
+            new(options: ImplicitTypeWhereApparent()));
 
     [Fact]
     public Task TupleWithDifferentNames()
@@ -2036,7 +2036,7 @@ options: ImplicitTypeWhereApparent());
                     }
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20437")]
     public Task SuggestVarOnDeclarationExpressionSyntax()
@@ -2063,7 +2063,7 @@ options: ImplicitTypeWhereApparent());
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
     public Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
@@ -2097,9 +2097,11 @@ options: ImplicitTypeWhereApparent());
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
-        => TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
+        => TestInRegularAndScriptAsync("""
             using System;
             namespace System
             {
@@ -2115,11 +2117,29 @@ options: ImplicitTypeWhereApparent());
                     [|Span<int>|] x = choice ? stackalloc int [10] : stackalloc int [100];
                 }
             }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M(bool choice)
+                {
+                    var x = choice ? stackalloc int [10] : stackalloc int [100];
+                }
+            }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
-    public Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
-        => TestMissingInRegularAndScriptAsync("""
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79337")]
+    public Task DoSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
+        => TestInRegularAndScriptAsync("""
             using System;
             namespace System
             {
@@ -2133,6 +2153,22 @@ options: ImplicitTypeWhereApparent());
                 static void M()
                 {
                     [|Span<int>|] x = (Span<int>)stackalloc int [100];
+                }
+            }
+            """, """
+            using System;
+            namespace System
+            {
+                public readonly ref struct Span<T> 
+                {
+                    unsafe public Span(void* pointer, int length) { }
+                }
+            }
+            class C
+            {
+                static void M()
+                {
+                    var x = (Span<int>)stackalloc int [100];
                 }
             }
             """, new TestParameters(options: ImplicitTypeEverywhere()));
@@ -2165,7 +2201,7 @@ options: ImplicitTypeWhereApparent());
                     });
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
     public Task SuggestVarOnAnonymousMethodsWithNestedStackAllocs()
@@ -2195,7 +2231,7 @@ options: ImplicitTypeWhereApparent());
                     });
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
     public Task SuggestVarOnStackAllocsNestedInLambdas()
@@ -2225,7 +2261,7 @@ options: ImplicitTypeWhereApparent());
                     });
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
     public Task SuggestVarOnStackAllocsNestedInAnonymousMethods()
@@ -2255,7 +2291,7 @@ options: ImplicitTypeWhereApparent());
                     });
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
     public Task SuggestVarOnStackAllocsInOuterMethodScope()
@@ -2275,7 +2311,7 @@ options: ImplicitTypeWhereApparent());
                     var x = stackalloc int [10];
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
     public Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution2()
@@ -2303,7 +2339,7 @@ options: ImplicitTypeWhereApparent());
                 public static bool TryGetValue(string key, out int value) => false;
                 public static bool TryGetValue(string key, out bool value, int x) => false;
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
     public Task DoNotSuggestForDeclarationExpressionIfItWouldChangeOverloadResolution()
@@ -2361,7 +2397,7 @@ options: ImplicitTypeWhereApparent());
 
                 public static bool TryGetValue<T>(string key, out T value) => false;
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
     public Task SuggestIfDoesNotChangeGenericTypeInference2()
@@ -2387,7 +2423,7 @@ options: ImplicitTypeWhereApparent());
 
                 public static bool TryGetValue<T>(T key, out T value) => false;
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
     public Task SuggestVarForDelegateType()
@@ -2415,7 +2451,7 @@ options: ImplicitTypeWhereApparent());
 
                 delegate object GetHandler();
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
     public Task DoNotSuggestVarForDelegateType1()
@@ -2683,7 +2719,7 @@ options: ImplicitTypeWhereApparent());
                     };
                 }     
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32088")]
     public Task DoNotSuggestVarOnDeclarationExpressionWithInferredTupleNames()
@@ -2746,7 +2782,7 @@ options: ImplicitTypeWhereApparent());
                     new Dictionary<int, List<(int, int)>>();
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
     public Task DoNotSuggestVarInAmbiguousSwitchExpression()
@@ -2850,7 +2886,7 @@ options: ImplicitTypeWhereApparent());
                 string? NullableString() => null;
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestForNullable2()
@@ -2883,7 +2919,7 @@ options: ImplicitTypeWhereApparent());
                 string NonNullString() => string.Empty;
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestForNullable3()
@@ -2916,7 +2952,7 @@ options: ImplicitTypeWhereApparent());
                 string NonNullString() => string.Empty;
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestForNullableOut1()
@@ -2965,7 +3001,7 @@ options: ImplicitTypeWhereApparent());
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestForNullableOut2()
@@ -3014,7 +3050,7 @@ options: ImplicitTypeWhereApparent());
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact]
     public Task SuggestForNullableOut3()
@@ -3063,7 +3099,7 @@ options: ImplicitTypeWhereApparent());
                 }
             }
             """,
-            options: ImplicitTypeEverywhere());
+            new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41780")]
     public Task SuggestOnRefType1()
@@ -3085,7 +3121,7 @@ options: ImplicitTypeWhereApparent());
                   ref var y = ref x;
                 }
             }
-            """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
+            """, new(CSharpParseOptions.Default, options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
     public Task TestLambdaNaturalType1()
@@ -3111,7 +3147,7 @@ options: ImplicitTypeWhereApparent());
                     var s = int () => { };
                 }
             }
-            """, options: ImplicitTypeEverywhere());
+            """, new(options: ImplicitTypeEverywhere()));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
     public Task TestLambdaNaturalType1_CSharp9()

@@ -1117,59 +1117,40 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
     private static SyntaxNode? GetExpansionTarget(SyntaxToken token)
     {
         // get the directly enclosing statement
-        var enclosingStatement = token.GetAncestors(n => n is StatementSyntax).FirstOrDefault();
+        var enclosingStatement = token.GetAncestor<StatementSyntax>();
 
         // System.Func<int, int> myFunc = arg => X;
         var possibleLambdaExpression = enclosingStatement == null
-            ? token.GetAncestors(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax).FirstOrDefault()
+            ? token.GetAncestor<LambdaExpressionSyntax>()
             : null;
-        if (possibleLambdaExpression != null)
-        {
-            var lambdaExpression = ((LambdaExpressionSyntax)possibleLambdaExpression);
-            if (lambdaExpression.Body is ExpressionSyntax)
-            {
-                return lambdaExpression.Body;
-            }
-        }
+        if (possibleLambdaExpression?.ExpressionBody is not null)
+            return possibleLambdaExpression.ExpressionBody;
 
         // int M() => X;
         var possibleArrowExpressionClause = enclosingStatement == null
-            ? token.GetAncestors<ArrowExpressionClauseSyntax>().FirstOrDefault()
+            ? token.GetAncestor<ArrowExpressionClauseSyntax>()
             : null;
         if (possibleArrowExpressionClause != null)
-        {
             return possibleArrowExpressionClause.Expression;
-        }
 
         var enclosingNameMemberCrefOrnull = token.GetAncestors(n => n is NameMemberCrefSyntax).LastOrDefault();
-        if (enclosingNameMemberCrefOrnull != null)
-        {
-            if (token.Parent is TypeSyntax && token.Parent.Parent is TypeSyntax)
-            {
-                enclosingNameMemberCrefOrnull = null;
-            }
-        }
+        if (enclosingNameMemberCrefOrnull != null && token.Parent is TypeSyntax && token.Parent.Parent is TypeSyntax)
+            enclosingNameMemberCrefOrnull = null;
 
-        var enclosingXmlNameAttr = token.GetAncestors(n => n is XmlNameAttributeSyntax).FirstOrDefault();
+        var enclosingXmlNameAttr = token.GetAncestor<XmlNameAttributeSyntax>();
         if (enclosingXmlNameAttr != null)
-        {
             return null;
-        }
 
-        var enclosingInitializer = token.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
+        var enclosingInitializer = token.GetAncestor<EqualsValueClauseSyntax>();
         if (enclosingStatement == null && enclosingInitializer != null && enclosingInitializer.Parent is VariableDeclaratorSyntax)
-        {
             return enclosingInitializer.Value;
-        }
 
         var attributeSyntax = token.GetAncestor<AttributeSyntax>();
         if (attributeSyntax != null)
-        {
             return attributeSyntax;
-        }
 
         // there seems to be no statement above this one. Let's see if we can at least get an SimpleNameSyntax
-        return enclosingStatement ?? enclosingNameMemberCrefOrnull ?? token.GetAncestors(n => n is SimpleNameSyntax).FirstOrDefault();
+        return enclosingStatement ?? enclosingNameMemberCrefOrnull ?? token.GetAncestor<SimpleNameSyntax>();
     }
 
     #region "Helper Methods"

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.ComponentModel.Design
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
@@ -37,6 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
     <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <ProvideSettingsManifest(PackageRelativeManifestFile:="UnifiedSettings\visualBasicSettings.registration.json")>
+    <ProvideService(GetType(IVbTempPECompilerFactory), IsAsyncQueryable:=False, IsCacheable:=True, IsFreeThreaded:=True, ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
@@ -73,12 +75,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                           Try
                               RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
-                              RegisterService(Of IVbTempPECompilerFactory)(
-                            Async Function(ct)
-                                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                                Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
-                                Return New TempPECompilerFactory(workspace)
-                            End Function)
+                              DirectCast(Me, IServiceContainer).AddService(
+                                  GetType(IVbTempPECompilerFactory),
+                                  Function(_1, _2) New TempPECompilerFactory(Me.ComponentModel.GetService(Of VisualStudioWorkspace)()))
                           Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
                               Throw ExceptionUtilities.Unreachable
                           End Try

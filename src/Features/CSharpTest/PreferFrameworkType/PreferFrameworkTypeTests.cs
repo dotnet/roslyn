@@ -184,7 +184,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 System.String _myfield = 5;
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task FieldDeclaration()
@@ -200,7 +200,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 Int32 _myfield;
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task TestNint_WithNumericIntPtr_CSharp11()
@@ -220,7 +220,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 IntPtr _myfield;
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task TestNint_WithNumericIntPtr_CSharp8()
@@ -282,7 +282,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 String _myfield = 5;
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task DelegateDeclaration()
@@ -298,7 +298,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 public delegate Int32 PerformCalculation(int x, int y);
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task PropertyDeclaration()
@@ -314,7 +314,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 public Int64 MyProperty { get; set; }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task GenericPropertyDeclaration()
@@ -332,7 +332,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 public List<Int64> MyProperty { get; set; }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task QualifiedReplacementInGenericTypeParameter()
@@ -348,7 +348,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 public List<System.Int64> MyProperty { get; set; }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task MethodDeclarationReturnType()
@@ -364,7 +364,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 public Int64 Method() { }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task MethodDeclarationParameters()
@@ -380,7 +380,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 public void Method(Double d) { }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task GenericMethodInvocation()
@@ -398,7 +398,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 public void Method<T>() { }
                 public void Test() { Method<Int32>(); }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task LocalDeclaration()
@@ -420,7 +420,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32 f = 5;
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task MemberAccess()
@@ -442,7 +442,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Console.Write(Int32.MaxValue);
                 }
             }
-            """, options: FrameworkTypeInMemberAccess);
+            """, new(options: FrameworkTypeInMemberAccess));
 
     [Fact]
     public Task MemberAccess2()
@@ -464,7 +464,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var x = Int32.Parse("1");
                 }
             }
-            """, options: FrameworkTypeInMemberAccess);
+            """, new(options: FrameworkTypeInMemberAccess));
 
     [Fact]
     public Task DocCommentTriviaCrefExpression()
@@ -486,7 +486,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """, options: FrameworkTypeInMemberAccess);
+            """, new(options: FrameworkTypeInMemberAccess));
 
     [Fact]
     public Task DefaultExpression()
@@ -508,7 +508,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = default(Int32);
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task TypeOfExpression()
@@ -530,7 +530,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = typeof(Int32);
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task NameOfExpression()
@@ -552,7 +552,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = nameof(Int32);
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task FormalParametersWithinLambdaExression()
@@ -574,7 +574,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Func<int, int> func3 = (Int32 z) => z + 1;
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task DelegateMethodExpression()
@@ -596,7 +596,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Func<int, int> func7 = delegate (Int32 dx) { return dx + 1; };
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task ObjectCreationExpression()
@@ -618,7 +618,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     string s2 = new String('c', 1);
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task ArrayDeclaration()
@@ -640,7 +640,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32[] k = new int[4];
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task ArrayInitializer()
@@ -662,7 +662,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     int[] k = new Int32[] { 1, 2, 3 };
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task MultiDimentionalArrayAsGenericTypeParameter()
@@ -686,7 +686,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     List<String[][,][,,,]> a;
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task ForStatement()
@@ -708,7 +708,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     for (Int32 j = 0; j < 4; j++) { }
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task ForeachStatement()
@@ -730,7 +730,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     foreach (Int32 item in new int[] { 1, 2, 3 }) { }
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task LeadingTrivia()
@@ -754,7 +754,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32 x = 5;
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task TrailingTrivia()
@@ -776,5 +776,5 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32 /* 2 */ x = 5;
                 }
             }
-            """, options: FrameworkTypeInDeclaration);
+            """, new(options: FrameworkTypeInDeclaration));
 }

@@ -54,7 +54,7 @@ public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCShar
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -77,7 +77,7 @@ public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCShar
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -128,7 +128,7 @@ public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCShar
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -151,7 +151,7 @@ public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCShar
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -174,7 +174,7 @@ public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCShar
 
     [Fact]
     public Task TestOfferedWithSelectionInsideBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -211,4 +211,27 @@ public sealed class UseExpressionBodyForIndexersRefactoringTests : AbstractCShar
             }|]
             """,
             parameters: new TestParameters(options: UseBlockBody));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
+    public Task TestCommentAfterConstructorName()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int this[int i] // comment
+                {
+                    get
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i] => Bar(); // comment
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
 }

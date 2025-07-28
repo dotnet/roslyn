@@ -38,7 +38,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
         await test.RunAsync();
     }
 
-    private static Task TestInRegularAndScript1Async(
+    private static Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
@@ -62,7 +62,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnSimpleAssignment()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -91,7 +91,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnSimpleAssignment_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -120,7 +120,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnSimpleAssignment_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -209,7 +209,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnSimpleAssignmentNoBlocks()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -234,7 +234,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnSimpleAssignmentNoBlocks_NotInBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -281,7 +281,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnAssignmentToUndefinedField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -310,7 +310,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnAssignmentToUndefinedField_Throw()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -339,7 +339,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnNonUniformTargetSyntax()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -372,7 +372,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnAssignmentToDefinedField()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -405,7 +405,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnAssignmentToAboveLocalNoInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -435,7 +435,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnAssignmentToAboveLocalNoInitializer_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -465,7 +465,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnAssignmentToAboveLocalNoInitializer_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -495,7 +495,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnAssignmentToAboveLocalLiteralInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -525,7 +525,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnAssignmentToAboveLocalDefaultLiteralInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -555,7 +555,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnAssignmentToAboveLocalDefaultExpressionInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -585,7 +585,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestDoNotMergeAssignmentToAboveLocalWithComplexInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -620,7 +620,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestDoNotMergeAssignmentToAboveLocalIfIntermediaryStatement()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -657,7 +657,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestDoNotMergeAssignmentToAboveIfLocalUsedInIfCondition()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -692,7 +692,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestDoNotMergeAssignmentToAboveIfMultiDecl()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -723,7 +723,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestUseImplicitTypeForIntrinsicTypes()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -753,7 +753,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestUseImplicitTypeWhereApparent()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -783,7 +783,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestUseImplicitTypeWherePossible()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -865,7 +865,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -897,7 +897,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp8()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -927,7 +927,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp9()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -957,7 +957,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -987,7 +987,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1017,7 +1017,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1047,7 +1047,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1077,7 +1077,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp8()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1107,7 +1107,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp9()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1137,7 +1137,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestKeepTriviaAroundIf()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1168,7 +1168,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1209,7 +1209,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestMultiLine1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1246,7 +1246,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestMultiLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1283,7 +1283,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestMultiLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1322,7 +1322,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestElseIfWithBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1360,7 +1360,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestElseIfWithBlock_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1398,7 +1398,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestElseIfWithBlock_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1472,7 +1472,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestRefAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1545,7 +1545,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestTrueFalse1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1574,7 +1574,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestTrueFalse_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1603,7 +1603,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestTrueFalse_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1632,7 +1632,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestTrueFalse2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1661,7 +1661,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestFalseTrue_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1690,7 +1690,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestFalseTrue_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1719,7 +1719,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
     public Task TestRemoveRedundantCast()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1754,7 +1754,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33284")]
     public Task TestConditionalWithLambdas()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1789,7 +1789,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39260")]
     public Task TestTitleWhenSimplifying()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1839,7 +1839,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
     [InlineData("int", "long")]
     [InlineData("long", "int")]
     public Task TestForDiscardsWithMatchingOrConvertibleExpressionTypes(string originalFirstType, string originalSecondType)
-        => TestInRegularAndScript1Async($$"""
+        => TestInRegularAndScriptAsync($$"""
             class MyClass
             {
                 void M(bool flag)
@@ -2017,7 +2017,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58897")]
     public Task TestCommentsOnElse()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2056,7 +2056,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
     public Task UnnecessaryWithinConditionalBranch2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class IssueClass
             {
@@ -2275,7 +2275,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
     public Task TestNullCheck_Positive1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             using System;
             public class Program
             {
@@ -2335,7 +2335,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
 
     [Fact]
     public Task TestOnNullConditionalAssignment1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

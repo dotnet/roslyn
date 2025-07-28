@@ -68,7 +68,7 @@ public sealed partial class CSharpAsAndNullCheckTests
                     return o is string e ? 1 : 0;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
 
     [Fact]
     public Task FixAllInDocument1_CSharp9()
@@ -123,7 +123,7 @@ public sealed partial class CSharpAsAndNullCheckTests
                     return o is string e ? 1 : 0;
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task FixAllInDocument2()

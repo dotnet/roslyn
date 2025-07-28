@@ -36,7 +36,6 @@ internal static partial class ConflictResolver
         private readonly DocumentId _documentIdOfRenameSymbolDeclaration;
         private readonly string _originalText;
         private readonly string _replacementText;
-        private readonly ImmutableArray<SymbolKey> _nonConflictSymbolKeys;
         private readonly CancellationToken _cancellationToken;
 
         private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation = new();
@@ -50,14 +49,12 @@ internal static partial class ConflictResolver
             SymbolicRenameLocations renameLocationSet,
             Location renameSymbolDeclarationLocation,
             string replacementText,
-            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             _renameLocationSet = renameLocationSet;
             _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
             _originalText = renameLocationSet.Symbol.Name;
             _replacementText = replacementText;
-            _nonConflictSymbolKeys = nonConflictSymbolKeys;
             _cancellationToken = cancellationToken;
 
             _replacementTextValid = true;
@@ -292,7 +289,7 @@ internal static partial class ConflictResolver
                     // fixed them because of rename).  Also, don't bother checking if a custom
                     // callback was provided.  The caller might be ok with a rename that introduces
                     // errors.
-                    if (!documentIdErrorStateLookup[documentId] && _nonConflictSymbolKeys.IsDefault)
+                    if (!documentIdErrorStateLookup[documentId])
                     {
                         var changeDoc = await conflictResolution.CurrentSolution.GetRequiredDocumentAsync(
                             documentId, RenameOptions.RenameInSourceGeneratedDocuments, _cancellationToken).ConfigureAwait(false);
@@ -349,7 +346,6 @@ internal static partial class ConflictResolver
                 // If we were giving any non-conflict-symbols then ensure that we know what those symbols are in
                 // the current project post after our edits so far.
                 var currentProject = conflictResolution.CurrentSolution.GetRequiredProject(projectId);
-                var nonConflictSymbols = await GetNonConflictSymbolsAsync(currentProject).ConfigureAwait(false);
 
                 foreach (var documentId in documentIdsForConflictResolution)
                 {
@@ -392,9 +388,8 @@ internal static partial class ConflictResolver
                             // the spans would have been modified and so we need to adjust the old position
                             // to the new position for which we use the renameSpanTracker, which was tracking
                             // & mapping the old span -> new span during rename
-                            hasConflict =
-                                !IsConflictFreeChange(newReferencedSymbols, nonConflictSymbols) &&
-                                await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
+                            hasConflict = await CheckForConflictAsync(
+                                conflictResolution, renamedSymbolInNewSolution, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
 
                             if (!hasConflict && !conflictAnnotation.IsInvocationExpression)
                                 hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument, newReferencedSymbols);
@@ -473,32 +468,6 @@ internal static partial class ConflictResolver
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
-
-        private async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Project currentProject)
-        {
-            if (_nonConflictSymbolKeys.IsDefault)
-                return null;
-
-            var compilation = await currentProject.GetRequiredCompilationAsync(_cancellationToken).ConfigureAwait(false);
-            return [.. _nonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull()];
-        }
-
-        private static bool IsConflictFreeChange(
-            ImmutableArray<ISymbol> symbols, ImmutableHashSet<ISymbol>? nonConflictSymbols)
-        {
-            if (nonConflictSymbols != null)
-            {
-                foreach (var symbol in symbols)
-                {
-                    // Reference not points at a symbol in the conflict-free list.  This is a conflict-free change.
-                    if (nonConflictSymbols.Contains(symbol))
-                        return true;
-                }
-            }
-
-            // Just do the default check.
-            return false;
         }
 
         /// <summary>
