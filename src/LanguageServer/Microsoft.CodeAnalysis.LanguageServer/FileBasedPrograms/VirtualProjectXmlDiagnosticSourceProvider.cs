@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [Export(typeof(IDiagnosticSourceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXmlProvider virtualProjectXmlProvider) : IDiagnosticSourceProvider
+internal sealed class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXmlProvider virtualProjectXmlProvider) : IDiagnosticSourceProvider
 {
-    public bool IsDocument => true;
-
     public const string FileBasedPrograms = nameof(FileBasedPrograms);
+
+    public bool IsDocument => true;
     public string Name => FileBasedPrograms;
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
@@ -29,12 +29,12 @@ internal class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXmlProvid
     {
         ImmutableArray<IDiagnosticSource> sources = context.Document is null
             ? []
-            : [new DiagnosticSource(context.Document, virtualProjectXmlProvider)];
+            : [new VirtualProjectXmlDiagnosticSource(context.Document, virtualProjectXmlProvider)];
 
         return ValueTask.FromResult(sources);
     }
 
-    private class DiagnosticSource(Document document, VirtualProjectXmlProvider virtualProjectXmlProvider) : IDiagnosticSource
+    private sealed class VirtualProjectXmlDiagnosticSource(Document document, VirtualProjectXmlProvider virtualProjectXmlProvider) : IDiagnosticSource
     {
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
@@ -45,18 +45,19 @@ internal class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXmlProvid
             if (simpleDiagnostics.IsDefaultOrEmpty)
                 return [];
 
-            var diagnosticDatas = ImmutableArray.CreateBuilder<DiagnosticData>(simpleDiagnostics.Length);
+            var diagnosticDatas = new FixedSizeArrayBuilder<DiagnosticData>(simpleDiagnostics.Length);
             foreach (var simpleDiagnostic in simpleDiagnostics)
             {
                 var location = new FileLinePositionSpan(simpleDiagnostic.Location.Path, simpleDiagnostic.Location.Span.ToLinePositionSpan());
                 var diagnosticData = new DiagnosticData(
-                    id: "FBP",
+                    id: FileBasedPrograms,
                     category: FileBasedPrograms,
                     message: simpleDiagnostic.Message,
                     severity: DiagnosticSeverity.Error,
                     defaultSeverity: DiagnosticSeverity.Error,
                     isEnabledByDefault: true,
-                    warningLevel: 1,
+                    // Warning level 0 is used as a placeholder when the diagnostic has error severity
+                    warningLevel: 0,
                     customTags: ImmutableArray<string>.Empty,
                     properties: ImmutableDictionary<string, string?>.Empty,
                     projectId: document.Project.Id,
@@ -84,8 +85,13 @@ internal class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXmlProvid
             return document.Project;
         }
 
+        /// <summary>
+        /// These diagnostics are from the last time 'dotnet run-api' was invoked, which only occurs when a design time build is performed.
+        /// <seealso cref="IDiagnosticSource.IsLiveSource"/>.
+        /// </summary>
+        /// <returns></returns>
         public bool IsLiveSource() => false;
 
-        public string ToDisplayString() => $"{nameof(VirtualProjectXmlProvider)}.{nameof(DiagnosticSource)}";
+        public string ToDisplayString() => nameof(VirtualProjectXmlDiagnosticSource);
     }
 }
