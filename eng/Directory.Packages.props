@@ -58,7 +58,7 @@
       Visual Studio
     -->
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.36524" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.12.40391" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.2.1017" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="17.12.2037-preview3" />
