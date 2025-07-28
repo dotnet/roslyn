@@ -13,25 +13,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
 
 internal static class ProjectItemsExtensions
 {
-    public static ProjectItem FindItem(this ProjectItems items, string itemName, StringComparer comparer)
+    extension(ProjectItems items)
+    {
+        public ProjectItem FindItem(string itemName, StringComparer comparer)
         => items.OfType<ProjectItem>().FirstOrDefault(p => comparer.Compare(p.Name, itemName) == 0);
 
-    public static ProjectItem FindFolder(this ProjectItems items, string folderName)
-    {
-        var item = items.FindItem(folderName, StringComparer.OrdinalIgnoreCase);
-        return item.IsFolder() ? item : null;
-    }
-
-    public static string GetUniqueName(this ProjectItems items, string itemName, string extension)
-        => NameGenerator.GenerateUniqueName(itemName, extension, n => items.FindItem(n, StringComparer.OrdinalIgnoreCase) == null);
-
-    public static string GetUniqueNameIgnoringProjectItem(this ProjectItems items, ProjectItem itemToIgnore, string itemName, string extension)
-    {
-        return NameGenerator.GenerateUniqueName(itemName, extension, n =>
+        public ProjectItem FindFolder(string folderName)
         {
-            var foundItem = items.FindItem(n, StringComparer.OrdinalIgnoreCase);
-            return foundItem == null ||
-                foundItem == itemToIgnore;
-        });
+            var item = items.FindItem(folderName, StringComparer.OrdinalIgnoreCase);
+            return item.IsFolder() ? item : null;
+        }
+
+        public string GetUniqueName(string itemName, string extension)
+            => NameGenerator.GenerateUniqueName(itemName, extension, n => items.FindItem(n, StringComparer.OrdinalIgnoreCase) == null);
+
+        public string GetUniqueNameIgnoringProjectItem(ProjectItem itemToIgnore, string itemName, string extension)
+        {
+            return NameGenerator.GenerateUniqueName(itemName, extension, n =>
+            {
+                var foundItem = items.FindItem(n, StringComparer.OrdinalIgnoreCase);
+                return foundItem == null ||
+                    foundItem == itemToIgnore;
+            });
+        }
     }
 }

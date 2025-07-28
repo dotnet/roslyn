@@ -9,45 +9,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
 internal static class Extensions
 {
-    public static void Add(this ImmutableArray<NavInfoNode>.Builder builder, string name, _LIB_LISTTYPE type, bool expandDottedNames)
+    extension(ImmutableArray<NavInfoNode>.Builder builder)
     {
-        if (name == null)
+        public void Add(string name, _LIB_LISTTYPE type, bool expandDottedNames)
         {
-            return;
-        }
-
-        if (expandDottedNames)
-        {
-            const char separator = '.';
-
-            var start = 0;
-            var separatorPos = name.IndexOf(separator, start);
-
-            while (separatorPos >= 0)
+            if (name == null)
             {
-                builder.Add(name[start..separatorPos], type);
-                start = separatorPos + 1;
-                separatorPos = name.IndexOf(separator, start);
+                return;
             }
 
-            if (start < name.Length)
+            if (expandDottedNames)
             {
-                builder.Add(name[start..], type);
+                const char separator = '.';
+
+                var start = 0;
+                var separatorPos = name.IndexOf(separator, start);
+
+                while (separatorPos >= 0)
+                {
+                    builder.Add(name[start..separatorPos], type);
+                    start = separatorPos + 1;
+                    separatorPos = name.IndexOf(separator, start);
+                }
+
+                if (start < name.Length)
+                {
+                    builder.Add(name[start..], type);
+                }
+            }
+            else
+            {
+                builder.Add(name, type);
             }
         }
-        else
-        {
-            builder.Add(name, type);
-        }
-    }
 
-    public static void Add(this ImmutableArray<NavInfoNode>.Builder builder, string name, _LIB_LISTTYPE type)
-    {
-        if (string.IsNullOrEmpty(name))
+        public void Add(string name, _LIB_LISTTYPE type)
         {
-            return;
-        }
+            if (string.IsNullOrEmpty(name))
+            {
+                return;
+            }
 
-        builder.Add(new NavInfoNode(name, type));
+            builder.Add(new NavInfoNode(name, type));
+        }
     }
 }

@@ -11,12 +11,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class AnalyzerOptionsProviders
 {
-    public static async ValueTask<AnalyzerOptionsProvider> GetAnalyzerOptionsProviderAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
     {
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var analyzerOptions = document.Project.AnalyzerOptions;
-        var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
+        public async ValueTask<AnalyzerOptionsProvider> GetAnalyzerOptionsProviderAsync(CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var analyzerOptions = document.Project.AnalyzerOptions;
+            var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
 
-        return new AnalyzerOptionsProvider(configOptions, document.Project.Language);
+            return new AnalyzerOptionsProvider(configOptions, document.Project.Language);
+        }
     }
 }

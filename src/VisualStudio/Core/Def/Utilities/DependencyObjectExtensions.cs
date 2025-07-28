@@ -11,24 +11,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 internal static class DependencyObjectExtensions
 {
-    public static DependencyObject TryGetParent(this DependencyObject obj)
+    extension(DependencyObject obj)
     {
-        return (obj is Visual) ? VisualTreeHelper.GetParent(obj) : null;
+        public DependencyObject TryGetParent()
+        {
+            return (obj is Visual) ? VisualTreeHelper.GetParent(obj) : null;
+        }
     }
 
-    public static T GetParentOfType<T>(this DependencyObject element) where T : Visual
+    extension(DependencyObject element)
     {
-        var parent = element.TryGetParent();
-        if (parent is T)
+        public T GetParentOfType<T>() where T : Visual
         {
-            return (T)parent;
-        }
+            var parent = element.TryGetParent();
+            if (parent is T)
+            {
+                return (T)parent;
+            }
 
-        if (parent == null)
-        {
-            return null;
-        }
+            if (parent == null)
+            {
+                return null;
+            }
 
-        return parent.GetParentOfType<T>();
+            return parent.GetParentOfType<T>();
+        }
     }
 }

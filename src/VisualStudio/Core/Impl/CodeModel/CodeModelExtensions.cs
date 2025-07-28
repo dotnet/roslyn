@@ -19,6 +19,9 @@ internal static class CodeModelExtensions
             memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeContainingType,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-    public static string GetEscapedFullName(this ISymbol symbol)
+    extension(ISymbol symbol)
+    {
+        public string GetEscapedFullName()
         => symbol.ToDisplayString(s_fullNameWithEscapedKeywordsFormat);
+    }
 }

@@ -12,35 +12,38 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks;
 
 internal static partial class TaskExtensions
 {
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task CompletesAsyncOperation(this Task task, IAsyncToken asyncToken)
+    extension(Task task)
     {
-        if (asyncToken is AsynchronousOperationListener.DiagnosticAsyncToken diagnosticToken)
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+        public Task CompletesAsyncOperation(IAsyncToken asyncToken)
         {
-            diagnosticToken.AssociateWithTask(task);
-        }
-
-        return task.CompletesTrackingOperation(asyncToken);
-    }
-
-    [PerformanceSensitive(
-        "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
-        AllowCaptures = false)]
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task CompletesTrackingOperation(this Task task, IDisposable token)
-    {
-        if (token is IAsyncToken { IsNull: true })
-        {
-            return task;
-        }
-
-        return CompletesTrackingOperationSlow(task, token);
-
-        static async Task CompletesTrackingOperationSlow(Task task, IDisposable token)
-        {
-            using (token)
+            if (asyncToken is AsynchronousOperationListener.DiagnosticAsyncToken diagnosticToken)
             {
-                await task.NoThrowAwaitableInternal(captureContext: false);
+                diagnosticToken.AssociateWithTask(task);
+            }
+
+            return task.CompletesTrackingOperation(asyncToken);
+        }
+
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
+            AllowCaptures = false)]
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+        public Task CompletesTrackingOperation(IDisposable token)
+        {
+            if (token is IAsyncToken { IsNull: true })
+            {
+                return task;
+            }
+
+            return CompletesTrackingOperationSlow(task, token);
+
+            static async Task CompletesTrackingOperationSlow(Task task, IDisposable token)
+            {
+                using (token)
+                {
+                    await task.NoThrowAwaitableInternal(captureContext: false);
+                }
             }
         }
     }

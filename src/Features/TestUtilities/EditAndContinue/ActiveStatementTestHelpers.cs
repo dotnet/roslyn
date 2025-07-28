@@ -116,7 +116,9 @@ internal static class ActiveStatementTestHelpers
     public static string InspectSequencePointUpdates(SequencePointUpdates updates)
         => $"{updates.FileName}: [{string.Join(", ", updates.LineUpdates.Select(u => $"{u.OldLine} -> {u.NewLine}"))}]";
 
-    public static IEnumerable<string> Inspect(this IEnumerable<SequencePointUpdates> updates)
+    extension(IEnumerable<SequencePointUpdates> updates)
+    {
+        public IEnumerable<string> Inspect()
         => updates.Select(InspectSequencePointUpdates);
-
+    }
 }

@@ -8,22 +8,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISymbolExtensions
 {
-    public static bool IsImplicitValueParameter([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+    extension([NotNullWhen(true)] ISymbol? symbol)
     {
-        if (symbol is IParameterSymbol && symbol.IsImplicitlyDeclared)
+        public bool IsImplicitValueParameter()
         {
-            if (symbol.ContainingSymbol is IMethodSymbol method)
+            if (symbol is IParameterSymbol && symbol.IsImplicitlyDeclared)
             {
-                if (method.MethodKind is MethodKind.EventAdd or
-                    MethodKind.EventRemove or
-                    MethodKind.PropertySet)
+                if (symbol.ContainingSymbol is IMethodSymbol method)
                 {
-                    // the name is value in C#, and Value in VB
-                    return symbol.Name is "value" or "Value";
+                    if (method.MethodKind is MethodKind.EventAdd or
+                        MethodKind.EventRemove or
+                        MethodKind.PropertySet)
+                    {
+                        // the name is value in C#, and Value in VB
+                        return symbol.Name is "value" or "Value";
+                    }
                 }
             }
-        }
 
-        return false;
+            return false;
+        }
     }
 }

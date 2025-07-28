@@ -11,36 +11,39 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class IWpfTextViewExtensions
 {
-    public static void SizeToFit(this IWpfTextView view, IThreadingContext threadingContext)
+    extension(IWpfTextView view)
     {
-        void firstLayout(object sender, TextViewLayoutChangedEventArgs args)
+        public void SizeToFit(IThreadingContext threadingContext)
         {
-            threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            void firstLayout(object sender, TextViewLayoutChangedEventArgs args)
             {
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
-
-                var newHeight = view.LineHeight * view.TextBuffer.CurrentSnapshot.LineCount;
-                if (IsGreater(newHeight, view.VisualElement.Height))
+                threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    view.VisualElement.Height = newHeight;
-                }
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
 
-                var newWidth = view.MaxTextRightCoordinate;
-                if (IsGreater(newWidth, view.VisualElement.Width))
-                {
-                    view.VisualElement.Width = newWidth;
-                }
-            });
+                    var newHeight = view.LineHeight * view.TextBuffer.CurrentSnapshot.LineCount;
+                    if (IsGreater(newHeight, view.VisualElement.Height))
+                    {
+                        view.VisualElement.Height = newHeight;
+                    }
 
-            view.LayoutChanged -= firstLayout;
+                    var newWidth = view.MaxTextRightCoordinate;
+                    if (IsGreater(newWidth, view.VisualElement.Width))
+                    {
+                        view.VisualElement.Width = newWidth;
+                    }
+                });
+
+                view.LayoutChanged -= firstLayout;
+            }
+
+            view.LayoutChanged += firstLayout;
+
+            static bool IsGreater(double value, double other)
+                => IsNormal(value) && (!IsNormal(other) || value > other);
+
+            static bool IsNormal(double value)
+                => !double.IsNaN(value) && !double.IsInfinity(value);
         }
-
-        view.LayoutChanged += firstLayout;
-
-        static bool IsGreater(double value, double other)
-            => IsNormal(value) && (!IsNormal(other) || value > other);
-
-        static bool IsNormal(double value)
-            => !double.IsNaN(value) && !double.IsInfinity(value);
     }
 }

@@ -8,17 +8,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class DiagnosticSeverityExtensions
 {
-    public static NotificationOption2 ToNotificationOption(this DiagnosticSeverity severity, bool isOverridenSeverity)
+    extension(DiagnosticSeverity severity)
     {
-        var notificationOption = severity switch
+        public NotificationOption2 ToNotificationOption(bool isOverridenSeverity)
         {
-            DiagnosticSeverity.Error => NotificationOption2.Error,
-            DiagnosticSeverity.Warning => NotificationOption2.Warning,
-            DiagnosticSeverity.Info => NotificationOption2.Suggestion,
-            DiagnosticSeverity.Hidden => NotificationOption2.Silent,
-            _ => throw ExceptionUtilities.UnexpectedValue(severity),
-        };
+            var notificationOption = severity switch
+            {
+                DiagnosticSeverity.Error => NotificationOption2.Error,
+                DiagnosticSeverity.Warning => NotificationOption2.Warning,
+                DiagnosticSeverity.Info => NotificationOption2.Suggestion,
+                DiagnosticSeverity.Hidden => NotificationOption2.Silent,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity),
+            };
 
-        return notificationOption.WithIsExplicitlySpecified(isOverridenSeverity);
+            return notificationOption.WithIsExplicitlySpecified(isOverridenSeverity);
+        }
     }
 }

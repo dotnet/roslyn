@@ -15,20 +15,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
 
 internal static class ProjectExtensions
 {
-    public static ProjectItem FindOrCreateFolder(this EnvDTE.Project project, IEnumerable<string> containers)
+    extension(EnvDTE.Project project)
     {
-        Debug.Assert(containers.Any());
-
-        var currentItems = project.ProjectItems;
-        foreach (var container in containers)
+        public ProjectItem FindOrCreateFolder(IEnumerable<string> containers)
         {
-            var folderItem = currentItems.FindFolder(container);
-            folderItem ??= CreateFolder(currentItems, container);
+            Debug.Assert(containers.Any());
 
-            currentItems = folderItem.ProjectItems;
+            var currentItems = project.ProjectItems;
+            foreach (var container in containers)
+            {
+                var folderItem = currentItems.FindFolder(container);
+                folderItem ??= CreateFolder(currentItems, container);
+
+                currentItems = folderItem.ProjectItems;
+            }
+
+            return (ProjectItem)currentItems.Parent;
         }
 
-        return (ProjectItem)currentItems.Parent;
+        public ProjectItem? FindItemByPath(string itemFilePath, StringComparer comparer)
+        {
+            using var _ = ArrayBuilder<ProjectItems>.GetInstance(out var stack);
+            stack.Push(project.ProjectItems);
+
+            while (stack.TryPop(out var currentItems))
+            {
+                foreach (var projectItem in currentItems.OfType<ProjectItem>())
+                {
+                    if (projectItem.TryGetFullPath(out var filePath) && comparer.Equals(filePath, itemFilePath))
+                    {
+                        return projectItem;
+                    }
+
+                    if (projectItem.ProjectItems != null && projectItem.ProjectItems.Count > 0)
+                    {
+                        stack.Push(projectItem.ProjectItems);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public bool TryGetFullPath([NotNullWhen(returnValue: true)] out string? fullPath)
+        {
+            fullPath = project.Properties.Item("FullPath").Value as string;
+            return fullPath != null;
+        }
     }
 
     private static ProjectItem CreateFolder(ProjectItems currentItems, string container)
@@ -49,35 +82,5 @@ internal static class ProjectExtensions
         }
 
         return currentItems.AddFolder(folderName);
-    }
-
-    public static ProjectItem? FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
-    {
-        using var _ = ArrayBuilder<ProjectItems>.GetInstance(out var stack);
-        stack.Push(project.ProjectItems);
-
-        while (stack.TryPop(out var currentItems))
-        {
-            foreach (var projectItem in currentItems.OfType<ProjectItem>())
-            {
-                if (projectItem.TryGetFullPath(out var filePath) && comparer.Equals(filePath, itemFilePath))
-                {
-                    return projectItem;
-                }
-
-                if (projectItem.ProjectItems != null && projectItem.ProjectItems.Count > 0)
-                {
-                    stack.Push(projectItem.ProjectItems);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public static bool TryGetFullPath(this EnvDTE.Project project, [NotNullWhen(returnValue: true)] out string? fullPath)
-    {
-        fullPath = project.Properties.Item("FullPath").Value as string;
-        return fullPath != null;
     }
 }

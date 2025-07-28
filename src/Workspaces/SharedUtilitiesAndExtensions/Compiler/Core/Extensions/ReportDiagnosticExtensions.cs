@@ -9,32 +9,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class ReportDiagnosticExtensions
 {
-    public static string ToEditorConfigString(this ReportDiagnostic reportDiagnostic)
+    extension(ReportDiagnostic reportDiagnostic)
     {
-        return reportDiagnostic switch
+        public string ToEditorConfigString()
         {
-            ReportDiagnostic.Suppress => EditorConfigSeverityStrings.None,
-            ReportDiagnostic.Hidden => EditorConfigSeverityStrings.Silent,
-            ReportDiagnostic.Info => EditorConfigSeverityStrings.Suggestion,
-            ReportDiagnostic.Warn => EditorConfigSeverityStrings.Warning,
-            ReportDiagnostic.Error => EditorConfigSeverityStrings.Error,
-            _ => throw ExceptionUtilities.UnexpectedValue(reportDiagnostic)
-        };
-    }
+            return reportDiagnostic switch
+            {
+                ReportDiagnostic.Suppress => EditorConfigSeverityStrings.None,
+                ReportDiagnostic.Hidden => EditorConfigSeverityStrings.Silent,
+                ReportDiagnostic.Info => EditorConfigSeverityStrings.Suggestion,
+                ReportDiagnostic.Warn => EditorConfigSeverityStrings.Warning,
+                ReportDiagnostic.Error => EditorConfigSeverityStrings.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(reportDiagnostic)
+            };
+        }
 
-    public static NotificationOption2 ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
-    {
-        var isNonDefault = reportDiagnostic != ReportDiagnostic.Default;
-        var notificationOption = reportDiagnostic.WithDefaultSeverity(defaultSeverity) switch
+        public NotificationOption2 ToNotificationOption(DiagnosticSeverity defaultSeverity)
         {
-            ReportDiagnostic.Error => NotificationOption2.Error,
-            ReportDiagnostic.Warn => NotificationOption2.Warning,
-            ReportDiagnostic.Info => NotificationOption2.Suggestion,
-            ReportDiagnostic.Hidden => NotificationOption2.Silent,
-            ReportDiagnostic.Suppress => NotificationOption2.None,
-            _ => throw ExceptionUtilities.UnexpectedValue(reportDiagnostic),
-        };
+            var isNonDefault = reportDiagnostic != ReportDiagnostic.Default;
+            var notificationOption = reportDiagnostic.WithDefaultSeverity(defaultSeverity) switch
+            {
+                ReportDiagnostic.Error => NotificationOption2.Error,
+                ReportDiagnostic.Warn => NotificationOption2.Warning,
+                ReportDiagnostic.Info => NotificationOption2.Suggestion,
+                ReportDiagnostic.Hidden => NotificationOption2.Silent,
+                ReportDiagnostic.Suppress => NotificationOption2.None,
+                _ => throw ExceptionUtilities.UnexpectedValue(reportDiagnostic),
+            };
 
-        return notificationOption.WithIsExplicitlySpecified(isNonDefault);
+            return notificationOption.WithIsExplicitlySpecified(isNonDefault);
+        }
     }
 }

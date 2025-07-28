@@ -10,17 +10,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class ITextSelectionExtensions
 {
-    public static NormalizedSnapshotSpanCollection GetSnapshotSpansOnBuffer(this ITextSelection selection, ITextBuffer subjectBuffer)
+    extension(ITextSelection selection)
     {
-        Contract.ThrowIfNull(selection);
-        Contract.ThrowIfNull(subjectBuffer);
-
-        var list = new List<SnapshotSpan>();
-        foreach (var snapshotSpan in selection.SelectedSpans)
+        public NormalizedSnapshotSpanCollection GetSnapshotSpansOnBuffer(ITextBuffer subjectBuffer)
         {
-            list.AddRange(selection.TextView.BufferGraph.MapDownToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, subjectBuffer));
-        }
+            Contract.ThrowIfNull(selection);
+            Contract.ThrowIfNull(subjectBuffer);
 
-        return new NormalizedSnapshotSpanCollection(list);
+            var list = new List<SnapshotSpan>();
+            foreach (var snapshotSpan in selection.SelectedSpans)
+            {
+                list.AddRange(selection.TextView.BufferGraph.MapDownToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, subjectBuffer));
+            }
+
+            return new NormalizedSnapshotSpanCollection(list);
+        }
     }
 }

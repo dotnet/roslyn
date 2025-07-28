@@ -8,19 +8,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal static class ControlFlowConditionKindExtensions
     {
-        public static ControlFlowConditionKind Negate(this ControlFlowConditionKind controlFlowConditionKind)
+        extension(ControlFlowConditionKind controlFlowConditionKind)
         {
-            switch (controlFlowConditionKind)
+            public ControlFlowConditionKind Negate()
             {
-                case ControlFlowConditionKind.WhenFalse:
-                    return ControlFlowConditionKind.WhenTrue;
+                switch (controlFlowConditionKind)
+                {
+                    case ControlFlowConditionKind.WhenFalse:
+                        return ControlFlowConditionKind.WhenTrue;
 
-                case ControlFlowConditionKind.WhenTrue:
-                    return ControlFlowConditionKind.WhenFalse;
+                    case ControlFlowConditionKind.WhenTrue:
+                        return ControlFlowConditionKind.WhenFalse;
 
-                default:
-                    Debug.Fail($"Unsupported conditional kind: '{controlFlowConditionKind}'");
-                    return controlFlowConditionKind;
+                    default:
+                        Debug.Fail($"Unsupported conditional kind: '{controlFlowConditionKind}'");
+                        return controlFlowConditionKind;
+                }
             }
         }
     }

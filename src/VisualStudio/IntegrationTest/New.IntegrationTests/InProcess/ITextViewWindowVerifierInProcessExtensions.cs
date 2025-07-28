@@ -22,8 +22,9 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 internal static class ITextViewWindowVerifierInProcessExtensions
 {
-    public static async Task CodeActionAsync(
-        this ITextViewWindowVerifierInProcess textViewWindowVerifier,
+    extension(ITextViewWindowVerifierInProcess textViewWindowVerifier)
+    {
+        public async Task CodeActionAsync(
         string expectedItem,
         bool applyFix = false,
         bool verifyNotShowing = false,
@@ -31,127 +32,127 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         FixAllScope? fixAllScope = null,
         bool blockUntilComplete = true,
         CancellationToken cancellationToken = default)
-    {
-        var expectedItems = new[] { expectedItem };
-
-        bool? applied;
-        do
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var expectedItems = new[] { expectedItem };
 
-            applied = await textViewWindowVerifier.CodeActionsAsync(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete, cancellationToken);
-        } while (applied is false);
-    }
+            bool? applied;
+            do
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see langword="true"/> if <paramref name="applyFix"/> is specified and the fix is successfully applied</description></item>
-    /// <item><description><see langword="false"/> if <paramref name="applyFix"/> is specified but the fix is not successfully applied</description></item>
-    /// <item><description><see langword="null"/> if <paramref name="applyFix"/> is false, so there is no fix to apply</description></item>
-    /// </list>
-    /// </returns>
-    public static async Task<bool?> CodeActionsAsync(
-        this ITextViewWindowVerifierInProcess textViewWindowVerifier,
-        IEnumerable<string> expectedItems,
-        string? applyFix = null,
-        bool verifyNotShowing = false,
-        bool ensureExpectedItemsAreOrdered = false,
-        FixAllScope? fixAllScope = null,
-        bool blockUntilComplete = true,
-        CancellationToken cancellationToken = default)
-    {
-        var events = new List<WorkspaceChangeEventArgs>();
-
-        var workspace = await textViewWindowVerifier.TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
-        using var _ = workspace.RegisterWorkspaceChangedHandler(e => events.Add(e));
-
-        await textViewWindowVerifier.TestServices.Editor.ShowLightBulbAsync(cancellationToken);
-
-        if (verifyNotShowing)
-        {
-            await textViewWindowVerifier.CodeActionsNotShowingAsync(cancellationToken);
-            return null;
+                applied = await textViewWindowVerifier.CodeActionsAsync(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                    ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete, cancellationToken);
+            } while (applied is false);
         }
 
-        var actions = await textViewWindowVerifier.TestServices.Editor.GetLightBulbActionsAsync(cancellationToken);
-
-        if (expectedItems != null && expectedItems.Any())
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see langword="true"/> if <paramref name="applyFix"/> is specified and the fix is successfully applied</description></item>
+        /// <item><description><see langword="false"/> if <paramref name="applyFix"/> is specified but the fix is not successfully applied</description></item>
+        /// <item><description><see langword="null"/> if <paramref name="applyFix"/> is false, so there is no fix to apply</description></item>
+        /// </list>
+        /// </returns>
+        public async Task<bool?> CodeActionsAsync(
+            IEnumerable<string> expectedItems,
+            string? applyFix = null,
+            bool verifyNotShowing = false,
+            bool ensureExpectedItemsAreOrdered = false,
+            FixAllScope? fixAllScope = null,
+            bool blockUntilComplete = true,
+            CancellationToken cancellationToken = default)
         {
-            if (ensureExpectedItemsAreOrdered)
+            var events = new List<WorkspaceChangeEventArgs>();
+
+            var workspace = await textViewWindowVerifier.TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
+            using var _ = workspace.RegisterWorkspaceChangedHandler(e => events.Add(e));
+
+            await textViewWindowVerifier.TestServices.Editor.ShowLightBulbAsync(cancellationToken);
+
+            if (verifyNotShowing)
             {
-                TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
-                    actions,
-                    expectedItems);
+                await textViewWindowVerifier.CodeActionsNotShowingAsync(cancellationToken);
+                return null;
             }
-            else
+
+            var actions = await textViewWindowVerifier.TestServices.Editor.GetLightBulbActionsAsync(cancellationToken);
+
+            if (expectedItems != null && expectedItems.Any())
             {
-                TestUtilities.ThrowIfExpectedItemNotFound(
-                    actions,
-                    expectedItems);
+                if (ensureExpectedItemsAreOrdered)
+                {
+                    TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
+                        actions,
+                        expectedItems);
+                }
+                else
+                {
+                    TestUtilities.ThrowIfExpectedItemNotFound(
+                        actions,
+                        expectedItems);
+                }
             }
-        }
 
-        if (fixAllScope.HasValue)
-        {
-            Assumes.Present(applyFix);
-        }
-
-        if (!RoslynString.IsNullOrEmpty(applyFix))
-        {
-            var codeActionLogger = new CodeActionLogger();
-            using var loggerRestorer = WithLogger(AggregateLogger.AddOrReplace(codeActionLogger, Logger.GetLogger(), logger => logger is CodeActionLogger));
-
-            var result = await textViewWindowVerifier.TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete, cancellationToken);
-
-            if (blockUntilComplete)
+            if (fixAllScope.HasValue)
             {
-                // wait for action to complete
-                await textViewWindowVerifier.TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                    [
-                        FeatureAttribute.Workspace,
+                Assumes.Present(applyFix);
+            }
+
+            if (!RoslynString.IsNullOrEmpty(applyFix))
+            {
+                var codeActionLogger = new CodeActionLogger();
+                using var loggerRestorer = WithLogger(AggregateLogger.AddOrReplace(codeActionLogger, Logger.GetLogger(), logger => logger is CodeActionLogger));
+
+                var result = await textViewWindowVerifier.TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete, cancellationToken);
+
+                if (blockUntilComplete)
+                {
+                    // wait for action to complete
+                    await textViewWindowVerifier.TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                        [
+                            FeatureAttribute.Workspace,
                         FeatureAttribute.LightBulb,
                         FeatureAttribute.Rename,
                     ],
-                    cancellationToken);
+                        cancellationToken);
 
-                if (codeActionLogger.Messages.Any())
-                {
-                    foreach (var e in events)
+                    if (codeActionLogger.Messages.Any())
                     {
-                        codeActionLogger.Messages.Add($"{e.OldSolution.WorkspaceVersion} to {e.NewSolution.WorkspaceVersion}: {e.Kind} {e.DocumentId}");
+                        foreach (var e in events)
+                        {
+                            codeActionLogger.Messages.Add($"{e.OldSolution.WorkspaceVersion} to {e.NewSolution.WorkspaceVersion}: {e.Kind} {e.DocumentId}");
+                        }
                     }
+
+                    AssertEx.EqualOrDiff(
+                        "",
+                        string.Join(Environment.NewLine, codeActionLogger.Messages));
                 }
 
-                AssertEx.EqualOrDiff(
-                    "",
-                    string.Join(Environment.NewLine, codeActionLogger.Messages));
+                return result;
             }
 
-            return result;
+            return null;
         }
 
-        return null;
-    }
-
-    public static async Task CodeActionsNotShowingAsync(this ITextViewWindowVerifierInProcess textViewWindowVerifier, CancellationToken cancellationToken)
-    {
-        if (await textViewWindowVerifier.TextViewWindow.IsLightBulbSessionExpandedAsync(cancellationToken))
+        public async Task CodeActionsNotShowingAsync(CancellationToken cancellationToken)
         {
-            throw new InvalidOperationException("Expected no light bulb session, but one was found.");
+            if (await textViewWindowVerifier.TextViewWindow.IsLightBulbSessionExpandedAsync(cancellationToken))
+            {
+                throw new InvalidOperationException("Expected no light bulb session, but one was found.");
+            }
         }
-    }
 
-    public static async Task CurrentTokenTypeAsync(this ITextViewWindowVerifierInProcess textViewWindowVerifier, string tokenType, CancellationToken cancellationToken)
-    {
-        await textViewWindowVerifier.TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-            [FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification],
-            cancellationToken);
+        public async Task CurrentTokenTypeAsync(string tokenType, CancellationToken cancellationToken)
+        {
+            await textViewWindowVerifier.TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                [FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification],
+                cancellationToken);
 
-        var actualTokenTypes = await textViewWindowVerifier.TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);
-        Assert.Equal(1, actualTokenTypes.Length);
-        Assert.Contains(tokenType, actualTokenTypes[0]);
-        Assert.NotEqual("text", tokenType);
+            var actualTokenTypes = await textViewWindowVerifier.TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);
+            Assert.Equal(1, actualTokenTypes.Length);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
+        }
     }
 
     private static LoggerRestorer WithLogger(ILogger logger)

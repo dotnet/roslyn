@@ -58,11 +58,14 @@ internal abstract class NavigationBarItem(
 
 internal static class NavigationBarItemExtensions
 {
-    public static TextSpan GetCurrentItemSpan(this NavigationBarItem item, ITextVersion toVersion, TextSpan span)
+    extension(NavigationBarItem item)
     {
-        Contract.ThrowIfNull(item.TextVersion, "This should only be called for locations the caller knows to be in the open file");
-        return item.TextVersion.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeExclusive)
-                               .GetSpan(toVersion)
-                               .ToTextSpan();
+        public TextSpan GetCurrentItemSpan(ITextVersion toVersion, TextSpan span)
+        {
+            Contract.ThrowIfNull(item.TextVersion, "This should only be called for locations the caller knows to be in the open file");
+            return item.TextVersion.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeExclusive)
+                                   .GetSpan(toVersion)
+                                   .ToTextSpan();
+        }
     }
 }

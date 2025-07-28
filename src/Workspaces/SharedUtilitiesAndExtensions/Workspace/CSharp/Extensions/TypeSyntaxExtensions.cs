@@ -13,60 +13,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static partial class TypeSyntaxExtensions
 {
-    public static bool IsPotentialTypeName([NotNullWhen(true)] this TypeSyntax? typeSyntax, SemanticModel? semanticModelOpt, CancellationToken cancellationToken)
+    extension([NotNullWhen(true)] TypeSyntax? typeSyntax)
     {
-        if (typeSyntax == null)
+        public bool IsPotentialTypeName(SemanticModel? semanticModelOpt, CancellationToken cancellationToken)
         {
-            return false;
+            if (typeSyntax == null)
+            {
+                return false;
+            }
+
+            if (typeSyntax is PredefinedTypeSyntax or
+                ArrayTypeSyntax or
+                GenericNameSyntax or
+                PointerTypeSyntax or
+                NullableTypeSyntax)
+            {
+                return true;
+            }
+
+            if (semanticModelOpt == null)
+            {
+                return false;
+            }
+
+            if (typeSyntax is not NameSyntax nameSyntax)
+            {
+                return false;
+            }
+
+            var nameToken = nameSyntax.GetNameToken();
+
+            var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
+            var firstSymbol = symbols.FirstOrDefault();
+
+            var typeSymbol = firstSymbol is IAliasSymbol aliasSymbol
+                ? aliasSymbol.Target
+                : firstSymbol as ITypeSymbol;
+
+            return typeSymbol != null
+                && !typeSymbol.IsErrorType();
         }
-
-        if (typeSyntax is PredefinedTypeSyntax or
-            ArrayTypeSyntax or
-            GenericNameSyntax or
-            PointerTypeSyntax or
-            NullableTypeSyntax)
-        {
-            return true;
-        }
-
-        if (semanticModelOpt == null)
-        {
-            return false;
-        }
-
-        if (typeSyntax is not NameSyntax nameSyntax)
-        {
-            return false;
-        }
-
-        var nameToken = nameSyntax.GetNameToken();
-
-        var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
-        var firstSymbol = symbols.FirstOrDefault();
-
-        var typeSymbol = firstSymbol is IAliasSymbol aliasSymbol
-            ? aliasSymbol.Target
-            : firstSymbol as ITypeSymbol;
-
-        return typeSymbol != null
-            && !typeSymbol.IsErrorType();
     }
 
-    public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
+    extension(IMethodSymbol method)
     {
-        var returnType = method.ReturnType;
+        public TypeSyntax GenerateReturnTypeSyntax()
+        {
+            var returnType = method.ReturnType;
 
-        if (method.ReturnsByRef)
-        {
-            return returnType.GenerateRefTypeSyntax(allowVar: false);
-        }
-        else if (method.ReturnsByRefReadonly)
-        {
-            return returnType.GenerateRefReadOnlyTypeSyntax(allowVar: false);
-        }
-        else
-        {
-            return returnType.GenerateTypeSyntax(allowVar: false);
+            if (method.ReturnsByRef)
+            {
+                return returnType.GenerateRefTypeSyntax(allowVar: false);
+            }
+            else if (method.ReturnsByRefReadonly)
+            {
+                return returnType.GenerateRefReadOnlyTypeSyntax(allowVar: false);
+            }
+            else
+            {
+                return returnType.GenerateTypeSyntax(allowVar: false);
+            }
         }
     }
 }

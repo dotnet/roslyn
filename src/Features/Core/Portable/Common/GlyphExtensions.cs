@@ -13,36 +13,42 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class GlyphExtensions
 {
-    public static ImmutableArray<Glyph> GetGlyphs(this ImmutableArray<string> tags)
+    extension(ImmutableArray<string> tags)
+    {
+        public ImmutableArray<Glyph> GetGlyphs()
         => GetGlyphs(tags.AsSpan());
 
-    public static ImmutableArray<Glyph> GetGlyphs(this ReadOnlySpan<string> tags)
-    {
-        using var _ = ArrayBuilder<Glyph>.GetInstance(tags.Length, out var builder);
-
-        foreach (var tag in tags)
-        {
-            var glyph = GetGlyph(tag, tags);
-            if (glyph != Glyph.None)
-                builder.Add(glyph);
-        }
-
-        return builder.ToImmutableAndClear();
+        public Glyph GetFirstGlyph()
+            => tags.AsSpan().GetFirstGlyph();
     }
 
-    public static Glyph GetFirstGlyph(this ImmutableArray<string> tags)
-        => tags.AsSpan().GetFirstGlyph();
-
-    public static Glyph GetFirstGlyph(this ReadOnlySpan<string> tags)
+    extension(ReadOnlySpan<string> tags)
     {
-        foreach (var tag in tags)
+        public ImmutableArray<Glyph> GetGlyphs()
         {
-            var glyph = GetGlyph(tag, tags);
-            if (glyph != Glyph.None)
-                return glyph;
+            using var _ = ArrayBuilder<Glyph>.GetInstance(tags.Length, out var builder);
+
+            foreach (var tag in tags)
+            {
+                var glyph = GetGlyph(tag, tags);
+                if (glyph != Glyph.None)
+                    builder.Add(glyph);
+            }
+
+            return builder.ToImmutableAndClear();
         }
 
-        return Glyph.None;
+        public Glyph GetFirstGlyph()
+        {
+            foreach (var tag in tags)
+            {
+                var glyph = GetGlyph(tag, tags);
+                if (glyph != Glyph.None)
+                    return glyph;
+            }
+
+            return Glyph.None;
+        }
     }
 
     private static Glyph GetGlyph(string tag, ReadOnlySpan<string> allTags)

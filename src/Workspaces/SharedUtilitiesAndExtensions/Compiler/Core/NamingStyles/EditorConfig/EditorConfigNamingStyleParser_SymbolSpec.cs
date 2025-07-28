@@ -292,213 +292,231 @@ internal static partial class EditorConfigNamingStyleParser
         return builder.ToImmutableAndFree();
     }
 
-    public static string ToEditorConfigString(this ImmutableArray<SymbolKindOrTypeKind> symbols)
+    extension(ImmutableArray<SymbolKindOrTypeKind> symbols)
     {
-        if (symbols.IsDefaultOrEmpty)
+        public string ToEditorConfigString()
         {
-            return "";
-        }
+            if (symbols.IsDefaultOrEmpty)
+            {
+                return "";
+            }
 
-        if (s_allApplicableKinds.All(symbols.Contains) && symbols.All(s_allApplicableKinds.Contains))
-        {
-            return "*";
-        }
+            if (s_allApplicableKinds.All(symbols.Contains) && symbols.All(s_allApplicableKinds.Contains))
+            {
+                return "*";
+            }
 
-        return string.Join(", ", symbols.Select(symbol => symbol.ToEditorConfigString()));
-    }
-
-    private static string ToEditorConfigString(this SymbolKindOrTypeKind symbol)
-    {
-        switch (symbol.MethodKind)
-        {
-            case MethodKind.Ordinary:
-                return "method";
-
-            case MethodKind.LocalFunction:
-                return "local_function";
-
-            case null:
-                break;
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(symbol);
-        }
-
-        switch (symbol.TypeKind)
-        {
-            case TypeKind.Class:
-                return "class";
-
-            case TypeKind.Struct:
-                return "struct";
-
-            case TypeKind.Interface:
-                return "interface";
-
-            case TypeKind.Enum:
-                return "enum";
-
-            case TypeKind.Delegate:
-                return "delegate";
-
-            case TypeKind.Module:
-                return "module";
-
-            case TypeKind.Pointer:
-                return "pointer";
-
-            case TypeKind.TypeParameter:
-                return "type_parameter";
-
-            case null:
-                break;
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(symbol);
-        }
-
-        switch (symbol.SymbolKind)
-        {
-            case SymbolKind.Namespace:
-                return "namespace";
-
-            case SymbolKind.Property:
-                return "property";
-
-            case SymbolKind.Field:
-                return "field";
-
-            case SymbolKind.Event:
-                return "event";
-
-            case SymbolKind.Parameter:
-                return "parameter";
-
-            case SymbolKind.TypeParameter:
-                return "type_parameter";
-
-            case SymbolKind.Local:
-                return "local";
-
-            case null:
-                break;
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(symbol);
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(symbol);
-    }
-
-    public static string ToEditorConfigString(this ImmutableArray<Accessibility> accessibilities, string languageName)
-    {
-        if (accessibilities.IsDefaultOrEmpty)
-        {
-            return "";
-        }
-
-        if (s_allAccessibility.All(accessibilities.Contains) && accessibilities.All(s_allAccessibility.Contains))
-        {
-            return "*";
-        }
-
-        return string.Join(", ", accessibilities.Select(accessibility => accessibility.ToEditorConfigString(languageName)));
-    }
-
-    private static string ToEditorConfigString(this Accessibility accessibility, string languageName)
-    {
-        switch (accessibility)
-        {
-            case Accessibility.NotApplicable:
-                return "local";
-
-            case Accessibility.Private:
-                return "private";
-
-            case Accessibility.ProtectedAndInternal:
-                return "private_protected";
-
-            case Accessibility.Protected:
-                return "protected";
-
-            case Accessibility.Internal:
-                if (languageName == LanguageNames.VisualBasic)
-                {
-                    return "friend";
-                }
-                else
-                {
-                    return "internal";
-                }
-
-            case Accessibility.ProtectedOrInternal:
-                if (languageName == LanguageNames.VisualBasic)
-                {
-                    return "protected_friend";
-                }
-                else
-                {
-                    return "protected_internal";
-                }
-
-            case Accessibility.Public:
-                return "public";
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(accessibility);
+            return string.Join(", ", symbols.Select(symbol => symbol.ToEditorConfigString()));
         }
     }
 
-    public static string ToEditorConfigString(this ImmutableArray<ModifierKind> modifiers, string languageName)
+    extension(SymbolKindOrTypeKind symbol)
     {
-        if (modifiers.IsDefaultOrEmpty)
+        private string ToEditorConfigString()
         {
-            return "";
-        }
+            switch (symbol.MethodKind)
+            {
+                case MethodKind.Ordinary:
+                    return "method";
 
-        if (_allModifierKind.All(modifiers.Contains) && modifiers.All(_allModifierKind.Contains))
-        {
-            return "*";
-        }
+                case MethodKind.LocalFunction:
+                    return "local_function";
 
-        return string.Join(", ", modifiers.Select(modifier => modifier.ToEditorConfigString(languageName)));
+                case null:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol);
+            }
+
+            switch (symbol.TypeKind)
+            {
+                case TypeKind.Class:
+                    return "class";
+
+                case TypeKind.Struct:
+                    return "struct";
+
+                case TypeKind.Interface:
+                    return "interface";
+
+                case TypeKind.Enum:
+                    return "enum";
+
+                case TypeKind.Delegate:
+                    return "delegate";
+
+                case TypeKind.Module:
+                    return "module";
+
+                case TypeKind.Pointer:
+                    return "pointer";
+
+                case TypeKind.TypeParameter:
+                    return "type_parameter";
+
+                case null:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol);
+            }
+
+            switch (symbol.SymbolKind)
+            {
+                case SymbolKind.Namespace:
+                    return "namespace";
+
+                case SymbolKind.Property:
+                    return "property";
+
+                case SymbolKind.Field:
+                    return "field";
+
+                case SymbolKind.Event:
+                    return "event";
+
+                case SymbolKind.Parameter:
+                    return "parameter";
+
+                case SymbolKind.TypeParameter:
+                    return "type_parameter";
+
+                case SymbolKind.Local:
+                    return "local";
+
+                case null:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(symbol);
+        }
     }
 
-    private static string ToEditorConfigString(this ModifierKind modifier, string languageName)
+    extension(ImmutableArray<Accessibility> accessibilities)
     {
-        switch (modifier.ModifierKindWrapper)
+        public string ToEditorConfigString(string languageName)
         {
-            case ModifierKindEnum.IsAbstract:
-                if (languageName == LanguageNames.VisualBasic)
-                {
-                    return "must_inherit";
-                }
-                else
-                {
-                    return "abstract";
-                }
+            if (accessibilities.IsDefaultOrEmpty)
+            {
+                return "";
+            }
 
-            case ModifierKindEnum.IsStatic:
-                if (languageName == LanguageNames.VisualBasic)
-                {
-                    return "shared";
-                }
-                else
-                {
-                    return "static";
-                }
+            if (s_allAccessibility.All(accessibilities.Contains) && accessibilities.All(s_allAccessibility.Contains))
+            {
+                return "*";
+            }
 
-            case ModifierKindEnum.IsAsync:
-                return "async";
+            return string.Join(", ", accessibilities.Select(accessibility => accessibility.ToEditorConfigString(languageName)));
+        }
+    }
 
-            case ModifierKindEnum.IsReadOnly:
-                return "readonly";
+    extension(Accessibility accessibility)
+    {
+        private string ToEditorConfigString(string languageName)
+        {
+            switch (accessibility)
+            {
+                case Accessibility.NotApplicable:
+                    return "local";
 
-            case ModifierKindEnum.IsConst:
-                return "const";
+                case Accessibility.Private:
+                    return "private";
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(modifier);
+                case Accessibility.ProtectedAndInternal:
+                    return "private_protected";
+
+                case Accessibility.Protected:
+                    return "protected";
+
+                case Accessibility.Internal:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "friend";
+                    }
+                    else
+                    {
+                        return "internal";
+                    }
+
+                case Accessibility.ProtectedOrInternal:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "protected_friend";
+                    }
+                    else
+                    {
+                        return "protected_internal";
+                    }
+
+                case Accessibility.Public:
+                    return "public";
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(accessibility);
+            }
+        }
+    }
+
+    extension(ImmutableArray<ModifierKind> modifiers)
+    {
+        public string ToEditorConfigString(string languageName)
+        {
+            if (modifiers.IsDefaultOrEmpty)
+            {
+                return "";
+            }
+
+            if (_allModifierKind.All(modifiers.Contains) && modifiers.All(_allModifierKind.Contains))
+            {
+                return "*";
+            }
+
+            return string.Join(", ", modifiers.Select(modifier => modifier.ToEditorConfigString(languageName)));
+        }
+    }
+
+    extension(ModifierKind modifier)
+    {
+        private string ToEditorConfigString(string languageName)
+        {
+            switch (modifier.ModifierKindWrapper)
+            {
+                case ModifierKindEnum.IsAbstract:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "must_inherit";
+                    }
+                    else
+                    {
+                        return "abstract";
+                    }
+
+                case ModifierKindEnum.IsStatic:
+                    if (languageName == LanguageNames.VisualBasic)
+                    {
+                        return "shared";
+                    }
+                    else
+                    {
+                        return "static";
+                    }
+
+                case ModifierKindEnum.IsAsync:
+                    return "async";
+
+                case ModifierKindEnum.IsReadOnly:
+                    return "readonly";
+
+                case ModifierKindEnum.IsConst:
+                    return "const";
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(modifier);
+            }
         }
     }
 }

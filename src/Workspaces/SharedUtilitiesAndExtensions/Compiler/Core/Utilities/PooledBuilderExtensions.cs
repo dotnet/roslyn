@@ -12,95 +12,102 @@ namespace Roslyn.Utilities;
 
 internal static class PooledBuilderExtensions
 {
-    public static Dictionary<K, V> ToDictionaryAndFree<K, V>(this PooledDictionary<K, V> builders)
-        where K : notnull
+    extension<K, V>(PooledDictionary<K, V> builders) where K : notnull
     {
-        var dictionary = new Dictionary<K, V>(builders.Count);
-
-        foreach (var (key, items) in builders)
+        public Dictionary<K, V> ToDictionaryAndFree()
         {
-            dictionary.Add(key, items);
-        }
+            var dictionary = new Dictionary<K, V>(builders.Count);
 
-        builders.Free();
-        return dictionary;
-    }
-
-    public static Dictionary<K, ImmutableArray<V>> ToMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
-        where K : notnull
-    {
-        var dictionary = new Dictionary<K, ImmutableArray<V>>(builders.Count);
-
-        foreach (var (key, items) in builders)
-        {
-            dictionary.Add(key, items.ToImmutableAndFree());
-        }
-
-        builders.Free();
-        return dictionary;
-    }
-
-    public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
-        where K : notnull
-         => ToImmutableMultiDictionaryAndFree(builders, where: null, whereArg: 0);
-
-    public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V, TArg>(this PooledDictionary<K, ArrayBuilder<V>> builders, Func<K, TArg, bool>? where, TArg whereArg)
-        where K : notnull
-    {
-        var result = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
-
-        foreach (var (key, items) in builders)
-        {
-            if (where == null || where(key, whereArg))
+            foreach (var (key, items) in builders)
             {
-                result.Add(key, items.ToImmutableAndFree());
+                dictionary.Add(key, items);
             }
-            else
+
+            builders.Free();
+            return dictionary;
+        }
+    }
+
+    extension<K, V>(PooledDictionary<K, ArrayBuilder<V>> builders) where K : notnull
+    {
+        public Dictionary<K, ImmutableArray<V>> ToMultiDictionaryAndFree()
+        {
+            var dictionary = new Dictionary<K, ImmutableArray<V>>(builders.Count);
+
+            foreach (var (key, items) in builders)
+            {
+                dictionary.Add(key, items.ToImmutableAndFree());
+            }
+
+            builders.Free();
+            return dictionary;
+        }
+
+        public ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree()
+             => ToImmutableMultiDictionaryAndFree(builders, where: null, whereArg: 0);
+
+        public ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<TArg>(Func<K, TArg, bool>? where, TArg whereArg)
+        {
+            var result = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
+
+            foreach (var (key, items) in builders)
+            {
+                if (where == null || where(key, whereArg))
+                {
+                    result.Add(key, items.ToImmutableAndFree());
+                }
+                else
+                {
+                    items.Free();
+                }
+            }
+
+            builders.Free();
+            return result.ToImmutable();
+        }
+    }
+
+    extension<K, V>(IReadOnlyDictionary<K, ArrayBuilder<V>> builders) where K : notnull
+    {
+        public void FreeValues()
+        {
+            foreach (var (_, items) in builders)
             {
                 items.Free();
             }
         }
-
-        builders.Free();
-        return result.ToImmutable();
     }
 
-    public static void FreeValues<K, V>(this IReadOnlyDictionary<K, ArrayBuilder<V>> builders)
-        where K : notnull
+    extension<T>(ArrayBuilder<ArrayBuilder<T>> builders)
     {
-        foreach (var (_, items) in builders)
+        public ImmutableArray<T> ToFlattenedImmutableArrayAndFree()
         {
-            items.Free();
-        }
-    }
-
-    public static ImmutableArray<T> ToFlattenedImmutableArrayAndFree<T>(this ArrayBuilder<ArrayBuilder<T>> builders)
-    {
-        try
-        {
-            if (builders.Count == 0)
+            try
             {
-                return [];
-            }
+                if (builders.Count == 0)
+                {
+                    return [];
+                }
 
-            if (builders.Count == 1)
+                if (builders.Count == 1)
+                {
+                    return builders[0].ToImmutableAndFree();
+                }
+
+                var result = ArrayBuilder<T>.GetInstance(builders.Sum(b => b.Count));
+
+                foreach (var builder in builders)
+                {
+                    result.AddRange(builder);
+                    builder.Free();
+                }
+
+                return result.ToImmutableAndFree();
+            }
+            finally
             {
-                return builders[0].ToImmutableAndFree();
+                builders.Free();
             }
-
-            var result = ArrayBuilder<T>.GetInstance(builders.Sum(b => b.Count));
-
-            foreach (var builder in builders)
-            {
-                result.AddRange(builder);
-                builder.Free();
-            }
-
-            return result.ToImmutableAndFree();
-        }
-        finally
-        {
-            builders.Free();
         }
     }
 }

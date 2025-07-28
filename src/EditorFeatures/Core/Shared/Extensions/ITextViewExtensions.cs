@@ -16,142 +16,243 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static partial class ITextViewExtensions
 {
-    /// <summary>
-    /// Collects the content types in the view's buffer graph.
-    /// </summary>
-    public static ISet<IContentType> GetContentTypes(this ITextView textView)
+    extension(ITextView textView)
     {
-        return new HashSet<IContentType>(
-            textView.BufferGraph.GetTextBuffers(_ => true).Select(b => b.ContentType));
-    }
-
-    public static bool IsReadOnlyOnSurfaceBuffer(this ITextView textView, SnapshotSpan span)
-    {
-        var spansInView = textView.BufferGraph.MapUpToBuffer(span, SpanTrackingMode.EdgeInclusive, textView.TextBuffer);
-        return spansInView.Any(spanInView => textView.TextBuffer.IsReadOnly(spanInView.Span));
-    }
-
-    public static SnapshotPoint? GetCaretPoint(this ITextView textView, ITextBuffer subjectBuffer)
-    {
-        var caret = textView.Caret.Position;
-        return textView.BufferGraph.MapUpOrDownToBuffer(caret.BufferPosition, subjectBuffer);
-    }
-
-    public static SnapshotPoint? GetCaretPoint(this ITextView textView, Predicate<ITextSnapshot> match)
-    {
-        var caret = textView.Caret.Position;
-        var span = textView.BufferGraph.MapUpOrDownToFirstMatch(new SnapshotSpan(caret.BufferPosition, 0), match);
-        if (span.HasValue)
+        /// <summary>
+        /// Collects the content types in the view's buffer graph.
+        /// </summary>
+        public ISet<IContentType> GetContentTypes()
         {
-            return span.Value.Start;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    public static VirtualSnapshotPoint? GetVirtualCaretPoint(this ITextView textView, ITextBuffer subjectBuffer)
-    {
-        if (subjectBuffer == textView.TextBuffer)
-        {
-            return textView.Caret.Position.VirtualBufferPosition;
+            return new HashSet<IContentType>(
+                textView.BufferGraph.GetTextBuffers(_ => true).Select(b => b.ContentType));
         }
 
-        var mappedPoint = textView.BufferGraph.MapDownToBuffer(
-            textView.Caret.Position.VirtualBufferPosition.Position,
-            PointTrackingMode.Negative,
-            subjectBuffer,
-            PositionAffinity.Predecessor);
+        public bool IsReadOnlyOnSurfaceBuffer(SnapshotSpan span)
+        {
+            var spansInView = textView.BufferGraph.MapUpToBuffer(span, SpanTrackingMode.EdgeInclusive, textView.TextBuffer);
+            return spansInView.Any(spanInView => textView.TextBuffer.IsReadOnly(spanInView.Span));
+        }
 
-        return mappedPoint.HasValue
-            ? new VirtualSnapshotPoint(mappedPoint.Value)
-            : default;
-    }
+        public SnapshotPoint? GetCaretPoint(ITextBuffer subjectBuffer)
+        {
+            var caret = textView.Caret.Position;
+            return textView.BufferGraph.MapUpOrDownToBuffer(caret.BufferPosition, subjectBuffer);
+        }
 
-    public static ITextBuffer? GetBufferContainingCaret(this ITextView textView, string contentType = ContentTypeNames.RoslynContentType)
-    {
-        var point = GetCaretPoint(textView, s => s.ContentType.IsOfType(contentType));
-        return point.HasValue ? point.Value.Snapshot.TextBuffer : null;
-    }
+        public SnapshotPoint? GetCaretPoint(Predicate<ITextSnapshot> match)
+        {
+            var caret = textView.Caret.Position;
+            var span = textView.BufferGraph.MapUpOrDownToFirstMatch(new SnapshotSpan(caret.BufferPosition, 0), match);
+            if (span.HasValue)
+            {
+                return span.Value.Start;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
-    public static SnapshotPoint? GetPositionInView(this ITextView textView, SnapshotPoint point)
-        => textView.BufferGraph.MapUpToSnapshot(point, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
+        public VirtualSnapshotPoint? GetVirtualCaretPoint(ITextBuffer subjectBuffer)
+        {
+            if (subjectBuffer == textView.TextBuffer)
+            {
+                return textView.Caret.Position.VirtualBufferPosition;
+            }
 
-    public static NormalizedSnapshotSpanCollection GetSpanInView(this ITextView textView, SnapshotSpan span)
-        => textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
+            var mappedPoint = textView.BufferGraph.MapDownToBuffer(
+                textView.Caret.Position.VirtualBufferPosition.Position,
+                PointTrackingMode.Negative,
+                subjectBuffer,
+                PositionAffinity.Predecessor);
 
-    public static void SetSelection(
-        this ITextView textView, VirtualSnapshotPoint anchorPoint, VirtualSnapshotPoint activePoint)
-    {
-        var isReversed = activePoint < anchorPoint;
-        var start = isReversed ? activePoint : anchorPoint;
-        var end = isReversed ? anchorPoint : activePoint;
-        SetSelection(textView, new SnapshotSpan(start.Position, end.Position), isReversed);
-    }
+            return mappedPoint.HasValue
+                ? new VirtualSnapshotPoint(mappedPoint.Value)
+                : default;
+        }
 
-    public static void SetSelection(
-        this ITextView textView, SnapshotSpan span, bool isReversed = false)
-    {
-        var spanInView = textView.GetSpanInView(span).Single();
-        textView.Selection.Select(spanInView, isReversed);
-        textView.Caret.MoveTo(isReversed ? spanInView.Start : spanInView.End);
-    }
+        public ITextBuffer? GetBufferContainingCaret(string contentType = ContentTypeNames.RoslynContentType)
+        {
+            var point = GetCaretPoint(textView, s => s.ContentType.IsOfType(contentType));
+            return point.HasValue ? point.Value.Snapshot.TextBuffer : null;
+        }
 
-    /// <summary>
-    /// Sets a multi selection with the last span as the primary selection.
-    /// Also maps up to the correct span in view before attempting to set the selection.
-    /// </summary>
-    public static void SetMultiSelection(this ITextView textView, IEnumerable<SnapshotSpan> spans)
-    {
-        var spansInView = spans.Select(s => new Selection(textView.GetSpanInView(s).Single()));
-        textView.GetMultiSelectionBroker().SetSelectionRange(spansInView, spansInView.Last());
-    }
+        public SnapshotPoint? GetPositionInView(SnapshotPoint point)
+            => textView.BufferGraph.MapUpToSnapshot(point, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
 
-    internal static bool TrySetSelectionAndEnsureVisible(this ITextView textView, SnapshotSpan span, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
-    {
-        if (!textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(span.End), outliningManagerService, ensureSpanVisibleOptions))
+        public NormalizedSnapshotSpanCollection GetSpanInView(SnapshotSpan span)
+            => textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
+
+        public void SetSelection(
+    VirtualSnapshotPoint anchorPoint, VirtualSnapshotPoint activePoint)
+        {
+            var isReversed = activePoint < anchorPoint;
+            var start = isReversed ? activePoint : anchorPoint;
+            var end = isReversed ? anchorPoint : activePoint;
+            SetSelection(textView, new SnapshotSpan(start.Position, end.Position), isReversed);
+        }
+
+        public void SetSelection(
+    SnapshotSpan span, bool isReversed = false)
+        {
+            var spanInView = textView.GetSpanInView(span).Single();
+            textView.Selection.Select(spanInView, isReversed);
+            textView.Caret.MoveTo(isReversed ? spanInView.Start : spanInView.End);
+        }
+
+        /// <summary>
+        /// Sets a multi selection with the last span as the primary selection.
+        /// Also maps up to the correct span in view before attempting to set the selection.
+        /// </summary>
+        public void SetMultiSelection(IEnumerable<SnapshotSpan> spans)
+        {
+            var spansInView = spans.Select(s => new Selection(textView.GetSpanInView(s).Single()));
+            textView.GetMultiSelectionBroker().SetSelectionRange(spansInView, spansInView.Last());
+        }
+
+        internal bool TrySetSelectionAndEnsureVisible(SnapshotSpan span, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
+        {
+            if (!textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(span.End), outliningManagerService, ensureSpanVisibleOptions))
+                return false;
+
+            SetSelection(textView, span, isReversed: false);
+            return true;
+        }
+
+        public bool TryMoveCaretToAndEnsureVisible(SnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
+            => textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
+
+        public bool TryMoveCaretToAndEnsureVisible(VirtualSnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
+        {
+            if (textView.IsClosed)
+            {
+                return false;
+            }
+
+            var pointInView = textView.GetPositionInView(point.Position);
+
+            if (!pointInView.HasValue)
+            {
+                return false;
+            }
+
+            // If we were given an outlining service, we need to expand any outlines first, or else
+            // the Caret.MoveTo won't land in the correct location if our target is inside a
+            // collapsed outline.
+            if (outliningManagerService != null)
+            {
+                var outliningManager = outliningManagerService.GetOutliningManager(textView);
+
+                outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
+            }
+
+            var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));
+
+            // We use the caret's position in the view's current snapshot here in case something 
+            // changed text in response to a caret move (e.g. line commit)
+            var spanInView = new SnapshotSpan(newPosition.BufferPosition, 0);
+            textView.ViewScroller.EnsureSpanVisible(spanInView, ensureSpanVisibleOptions);
+
+            return true;
+        }
+
+        public bool TypeCharWasHandledStrangely(
+            ITextBuffer subjectBuffer,
+            char ch)
+        {
+            var finalCaretPositionOpt = textView.GetCaretPoint(subjectBuffer);
+            if (finalCaretPositionOpt == null)
+            {
+                // Caret moved outside of our buffer.  Don't want to handle this typed character.
+                return true;
+            }
+
+            var previousPosition = finalCaretPositionOpt.Value.Position - 1;
+            var inRange = previousPosition >= 0 && previousPosition < subjectBuffer.CurrentSnapshot.Length;
+            if (!inRange)
+            {
+                // The character before the caret isn't even in the buffer we care about.  Don't
+                // handle this.
+                return true;
+            }
+
+            if (subjectBuffer.CurrentSnapshot[previousPosition] != ch)
+            {
+                // The character that was typed is not in the buffer at the typed location.  Don't
+                // handle this character.
+                return true;
+            }
+
             return false;
+        }
 
-        SetSelection(textView, span, isReversed: false);
-        return true;
-    }
-
-    public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
-        => textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
-
-    public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, VirtualSnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
-    {
-        if (textView.IsClosed)
+        public int? GetDesiredIndentation(ISmartIndentationService smartIndentService, ITextSnapshotLine line)
         {
+            var pointInView = textView.BufferGraph.MapUpToSnapshot(
+                line.Start, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
+
+            if (!pointInView.HasValue)
+            {
+                return null;
+            }
+
+            var lineInView = textView.TextSnapshot.GetLineFromPosition(pointInView.Value.Position);
+            return smartIndentService.GetDesiredIndentation(textView, lineInView);
+        }
+
+        public bool TryGetSurfaceBufferSpan(
+            VirtualSnapshotSpan virtualSnapshotSpan,
+            out VirtualSnapshotSpan surfaceBufferSpan)
+        {
+            // If we are already on the surface buffer, then there's no reason to attempt mappings
+            // as we'll lose virtualness
+            if (virtualSnapshotSpan.Snapshot.TextBuffer == textView.TextBuffer)
+            {
+                surfaceBufferSpan = virtualSnapshotSpan;
+                return true;
+            }
+
+            // We have to map. We'll lose virtualness in this process because
+            // mapping virtual points through projections is poorly defined.
+            var targetSpan = textView.BufferGraph.MapUpToSnapshot(
+                virtualSnapshotSpan.SnapshotSpan,
+                SpanTrackingMode.EdgeExclusive,
+                textView.TextSnapshot).FirstOrNull();
+
+            if (targetSpan.HasValue)
+            {
+                surfaceBufferSpan = new VirtualSnapshotSpan(targetSpan.Value);
+                return true;
+            }
+
+            surfaceBufferSpan = default;
             return false;
         }
 
-        var pointInView = textView.GetPositionInView(point.Position);
+        /// <summary>
+        /// Determines if the textbuffer passed in matches the buffer for the textview.
+        /// </summary>
+        public bool IsNotSurfaceBufferOfTextView(ITextBuffer textBuffer)
+            => textBuffer != textView.TextBuffer;
 
-        if (!pointInView.HasValue)
+        internal bool IsInLspEditorContext()
         {
-            return false;
+            // If any of the buffers in the projection graph are in the LSP editor context, then we consider this to be in an LSP context.
+            // We cannot be in a partial context where some buffers are LSP and some are not.
+            var anyBufferInLspContext = false;
+            _ = textView.BufferGraph.GetTextBuffers(textBuffer =>
+            {
+                // Just set a flag if we found one to avoid creating a collection of all the buffers
+                if (textBuffer.IsInLspEditorContext())
+                {
+                    anyBufferInLspContext = true;
+                }
+
+                return false;
+            });
+
+            return anyBufferInLspContext;
         }
-
-        // If we were given an outlining service, we need to expand any outlines first, or else
-        // the Caret.MoveTo won't land in the correct location if our target is inside a
-        // collapsed outline.
-        if (outliningManagerService != null)
-        {
-            var outliningManager = outliningManagerService.GetOutliningManager(textView);
-
-            outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
-        }
-
-        var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));
-
-        // We use the caret's position in the view's current snapshot here in case something 
-        // changed text in response to a caret move (e.g. line commit)
-        var spanInView = new SnapshotSpan(newPosition.BufferPosition, 0);
-        textView.ViewScroller.EnsureSpanVisible(spanInView, ensureSpanVisibleOptions);
-
-        return true;
     }
 
     /// <summary>
@@ -252,105 +353,5 @@ internal static partial class ITextViewExtensions
         Contract.ThrowIfNull(subjectBuffer);
 
         PerSubjectBufferProperty<TProperty, TTextView>.RemoveValue(textView, subjectBuffer, key);
-    }
-
-    public static bool TypeCharWasHandledStrangely(
-        this ITextView textView,
-        ITextBuffer subjectBuffer,
-        char ch)
-    {
-        var finalCaretPositionOpt = textView.GetCaretPoint(subjectBuffer);
-        if (finalCaretPositionOpt == null)
-        {
-            // Caret moved outside of our buffer.  Don't want to handle this typed character.
-            return true;
-        }
-
-        var previousPosition = finalCaretPositionOpt.Value.Position - 1;
-        var inRange = previousPosition >= 0 && previousPosition < subjectBuffer.CurrentSnapshot.Length;
-        if (!inRange)
-        {
-            // The character before the caret isn't even in the buffer we care about.  Don't
-            // handle this.
-            return true;
-        }
-
-        if (subjectBuffer.CurrentSnapshot[previousPosition] != ch)
-        {
-            // The character that was typed is not in the buffer at the typed location.  Don't
-            // handle this character.
-            return true;
-        }
-
-        return false;
-    }
-
-    public static int? GetDesiredIndentation(this ITextView textView, ISmartIndentationService smartIndentService, ITextSnapshotLine line)
-    {
-        var pointInView = textView.BufferGraph.MapUpToSnapshot(
-            line.Start, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
-
-        if (!pointInView.HasValue)
-        {
-            return null;
-        }
-
-        var lineInView = textView.TextSnapshot.GetLineFromPosition(pointInView.Value.Position);
-        return smartIndentService.GetDesiredIndentation(textView, lineInView);
-    }
-
-    public static bool TryGetSurfaceBufferSpan(
-        this ITextView textView,
-        VirtualSnapshotSpan virtualSnapshotSpan,
-        out VirtualSnapshotSpan surfaceBufferSpan)
-    {
-        // If we are already on the surface buffer, then there's no reason to attempt mappings
-        // as we'll lose virtualness
-        if (virtualSnapshotSpan.Snapshot.TextBuffer == textView.TextBuffer)
-        {
-            surfaceBufferSpan = virtualSnapshotSpan;
-            return true;
-        }
-
-        // We have to map. We'll lose virtualness in this process because
-        // mapping virtual points through projections is poorly defined.
-        var targetSpan = textView.BufferGraph.MapUpToSnapshot(
-            virtualSnapshotSpan.SnapshotSpan,
-            SpanTrackingMode.EdgeExclusive,
-            textView.TextSnapshot).FirstOrNull();
-
-        if (targetSpan.HasValue)
-        {
-            surfaceBufferSpan = new VirtualSnapshotSpan(targetSpan.Value);
-            return true;
-        }
-
-        surfaceBufferSpan = default;
-        return false;
-    }
-
-    /// <summary>
-    /// Determines if the textbuffer passed in matches the buffer for the textview.
-    /// </summary>
-    public static bool IsNotSurfaceBufferOfTextView(this ITextView textView, ITextBuffer textBuffer)
-        => textBuffer != textView.TextBuffer;
-
-    internal static bool IsInLspEditorContext(this ITextView textView)
-    {
-        // If any of the buffers in the projection graph are in the LSP editor context, then we consider this to be in an LSP context.
-        // We cannot be in a partial context where some buffers are LSP and some are not.
-        var anyBufferInLspContext = false;
-        _ = textView.BufferGraph.GetTextBuffers(textBuffer =>
-        {
-            // Just set a flag if we found one to avoid creating a collection of all the buffers
-            if (textBuffer.IsInLspEditorContext())
-            {
-                anyBufferInLspContext = true;
-            }
-
-            return false;
-        });
-
-        return anyBufferInLspContext;
     }
 }

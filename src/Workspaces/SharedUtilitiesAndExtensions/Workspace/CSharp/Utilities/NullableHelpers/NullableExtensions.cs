@@ -6,9 +6,12 @@ namespace Microsoft.CodeAnalysis;
 
 internal static partial class NullableExtensions
 {
-    public static ITypeSymbol? GetConvertedTypeWithAnnotatedNullability(this TypeInfo typeInfo)
+    extension(TypeInfo typeInfo)
+    {
+        public ITypeSymbol? GetConvertedTypeWithAnnotatedNullability()
         => typeInfo.ConvertedType?.WithNullableAnnotation(typeInfo.ConvertedNullability.Annotation);
 
-    public static ITypeSymbol? GetTypeWithAnnotatedNullability(this TypeInfo typeInfo)
-        => typeInfo.Type?.WithNullableAnnotation(typeInfo.Nullability.Annotation);
+        public ITypeSymbol? GetTypeWithAnnotatedNullability()
+            => typeInfo.Type?.WithNullableAnnotation(typeInfo.Nullability.Annotation);
+    }
 }

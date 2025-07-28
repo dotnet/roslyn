@@ -10,24 +10,29 @@ namespace Roslyn.Utilities;
 
 internal static class TopologicalSorter
 {
-    public static IEnumerable<T> TopologicalSort<T>(this IEnumerable<T> items, Func<T, IEnumerable<T>> itemsBefore)
+    extension<T>(IEnumerable<T> items)
     {
-        var result = new List<T>();
-        var visited = new HashSet<T>();
-
-        foreach (var item in items)
+        public IEnumerable<T> TopologicalSort(Func<T, IEnumerable<T>> itemsBefore)
         {
-            Visit(item, itemsBefore, result, visited);
-        }
+            var result = new List<T>();
+            var visited = new HashSet<T>();
 
-        return result;
+            foreach (var item in items)
+            {
+                Visit(item, itemsBefore, result, visited);
+            }
+
+            return result;
+        }
     }
 
-    public static IEnumerable<T> TopologicalSort<T>(this IEnumerable<T> items, Func<T, IEnumerable<T>> itemsBefore, Func<T, IEnumerable<T>> itemsAfter)
-        where T : notnull
+    extension<T>(IEnumerable<T> items) where T : notnull
     {
-        var combinedItemsBefore = CreateCombinedItemsBefore(items, itemsBefore, itemsAfter);
-        return TopologicalSort(items, combinedItemsBefore);
+        public IEnumerable<T> TopologicalSort(Func<T, IEnumerable<T>> itemsBefore, Func<T, IEnumerable<T>> itemsAfter)
+        {
+            var combinedItemsBefore = CreateCombinedItemsBefore(items, itemsBefore, itemsAfter);
+            return TopologicalSort(items, combinedItemsBefore);
+        }
     }
 
     private static void Visit<T>(

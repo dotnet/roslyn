@@ -11,44 +11,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
 internal static class RuleSetDocumentExtensions
 {
-    internal static void SetSeverity(this XDocument ruleSet, string analyzerId, string ruleId, ReportDiagnostic value)
+    extension(XDocument ruleSet)
     {
-        var newAction = ConvertReportDiagnosticToAction(value);
-
-        var rules = FindOrCreateRulesElement(ruleSet, analyzerId);
-        var rule = FindOrCreateRuleElement(rules, ruleId);
-
-        if (value == ReportDiagnostic.Default)
+        internal void SetSeverity(string analyzerId, string ruleId, ReportDiagnostic value)
         {
-            // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
-            // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
-            // severity (so far as the 'current' ruleset file is concerned - the rule's effective severity
-            // could still be decided by other factors such as project settings or a base ruleset file).
-            rule.Remove();
-        }
-        else
-        {
-            rule.Attribute("Action").Value = newAction;
-        }
+            var newAction = ConvertReportDiagnosticToAction(value);
 
-        var allMatchingRules = ruleSet.Root
-                                   .Descendants("Rule")
-                                   .Where(r => r.Attribute("Id").Value.Equals(ruleId))
-                                   .ToList();
+            var rules = FindOrCreateRulesElement(ruleSet, analyzerId);
+            var rule = FindOrCreateRuleElement(rules, ruleId);
 
-        foreach (var matchingRule in allMatchingRules)
-        {
             if (value == ReportDiagnostic.Default)
             {
                 // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
                 // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
                 // severity (so far as the 'current' ruleset file is concerned - the rule's effective severity
                 // could still be decided by other factors such as project settings or a base ruleset file).
-                matchingRule.Remove();
+                rule.Remove();
             }
             else
             {
-                matchingRule.Attribute("Action").Value = newAction;
+                rule.Attribute("Action").Value = newAction;
+            }
+
+            var allMatchingRules = ruleSet.Root
+                                       .Descendants("Rule")
+                                       .Where(r => r.Attribute("Id").Value.Equals(ruleId))
+                                       .ToList();
+
+            foreach (var matchingRule in allMatchingRules)
+            {
+                if (value == ReportDiagnostic.Default)
+                {
+                    // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
+                    // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
+                    // severity (so far as the 'current' ruleset file is concerned - the rule's effective severity
+                    // could still be decided by other factors such as project settings or a base ruleset file).
+                    matchingRule.Remove();
+                }
+                else
+                {
+                    matchingRule.Attribute("Action").Value = newAction;
+                }
             }
         }
     }

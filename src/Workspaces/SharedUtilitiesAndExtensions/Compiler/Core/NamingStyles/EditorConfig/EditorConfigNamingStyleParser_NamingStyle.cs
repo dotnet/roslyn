@@ -116,7 +116,9 @@ internal static partial class EditorConfigNamingStyleParser
             _ => default,
         };
 
-    public static string ToEditorConfigString(this Capitalization capitalization)
+    extension(Capitalization capitalization)
+    {
+        public string ToEditorConfigString()
         => capitalization switch
         {
             Capitalization.PascalCase => "pascal_case",
@@ -126,4 +128,5 @@ internal static partial class EditorConfigNamingStyleParser
             Capitalization.AllLower => "all_lower",
             _ => throw ExceptionUtilities.UnexpectedValue(capitalization),
         };
+    }
 }

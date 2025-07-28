@@ -13,25 +13,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static class DiagnosticAnalyzerExtensions
 {
-    public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
+    extension(DiagnosticAnalyzer analyzer)
+    {
+        public bool IsWorkspaceDiagnosticAnalyzer()
         => analyzer is DocumentDiagnosticAnalyzer;
 
-    public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
-        => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
+        public bool IsBuiltInAnalyzer()
+            => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
 
-    public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
-    {
-        return options == null
-            ? descriptor.DefaultSeverity.ToReportDiagnostic()
-            : descriptor.GetEffectiveSeverity(options);
+        public (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion()
+        {
+            // Get the unique ID for given diagnostic analyzer.
+            // note that we also put version stamp so that we can detect changed analyzer.
+            var typeInfo = analyzer.GetType().GetTypeInfo();
+            return (analyzer.GetAnalyzerId(), GetAnalyzerVersion(typeInfo.Assembly.Location));
+        }
+
+        public string GetAnalyzerAssemblyName()
+            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable();
     }
 
-    public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
+    extension(DiagnosticDescriptor descriptor)
     {
-        // Get the unique ID for given diagnostic analyzer.
-        // note that we also put version stamp so that we can detect changed analyzer.
-        var typeInfo = analyzer.GetType().GetTypeInfo();
-        return (analyzer.GetAnalyzerId(), GetAnalyzerVersion(typeInfo.Assembly.Location));
+        public ReportDiagnostic GetEffectiveSeverity(CompilationOptions options)
+        {
+            return options == null
+                ? descriptor.DefaultSeverity.ToReportDiagnostic()
+                : descriptor.GetEffectiveSeverity(options);
+        }
     }
 
     private static VersionStamp GetAnalyzerVersion(string path)
@@ -44,18 +53,21 @@ internal static class DiagnosticAnalyzerExtensions
         return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
     }
 
-    public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
-        => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable();
-
-    public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, ImmutableArray<DiagnosticAnalyzer> analyzers)
+    extension(Dictionary<string, DiagnosticAnalyzer> analyzerMap)
     {
-        foreach (var analyzer in analyzers)
+        public void AppendAnalyzerMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
-            analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
+            foreach (var analyzer in analyzers)
+            {
+                // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
+                analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
+            }
         }
     }
 
-    public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
+    extension(IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult)
+    {
+        public IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(DiagnosticAnalyzerInfoCache analyzerInfo)
         => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
+    }
 }

@@ -39,7 +39,10 @@ internal static class Base64Utilities
 
     private const byte EncodingPad = (byte)'='; // '=', for padding
 
-    private static bool IsSpace(this char c) => c == ' ' || c == '\t' || c == '\r' || c == '\n';
+    extension(char c)
+    {
+        private bool IsSpace() => c == ' ' || c == '\t' || c == '\r' || c == '\n';
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void WriteThreeLowOrderBytes(ref byte destination, int value)

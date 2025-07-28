@@ -36,10 +36,13 @@ internal static class CleanCodeGenerationOptionsProviders
             CleanupOptions = CodeCleanupOptionsProviders.GetDefault(languageServices)
         };
 
-    public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
+    {
+        public async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(CancellationToken cancellationToken)
         => new()
         {
             GenerationOptions = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false),
             CleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false)
         };
+    }
 }

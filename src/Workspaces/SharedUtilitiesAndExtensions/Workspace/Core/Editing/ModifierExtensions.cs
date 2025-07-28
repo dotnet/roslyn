@@ -8,12 +8,15 @@ namespace Microsoft.CodeAnalysis.Editing;
 
 internal static class ModifierExtensions
 {
-    public static DeclarationModifiers ToDeclarationModifiers(this Modifiers modifiers)
+    extension(Modifiers modifiers)
     {
+        public DeclarationModifiers ToDeclarationModifiers()
+        {
 #if WORKSPACE
-        return new DeclarationModifiers(modifiers);
+            return new DeclarationModifiers(modifiers);
 #else
-        return Unsafe.As<Modifiers, DeclarationModifiers>(ref modifiers);
+            return Unsafe.As<Modifiers, DeclarationModifiers>(ref modifiers);
 #endif
+        }
     }
 }

@@ -8,12 +8,15 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal static class QuickInfoOptionsStorage
 {
-    public static QuickInfoOptions GetQuickInfoOptions(this IGlobalOptionService globalOptions, string language)
+    extension(IGlobalOptionService globalOptions)
+    {
+        public QuickInfoOptions GetQuickInfoOptions(string language)
       => new()
       {
           ShowRemarksInQuickInfo = globalOptions.GetOption(ShowRemarksInQuickInfo, language),
           IncludeNavigationHintsInQuickInfo = globalOptions.GetOption(IncludeNavigationHintsInQuickInfo),
       };
+    }
 
     private static readonly OptionGroup s_quickInfoGroup = new(name: "quick_info", description: "");
 

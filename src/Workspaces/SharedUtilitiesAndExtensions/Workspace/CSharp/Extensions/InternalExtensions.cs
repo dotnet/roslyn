@@ -10,12 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal static class InternalExtensions
 {
-    public static ITypeSymbol DetermineParameterType(
-        this ArgumentSyntax argument,
+    extension(ArgumentSyntax argument)
+    {
+        public ITypeSymbol DetermineParameterType(
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
-    {
-        return DetermineParameterType(argument.Expression, semanticModel, cancellationToken);
+        {
+            return DetermineParameterType(argument.Expression, semanticModel, cancellationToken);
+        }
     }
 
     public static ITypeSymbol DetermineParameterType(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)

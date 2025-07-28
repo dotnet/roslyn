@@ -83,21 +83,39 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
 
 internal static partial class AnalyzerOptionsProviders
 {
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree)
+    extension(AnalyzerOptions analyzerOptions)
+    {
+        public AnalyzerOptionsProvider GetAnalyzerOptions(SyntaxTree syntaxTree)
         => new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), syntaxTree.Options.Language);
+    }
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SemanticModelAnalysisContext context)
+    extension(SemanticModelAnalysisContext context)
+    {
+        public AnalyzerOptionsProvider GetAnalyzerOptions()
         => GetAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
+    }
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxNodeAnalysisContext context)
+    extension(SyntaxNodeAnalysisContext context)
+    {
+        public AnalyzerOptionsProvider GetAnalyzerOptions()
         => GetAnalyzerOptions(context.Options, context.Node.SyntaxTree);
+    }
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxTreeAnalysisContext context)
+    extension(SyntaxTreeAnalysisContext context)
+    {
+        public AnalyzerOptionsProvider GetAnalyzerOptions()
         => GetAnalyzerOptions(context.Options, context.Tree);
+    }
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this OperationAnalysisContext context)
+    extension(OperationAnalysisContext context)
+    {
+        public AnalyzerOptionsProvider GetAnalyzerOptions()
         => GetAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+    }
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this CodeBlockAnalysisContext context)
+    extension(CodeBlockAnalysisContext context)
+    {
+        public AnalyzerOptionsProvider GetAnalyzerOptions()
         => GetAnalyzerOptions(context.Options, context.CodeBlock.SyntaxTree);
+    }
 }

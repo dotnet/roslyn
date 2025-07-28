@@ -6,24 +6,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class SymbolDisplayPartExtensions
 {
-    public static SymbolDisplayPart MassageErrorTypeNames(this SymbolDisplayPart part, string? replacement = null)
+    extension(SymbolDisplayPart part)
     {
-        if (part.Kind == SymbolDisplayPartKind.ErrorTypeName)
+        public SymbolDisplayPart MassageErrorTypeNames(string? replacement = null)
         {
-            var text = part.ToString();
-            if (text == string.Empty)
+            if (part.Kind == SymbolDisplayPartKind.ErrorTypeName)
             {
-                return replacement == null
-                    ? new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "object")
-                    : new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, replacement);
+                var text = part.ToString();
+                if (text == string.Empty)
+                {
+                    return replacement == null
+                        ? new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "object")
+                        : new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, replacement);
+                }
+
+                if (SyntaxFacts.GetKeywordKind(text) != SyntaxKind.None)
+                {
+                    return new SymbolDisplayPart(SymbolDisplayPartKind.ErrorTypeName, null, string.Format("@{0}", text));
+                }
             }
 
-            if (SyntaxFacts.GetKeywordKind(text) != SyntaxKind.None)
-            {
-                return new SymbolDisplayPart(SymbolDisplayPartKind.ErrorTypeName, null, string.Format("@{0}", text));
-            }
+            return part;
         }
-
-        return part;
     }
 }

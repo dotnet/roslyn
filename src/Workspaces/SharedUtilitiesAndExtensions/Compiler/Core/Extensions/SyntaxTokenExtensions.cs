@@ -12,144 +12,150 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class SyntaxTokenExtensions
 {
-    public static SyntaxNode? GetAncestor(this SyntaxToken token, Func<SyntaxNode, bool>? predicate)
+    extension(SyntaxToken token)
+    {
+        public SyntaxNode? GetAncestor(Func<SyntaxNode, bool>? predicate)
         => token.GetAncestor<SyntaxNode>(predicate);
 
-    public static T? GetAncestor<T>(this SyntaxToken token, Func<T, bool>? predicate = null) where T : SyntaxNode
-        => token.Parent?.FirstAncestorOrSelf(predicate);
+        public T? GetAncestor<T>(Func<T, bool>? predicate = null) where T : SyntaxNode
+            => token.Parent?.FirstAncestorOrSelf(predicate);
 
-    public static T GetRequiredAncestor<T>(this SyntaxToken token, Func<T, bool>? predicate = null) where T : SyntaxNode
-        => GetAncestor(token, predicate) ?? throw new InvalidOperationException("Could not find a valid ancestor");
+        public T GetRequiredAncestor<T>(Func<T, bool>? predicate = null) where T : SyntaxNode
+            => GetAncestor(token, predicate) ?? throw new InvalidOperationException("Could not find a valid ancestor");
 
-    public static IEnumerable<T> GetAncestors<T>(this SyntaxToken token)
-        where T : SyntaxNode
-    {
-        return token.Parent != null
-            ? token.Parent.AncestorsAndSelf().OfType<T>()
-            : [];
+        public IEnumerable<T> GetAncestors<T>()
+            where T : SyntaxNode
+        {
+            return token.Parent != null
+                ? token.Parent.AncestorsAndSelf().OfType<T>()
+                : [];
+        }
+
+        public IEnumerable<SyntaxNode> GetAncestors(Func<SyntaxNode, bool> predicate)
+        {
+            return token.Parent != null
+                ? token.Parent.AncestorsAndSelf().Where(predicate)
+                : [];
+        }
+
+        public bool CheckParent<T>(Func<T, bool> valueChecker) where T : SyntaxNode
+        {
+            if (token.Parent is not T parentNode)
+            {
+                return false;
+            }
+
+            return valueChecker(parentNode);
+        }
+
+        public int Width()
+            => token.Span.Length;
+
+        public int FullWidth()
+            => token.FullSpan.Length;
+
+        public SyntaxToken GetNextTokenOrEndOfFile(
+            bool includeZeroWidth = false,
+            bool includeSkipped = false,
+            bool includeDirectives = false,
+            bool includeDocumentationComments = false)
+        {
+            var nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+
+            return nextToken.RawKind == 0
+                ? ((ICompilationUnitSyntax)token.Parent!.SyntaxTree!.GetRoot(CancellationToken.None)).EndOfFileToken
+                : nextToken;
+        }
+
+        public SyntaxToken WithoutTrivia(
+    )
+        {
+            if (!token.LeadingTrivia.Any() && !token.TrailingTrivia.Any())
+            {
+                return token;
+            }
+
+            return token.With([], []);
+        }
+
+        public SyntaxToken With(SyntaxTriviaList leading, SyntaxTriviaList trailing)
+            => token.WithLeadingTrivia(leading).WithTrailingTrivia(trailing);
+
+        public SyntaxToken WithPrependedLeadingTrivia(
+            params SyntaxTrivia[] trivia)
+        {
+            if (trivia.Length == 0)
+            {
+                return token;
+            }
+
+            return token.WithPrependedLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+        }
+
+        public SyntaxToken WithPrependedLeadingTrivia(
+            SyntaxTriviaList trivia)
+        {
+            if (trivia.Count == 0)
+            {
+                return token;
+            }
+
+            return token.WithLeadingTrivia(trivia.Concat(token.LeadingTrivia));
+        }
+
+        public SyntaxToken WithPrependedLeadingTrivia(
+            IEnumerable<SyntaxTrivia> trivia)
+        {
+            var list = new SyntaxTriviaList();
+            list = list.AddRange(trivia);
+
+            return token.WithPrependedLeadingTrivia(list);
+        }
+
+        public SyntaxToken WithAppendedTrailingTrivia(
+            params SyntaxTrivia[] trivia)
+        {
+            return token.WithAppendedTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+        }
+
+        public SyntaxToken WithAppendedTrailingTrivia(
+            IEnumerable<SyntaxTrivia> trivia)
+        {
+            return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
+        }
+
+        public SyntaxNode GetRequiredParent()
+            => token.Parent ?? throw new InvalidOperationException("Token's parent was null");
     }
 
-    public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxToken token, Func<SyntaxNode, bool> predicate)
+    extension(SyntaxToken token1)
     {
-        return token.Parent != null
-            ? token.Parent.AncestorsAndSelf().Where(predicate)
-            : [];
-    }
-
-    public static SyntaxNode GetCommonRoot(this SyntaxToken token1, SyntaxToken token2)
+        public SyntaxNode GetCommonRoot(SyntaxToken token2)
         => token1.GetRequiredParent().GetCommonRoot(token2.GetRequiredParent());
-
-    public static bool CheckParent<T>(this SyntaxToken token, Func<T, bool> valueChecker) where T : SyntaxNode
-    {
-        if (token.Parent is not T parentNode)
-        {
-            return false;
-        }
-
-        return valueChecker(parentNode);
     }
 
-    public static int Width(this SyntaxToken token)
-        => token.Span.Length;
-
-    public static int FullWidth(this SyntaxToken token)
-        => token.FullSpan.Length;
-
-    public static SyntaxToken FindTokenFromEnd(this SyntaxNode root, int position, bool includeZeroWidth = true, bool findInsideTrivia = false)
+    extension(SyntaxNode root)
     {
-        var token = root.FindToken(position, findInsideTrivia);
-        var previousToken = token.GetPreviousToken(
-            includeZeroWidth, findInsideTrivia, findInsideTrivia, findInsideTrivia);
-
-        if (token.SpanStart == position &&
-            previousToken.RawKind != 0 &&
-            previousToken.Span.End == position)
+        public SyntaxToken FindTokenFromEnd(int position, bool includeZeroWidth = true, bool findInsideTrivia = false)
         {
-            return previousToken;
-        }
+            var token = root.FindToken(position, findInsideTrivia);
+            var previousToken = token.GetPreviousToken(
+                includeZeroWidth, findInsideTrivia, findInsideTrivia, findInsideTrivia);
 
-        return token;
-    }
+            if (token.SpanStart == position &&
+                previousToken.RawKind != 0 &&
+                previousToken.Span.End == position)
+            {
+                return previousToken;
+            }
 
-    public static SyntaxToken GetNextTokenOrEndOfFile(
-        this SyntaxToken token,
-        bool includeZeroWidth = false,
-        bool includeSkipped = false,
-        bool includeDirectives = false,
-        bool includeDocumentationComments = false)
-    {
-        var nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
-
-        return nextToken.RawKind == 0
-            ? ((ICompilationUnitSyntax)token.Parent!.SyntaxTree!.GetRoot(CancellationToken.None)).EndOfFileToken
-            : nextToken;
-    }
-
-    public static SyntaxToken WithoutTrivia(
-        this SyntaxToken token)
-    {
-        if (!token.LeadingTrivia.Any() && !token.TrailingTrivia.Any())
-        {
             return token;
         }
-
-        return token.With([], []);
     }
 
-    public static SyntaxToken With(this SyntaxToken token, SyntaxTriviaList leading, SyntaxTriviaList trailing)
-        => token.WithLeadingTrivia(leading).WithTrailingTrivia(trailing);
-
-    public static SyntaxToken WithPrependedLeadingTrivia(
-        this SyntaxToken token,
-        params SyntaxTrivia[] trivia)
+    extension(IEnumerable<SyntaxToken> tokens)
     {
-        if (trivia.Length == 0)
-        {
-            return token;
-        }
-
-        return token.WithPrependedLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-    }
-
-    public static SyntaxToken WithPrependedLeadingTrivia(
-        this SyntaxToken token,
-        SyntaxTriviaList trivia)
-    {
-        if (trivia.Count == 0)
-        {
-            return token;
-        }
-
-        return token.WithLeadingTrivia(trivia.Concat(token.LeadingTrivia));
-    }
-
-    public static SyntaxToken WithPrependedLeadingTrivia(
-        this SyntaxToken token,
-        IEnumerable<SyntaxTrivia> trivia)
-    {
-        var list = new SyntaxTriviaList();
-        list = list.AddRange(trivia);
-
-        return token.WithPrependedLeadingTrivia(list);
-    }
-
-    public static SyntaxToken WithAppendedTrailingTrivia(
-        this SyntaxToken token,
-        params SyntaxTrivia[] trivia)
-    {
-        return token.WithAppendedTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-    }
-
-    public static SyntaxToken WithAppendedTrailingTrivia(
-        this SyntaxToken token,
-        IEnumerable<SyntaxTrivia> trivia)
-    {
-        return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
-    }
-
-    public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
+        public SyntaxTrivia[] GetTrivia()
         => [.. tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token))];
-
-    public static SyntaxNode GetRequiredParent(this SyntaxToken token)
-        => token.Parent ?? throw new InvalidOperationException("Token's parent was null");
+    }
 }

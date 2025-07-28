@@ -19,9 +19,12 @@ internal sealed class CSharpSyntaxWrappingOptions(
 
 internal static class CSharpSyntaxWrappingOptionsProviders
 {
-    public static CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions(this IOptionsReader options)
+    extension(IOptionsReader options)
+    {
+        public CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions()
         => new(
             new CSharpSyntaxFormattingOptions(options),
             operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
             newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace).HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers));
+    }
 }

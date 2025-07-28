@@ -115,41 +115,41 @@ internal static class CodeStyleHelpers
         return false;
     }
 
-    public static Option2<CodeStyleOption2<T>> CreateEditorConfigOption<T>(
-        this ImmutableArray<IOption2>.Builder optionsBuilder,
+    extension(ImmutableArray<IOption2>.Builder optionsBuilder)
+    {
+        public Option2<CodeStyleOption2<T>> CreateEditorConfigOption<T>(
         string name,
         CodeStyleOption2<T> defaultValue,
         OptionGroup group,
         string? languageName = null,
         Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
-    {
-        var option = new Option2<CodeStyleOption2<T>>(name, defaultValue, group, languageName, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
-        optionsBuilder.Add(option);
-        return option;
-    }
+        {
+            var option = new Option2<CodeStyleOption2<T>>(name, defaultValue, group, languageName, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
+            optionsBuilder.Add(option);
+            return option;
+        }
 
-    public static Option2<T> CreateEditorConfigOption<T>(
-        this ImmutableArray<IOption2>.Builder optionsBuilder,
-        string name,
-        T defaultValue,
-        OptionGroup group,
-        EditorConfigValueSerializer<T>? serializer = null)
-    {
-        var option = new Option2<T>(name, defaultValue, group, languageName: null, isEditorConfigOption: true, serializer: serializer);
-        optionsBuilder.Add(option);
-        return option;
-    }
+        public Option2<T> CreateEditorConfigOption<T>(
+            string name,
+            T defaultValue,
+            OptionGroup group,
+            EditorConfigValueSerializer<T>? serializer = null)
+        {
+            var option = new Option2<T>(name, defaultValue, group, languageName: null, isEditorConfigOption: true, serializer: serializer);
+            optionsBuilder.Add(option);
+            return option;
+        }
 
-    public static PerLanguageOption2<CodeStyleOption2<T>> CreatePerLanguageEditorConfigOption<T>(
-        this ImmutableArray<IOption2>.Builder optionsBuilder,
-        string name,
-        CodeStyleOption2<T> defaultValue,
-        OptionGroup group,
-        Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
-    {
-        var option = new PerLanguageOption2<CodeStyleOption2<T>>(name, defaultValue, group, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
-        optionsBuilder.Add(option);
-        return option;
+        public PerLanguageOption2<CodeStyleOption2<T>> CreatePerLanguageEditorConfigOption<T>(
+            string name,
+            CodeStyleOption2<T> defaultValue,
+            OptionGroup group,
+            Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
+        {
+            var option = new PerLanguageOption2<CodeStyleOption2<T>>(name, defaultValue, group, isEditorConfigOption: true, serializer: (serializerFactory ?? EditorConfigValueSerializer.CodeStyle).Invoke(defaultValue));
+            optionsBuilder.Add(option);
+            return option;
+        }
     }
 
     private static readonly CodeStyleOption2<UnusedValuePreference> s_preferNoneUnusedValuePreference =

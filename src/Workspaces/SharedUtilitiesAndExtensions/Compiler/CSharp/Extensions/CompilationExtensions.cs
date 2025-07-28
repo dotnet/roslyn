@@ -6,6 +6,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class CompilationExtensions
 {
-    public static LanguageVersion LanguageVersion(this Compilation compilation)
+    extension(Compilation compilation)
+    {
+        public LanguageVersion LanguageVersion()
         => ((CSharpCompilation)compilation).LanguageVersion;
+    }
 }

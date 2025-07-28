@@ -10,26 +10,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal static class TaggerConstants
 {
-    internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior, ITextBuffer textBufferOpt)
+    extension(TaggerDelay behavior)
     {
-        if (TextBufferAssociatedViewService.AnyAssociatedViewHasFocus(textBufferOpt))
+        internal TimeSpan ComputeTimeDelay(ITextBuffer textBufferOpt)
         {
-            // TODO : should we remove TaggerBehavior enum all together and put NearImmediateDelay
-            // const in Interaction?
-            return ComputeTimeDelay(behavior);
+            if (TextBufferAssociatedViewService.AnyAssociatedViewHasFocus(textBufferOpt))
+            {
+                // TODO : should we remove TaggerBehavior enum all together and put NearImmediateDelay
+                // const in Interaction?
+                return ComputeTimeDelay(behavior);
+            }
+
+            return DelayTimeSpan.NonFocus;
         }
 
-        return DelayTimeSpan.NonFocus;
+        internal TimeSpan ComputeTimeDelay()
+            => behavior switch
+            {
+                TaggerDelay.NearImmediate => DelayTimeSpan.NearImmediate,
+                TaggerDelay.Short => DelayTimeSpan.Short,
+                TaggerDelay.Medium => DelayTimeSpan.Medium,
+                TaggerDelay.OnIdle => DelayTimeSpan.Idle,
+                TaggerDelay.OnIdleWithLongDelay => DelayTimeSpan.IdleWithLongDelay,
+                _ => DelayTimeSpan.NonFocus,
+            };
     }
-
-    internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior)
-        => behavior switch
-        {
-            TaggerDelay.NearImmediate => DelayTimeSpan.NearImmediate,
-            TaggerDelay.Short => DelayTimeSpan.Short,
-            TaggerDelay.Medium => DelayTimeSpan.Medium,
-            TaggerDelay.OnIdle => DelayTimeSpan.Idle,
-            TaggerDelay.OnIdleWithLongDelay => DelayTimeSpan.IdleWithLongDelay,
-            _ => DelayTimeSpan.NonFocus,
-        };
 }

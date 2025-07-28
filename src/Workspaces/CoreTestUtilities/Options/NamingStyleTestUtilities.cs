@@ -15,58 +15,70 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 internal static class NamingStyleTestUtilities
 {
-    public static string Inspect(this NamingRule rule)
+    extension(NamingRule rule)
+    {
+        public string Inspect()
         => $"{rule.NamingStyle.Inspect()} {rule.SymbolSpecification.Inspect()} {rule.EnforcementLevel}";
+    }
 
-    public static string Inspect(this NamingStyle style)
+    extension(NamingStyle style)
+    {
+        public string Inspect()
         => $"{style.Name} prefix='{style.Prefix}' suffix='{style.Suffix}' separator='{style.WordSeparator}'";
+    }
 
-    public static string Inspect(this SymbolSpecification symbol)
+    extension(SymbolSpecification symbol)
+    {
+        public string Inspect()
         => $"{symbol.Name} {Inspect(symbol.ApplicableSymbolKindList)} {Inspect(symbol.ApplicableAccessibilityList)} {Inspect(symbol.RequiredModifierList)}";
+    }
 
     public static string Inspect<T>(ImmutableArray<T> items) where T : notnull
         => string.Join(",", items.Select(item => item.ToString()));
 
-    public static string Inspect(this NamingStylePreferences preferences, string[]? excludeNodes = null)
+    extension(NamingStylePreferences preferences)
     {
-        var xml = preferences.CreateXElement();
-
-        // filter out insignificant elements:
-        var elementsToRemove = new List<XElement>();
-        foreach (var element in xml.DescendantsAndSelf())
+        public string Inspect(string[]? excludeNodes = null)
         {
-            if (excludeNodes != null && excludeNodes.Contains(element.Name.LocalName))
+            var xml = preferences.CreateXElement();
+
+            // filter out insignificant elements:
+            var elementsToRemove = new List<XElement>();
+            foreach (var element in xml.DescendantsAndSelf())
             {
-                elementsToRemove.Add(element);
-            }
-        }
-
-        foreach (var element in elementsToRemove)
-        {
-            element.Remove();
-        }
-
-        // replaces GUIDs with unique deterministic numbers:
-        var ordinal = 0;
-        var guidMap = new Dictionary<Guid, int>();
-        foreach (var element in xml.DescendantsAndSelf())
-        {
-            foreach (var attribute in element.Attributes())
-            {
-                if (Guid.TryParse(attribute.Value, out var guid))
+                if (excludeNodes != null && excludeNodes.Contains(element.Name.LocalName))
                 {
-                    if (!guidMap.TryGetValue(guid, out var existingOrdinal))
-                    {
-                        existingOrdinal = ordinal++;
-                        guidMap.Add(guid, existingOrdinal);
-                    }
-
-                    attribute.Value = existingOrdinal.ToString();
+                    elementsToRemove.Add(element);
                 }
             }
-        }
 
-        return xml.ToString();
+            foreach (var element in elementsToRemove)
+            {
+                element.Remove();
+            }
+
+            // replaces GUIDs with unique deterministic numbers:
+            var ordinal = 0;
+            var guidMap = new Dictionary<Guid, int>();
+            foreach (var element in xml.DescendantsAndSelf())
+            {
+                foreach (var attribute in element.Attributes())
+                {
+                    if (Guid.TryParse(attribute.Value, out var guid))
+                    {
+                        if (!guidMap.TryGetValue(guid, out var existingOrdinal))
+                        {
+                            existingOrdinal = ordinal++;
+                            guidMap.Add(guid, existingOrdinal);
+                        }
+
+                        attribute.Value = existingOrdinal.ToString();
+                    }
+                }
+            }
+
+            return xml.ToString();
+        }
     }
 
     public static SymbolSpecification.SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)

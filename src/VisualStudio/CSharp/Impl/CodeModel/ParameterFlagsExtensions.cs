@@ -11,26 +11,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
 
 internal static class ParameterFlagsExtensions
 {
-    public static ParameterFlags GetParameterFlags(this ParameterSyntax parameter)
+    extension(ParameterSyntax parameter)
     {
-        ParameterFlags result = 0;
-
-        foreach (var modifier in parameter.Modifiers)
+        public ParameterFlags GetParameterFlags()
         {
-            switch (modifier.Kind())
-            {
-                case SyntaxKind.RefKeyword:
-                    result |= ParameterFlags.Ref;
-                    break;
-                case SyntaxKind.OutKeyword:
-                    result |= ParameterFlags.Out;
-                    break;
-                case SyntaxKind.ParamsKeyword:
-                    result |= ParameterFlags.Params;
-                    break;
-            }
-        }
+            ParameterFlags result = 0;
 
-        return result;
+            foreach (var modifier in parameter.Modifiers)
+            {
+                switch (modifier.Kind())
+                {
+                    case SyntaxKind.RefKeyword:
+                        result |= ParameterFlags.Ref;
+                        break;
+                    case SyntaxKind.OutKeyword:
+                        result |= ParameterFlags.Out;
+                        break;
+                    case SyntaxKind.ParamsKeyword:
+                        result |= ParameterFlags.Params;
+                        break;
+                }
+            }
+
+            return result;
+        }
     }
 }

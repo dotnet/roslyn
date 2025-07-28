@@ -9,14 +9,17 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 
 internal static class EnumerableExtensions
 {
-    public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+    extension<TSource>(IEnumerable<TSource> source)
     {
-        var seenKeys = new HashSet<TKey>();
-        foreach (var element in source)
+        public IEnumerable<TSource> DistinctBy<TKey>(Func<TSource, TKey> keySelector)
         {
-            if (seenKeys.Add(keySelector(element)))
+            var seenKeys = new HashSet<TKey>();
+            foreach (var element in source)
             {
-                yield return element;
+                if (seenKeys.Add(keySelector(element)))
+                {
+                    yield return element;
+                }
             }
         }
     }

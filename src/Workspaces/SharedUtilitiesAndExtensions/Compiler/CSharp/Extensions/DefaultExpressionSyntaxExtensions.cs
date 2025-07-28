@@ -15,23 +15,25 @@ internal static class DefaultExpressionSyntaxExtensions
     private static readonly LiteralExpressionSyntax s_defaultLiteralExpression =
         SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
 
-    public static bool CanReplaceWithDefaultLiteral(
-        this DefaultExpressionSyntax defaultExpression,
+    extension(DefaultExpressionSyntax defaultExpression)
+    {
+        public bool CanReplaceWithDefaultLiteral(
         CSharpParseOptions parseOptions,
         bool preferSimpleDefaultExpression,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
-    {
-        if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1 ||
-            !preferSimpleDefaultExpression)
         {
-            return false;
-        }
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1 ||
+                !preferSimpleDefaultExpression)
+            {
+                return false;
+            }
 
-        // Using the speculation analyzer can be slow.  Check for common cases first before
-        // trying the expensive path.
-        return CanReplaceWithDefaultLiteralFast(defaultExpression, semanticModel, cancellationToken) ??
-               CanReplaceWithDefaultLiteralSlow(defaultExpression, semanticModel, cancellationToken);
+            // Using the speculation analyzer can be slow.  Check for common cases first before
+            // trying the expensive path.
+            return CanReplaceWithDefaultLiteralFast(defaultExpression, semanticModel, cancellationToken) ??
+                   CanReplaceWithDefaultLiteralSlow(defaultExpression, semanticModel, cancellationToken);
+        }
     }
 
     private static bool? CanReplaceWithDefaultLiteralFast(

@@ -86,8 +86,10 @@ internal static class PublicContract
         return list;
     }
 
-    private static int IndexOfNullOrDuplicateItem<T>(this IEnumerable<T> sequence) where T : class
-        => (sequence is IReadOnlyList<T> list) ? IndexOfNullOrDuplicateItem(list) : EnumeratingIndexOfNullOrDuplicateItem(sequence);
+    extension<T>(IEnumerable<T> sequence) where T : class
+    {
+        private int IndexOfNullOrDuplicateItem() => (sequence is IReadOnlyList<T> list) ? IndexOfNullOrDuplicateItem(list) : EnumeratingIndexOfNullOrDuplicateItem(sequence);
+    }
 
     private static int EnumeratingIndexOfNullOrDuplicateItem<T>(IEnumerable<T> sequence) where T : class
     {
@@ -107,32 +109,35 @@ internal static class PublicContract
         return -1;
     }
 
-    private static int IndexOfNullOrDuplicateItem<T>(this IReadOnlyList<T> list) where T : class
+    extension<T>(IReadOnlyList<T> list) where T : class
     {
-        var length = list.Count;
-
-        if (length == 0)
+        private int IndexOfNullOrDuplicateItem()
         {
+            var length = list.Count;
+
+            if (length == 0)
+            {
+                return -1;
+            }
+
+            if (length == 1)
+            {
+                return (list[0] is null) ? 0 : -1;
+            }
+
+            using var _ = PooledHashSet<T>.GetInstance(out var set);
+
+            for (var i = 0; i < length; i++)
+            {
+                var item = list[i];
+                if (item is null || !set.Add(item))
+                {
+                    return i;
+                }
+            }
+
             return -1;
         }
-
-        if (length == 1)
-        {
-            return (list[0] is null) ? 0 : -1;
-        }
-
-        using var _ = PooledHashSet<T>.GetInstance(out var set);
-
-        for (var i = 0; i < length; i++)
-        {
-            var item = list[i];
-            if (item is null || !set.Add(item))
-            {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     private static string MakeIndexedArgumentName(string argumentName, int index)

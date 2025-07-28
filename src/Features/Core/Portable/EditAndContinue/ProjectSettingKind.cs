@@ -91,9 +91,12 @@ internal enum ProjectSettingKind
 
 internal static class ProjectSettingKindExtensions
 {
-    public static bool IsWarning(this ProjectSettingKind kind)
+    extension(ProjectSettingKind kind)
+    {
+        public bool IsWarning()
         => kind is
            ProjectSettingKind.OutputType or
            ProjectSettingKind.StartupObject or
            ProjectSettingKind.Platform;
+    }
 }

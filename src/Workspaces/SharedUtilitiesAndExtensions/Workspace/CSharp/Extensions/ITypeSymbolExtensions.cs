@@ -22,16 +22,43 @@ using static SyntaxFactory;
 
 internal static partial class ITypeSymbolExtensions
 {
-    /// <paramref name="nameSyntax"><see langword="true"/> if only normal name-syntax nodes should be returned.
-    /// <see langword="false"/> if special nodes (like predefined types) can be used.</paramref>
-    public static ExpressionSyntax GenerateExpressionSyntax(this ITypeSymbol typeSymbol, bool nameSyntax = false)
-        => typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Create(nameSyntax))!.WithAdditionalAnnotations(Simplifier.Annotation);
+    extension(ITypeSymbol typeSymbol)
+    {
+        /// <paramref name="nameSyntax"><see langword="true"/> if only normal name-syntax nodes should be returned.
+        /// <see langword="false"/> if special nodes (like predefined types) can be used.</paramref>
+        public ExpressionSyntax GenerateExpressionSyntax(bool nameSyntax = false)
+            => typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Create(nameSyntax))!.WithAdditionalAnnotations(Simplifier.Annotation);
+    }
 
-    public static NameSyntax GenerateNameSyntax(this INamespaceOrTypeSymbol symbol, bool allowVar = true)
+    extension(INamespaceOrTypeSymbol symbol)
+    {
+        public NameSyntax GenerateNameSyntax(bool allowVar = true)
         => (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
 
-    public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-        => GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
+        public TypeSyntax GenerateTypeSyntax(bool allowVar = true)
+            => GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
+
+        public TypeSyntax GenerateRefTypeSyntax(
+    bool allowVar = true)
+        {
+            var underlyingType = GenerateTypeSyntax(symbol, allowVar)
+                .WithPrependedLeadingTrivia(ElasticMarker)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var refKeyword = RefKeyword;
+            return RefType(refKeyword, underlyingType);
+        }
+
+        public TypeSyntax GenerateRefReadOnlyTypeSyntax(
+    bool allowVar = true)
+        {
+            var underlyingType = GenerateTypeSyntax(symbol, allowVar)
+                .WithPrependedLeadingTrivia(ElasticMarker)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var refKeyword = RefKeyword;
+            var readOnlyKeyword = ReadOnlyKeyword;
+            return RefType(refKeyword, readOnlyKeyword, underlyingType);
+        }
+    }
 
     private static TypeSyntax GenerateTypeSyntax(
         INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
@@ -71,72 +98,57 @@ internal static partial class ITypeSymbolExtensions
         return syntax;
     }
 
-    public static TypeSyntax GenerateRefTypeSyntax(
-        this INamespaceOrTypeSymbol symbol, bool allowVar = true)
+    extension(ITypeSymbol containingType)
     {
-        var underlyingType = GenerateTypeSyntax(symbol, allowVar)
-            .WithPrependedLeadingTrivia(ElasticMarker)
-            .WithAdditionalAnnotations(Simplifier.Annotation);
-        var refKeyword = RefKeyword;
-        return RefType(refKeyword, underlyingType);
-    }
-
-    public static TypeSyntax GenerateRefReadOnlyTypeSyntax(
-        this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-    {
-        var underlyingType = GenerateTypeSyntax(symbol, allowVar)
-            .WithPrependedLeadingTrivia(ElasticMarker)
-            .WithAdditionalAnnotations(Simplifier.Annotation);
-        var refKeyword = RefKeyword;
-        var readOnlyKeyword = ReadOnlyKeyword;
-        return RefType(refKeyword, readOnlyKeyword, underlyingType);
-    }
-
-    public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)
-    {
-        do
+        public bool ContainingTypesOrSelfHasUnsafeKeyword()
         {
-            foreach (var reference in containingType.DeclaringSyntaxReferences)
+            do
             {
-                if (reference.GetSyntax().ChildTokens().Any(t => t.IsKind(SyntaxKind.UnsafeKeyword)))
+                foreach (var reference in containingType.DeclaringSyntaxReferences)
                 {
-                    return true;
+                    if (reference.GetSyntax().ChildTokens().Any(t => t.IsKind(SyntaxKind.UnsafeKeyword)))
+                    {
+                        return true;
+                    }
                 }
-            }
 
-            containingType = containingType.ContainingType;
+                containingType = containingType.ContainingType;
+            }
+            while (containingType != null);
+            return false;
         }
-        while (containingType != null);
-        return false;
     }
 
-    public static async Task<ISymbol?> FindApplicableAliasAsync(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+    extension(ITypeSymbol type)
     {
-        try
+        public async Task<ISymbol?> FindApplicableAliasAsync(int position, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (semanticModel.IsSpeculativeSemanticModel)
+            try
             {
-                position = semanticModel.OriginalPositionForSpeculation;
-                semanticModel = semanticModel.ParentModel;
-            }
-
-            var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var applicableUsings = GetApplicableUsings(position, (CompilationUnitSyntax)root);
-            foreach (var applicableUsing in applicableUsings)
-            {
-                var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
-                if (alias != null && Equals(alias.Target, type))
+                if (semanticModel.IsSpeculativeSemanticModel)
                 {
-                    return alias;
+                    position = semanticModel.OriginalPositionForSpeculation;
+                    semanticModel = semanticModel.ParentModel;
                 }
-            }
 
-            return null;
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
-        {
-            throw ExceptionUtilities.Unreachable();
+                var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+                var applicableUsings = GetApplicableUsings(position, (CompilationUnitSyntax)root);
+                foreach (var applicableUsing in applicableUsings)
+                {
+                    var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
+                    if (alias != null && Equals(alias.Target, type))
+                    {
+                        return alias;
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 

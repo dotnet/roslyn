@@ -25,77 +25,90 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
 internal static class Extensions
 {
-    public static IEnumerable<RudeEditDiagnosticDescription> ToDescription(this IEnumerable<RudeEditDiagnostic> diagnostics, SourceText newSource, bool includeFirstLines)
+    extension(IEnumerable<RudeEditDiagnostic> diagnostics)
     {
-        return diagnostics.Select(d => new RudeEditDiagnosticDescription(
-            d.Kind,
-            d.Span == default ? null : newSource.ToString(d.Span),
-            d.Arguments,
-            firstLine: includeFirstLines ? newSource.Lines.GetLineFromPosition(d.Span.Start).ToString().Trim() : null));
+        public IEnumerable<RudeEditDiagnosticDescription> ToDescription(SourceText newSource, bool includeFirstLines)
+        {
+            return diagnostics.Select(d => new RudeEditDiagnosticDescription(
+                d.Kind,
+                d.Span == default ? null : newSource.ToString(d.Span),
+                d.Arguments,
+                firstLine: includeFirstLines ? newSource.Lines.GetLineFromPosition(d.Span.Start).ToString().Trim() : null));
+        }
     }
 
     private const string LineSeparator = "\r\n";
 
-    public static IEnumerable<string> ToLines(this string str)
+    extension(string str)
     {
-        var i = 0;
-        while (true)
+        public IEnumerable<string> ToLines()
         {
-            var eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
-            if (eoln < 0)
+            var i = 0;
+            while (true)
             {
-                yield return str[i..];
-                yield break;
-            }
+                var eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
+                if (eoln < 0)
+                {
+                    yield return str[i..];
+                    yield break;
+                }
 
-            yield return str[i..eoln];
-            i = eoln + LineSeparator.Length;
+                yield return str[i..eoln];
+                i = eoln + LineSeparator.Length;
+            }
         }
     }
+
+    extension(Solution solution)
+    {
 #nullable enable
 
-    public static Project AddTestProject(this Solution solution, string projectName, out ProjectId id)
-        => AddTestProject(solution, projectName, LanguageNames.CSharp, out id);
+        public Project AddTestProject(string projectName, out ProjectId id)
+            => AddTestProject(solution, projectName, LanguageNames.CSharp, out id);
 
-    public static Project AddTestProject(this Solution solution, string projectName, string language, out ProjectId id)
-        => AddTestProject(solution, projectName, language, TargetFramework.NetLatest, id = ProjectId.CreateNewId(debugName: projectName));
+        public Project AddTestProject(string projectName, string language, out ProjectId id)
+            => AddTestProject(solution, projectName, language, TargetFramework.NetLatest, id = ProjectId.CreateNewId(debugName: projectName));
 
-    public static Project AddTestProject(this Solution solution, string projectName, string language, TargetFramework targetFramework, out ProjectId id)
-    {
-        var project = AddTestProject(solution, projectName, language, targetFramework, id: null);
-        id = project.Id;
-        return project;
+        public Project AddTestProject(string projectName, string language, TargetFramework targetFramework, out ProjectId id)
+        {
+            var project = AddTestProject(solution, projectName, language, targetFramework, id: null);
+            id = project.Id;
+            return project;
+        }
+
+        public Project AddTestProject(string projectName, string language = LanguageNames.CSharp, TargetFramework targetFramework = TargetFramework.NetLatest, ProjectId? id = null)
+        {
+            id ??= ProjectId.CreateNewId(debugName: projectName);
+
+            var info = CreateProjectInfo(projectName, id, language);
+            return solution
+                .AddProject(info)
+                .WithProjectMetadataReferences(id, TargetFrameworkUtil.GetReferences(targetFramework))
+                .GetRequiredProject(id);
+        }
+
+        public Document AddTestDocument(ProjectId projectId, string source, string path, out DocumentId id)
+            => solution.AddDocument(
+                id = DocumentId.CreateNewId(projectId),
+                name: PathUtilities.GetFileName(path),
+                SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default),
+                filePath: PathUtilities.IsAbsolute(path)
+                    ? path : Path.Combine(Path.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath!)!, path))
+            .GetRequiredDocument(id);
     }
 
-    public static Project AddTestProject(this Solution solution, string projectName, string language = LanguageNames.CSharp, TargetFramework targetFramework = TargetFramework.NetLatest, ProjectId? id = null)
+    extension(Project project)
     {
-        id ??= ProjectId.CreateNewId(debugName: projectName);
-
-        var info = CreateProjectInfo(projectName, id, language);
-        return solution
-            .AddProject(info)
-            .WithProjectMetadataReferences(id, TargetFrameworkUtil.GetReferences(targetFramework))
-            .GetRequiredProject(id);
-    }
-
-    public static Document AddTestDocument(this Project project, string source, string path)
+        public Document AddTestDocument(string source, string path)
         => project.AddTestDocument(source, path, out _);
 
-    public static Document AddTestDocument(this Project project, string source, string path, out DocumentId id)
-        => project.Solution.AddTestDocument(project.Id, source, path, out id);
+        public Document AddTestDocument(string source, string path, out DocumentId id)
+            => project.Solution.AddTestDocument(project.Id, source, path, out id);
 
-    public static Document AddTestDocument(this Solution solution, ProjectId projectId, string source, string path, out DocumentId id)
-        => solution.AddDocument(
-            id = DocumentId.CreateNewId(projectId),
-            name: PathUtilities.GetFileName(path),
-            SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default),
-            filePath: PathUtilities.IsAbsolute(path)
-                ? path : Path.Combine(Path.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath!)!, path))
-        .GetRequiredDocument(id);
-
-    public static Project WithCompilationOptions<TCompilationOptions>(this Project project, Func<TCompilationOptions, TCompilationOptions> transform)
-        where TCompilationOptions : CompilationOptions
-        => project.WithCompilationOptions(transform((TCompilationOptions)(project.CompilationOptions ?? throw ExceptionUtilities.Unreachable())));
+        public Project WithCompilationOptions<TCompilationOptions>(Func<TCompilationOptions, TCompilationOptions> transform)
+            where TCompilationOptions : CompilationOptions
+            => project.WithCompilationOptions(transform((TCompilationOptions)(project.CompilationOptions ?? throw ExceptionUtilities.Unreachable())));
+    }
 
     public static Guid CreateProjectTelemetryId(string projectName)
     {

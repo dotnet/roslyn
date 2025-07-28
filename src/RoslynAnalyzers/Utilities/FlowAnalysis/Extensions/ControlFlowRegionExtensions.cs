@@ -8,18 +8,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal static partial class ControlFlowRegionExtensions
     {
-        public static bool ContainsRegionOrSelf(this ControlFlowRegion controlFlowRegion, ControlFlowRegion nestedRegion)
+        extension(ControlFlowRegion controlFlowRegion)
+        {
+            public bool ContainsRegionOrSelf(ControlFlowRegion nestedRegion)
             => controlFlowRegion.FirstBlockOrdinal <= nestedRegion.FirstBlockOrdinal &&
             controlFlowRegion.LastBlockOrdinal >= nestedRegion.LastBlockOrdinal;
 
-        public static IEnumerable<IOperation> DescendantOperations(this ControlFlowRegion controlFlowRegion, ControlFlowGraph cfg)
-        {
-            for (var i = controlFlowRegion.FirstBlockOrdinal; i <= controlFlowRegion.LastBlockOrdinal; i++)
+            public IEnumerable<IOperation> DescendantOperations(ControlFlowGraph cfg)
             {
-                var block = cfg.Blocks[i];
-                foreach (var operation in block.DescendantOperations())
+                for (var i = controlFlowRegion.FirstBlockOrdinal; i <= controlFlowRegion.LastBlockOrdinal; i++)
                 {
-                    yield return operation;
+                    var block = cfg.Blocks[i];
+                    foreach (var operation in block.DescendantOperations())
+                    {
+                        yield return operation;
+                    }
                 }
             }
         }

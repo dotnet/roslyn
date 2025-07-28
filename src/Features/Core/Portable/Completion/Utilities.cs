@@ -42,10 +42,13 @@ internal static class Utilities
         return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
     }
 
-    // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-    // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-    public static bool IsPreferredItem(this CompletionItem completionItem)
-        => completionItem.DisplayText.StartsWith(UnicodeStarAndSpace);
+    extension(CompletionItem completionItem)
+    {
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
+        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
+        public bool IsPreferredItem()
+            => completionItem.DisplayText.StartsWith(UnicodeStarAndSpace);
+    }
 
     public const string UnicodeStarAndSpace = "\u2605 ";
 

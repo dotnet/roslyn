@@ -12,40 +12,43 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion;
 
 internal static class OmniSharpCompletionService
 {
-    public static async ValueTask<bool> ShouldTriggerCompletionAsync(
-        this CompletionService completionService,
+    extension(CompletionService completionService)
+    {
+        public async ValueTask<bool> ShouldTriggerCompletionAsync(
         Document document,
         int caretPosition,
         CompletionTrigger trigger,
         ImmutableHashSet<string>? roles,
         OmniSharpCompletionOptions options,
         CancellationToken cancellationToken)
-    {
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        return completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
+        {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            return completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
+        }
+
+        public Task<CompletionList> GetCompletionsAsync(
+           Document document,
+           int caretPosition,
+           CompletionTrigger trigger,
+           ImmutableHashSet<string>? roles,
+           OmniSharpCompletionOptions options,
+           CancellationToken cancellationToken)
+        {
+            return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), document.Project.Solution.Options, trigger, roles, cancellationToken);
+        }
+
+        public Task<CompletionDescription?> GetDescriptionAsync(
+           Document document,
+           CompletionItem item,
+           OmniSharpCompletionOptions options,
+           CancellationToken cancellationToken)
+        {
+            return completionService.GetDescriptionAsync(document, item, options.ToCompletionOptions(), SymbolDescriptionOptions.Default, cancellationToken);
+        }
     }
 
-    public static Task<CompletionList> GetCompletionsAsync(
-       this CompletionService completionService,
-       Document document,
-       int caretPosition,
-       CompletionTrigger trigger,
-       ImmutableHashSet<string>? roles,
-       OmniSharpCompletionOptions options,
-       CancellationToken cancellationToken)
+    extension(CompletionItem completionItem)
     {
-        return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), document.Project.Solution.Options, trigger, roles, cancellationToken);
+        public string? GetProviderName() => completionItem.ProviderName;
     }
-
-    public static Task<CompletionDescription?> GetDescriptionAsync(
-       this CompletionService completionService,
-       Document document,
-       CompletionItem item,
-       OmniSharpCompletionOptions options,
-       CancellationToken cancellationToken)
-    {
-        return completionService.GetDescriptionAsync(document, item, options.ToCompletionOptions(), SymbolDescriptionOptions.Default, cancellationToken);
-    }
-
-    public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
 }

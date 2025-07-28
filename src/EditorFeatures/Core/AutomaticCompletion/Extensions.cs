@@ -12,22 +12,28 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion;
 
 internal static class Extensions
 {
-    /// <summary>
-    /// create caret preserving edit transaction with automatic code change undo merging policy
-    /// </summary>
-    public static CaretPreservingEditTransaction CreateEditTransaction(
-        this ITextView view, string description, ITextUndoHistoryRegistry registry, IEditorOperationsFactoryService service)
+    extension(ITextView view)
     {
-        return new CaretPreservingEditTransaction(description, view, registry, service)
+        /// <summary>
+        /// create caret preserving edit transaction with automatic code change undo merging policy
+        /// </summary>
+        public CaretPreservingEditTransaction CreateEditTransaction(
+    string description, ITextUndoHistoryRegistry registry, IEditorOperationsFactoryService service)
         {
-            MergePolicy = AutomaticCodeChangeMergePolicy.Instance
-        };
+            return new CaretPreservingEditTransaction(description, view, registry, service)
+            {
+                MergePolicy = AutomaticCodeChangeMergePolicy.Instance
+            };
+        }
     }
 
-    public static SnapshotPoint? GetCaretPosition(this IBraceCompletionSession session)
+    extension(IBraceCompletionSession session)
+    {
+        public SnapshotPoint? GetCaretPosition()
         => GetCaretPoint(session, session.SubjectBuffer);
 
-    // get the caret position within the given buffer
-    private static SnapshotPoint? GetCaretPoint(this IBraceCompletionSession session, ITextBuffer buffer)
-        => session.TextView.Caret.Position.Point.GetPoint(buffer, PositionAffinity.Predecessor);
+        // get the caret position within the given buffer
+        private SnapshotPoint? GetCaretPoint(ITextBuffer buffer)
+            => session.TextView.Caret.Position.Point.GetPoint(buffer, PositionAffinity.Predecessor);
+    }
 }

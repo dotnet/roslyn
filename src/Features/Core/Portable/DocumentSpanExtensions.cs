@@ -19,23 +19,26 @@ internal static class DocumentSpanExtensions
         return (workspace, service);
     }
 
-    public static Task<INavigableLocation?> GetNavigableLocationAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
+    extension(DocumentSpan documentSpan)
     {
-        var (workspace, service) = GetNavigationParts(documentSpan);
-        return service.GetLocationForPositionAsync(
-            workspace, documentSpan.Document.Id, documentSpan.SourceSpan.Start, cancellationToken);
-    }
-
-    public static async Task<bool> IsHiddenAsync(
-        this DocumentSpan documentSpan, CancellationToken cancellationToken)
-    {
-        var document = documentSpan.Document;
-        if (document.SupportsSyntaxTree)
+        public Task<INavigableLocation?> GetNavigableLocationAsync(CancellationToken cancellationToken)
         {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return tree.IsHiddenPosition(documentSpan.SourceSpan.Start, cancellationToken);
+            var (workspace, service) = GetNavigationParts(documentSpan);
+            return service.GetLocationForPositionAsync(
+                workspace, documentSpan.Document.Id, documentSpan.SourceSpan.Start, cancellationToken);
         }
 
-        return false;
+        public async Task<bool> IsHiddenAsync(
+    CancellationToken cancellationToken)
+        {
+            var document = documentSpan.Document;
+            if (document.SupportsSyntaxTree)
+            {
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                return tree.IsHiddenPosition(documentSpan.SourceSpan.Start, cancellationToken);
+            }
+
+            return false;
+        }
     }
 }

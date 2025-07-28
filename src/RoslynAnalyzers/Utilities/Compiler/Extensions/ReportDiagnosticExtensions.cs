@@ -8,53 +8,59 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class ReportDiagnosticExtensions
     {
-        public static string ToAnalyzerConfigString(this ReportDiagnostic reportDiagnostic)
+        extension(ReportDiagnostic reportDiagnostic)
         {
-            return reportDiagnostic switch
+            public string ToAnalyzerConfigString()
             {
-                ReportDiagnostic.Error => "error",
-                ReportDiagnostic.Warn => "warning",
-                ReportDiagnostic.Info => "suggestion",
-                ReportDiagnostic.Hidden => "silent",
-                ReportDiagnostic.Suppress => "none",
-                _ => throw new NotImplementedException(),
-            };
+                return reportDiagnostic switch
+                {
+                    ReportDiagnostic.Error => "error",
+                    ReportDiagnostic.Warn => "warning",
+                    ReportDiagnostic.Info => "suggestion",
+                    ReportDiagnostic.Hidden => "silent",
+                    ReportDiagnostic.Suppress => "none",
+                    _ => throw new NotImplementedException(),
+                };
+            }
         }
 
-        public static bool IsLessSevereThan(this ReportDiagnostic current, ReportDiagnostic other)
+        extension(ReportDiagnostic current)
         {
-            return current switch
+            public bool IsLessSevereThan(ReportDiagnostic other)
             {
-                ReportDiagnostic.Error => false,
+                return current switch
+                {
+                    ReportDiagnostic.Error => false,
 
-                ReportDiagnostic.Warn =>
-                    other switch
-                    {
-                        ReportDiagnostic.Error => true,
-                        _ => false
-                    },
+                    ReportDiagnostic.Warn =>
+                        other switch
+                        {
+                            ReportDiagnostic.Error => true,
+                            _ => false
+                        },
 
-                ReportDiagnostic.Info =>
-                    other switch
-                    {
-                        ReportDiagnostic.Error => true,
-                        ReportDiagnostic.Warn => true,
-                        _ => false
-                    },
+                    ReportDiagnostic.Info =>
+                        other switch
+                        {
+                            ReportDiagnostic.Error => true,
+                            ReportDiagnostic.Warn => true,
+                            _ => false
+                        },
 
-                ReportDiagnostic.Hidden =>
-                    other switch
-                    {
-                        ReportDiagnostic.Error => true,
-                        ReportDiagnostic.Warn => true,
-                        ReportDiagnostic.Info => true,
-                        _ => false
-                    },
+                    ReportDiagnostic.Hidden =>
+                        other switch
+                        {
+                            ReportDiagnostic.Error => true,
+                            ReportDiagnostic.Warn => true,
+                            ReportDiagnostic.Info => true,
+                            _ => false
+                        },
 
-                ReportDiagnostic.Suppress => true,
+                    ReportDiagnostic.Suppress => true,
 
-                _ => false
-            };
+                    _ => false
+                };
+            }
         }
     }
 }

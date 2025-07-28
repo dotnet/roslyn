@@ -24,6 +24,9 @@ internal static class UnitTestingBrokeredServiceImplementation
         return NewUnitTestingIncrementalAnalyzerProvider.TryRegister(workspace.Kind, workspace.Services.SolutionServices, analyzerName, provider);
     }
 
-    public static ValueTask<T> RunServiceAsync<T>(this UnitTestingPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+    extension(UnitTestingPinnedSolutionInfoWrapper solutionInfo)
+    {
+        public ValueTask<T> RunServiceAsync<T>(ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
         => RemoteWorkspaceManager.Default.RunServiceAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
+    }
 }

@@ -9,10 +9,13 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 
 internal static class IFileBannerFactsExtensions
 {
-    public static ImmutableArray<SyntaxTrivia> GetTriviaAfterLeadingBlankLines(
-        this IFileBannerFacts bannerService, SyntaxNode node)
+    extension(IFileBannerFacts bannerService)
     {
-        var leadingBlankLines = bannerService.GetLeadingBlankLines(node);
-        return [.. node.GetLeadingTrivia().Skip(leadingBlankLines.Length)];
+        public ImmutableArray<SyntaxTrivia> GetTriviaAfterLeadingBlankLines(
+SyntaxNode node)
+        {
+            var leadingBlankLines = bannerService.GetLeadingBlankLines(node);
+            return [.. node.GetLeadingTrivia().Skip(leadingBlankLines.Length)];
+        }
     }
 }

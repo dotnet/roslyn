@@ -13,28 +13,51 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal static class ContractWrappers
 {
-    public static InternalContracts.ManagedActiveStatementDebugInfo ToContract(this ManagedActiveStatementDebugInfo info)
+    extension(ManagedActiveStatementDebugInfo info)
+    {
+        public InternalContracts.ManagedActiveStatementDebugInfo ToContract()
         => new(ToContract(info.ActiveInstruction), info.DocumentName, ToContract(info.SourceSpan), (InternalContracts.ActiveStatementFlags)info.Flags);
+    }
 
-    public static InternalContracts.ManagedInstructionId ToContract(this ManagedInstructionId id)
+    extension(ManagedInstructionId id)
+    {
+        public InternalContracts.ManagedInstructionId ToContract()
         => new(ToContract(id.Method), id.ILOffset);
+    }
 
-    public static InternalContracts.ManagedMethodId ToContract(this ManagedMethodId id)
+    extension(ManagedMethodId id)
+    {
+        public InternalContracts.ManagedMethodId ToContract()
         => new(id.Module, id.Token, id.Version);
+    }
 
-    public static InternalContracts.SourceSpan ToContract(this SourceSpan id)
+    extension(SourceSpan id)
+    {
+        public InternalContracts.SourceSpan ToContract()
         => new(id.StartLine, id.StartColumn, id.EndLine, id.EndColumn);
+    }
 
-    public static InternalContracts.ProjectInstanceId ToContract(this ProjectInstanceId id)
+    extension(ProjectInstanceId id)
+    {
+        public InternalContracts.ProjectInstanceId ToContract()
         => new(id.ProjectFilePath, id.TargetFramework);
+    }
 
-    public static InternalContracts.RunningProjectInfo ToContract(this RunningProjectInfo id)
+    extension(RunningProjectInfo id)
+    {
+        public InternalContracts.RunningProjectInfo ToContract()
         => new(id.ProjectInstanceId.ToContract(), id.RestartAutomatically);
+    }
 
-    public static InternalContracts.ManagedHotReloadAvailability ToContract(this ManagedHotReloadAvailability value)
+    extension(ManagedHotReloadAvailability value)
+    {
+        public InternalContracts.ManagedHotReloadAvailability ToContract()
         => new((InternalContracts.ManagedHotReloadAvailabilityStatus)value.Status, value.LocalizedMessage);
+    }
 
-    public static ManagedHotReloadUpdate FromContract(this InternalContracts.ManagedHotReloadUpdate update)
+    extension(InternalContracts.ManagedHotReloadUpdate update)
+    {
+        public ManagedHotReloadUpdate FromContract()
         => new(
             module: update.Module,
             moduleName: update.ModuleName,
@@ -47,37 +70,71 @@ internal static class ContractWrappers
             sequencePoints: update.SequencePoints.SelectAsArray(FromContract),
             activeStatements: update.ActiveStatements.SelectAsArray(FromContract),
             exceptionRegions: update.ExceptionRegions.SelectAsArray(FromContract));
+    }
 
-    public static ManagedHotReloadUpdates FromContract(this InternalContracts.ManagedHotReloadUpdates updates)
+    extension(InternalContracts.ManagedHotReloadUpdates updates)
+    {
+        public ManagedHotReloadUpdates FromContract()
         => new(updates.Updates.FromContract(), updates.Diagnostics.FromContract(), updates.ProjectsToRebuild.SelectAsArray(FromContract), updates.ProjectsToRestart.SelectAsArray(FromContract));
+    }
 
-    public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<InternalContracts.ManagedHotReloadUpdate> diagnostics)
+    extension(ImmutableArray<InternalContracts.ManagedHotReloadUpdate> diagnostics)
+    {
+        public ImmutableArray<ManagedHotReloadUpdate> FromContract()
         => diagnostics.SelectAsArray(FromContract);
+    }
 
-    public static SequencePointUpdates FromContract(this InternalContracts.SequencePointUpdates updates)
+    extension(InternalContracts.SequencePointUpdates updates)
+    {
+        public SequencePointUpdates FromContract()
         => new(updates.FileName, updates.LineUpdates.SelectAsArray(FromContract));
+    }
 
-    public static SourceLineUpdate FromContract(this InternalContracts.SourceLineUpdate update)
+    extension(InternalContracts.SourceLineUpdate update)
+    {
+        public SourceLineUpdate FromContract()
         => new(update.OldLine, update.NewLine);
+    }
 
-    public static ManagedActiveStatementUpdate FromContract(this InternalContracts.ManagedActiveStatementUpdate update)
+    extension(InternalContracts.ManagedActiveStatementUpdate update)
+    {
+        public ManagedActiveStatementUpdate FromContract()
         => new(FromContract(update.Method), update.ILOffset, FromContract(update.NewSpan));
+    }
 
-    public static ManagedModuleMethodId FromContract(this InternalContracts.ManagedModuleMethodId update)
+    extension(InternalContracts.ManagedModuleMethodId update)
+    {
+        public ManagedModuleMethodId FromContract()
         => new(update.Token, update.Version);
+    }
 
-    public static SourceSpan FromContract(this InternalContracts.SourceSpan id)
+    extension(InternalContracts.SourceSpan id)
+    {
+        public SourceSpan FromContract()
         => new(id.StartLine, id.StartColumn, id.EndLine, id.EndColumn);
+    }
 
-    public static ProjectInstanceId FromContract(this InternalContracts.ProjectInstanceId id)
+    extension(InternalContracts.ProjectInstanceId id)
+    {
+        public ProjectInstanceId FromContract()
         => new(id.ProjectFilePath, id.TargetFramework);
+    }
 
-    public static ManagedExceptionRegionUpdate FromContract(this InternalContracts.ManagedExceptionRegionUpdate update)
+    extension(InternalContracts.ManagedExceptionRegionUpdate update)
+    {
+        public ManagedExceptionRegionUpdate FromContract()
         => new(FromContract(update.Method), update.Delta, FromContract(update.NewSpan));
+    }
 
-    public static ImmutableArray<ManagedHotReloadDiagnostic> FromContract(this ImmutableArray<InternalContracts.ManagedHotReloadDiagnostic> diagnostics)
+    extension(ImmutableArray<InternalContracts.ManagedHotReloadDiagnostic> diagnostics)
+    {
+        public ImmutableArray<ManagedHotReloadDiagnostic> FromContract()
         => diagnostics.SelectAsArray(FromContract);
+    }
 
-    public static ManagedHotReloadDiagnostic FromContract(this InternalContracts.ManagedHotReloadDiagnostic diagnostic)
+    extension(InternalContracts.ManagedHotReloadDiagnostic diagnostic)
+    {
+        public ManagedHotReloadDiagnostic FromContract()
         => new(diagnostic.Id, diagnostic.Message, (ManagedHotReloadDiagnosticSeverity)diagnostic.Severity, diagnostic.FilePath, FromContract(diagnostic.Span));
+    }
 }

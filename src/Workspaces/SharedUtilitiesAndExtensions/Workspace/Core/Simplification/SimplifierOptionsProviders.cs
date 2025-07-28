@@ -11,16 +11,22 @@ namespace Microsoft.CodeAnalysis.Simplification;
 
 internal static class SimplifierOptionsProviders
 {
-    public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, Host.LanguageServices languageServices)
+    extension(IOptionsReader options)
+    {
+        public SimplifierOptions GetSimplifierOptions(Host.LanguageServices languageServices)
         => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options) ?? SimplifierOptions.CommonDefaults;
+    }
 
-    public static ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
+    extension(Document document)
+    {
+        public ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(CancellationToken cancellationToken)
         => GetSimplifierOptionsAsync(document, document.GetRequiredLanguageService<ISimplificationService>(), cancellationToken);
 
-    public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, ISimplification simplification, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return simplification.GetSimplifierOptions(configOptions);
+        public async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(ISimplification simplification, CancellationToken cancellationToken)
+        {
+            var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return simplification.GetSimplifierOptions(configOptions);
+        }
     }
 
     public static SimplifierOptions GetDefault(Host.LanguageServices languageServices)

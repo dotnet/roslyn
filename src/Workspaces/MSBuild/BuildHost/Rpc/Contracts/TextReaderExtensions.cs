@@ -11,40 +11,43 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal static class TextReaderExtensions
 {
-    /// <summary>
-    /// Returns the next line from the string, or null if the stream is closed or the cancellation token was triggered.
-    /// </summary>
-    public static async Task<string?> TryReadLineOrReturnNullIfCancelledAsync(this TextReader streamReader, CancellationToken cancellationToken)
+    extension(TextReader streamReader)
     {
-        // If we're on .NET Core 8.0 the implementation is easy, but on older versions we don't have the helper and since we also don't have
-        // Microsoft.VisualStudio.Threading's WithCancellation helper we have to inline the same approach.
+        /// <summary>
+        /// Returns the next line from the string, or null if the stream is closed or the cancellation token was triggered.
+        /// </summary>
+        public async Task<string?> TryReadLineOrReturnNullIfCancelledAsync(CancellationToken cancellationToken)
+        {
+            // If we're on .NET Core 8.0 the implementation is easy, but on older versions we don't have the helper and since we also don't have
+            // Microsoft.VisualStudio.Threading's WithCancellation helper we have to inline the same approach.
 
 #if NET8_0_OR_GREATER
 
-        try
-        {
-            return await streamReader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            return null;
-        }
+            try
+            {
+                return await streamReader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
 
 #else
 
-        var cancellationTaskSource = new TaskCompletionSource<object?>();
-        var readLineTask = streamReader.ReadLineAsync();
+            var cancellationTaskSource = new TaskCompletionSource<object?>();
+            var readLineTask = streamReader.ReadLineAsync();
 
-        using (cancellationToken.Register(() => cancellationTaskSource.TrySetResult(null)))
-        {
-            await Task.WhenAny(readLineTask, cancellationTaskSource.Task).ConfigureAwait(false);
+            using (cancellationToken.Register(() => cancellationTaskSource.TrySetResult(null)))
+            {
+                await Task.WhenAny(readLineTask, cancellationTaskSource.Task).ConfigureAwait(false);
 
-            if (readLineTask.Status == TaskStatus.RanToCompletion)
-                return readLineTask.Result;
-            else
-                return null;
-        }
+                if (readLineTask.Status == TaskStatus.RanToCompletion)
+                    return readLineTask.Result;
+                else
+                    return null;
+            }
 
 #endif
+        }
     }
 }

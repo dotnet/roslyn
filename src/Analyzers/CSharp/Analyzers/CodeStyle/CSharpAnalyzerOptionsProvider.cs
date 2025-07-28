@@ -95,24 +95,45 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options)
 
 internal static class CSharpAnalyzerOptionsProviders
 {
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this AnalyzerOptions options, SyntaxTree syntaxTree)
+    extension(AnalyzerOptions options)
+    {
+        public CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(SyntaxTree syntaxTree)
         => new(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader());
+    }
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SemanticModelAnalysisContext context)
+    extension(SemanticModelAnalysisContext context)
+    {
+        public CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions()
         => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
+    }
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxNodeAnalysisContext context)
+    extension(SyntaxNodeAnalysisContext context)
+    {
+        public CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions()
         => GetCSharpAnalyzerOptions(context.Options, context.Node.SyntaxTree);
+    }
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxTreeAnalysisContext context)
+    extension(SyntaxTreeAnalysisContext context)
+    {
+        public CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions()
         => GetCSharpAnalyzerOptions(context.Options, context.Tree);
+    }
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this CodeBlockAnalysisContext context)
+    extension(CodeBlockAnalysisContext context)
+    {
+        public CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions()
         => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
+    }
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this OperationAnalysisContext context)
+    extension(OperationAnalysisContext context)
+    {
+        public CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions()
         => GetCSharpAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+    }
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SymbolStartAnalysisContext context, SyntaxTree syntaxTree)
+    extension(SymbolStartAnalysisContext context)
+    {
+        public CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(SyntaxTree syntaxTree)
         => GetCSharpAnalyzerOptions(context.Options, syntaxTree);
+    }
 }

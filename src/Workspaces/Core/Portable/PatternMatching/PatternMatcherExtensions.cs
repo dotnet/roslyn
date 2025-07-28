@@ -10,13 +10,16 @@ namespace Microsoft.CodeAnalysis.PatternMatching;
 
 internal static class PatternMatcherExtensions
 {
-    public static PatternMatch? GetFirstMatch(this PatternMatcher matcher, string? candidate)
+    extension(PatternMatcher matcher)
     {
-        using var matches = TemporaryArray<PatternMatch>.Empty;
-        matcher.AddMatches(candidate, ref matches.AsRef());
-        return matches.Count > 0 ? matches[0] : null;
-    }
+        public PatternMatch? GetFirstMatch(string? candidate)
+        {
+            using var matches = TemporaryArray<PatternMatch>.Empty;
+            matcher.AddMatches(candidate, ref matches.AsRef());
+            return matches.Count > 0 ? matches[0] : null;
+        }
 
-    public static bool Matches(this PatternMatcher matcher, [NotNullWhen(true)] string? candidate)
-        => matcher.GetFirstMatch(candidate) != null;
+        public bool Matches([NotNullWhen(true)] string? candidate)
+            => matcher.GetFirstMatch(candidate) != null;
+    }
 }

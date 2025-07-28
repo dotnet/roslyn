@@ -10,24 +10,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class VariableDeclaratorExtensions
 {
-    public static TypeSyntax GetVariableType(this VariableDeclaratorSyntax declarator)
+    extension(VariableDeclaratorSyntax declarator)
     {
-        if (declarator.Parent is VariableDeclarationSyntax variableDeclaration)
+        public TypeSyntax GetVariableType()
         {
-            return variableDeclaration.Type;
-        }
+            if (declarator.Parent is VariableDeclarationSyntax variableDeclaration)
+            {
+                return variableDeclaration.Type;
+            }
 
-        return null;
+            return null;
+        }
     }
 
-    public static bool IsTypeInferred(this VariableDeclaratorSyntax variable, SemanticModel semanticModel)
+    extension(VariableDeclaratorSyntax variable)
     {
-        var variableTypeName = variable.GetVariableType();
-        if (variableTypeName == null)
+        public bool IsTypeInferred(SemanticModel semanticModel)
         {
-            return false;
-        }
+            var variableTypeName = variable.GetVariableType();
+            if (variableTypeName == null)
+            {
+                return false;
+            }
 
-        return variableTypeName.IsTypeInferred(semanticModel);
+            return variableTypeName.IsTypeInferred(semanticModel);
+        }
     }
 }

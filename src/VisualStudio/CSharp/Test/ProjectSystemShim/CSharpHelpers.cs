@@ -65,14 +65,17 @@ internal static class CSharpHelpers
         return CreateCSharpCPSProjectAsync(environment, projectName, projectFilePath, binOutputPath, projectGuid: Guid.NewGuid(), commandLineArguments: commandLineArguments);
     }
 
-    public static unsafe void SetOption(this CSharpProjectShim csharpProject, CompilerOptions optionID, object value)
+    extension(CSharpProjectShim csharpProject)
     {
-        Assert.Equal(sizeof(HACK_VariantStructure), 8 + 2 * IntPtr.Size);
-        Assert.Equal(8, (int)Marshal.OffsetOf<HACK_VariantStructure>("_booleanValue"));
+        public unsafe void SetOption(CompilerOptions optionID, object value)
+        {
+            Assert.Equal(sizeof(HACK_VariantStructure), 8 + 2 * IntPtr.Size);
+            Assert.Equal(8, (int)Marshal.OffsetOf<HACK_VariantStructure>("_booleanValue"));
 
-        HACK_VariantStructure variant = default;
-        Marshal.GetNativeVariantForObject(value, (IntPtr)(&variant));
-        csharpProject.SetOption(optionID, variant);
+            HACK_VariantStructure variant = default;
+            Marshal.GetNativeVariantForObject(value, (IntPtr)(&variant));
+            csharpProject.SetOption(optionID, variant);
+        }
     }
 
     public static async Task<CPSProject> CreateCSharpCPSProjectAsync(TestEnvironment environment, string projectName, string projectFilePath, string binOutputPath, Guid projectGuid, params string[] commandLineArguments)

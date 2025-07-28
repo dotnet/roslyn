@@ -11,50 +11,53 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 
 public static class ObjectExtensions
 {
-    public static PropertyType GetPropertyValue<PropertyType>(this object instance, string propertyName)
+    extension(object instance)
     {
-        return (PropertyType)GetPropertyValue(instance, propertyName);
-    }
-
-    public static object GetPropertyValue(this object instance, string propertyName)
-    {
-        var type = instance.GetType();
-        var propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        if (propertyInfo == null)
+        public PropertyType GetPropertyValue<PropertyType>(string propertyName)
         {
-            throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
+            return (PropertyType)GetPropertyValue(instance, propertyName);
         }
 
-        var result = propertyInfo.GetValue(instance, null);
-        return result;
-    }
-
-    public static object GetFieldValue(this object instance, string fieldName)
-    {
-        var type = instance.GetType();
-        FieldInfo fieldInfo = null;
-        while (type != null)
+        public object GetPropertyValue(string propertyName)
         {
-            fieldInfo = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (fieldInfo != null)
+            var type = instance.GetType();
+            var propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (propertyInfo == null)
             {
-                break;
+                throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
             }
 
-            type = type.BaseType;
+            var result = propertyInfo.GetValue(instance, null);
+            return result;
         }
 
-        if (fieldInfo == null)
+        public object GetFieldValue(string fieldName)
         {
-            throw new FieldAccessException($"Field '{fieldName}' was not found on type '{instance.GetType()}'");
+            var type = instance.GetType();
+            FieldInfo fieldInfo = null;
+            while (type != null)
+            {
+                fieldInfo = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (fieldInfo != null)
+                {
+                    break;
+                }
+
+                type = type.BaseType;
+            }
+
+            if (fieldInfo == null)
+            {
+                throw new FieldAccessException($"Field '{fieldName}' was not found on type '{instance.GetType()}'");
+            }
+
+            var result = fieldInfo.GetValue(instance);
+            return result; // you can place a breakpoint here (for debugging purposes)
         }
 
-        var result = fieldInfo.GetValue(instance);
-        return result; // you can place a breakpoint here (for debugging purposes)
-    }
-
-    public static FieldType GetFieldValue<FieldType>(this object instance, string fieldName)
-    {
-        return (FieldType)GetFieldValue(instance, fieldName);
+        public FieldType GetFieldValue<FieldType>(string fieldName)
+        {
+            return (FieldType)GetFieldValue(instance, fieldName);
+        }
     }
 }

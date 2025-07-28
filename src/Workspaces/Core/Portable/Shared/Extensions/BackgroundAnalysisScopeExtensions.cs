@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class BackgroundAnalysisScopeExtensions
 {
-    public static CompilerDiagnosticsScope ToEquivalentCompilerDiagnosticsScope(this BackgroundAnalysisScope backgroundAnalysisScope)
+    extension(BackgroundAnalysisScope backgroundAnalysisScope)
+    {
+        public CompilerDiagnosticsScope ToEquivalentCompilerDiagnosticsScope()
         => backgroundAnalysisScope switch
         {
             BackgroundAnalysisScope.None => CompilerDiagnosticsScope.None,
@@ -17,4 +19,5 @@ internal static class BackgroundAnalysisScopeExtensions
             BackgroundAnalysisScope.FullSolution => CompilerDiagnosticsScope.FullSolution,
             _ => throw ExceptionUtilities.UnexpectedValue(backgroundAnalysisScope),
         };
+    }
 }

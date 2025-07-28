@@ -17,7 +17,10 @@ public static class GraphNodeCreation
     public static Task<GraphNodeId> CreateNodeIdAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         => Task.FromResult(GraphNodeId.Empty);
 
-    [Obsolete("This method is not implemented and always returns an empty GraphNode.", error: true)]
-    public static Task<GraphNode> CreateNodeAsync(this Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+    extension(Graph graph)
+    {
+        [Obsolete("This method is not implemented and always returns an empty GraphNode.", error: true)]
+        public Task<GraphNode> CreateNodeAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
        => Task.FromResult(graph.Nodes.GetOrCreate(GraphNodeId.Empty));
+    }
 }

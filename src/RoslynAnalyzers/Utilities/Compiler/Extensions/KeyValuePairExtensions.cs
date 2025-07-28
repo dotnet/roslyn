@@ -8,10 +8,13 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class KeyValuePairExtensions
     {
-        public static KeyValuePair<TKey?, TValue?> AsNullable<TKey, TValue>(this KeyValuePair<TKey, TValue> pair)
+        extension<TKey, TValue>(KeyValuePair<TKey, TValue> pair)
         {
-            // This conversion is safe
-            return pair!;
+            public KeyValuePair<TKey?, TValue?> AsNullable()
+            {
+                // This conversion is safe
+                return pair!;
+            }
         }
     }
 }

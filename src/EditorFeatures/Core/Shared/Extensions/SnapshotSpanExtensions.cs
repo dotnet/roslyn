@@ -10,29 +10,31 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static class SnapshotSpanExtensions
 {
-    public static ITrackingSpan CreateTrackingSpan(this SnapshotSpan snapshotSpan, SpanTrackingMode trackingMode)
+    extension(SnapshotSpan snapshotSpan)
+    {
+        public ITrackingSpan CreateTrackingSpan(SpanTrackingMode trackingMode)
         => snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, trackingMode);
 
-    public static void GetLinesAndCharacters(
-        this SnapshotSpan snapshotSpan,
-        out int startLineNumber,
-        out int startCharacterIndex,
-        out int endLineNumber,
-        out int endCharacterIndex)
-    {
-        snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.Start, out startLineNumber, out startCharacterIndex);
-        snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.End, out endLineNumber, out endCharacterIndex);
+        public void GetLinesAndCharacters(
+            out int startLineNumber,
+            out int startCharacterIndex,
+            out int endLineNumber,
+            out int endCharacterIndex)
+        {
+            snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.Start, out startLineNumber, out startCharacterIndex);
+            snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.End, out endLineNumber, out endCharacterIndex);
+        }
+
+        public LinePositionSpan ToLinePositionSpan()
+        {
+            snapshotSpan.GetLinesAndCharacters(out var startLine, out var startChar, out var endLine, out var endChar);
+            return new LinePositionSpan(new LinePosition(startLine, startChar), new LinePosition(endLine, endChar));
+        }
+
+        public bool IntersectsWith(TextSpan textSpan)
+            => snapshotSpan.IntersectsWith(textSpan.ToSpan());
+
+        public bool IntersectsWith(int position)
+            => snapshotSpan.Span.IntersectsWith(position);
     }
-
-    public static LinePositionSpan ToLinePositionSpan(this SnapshotSpan snapshotSpan)
-    {
-        snapshotSpan.GetLinesAndCharacters(out var startLine, out var startChar, out var endLine, out var endChar);
-        return new LinePositionSpan(new LinePosition(startLine, startChar), new LinePosition(endLine, endChar));
-    }
-
-    public static bool IntersectsWith(this SnapshotSpan snapshotSpan, TextSpan textSpan)
-        => snapshotSpan.IntersectsWith(textSpan.ToSpan());
-
-    public static bool IntersectsWith(this SnapshotSpan snapshotSpan, int position)
-        => snapshotSpan.Span.IntersectsWith(position);
 }

@@ -12,13 +12,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class SyntaxListExtensions
 {
-    public static SyntaxList<T> RemoveRange<T>(this SyntaxList<T> syntaxList, int index, int count) where T : SyntaxNode
+    extension<T>(SyntaxList<T> syntaxList) where T : SyntaxNode
     {
-        var result = new List<T>(syntaxList);
-        result.RemoveRange(index, count);
-        return [.. result];
+        public SyntaxList<T> RemoveRange(int index, int count)
+        {
+            var result = new List<T>(syntaxList);
+            result.RemoveRange(index, count);
+            return [.. result];
+        }
     }
 
-    public static SyntaxList<T> Insert<T>(this SyntaxList<T> list, int index, T item) where T : SyntaxNode
-        => [.. list.Take(index).Concat(item).Concat(list.Skip(index))];
+    extension<T>(SyntaxList<T> list) where T : SyntaxNode
+    {
+        public SyntaxList<T> Insert(int index, T item) => [.. list.Take(index).Concat(item).Concat(list.Skip(index))];
+    }
 }
