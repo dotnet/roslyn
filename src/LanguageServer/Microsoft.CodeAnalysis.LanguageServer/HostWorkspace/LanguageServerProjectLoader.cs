@@ -182,6 +182,11 @@ internal abstract class LanguageServerProjectLoader
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
     /// <summary>Called after a project is unloaded to allow the subtype to clean up any resources associated with the project.</summary>
+    /// <remarks>
+    /// Note that this refers to unloading of the project on the project-system level.
+    /// So, for example, changing the target frameworks of a project, or transitioning between
+    /// "file-based program" and "true miscellaneous file", will not result in this being called.
+    /// </remarks>
     protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
