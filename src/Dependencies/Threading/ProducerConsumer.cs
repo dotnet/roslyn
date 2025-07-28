@@ -265,7 +265,7 @@ internal static class ProducerConsumer<TItem>
                         outerArgs.produceItems(callback, outerArgs.args, cancellationToken),
                     consumeItems: async static (reader, args, cancellationToken) =>
                     {
-                        await foreach (var item in reader.ReadAllAsync(cancellationToken))
+                        await foreach (var item in reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
                             args.channel.Writer.TryWrite(item);
 
                         return default(VoidResult);

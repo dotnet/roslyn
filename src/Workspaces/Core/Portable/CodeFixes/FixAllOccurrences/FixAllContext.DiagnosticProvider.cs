@@ -93,7 +93,7 @@ public partial class FixAllContext
                                 {
                                     var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
 
-                                    await foreach (var (project, diagnostics) in results)
+                                    await foreach (var (project, diagnostics) in results.ConfigureAwait(false))
                                     {
                                         if (diagnostics.Any())
                                             projectsAndDiagnostics.Add(project, diagnostics);
