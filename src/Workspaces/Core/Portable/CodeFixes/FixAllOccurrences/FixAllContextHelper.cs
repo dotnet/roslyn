@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -85,7 +85,7 @@ internal static partial class FixAllContextHelper
                         {
                             using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
 
-                            await foreach (var diagnostics in results)
+                            await foreach (var diagnostics in results.ConfigureAwait(false))
                                 builder.AddRange(diagnostics);
 
                             return builder.ToImmutableAndClear();

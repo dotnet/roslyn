@@ -29,19 +29,17 @@ public sealed class WpfTestSharedData
 
     public void ExecutingTest(ITestMethod testMethod)
     {
-        var name = $"{testMethod.TestClass.Class.Name}::{testMethod.Method.Name}";
         lock (_recentTestCases)
         {
-            _recentTestCases.Add(name);
+            _recentTestCases.Add($"{testMethod.TestClass.Class.Name}::{testMethod.Method.Name}");
         }
     }
 
     public void ExecutingTest(MethodInfo testMethod)
     {
-        var name = $"{testMethod.DeclaringType.Name}::{testMethod.Name}";
         lock (_recentTestCases)
         {
-            _recentTestCases.Add(name);
+            _recentTestCases.Add($"{testMethod.DeclaringType.Name}::{testMethod.Name}");
         }
     }
 }

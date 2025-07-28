@@ -46,11 +46,11 @@ public sealed class SyntaxReferenceTests : TestBase
     public async Task TestCSharpReferenceToZeroWidthNode()
     {
         using var workspace = CreateWorkspace();
-        var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
-public class C<> 
-{
-}
-");
+        var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, """
+            public class C<> 
+            {
+            }
+            """);
 
         var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
@@ -69,10 +69,10 @@ public class C<>
     public async Task TestVisualBasicReferenceToZeroWidthNode()
     {
         using var workspace = CreateWorkspace();
-        var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
-Public Class C(Of )
-End Class
-");
+        var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, """
+            Public Class C(Of )
+            End Class
+            """);
 
         var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
@@ -91,13 +91,13 @@ End Class
     public async Task TestCSharpReferenceToNodeInStructuredTrivia()
     {
         using var workspace = CreateWorkspace();
-        var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
-#if true || true
-public class C 
-{
-}
-#endif
-");
+        var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, """
+            #if true || true
+            public class C 
+            {
+            }
+            #endif
+            """);
         var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
         // find binary node that is part of #if directive
@@ -114,12 +114,12 @@ public class C
     public async Task TestVisualBasicReferenceToNodeInStructuredTrivia()
     {
         using var workspace = CreateWorkspace();
-        var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
-#If True Or True Then
-Public Class C
-End Class
-#End If
-");
+        var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, """
+            #If True Or True Then
+            Public Class C
+            End Class
+            #End If
+            """);
 
         var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
@@ -137,13 +137,13 @@ End Class
     public async Task TestCSharpReferenceToZeroWidthNodeInStructuredTrivia()
     {
         using var workspace = CreateWorkspace();
-        var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
-#if true ||
-public class C 
-{
-}
-#endif
-");
+        var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, """
+            #if true ||
+            public class C 
+            {
+            }
+            #endif
+            """);
 
         var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
@@ -165,12 +165,12 @@ public class C
     public async System.Threading.Tasks.Task TestVisualBasicReferenceToZeroWidthNodeInStructuredTriviaAsync()
     {
         using var workspace = CreateWorkspace();
-        var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
-#If (True Or ) Then
-Public Class C
-End Class
-#End If
-");
+        var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, """
+            #If (True Or ) Then
+            Public Class C
+            End Class
+            #End If
+            """);
 
         var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 

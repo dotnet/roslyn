@@ -27,12 +27,11 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
         => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 
     private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
-        => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+        => TestInRegularAndScriptAsync(initialMarkup, expected, parameters: new TestParameters(options: options));
 
     [Fact]
-    public async Task TestArithmeticPrecedence()
-    {
-        await TestAsync(
+    public Task TestArithmeticPrecedence()
+        => TestAsync(
             """
             class C
             {
@@ -51,12 +50,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNoArithmeticOnLowerPrecedence()
-    {
-        await TestMissingAsync(
+    public Task TestNoArithmeticOnLowerPrecedence()
+        => TestMissingAsync(
             """
             class C
             {
@@ -66,12 +63,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfArithmeticPrecedenceStaysTheSame()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfArithmeticPrecedenceStaysTheSame()
+        => TestMissingAsync(
             """
             class C
             {
@@ -81,12 +76,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfArithmeticPrecedenceIsNotEnforced1()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfArithmeticPrecedenceIsNotEnforced1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -96,12 +89,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireOtherBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfArithmeticPrecedenceIsNotEnforced2()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfArithmeticPrecedenceIsNotEnforced2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -111,12 +102,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireOtherBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestRelationalPrecedence()
-    {
-        await TestAsync(
+    public Task TestRelationalPrecedence()
+        => TestAsync(
             """
             class C
             {
@@ -135,12 +124,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestLogicalPrecedence()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedence()
+        => TestAsync(
             """
             class C
             {
@@ -159,12 +146,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNoLogicalOnLowerPrecedence()
-    {
-        await TestMissingAsync(
+    public Task TestNoLogicalOnLowerPrecedence()
+        => TestMissingAsync(
             """
             class C
             {
@@ -174,12 +159,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfLogicalPrecedenceStaysTheSame()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfLogicalPrecedenceStaysTheSame()
+        => TestMissingAsync(
             """
             class C
             {
@@ -189,12 +172,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfLogicalPrecedenceIsNotEnforced()
+        => TestMissingAsync(
             """
             class C
             {
@@ -204,12 +185,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireArithmeticBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestMixedArithmeticAndLogical()
-    {
-        await TestMissingAsync(
+    public Task TestMixedArithmeticAndLogical()
+        => TestMissingAsync(
             """
             class C
             {
@@ -219,12 +198,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
+        => TestAsync(
             """
             class C
             {
@@ -243,12 +220,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
+        => TestAsync(
             """
             class C
             {
@@ -267,12 +242,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestShiftPrecedence1()
-    {
-        await TestAsync(
+    public Task TestShiftPrecedence1()
+        => TestAsync(
             """
             class C
             {
@@ -291,12 +264,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestShiftPrecedence2()
-    {
-        await TestAsync(
+    public Task TestShiftPrecedence2()
+        => TestAsync(
             """
             class C
             {
@@ -315,12 +286,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireArithmeticBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestShiftPrecedence3()
-    {
-        await TestMissingAsync(
+    public Task TestShiftPrecedence3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -330,12 +299,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireOtherBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfShiftPrecedenceStaysTheSame1()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfShiftPrecedenceStaysTheSame1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -345,12 +312,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfShiftPrecedenceStaysTheSame2()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfShiftPrecedenceStaysTheSame2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -360,12 +325,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestEqualityPrecedence1()
-    {
-        await TestMissingAsync(
+    public Task TestEqualityPrecedence1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -375,12 +338,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireOtherBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestEqualityPrecedence2()
-    {
-        await TestMissingAsync(
+    public Task TestEqualityPrecedence2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -390,12 +351,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireOtherBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestEqualityPrecedence3()
-    {
-        await TestMissingAsync(
+    public Task TestEqualityPrecedence3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -405,12 +364,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireRelationalBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestEqualityPrecedence4()
-    {
-        await TestMissingAsync(
+    public Task TestEqualityPrecedence4()
+        => TestMissingAsync(
             """
             class C
             {
@@ -420,12 +377,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireRelationalBinaryParenthesesForClarity);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78841")]
-    public async Task TestCoalescePrecedence1()
-    {
-        await TestAsync(
+    public Task TestCoalescePrecedence1()
+        => TestAsync(
             """
             class C
             {
@@ -444,12 +399,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestCoalescePrecedence2()
-    {
-        await TestMissingAsync(
+    public Task TestCoalescePrecedence2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -459,12 +412,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestCoalescePrecedence3()
-    {
-        await TestMissingAsync(
+    public Task TestCoalescePrecedence3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -474,12 +425,23 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79286")]
+    public Task TestCoalescePrecedence4()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a $$as b ?? c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
 
     [Fact]
-    public async Task TestBitwisePrecedence1()
-    {
-        await TestAsync(
+    public Task TestBitwisePrecedence1()
+        => TestAsync(
             """
             class C
             {
@@ -498,12 +460,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestBitwisePrecedence2()
-    {
-        await TestMissingAsync(
+    public Task TestBitwisePrecedence2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -513,12 +473,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestBitwisePrecedence3()
-    {
-        await TestAsync(
+    public Task TestBitwisePrecedence3()
+        => TestAsync(
             """
             class C
             {
@@ -537,12 +495,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestBitwisePrecedence4()
-    {
-        await TestMissingAsync(
+    public Task TestBitwisePrecedence4()
+        => TestMissingAsync(
             """
             class C
             {
@@ -552,12 +508,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotForEqualityAfterEquals()
-    {
-        await TestMissingAsync(
+    public Task TestNotForEqualityAfterEquals()
+        => TestMissingAsync(
             """
             class C
             {
@@ -567,12 +521,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotForAssignmentEqualsAfterLocal()
-    {
-        await TestMissingAsync(
+    public Task TestNotForAssignmentEqualsAfterLocal()
+        => TestMissingAsync(
             """
             class C
             {
@@ -582,12 +534,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestForAssignmentAndEquality1()
-    {
-        await TestMissingAsync(
+    public Task TestForAssignmentAndEquality1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -597,12 +547,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestMissingForAssignmentAndEquality2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingForAssignmentAndEquality2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -612,12 +560,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestUnclearCast1()
-    {
-        await TestMissingAsync(
+    public Task TestUnclearCast1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -627,12 +573,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestUnclearCast_NotOfferedWithIgnore()
-    {
-        await TestMissingAsync(
+    public Task TestUnclearCast_NotOfferedWithIgnore()
+        => TestMissingAsync(
             """
             class C
             {
@@ -642,12 +586,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, IgnoreAllParentheses);
-    }
 
     [Fact]
-    public async Task TestUnclearCast_NotOfferedWithRemoveForClarity()
-    {
-        await TestMissingAsync(
+    public Task TestUnclearCast_NotOfferedWithRemoveForClarity()
+        => TestMissingAsync(
             """
             class C
             {
@@ -657,12 +599,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RemoveAllUnnecessaryParentheses);
-    }
 
     [Fact]
-    public async Task TestUnclearCast2()
-    {
-        await TestMissingAsync(
+    public Task TestUnclearCast2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -672,12 +612,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestUnclearCast3()
-    {
-        await TestMissingAsync(
+    public Task TestUnclearCast3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -687,12 +625,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestUnclearCast4()
-    {
-        await TestMissingAsync(
+    public Task TestUnclearCast4()
+        => TestMissingAsync(
             """
             class C
             {
@@ -702,12 +638,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotForPrimary()
-    {
-        await TestMissingAsync(
+    public Task TestNotForPrimary()
+        => TestMissingAsync(
             """
             class C
             {
@@ -717,12 +651,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotForMemberAccess()
-    {
-        await TestMissingAsync(
+    public Task TestNotForMemberAccess()
+        => TestMissingAsync(
             """
             class C
             {
@@ -732,12 +664,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotForCastOfCast()
-    {
-        await TestMissingAsync(
+    public Task TestNotForCastOfCast()
+        => TestMissingAsync(
             """
             class C
             {
@@ -747,12 +677,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotForNonAmbiguousUnary()
-    {
-        await TestMissingAsync(
+    public Task TestNotForNonAmbiguousUnary()
+        => TestMissingAsync(
             """
             class C
             {
@@ -762,12 +690,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestMissingAsync(
+    public Task TestFixAll1()
+        => TestMissingAsync(
             """
             class C
             {
@@ -779,12 +705,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -806,13 +730,11 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                     }
                 }
             }
-            """, options: RequireAllParenthesesForClarity);
-    }
+            """, new(options: RequireAllParenthesesForClarity));
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await TestMissingAsync(
+    public Task TestFixAll3()
+        => TestMissingAsync(
             """
             class C
             {
@@ -824,12 +746,10 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestSeams1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSeams1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -847,6 +767,5 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
                     int x = 1 + (2 * 3) == 1 + (2 * 3);
                 }
             }
-            """, options: RequireAllParenthesesForClarity);
-    }
+            """, new(options: RequireAllParenthesesForClarity));
 }

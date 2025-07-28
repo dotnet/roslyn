@@ -16,9 +16,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
 {
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestThrowNotImplementedExceptionInStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -34,12 +33,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInExpression()
-    {
-        await new VerifyCS.Test
+    public Task TestThrowNotImplementedExceptionInExpression()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -52,12 +49,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestThrowNotImplementedExceptionInConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -73,12 +68,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInDestructor()
-    {
-        await new VerifyCS.Test
+    public Task TestThrowNotImplementedExceptionInDestructor()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -94,12 +87,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInIndexer()
-    {
-        await new VerifyCS.Test
+    public Task TestThrowNotImplementedExceptionInIndexer()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -116,12 +107,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInEvent()
-    {
-        await new VerifyCS.Test
+    public Task TestThrowNotImplementedExceptionInEvent()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -138,12 +127,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInOperator()
-    {
-        await new VerifyCS.Test
+    public Task TestThrowNotImplementedExceptionInOperator()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -159,12 +146,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDifferentFlavorsOfThrowNotImplementedException()
-    {
-        await new VerifyCS.Test
+    public Task TestDifferentFlavorsOfThrowNotImplementedException()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -234,12 +219,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task WhenShouldNotReportOnMember()
-    {
-        await new VerifyCS.Test
+    public Task WhenShouldNotReportOnMember()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -451,5 +434,4 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 }

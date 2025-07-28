@@ -48,7 +48,9 @@ public sealed partial class CSharpRegexParserTests
         TryParseSubTrees(stringText, options);
 
         var actual = TreeToText(sourceText, tree)
-            .Replace("&quot;", "\"");
+            .Replace("&quot;", """
+            "
+            """);
         AssertEx.Equal(expected, actual);
     }
 
@@ -56,23 +58,37 @@ public sealed partial class CSharpRegexParserTests
     {
         // Trim the input from the right and make sure tree invariants hold
         var current = stringText;
-        while (current is not "@\"\"" and not "\"\"")
+        while (current is not """
+            @""
+            """ and not """
+            ""
+            """)
         {
-            current = current[..^2] + "\"";
+            current = current[..^2] + """
+                "
+                """;
             TryParseTree(current, options, conversionFailureOk: true);
         }
 
         // Trim the input from the left and make sure tree invariants hold
         current = stringText;
-        while (current is not "@\"\"" and not "\"\"")
+        while (current is not """
+            @""
+            """ and not """
+            ""
+            """)
         {
             if (current[0] == '@')
             {
-                current = "@\"" + current[3..];
+                current = """
+                    @"
+                    """ + current[3..];
             }
             else
             {
-                current = "\"" + current[2..];
+                current = """
+                    "
+                    """ + current[2..];
             }
 
             TryParseTree(current, options, conversionFailureOk: true);
@@ -142,7 +158,11 @@ public sealed partial class CSharpRegexParserTests
         if (!tree.Diagnostics.IsEmpty)
         {
             var expectedDiagnostics = CreateDiagnosticsElement(sourceText, tree);
-            Assert.False(true, "Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace(@"""", @""""""));
+            Assert.False(true, "Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace("""
+                "
+                """, """
+                ""
+                """));
         }
 
         Assert.True(regex.GetGroupNumbers().OrderBy(v => v).SequenceEqual(
@@ -317,18 +337,20 @@ public sealed partial class CSharpRegexParserTests
     {
         var (token, tree, chars) =
             JustParseTree(
-@"@""((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((""", RegexOptions.None, conversionFailureOk: false);
+                """
+                @"((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+                ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
+                """, RegexOptions.None, conversionFailureOk: false);
         Assert.False(token.IsMissing);
         Assert.False(chars.IsDefaultOrEmpty);
         Assert.Null(tree);
@@ -340,7 +362,9 @@ public sealed partial class CSharpRegexParserTests
         for (var i = 1; i < 1200; i++)
         {
             var text = new string('(', i);
-            var (token, _, chars) = JustParseTree($@"@""{text}""", RegexOptions.None, conversionFailureOk: false);
+            var (token, _, chars) = JustParseTree($"""
+                @"{text}"
+                """, RegexOptions.None, conversionFailureOk: false);
             Assert.False(token.IsMissing);
             Assert.False(chars.IsDefaultOrEmpty);
         }

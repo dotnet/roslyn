@@ -47,7 +47,9 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
     /// other VS instance will try to delete our _rootTemporaryPathWithGuid folder.
     /// </summary>
+#pragma warning disable IDE0052 // Remove unread private members.  Used to communicate with other VS instances.
     private readonly Mutex _mutex;
+#pragma warning restore IDE0052 // Remove unread private members
     private readonly string _rootTemporaryPathWithGuid;
     private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSource);
 
@@ -165,47 +167,56 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
     public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
     {
-        // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
-        // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
-        // MetadataAsSource instead of itself.
         var workspace = _workspace;
-        if (workspace != null)
+        if (workspace is null)
         {
-            foreach (var provider in _providers.Value)
-            {
-                if (!provider.IsValueCreated)
-                    continue;
-
-                if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer, out documentId))
-                {
-                    return true;
-                }
-            }
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
+            // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
+            // MetadataAsSource instead of itself.
+            documentId = null;
+            return false;
         }
 
-        documentId = null;
-        return false;
+        // There are no linked files in the MetadataAsSource workspace, so we can just use the first document id
+        documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).SingleOrDefault();
+        if (documentId is null)
+        {
+            return false;
+        }
+
+        workspace.OnDocumentOpened(documentId, sourceTextContainer);
+        return true;
     }
 
     public bool TryRemoveDocumentFromWorkspace(string filePath)
     {
-        // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
-        // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
-        // MetadataAsSource system to see if it owns the file and should handle that event.
         var workspace = _workspace;
-        if (workspace != null)
+        if (workspace is null)
         {
-            foreach (var provider in _providers.Value)
-            {
-                if (!provider.IsValueCreated)
-                    continue;
-
-                if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
-                    return true;
-            }
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
+            // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
+            // MetadataAsSource system to see if it owns the file and should handle that event.
+            return false;
         }
 
-        return false;
+        // There are no linked files in the MetadataAsSource workspace, so we can just use the first document id
+        var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
+        if (documentId is null)
+        {
+            return false;
+        }
+
+        // In LSP, while calls to TryAddDocumentToWorkspace and TryRemoveDocumentFromWorkspace are handled
+        // serially, it is possible that TryRemoveDocumentFromWorkspace called without TryAddDocumentToWorkspace first.
+        // This can happen if the document is immediately closed after opening - only feature requests that force us
+        // to materialize a solution will trigger TryAddDocumentToWorkspace, if none are made it is never called.
+        // However TryRemoveDocumentFromWorkspace is always called on close.
+        if (workspace.GetOpenDocumentIds().Contains(documentId))
+        {
+            workspace.OnDocumentClosed(documentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, defaultEncoding: null));
+        }
+
+        return true;
     }
 
     public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)

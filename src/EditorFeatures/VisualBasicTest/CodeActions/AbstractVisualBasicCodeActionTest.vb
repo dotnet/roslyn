@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
             If parseOptions Is Nothing Then
-                Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index)
+                Await MyBase.TestAsync(initialMarkupStr, expectedStr, New TestParameters(parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index))
             Else
-                Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=parseOptions, compilationOptions:=_compilationOptions, index:=index)
+                Await MyBase.TestAsync(initialMarkupStr, expectedStr, New TestParameters(parseOptions:=parseOptions, compilationOptions:=_compilationOptions, index:=index))
             End If
         End Function
 

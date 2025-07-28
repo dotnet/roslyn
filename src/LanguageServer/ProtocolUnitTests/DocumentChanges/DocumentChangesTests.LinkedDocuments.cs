@@ -17,14 +17,16 @@ public sealed partial class DocumentChangesTests
     {
         var documentText = "class C { }";
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{documentText}{{|caret:|}}</Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
-        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
-    </Project>
-</Workspace>";
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="C:\C.cs">{{documentText}}{|caret:|}</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+                    <Document IsLinkFile="true" LinkFilePath="C:\C.cs" LinkAssemblyName="CSProj1"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
         var caretLocation = testLspServer.GetLocations("caret").Single();
@@ -50,35 +52,29 @@ public sealed partial class DocumentChangesTests
     public async Task LinkedDocuments_AllTextChanged(bool mutatingLspWorkspace)
     {
         var initialText =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{initialText}</Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
-        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="C:\C.cs">{initialText}</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+                    <Document IsLinkFile="true" LinkFilePath="C:\C.cs" LinkAssemblyName="CSProj1"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-
-        var updatedText =
-@"class A
-{
-    void M()
-    {
-        // hi there
-    }
-}";
-
         await DidOpen(testLspServer, caretLocation.DocumentUri);
 
         Assert.Equal(1, testLspServer.GetTrackedTexts().Length);
@@ -89,7 +85,15 @@ public sealed partial class DocumentChangesTests
 
         foreach (var document in solution.Projects.First().Documents)
         {
-            Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Equal("""
+                class A
+                {
+                    void M()
+                    {
+                        // hi there
+                    }
+                }
+                """, document.GetTextSynchronously(CancellationToken.None).ToString());
         }
 
         await DidClose(testLspServer, caretLocation.DocumentUri);

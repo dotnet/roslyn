@@ -64,17 +64,19 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     public async Task TestDoesNotThrowInComplexEditWhenDisplayTextShorterThanDefaultSpanAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System;
-using System.Text;
+            """
 
-public class A
-{
-    public int M()
-    {
-        return{|caret:|}
-    }
-}";
+            using System;
+            using System.Text;
+
+            public class A
+            {
+                public int M()
+                {
+                    return{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
@@ -100,14 +102,16 @@ public class A
     {
         var markup = isInUsingStatement
             ? @"global using static Task{|caret:|}"
-            : @"
-class A
-{
-    void M()
-    {
-        Task{|caret:|}
-    }
-}";
+            : """
+
+            class A
+            {
+                void M()
+                {
+                    Task{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -174,25 +178,27 @@ class A
     public async Task TestImportCompletionForExtensionMethod(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-namespace NS2
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtensionMethod(this object o) => true;
-    }
-}
+            """
 
-namespace NS1
-{
-    class Program
-    {
-        void M(object o)
-        {
-            o.{|caret:|}
-        }
-    }
-}";
+            namespace NS2
+            {
+                public static class ExtensionClass
+                {
+                    public static bool ExtensionMethod(this object o) => true;
+                }
+            }
+
+            namespace NS1
+            {
+                class Program
+                {
+                    void M(object o)
+                    {
+                        o.{|caret:|}
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -255,9 +261,11 @@ namespace NS1
     public async Task TestResolveComplexEdit(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-/// <summ{|caret:|}
-class A { }";
+            """
+
+            /// <summ{|caret:|}
+            class A { }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
@@ -304,18 +312,20 @@ class A { }";
     public async Task TestSoftSelectionWhenFilterTextIsEmptyAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System;
-using System.Text;
+            """
 
-public class A
-{
-    public void M(string someText)
-    {
-        var x = new StringBuilder();
-        x.Append({|caret:|}
-    }
-}";
+            using System;
+            using System.Text;
+
+            public class A
+            {
+                public void M(string someText)
+                {
+                    var x = new StringBuilder();
+                    x.Append({|caret:|}
+                }
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
@@ -373,14 +383,16 @@ public class A
     public async Task TestPromotingDefaultCommitCharactersAsync(bool mutatingLspWorkspace, bool hasDefaultCommitCharCapability)
     {
         var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        item{|caret:|}
-    }
-}";
+            """
+            using System;
+            class A
+            {
+                void M()
+                {
+                    item{|caret:|}
+                }
+            }
+            """;
         var clientCapability = DefaultClientCapabilities;
         if (!hasDefaultCommitCharCapability)
         {
@@ -631,9 +643,11 @@ class A
     public async Task EditRangeShouldEndAtCursorPosition(bool mutatingLspWorkspace)
     {
         var markup =
-@"public class C1 {}
+            """
+            public class C1 {}
 
-pub{|caret:|}class";
+            pub{|caret:|}class
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
@@ -658,25 +672,27 @@ pub{|caret:|}class";
     public async Task TestResolveImportCompletionWithIdenticalLabel(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-namespace Namespace1
-{
-    class MyClass {}
-}
-namespace Namespace2
-{
-    class MyClass {}
-}
-namespace Program
-{
-    class A
-    {
-        void M()
-        {
-            MyClass{|caret:|}
-        }
-    }
-}";
+            """
+
+            namespace Namespace1
+            {
+                class MyClass {}
+            }
+            namespace Namespace2
+            {
+                class MyClass {}
+            }
+            namespace Program
+            {
+                class A
+                {
+                    void M()
+                    {
+                        MyClass{|caret:|}
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -727,16 +743,18 @@ namespace Program
     public async Task TestEmptyCommitCharsInSuggestionMode(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System.Collections.Generic;
-using System.Linq;
-public class C
-{
-    public Foo(List<int> myList)
-    {
-        var foo = myList.Where(i{|caret:|})
-    }
-}";
+            """
+
+            using System.Collections.Generic;
+            using System.Linq;
+            public class C
+            {
+                public Foo(List<int> myList)
+                {
+                    var foo = myList.Where(i{|caret:|})
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
@@ -813,15 +831,17 @@ public class C
     public async Task TestSoftSelectionForDiscardAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-public class A
-{
-    public void M()
-    {
-        var _someDiscard = 1;
-        _{|caret:|}
-    }
-}";
+            """
+
+            public class A
+            {
+                public void M()
+                {
+                    var _someDiscard = 1;
+                    _{|caret:|}
+                }
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
@@ -1049,15 +1069,17 @@ public class A
     public async Task FilteringShouldBeDoneByTextBeforeCursorLocation(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-public class Z
-{
-    public int M()
-    {
-        int ia, ib, ic, ifa, ifb, ifc; 
-        i{|caret:|}Exception
-    }
-}";
+            """
+
+            public class Z
+            {
+                public int M()
+                {
+                    int ia, ib, ic, ifa, ifb, ifc; 
+                    i{|caret:|}Exception
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
         await testLspServer.OpenDocumentAsync(caret.DocumentUri);

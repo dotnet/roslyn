@@ -9,8 +9,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -282,7 +284,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
                     case "attachdebugger":
-                        Debugger.Launch();
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            // Debugger.Launch() only works on Windows.
+                            _ = Debugger.Launch();
+                        }
+                        else
+                        {
+                            var timeout = TimeSpan.FromMinutes(2);
+                            Console.WriteLine($"Compiler started with process ID {Environment.ProcessId}");
+                            Console.WriteLine($"Waiting {timeout:g} for a debugger to attach");
+                            using var timeoutSource = new CancellationTokenSource(timeout);
+                            while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
+                            {
+                                Thread.Sleep(100);
+                            }
+                        }
                         continue;
 #endif
                 }

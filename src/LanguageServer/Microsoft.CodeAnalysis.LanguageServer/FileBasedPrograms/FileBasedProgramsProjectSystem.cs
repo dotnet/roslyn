@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -25,13 +24,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
-    private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
-        IMetadataAsSourceFileService metadataAsSourceFileService,
         VirtualProjectXmlProvider projectXmlProvider,
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
@@ -54,7 +51,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
-        _metadataAsSourceFileService = metadataAsSourceFileService;
         _projectXmlProvider = projectXmlProvider;
         _workspaceFactory = workspaceFactory;
     }
@@ -73,14 +69,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = GetDocumentFilePath(uri);
-
-        // https://github.com/dotnet/roslyn/issues/78421: MetadataAsSource should be its own workspace
-        if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, documentText.Container, out var documentId))
-        {
-            var metadataWorkspace = _metadataAsSourceFileService.TryGetWorkspace();
-            Contract.ThrowIfNull(metadataWorkspace);
-            return metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
-        }
 
         var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
         Contract.ThrowIfNull(primordialDoc.FilePath);
@@ -120,14 +108,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
+    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
         var documentPath = GetDocumentFilePath(uri);
-        if (removeFromMetadataWorkspace && _metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentPath))
-        {
-            return;
-        }
-
         await UnloadProjectAsync(documentPath);
     }
 
@@ -166,7 +149,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             // If it's a proper file based program, we'll put it in the main host workspace factory since we want cross-project references to work.
             // Otherwise, we'll keep it in miscellaneous files.
             ProjectFactory: isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-            HasAllInformation: isFileBasedProgram,
+            IsMiscellaneousFile: !isFileBasedProgram,
             Preferred: buildHostKind,
             Actual: buildHostKind);
     }

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Completion;
 /// </summary>
 public sealed class CompletionDescription
 {
-    private string? _text;
 
     /// <summary>
     /// The <see cref="CompletionDescription"/> used when there is no description.
@@ -63,12 +62,14 @@ public sealed class CompletionDescription
     {
         get
         {
-            if (_text == null)
+            if (field == null)
             {
-                Interlocked.CompareExchange(ref _text, string.Concat(TaggedParts.Select(p => p.Text)), null);
+                Interlocked.CompareExchange(ref field, string.Concat(TaggedParts.Select(p => p.Text)), null);
             }
 
-            return _text;
+            return field;
         }
+
+        private set;
     }
 }

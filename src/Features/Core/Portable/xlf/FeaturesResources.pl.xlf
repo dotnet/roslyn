@@ -450,6 +450,16 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana typów parametrów elementów {0} wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application">
+        <source>Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</source>
+        <target state="new">Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_setting_0_from_1_to_2_requires_restarting_the_application">
+        <source>Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</source>
+        <target state="new">Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
         <target state="translated">Zmiana atrybutu pseudoniestandardowego elementu „{0}” z {1} wymaga ponownego uruchomienia aplikacji</target>
@@ -1120,11 +1130,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">{0} musi zwrócić strumień, który obsługuje operacje odczytu i wyszukiwania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Method_0_must_be_static_and_non_generic">
-        <source>Method '{0}' must be static and non-generic</source>
-        <target state="translated">Metoda „{0}” musi być statyczna i nieogólna</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
         <target state="translated">Różne pliki</target>
@@ -1335,11 +1340,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Operatory</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
-        <source>Parameter type '{0}' is not among supported types: {1}</source>
-        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
         <target state="translated">Przed zmianą nazwy tego elementu napraw problemy występujące w kodzie.</target>
@@ -1348,6 +1348,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="translated">Wykryto prawdopodobnie ciąg JSON</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application">
+        <source>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</source>
+        <target state="new">Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties_not_allowed_in_an_array">
@@ -1394,11 +1399,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</source>
         <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
-      </trans-unit>
-      <trans-unit id="Query">
-        <source>Query</source>
-        <target state="translated">Zapytanie</target>
-        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
@@ -2605,11 +2605,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Rozpoznaj moduł: „{0}” z „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
-        <source>Return type '{0}' is not among supported types: {1}</source>
-        <target state="new">Return type '{0}' is not among supported types: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edycja reguły</target>
@@ -2637,22 +2632,12 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="translated">Wyszukiwanie semantyczne</target>
+        <target state="new">Semantic Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="translated">Wyszukiwanie semantyczne jest obsługiwane tylko wtedy, gdy analiza kodu jest uruchamiana w osobnym procesie na najnowszej platformie .NET (zobacz Narzędzia &gt; Opcje &gt; Edytor tekstów &gt; C# &gt; Zaawansowane).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Semantic_search_query_failed_to_compile">
-        <source>Semantic search query failed to compile</source>
-        <target state="translated">Nie można skompilować zapytania wyszukiwania semantycznego</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Semantic_search_query_terminated_with_exception">
-        <source>Semantic search query terminated with exception</source>
-        <target state="translated">Zapytanie wyszukiwania semantycznego zostało zakończone z wyjątkiem</target>
+        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2750,16 +2735,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="needs-review-translation">Zestaw analizatora „{0}” odwołuje się do wersji „{1}” kompilatora, która jest nowsza niż obecnie uruchomiona wersja „{2}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_query_does_not_specify_0_top_level_function">
-        <source>The query does not specify '{0}' top-level function</source>
-        <target state="new">The query does not specify '{0}' top-level function</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_query_specifies_multiple_top_level_functions_1">
-        <source>The query specifies multiple top-level functions '{1}'</source>
-        <target state="new">The query specifies multiple top-level functions '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">Zaznaczenie zawiera wywołanie funkcji lokalnej bez jego deklaracji.</target>
@@ -2800,11 +2775,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Zbyt wiele znaków )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
-      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
-        <source>Top-level function '{0}' must have a single parameter</source>
-        <target state="new">Top-level function '{0}' must have a single parameter</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Końcowy przecinek jest niedozwolony.</target>
@@ -2828,11 +2798,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Unable_to_get_the_directory_name_for_0">
         <source>Unable to get the directory name for {0}.</source>
         <target state="new">Unable to get the directory name for {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_load_type_0_1">
-        <source>Unable to load type '{0}': '{1}'</source>
-        <target state="translated">Nie można załadować typu „{0}”: „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -3626,6 +3591,11 @@ Jeśli specyfikator formatu „d” zostanie użyty bez innych indywidualnych sp
       <trans-unit id="day_of_the_week_full_description">
         <source>The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</source>
         <target state="translated">Indywidualny specyfikator formatu „dddd” (wraz z dowolną liczbą dodatkowych specyfikatorów „d”) reprezentuje pełną nazwę dnia tygodnia. Zlokalizowana nazwa dnia tygodnia jest pobierana z właściwości DateTimeFormatInfo.DayNames bieżącej lub określonej kultury.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default">
+        <source>default&gt;</source>
+        <target state="new">default&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">

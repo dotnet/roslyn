@@ -24,7 +24,9 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.CodeMappers.CSharp" Key="$(CopilotKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.LanguageServer" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Key="$(CopilotKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.Tests" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch.Tests" Key="$(CopilotKey)" />
   </ItemGroup>
 
   <ItemGroup>

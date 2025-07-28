@@ -105,9 +105,6 @@ public sealed class CompileTimeSolutionProviderTests
 
         var analyzerConfigId = DocumentId.CreateNewId(projectId);
         var additionalDocumentId = DocumentId.CreateNewId(projectId);
-
-        var analyzerConfigText = "is_global = true\r\nbuild_property.SuppressRazorSourceGenerator = true";
-
         workspace.SetCurrentSolution(s => s
             .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj", "proj", LanguageNames.CSharp))
             .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo(
@@ -115,7 +112,7 @@ public sealed class CompileTimeSolutionProviderTests
                 generatedFilesOutputDirectory: null))
             .AddAnalyzerReference(projectId, new TestGeneratorReference(generator))
             .AddAdditionalDocument(additionalDocumentId, "additional", SourceText.From(""), filePath: "additional.razor")
-            .AddAnalyzerConfigDocument(analyzerConfigId, "config", SourceText.From(analyzerConfigText), filePath: "Z:\\RazorSourceGenerator.razorencconfig"),
+            .AddAnalyzerConfigDocument(analyzerConfigId, "config", SourceText.From("is_global = true\r\nbuild_property.SuppressRazorSourceGenerator = true"), filePath: "Z:\\RazorSourceGenerator.razorencconfig"),
             WorkspaceChangeKind.SolutionAdded);
 
         // Fetch a compilation first for the base solution; we're doing this because currently if we try to move the

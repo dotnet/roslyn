@@ -21,235 +21,227 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyDiagnosticAsync()
         {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            DiagnosticResult[] expected =
+            [
+                GetCSharpExpectedDiagnostic(20, 13, unsupportedSymbolKind: SymbolKind.Alias),
+                GetCSharpExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
+                GetCSharpExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.Assembly),
+                GetCSharpExpectedDiagnostic(23, 13, unsupportedSymbolKind: SymbolKind.Discard),
+                GetCSharpExpectedDiagnostic(24, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
+                GetCSharpExpectedDiagnostic(25, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
+                GetCSharpExpectedDiagnostic(28, 13, unsupportedSymbolKind: SymbolKind.Label),
+                GetCSharpExpectedDiagnostic(29, 13, unsupportedSymbolKind: SymbolKind.Local),
+                GetCSharpExpectedDiagnostic(31, 13, unsupportedSymbolKind: SymbolKind.NetModule),
+                GetCSharpExpectedDiagnostic(35, 13, unsupportedSymbolKind: SymbolKind.PointerType),
+                GetCSharpExpectedDiagnostic(37, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
+                GetCSharpExpectedDiagnostic(38, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
+                GetCSharpExpectedDiagnostic(39, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
+            ];
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+            await VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterSymbolAction(AnalyzeSymbol,
-            SymbolKind.Alias,
-            SymbolKind.ArrayType,
-            SymbolKind.Assembly,
-            SymbolKind.Discard,
-            SymbolKind.DynamicType,
-            SymbolKind.ErrorType,
-            SymbolKind.Event,
-            SymbolKind.Field,
-            SymbolKind.Label,
-            SymbolKind.Local,
-            SymbolKind.Method,
-            SymbolKind.NetModule,
-            SymbolKind.NamedType,
-            SymbolKind.Namespace,
-            SymbolKind.Parameter,
-            SymbolKind.PointerType,
-            SymbolKind.Property,
-            SymbolKind.Preprocessing,
-            SymbolKind.RangeVariable,
-            SymbolKind.TypeParameter);
-    }
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context)
-    {
-    }
-}";
-            DiagnosticResult[] expected = new[]
-            {
-                GetCSharpExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.Alias),
-                GetCSharpExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
-                GetCSharpExpectedDiagnostic(23, 13, unsupportedSymbolKind: SymbolKind.Assembly),
-                GetCSharpExpectedDiagnostic(24, 13, unsupportedSymbolKind: SymbolKind.Discard),
-                GetCSharpExpectedDiagnostic(25, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
-                GetCSharpExpectedDiagnostic(26, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
-                GetCSharpExpectedDiagnostic(29, 13, unsupportedSymbolKind: SymbolKind.Label),
-                GetCSharpExpectedDiagnostic(30, 13, unsupportedSymbolKind: SymbolKind.Local),
-                GetCSharpExpectedDiagnostic(32, 13, unsupportedSymbolKind: SymbolKind.NetModule),
-                GetCSharpExpectedDiagnostic(36, 13, unsupportedSymbolKind: SymbolKind.PointerType),
-                GetCSharpExpectedDiagnostic(38, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
-                GetCSharpExpectedDiagnostic(39, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
-                GetCSharpExpectedDiagnostic(40, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
-            };
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterSymbolAction(AnalyzeSymbol,
+                            SymbolKind.Alias,
+                            SymbolKind.ArrayType,
+                            SymbolKind.Assembly,
+                            SymbolKind.Discard,
+                            SymbolKind.DynamicType,
+                            SymbolKind.ErrorType,
+                            SymbolKind.Event,
+                            SymbolKind.Field,
+                            SymbolKind.Label,
+                            SymbolKind.Local,
+                            SymbolKind.Method,
+                            SymbolKind.NetModule,
+                            SymbolKind.NamedType,
+                            SymbolKind.Namespace,
+                            SymbolKind.Parameter,
+                            SymbolKind.PointerType,
+                            SymbolKind.Property,
+                            SymbolKind.Preprocessing,
+                            SymbolKind.RangeVariable,
+                            SymbolKind.TypeParameter);
+                    }
 
-            await VerifyCS.VerifyAnalyzerAsync(source, expected);
+                    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+                    {
+                    }
+                }
+                """, expected);
         }
 
         [Fact]
         public async Task VisualBasic_VerifyRegisterSymbolActionDiagnosticAsync()
         {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+            DiagnosticResult[] expected =
+            [
+                GetBasicExpectedDiagnostic(17, 13, unsupportedSymbolKind: SymbolKind.Alias),
+                GetBasicExpectedDiagnostic(18, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
+                GetBasicExpectedDiagnostic(19, 13, unsupportedSymbolKind: SymbolKind.Assembly),
+                GetBasicExpectedDiagnostic(20, 13, unsupportedSymbolKind: SymbolKind.Discard),
+                GetBasicExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
+                GetBasicExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
+                GetBasicExpectedDiagnostic(25, 13, unsupportedSymbolKind: SymbolKind.Label),
+                GetBasicExpectedDiagnostic(26, 13, unsupportedSymbolKind: SymbolKind.Local),
+                GetBasicExpectedDiagnostic(28, 13, unsupportedSymbolKind: SymbolKind.NetModule),
+                GetBasicExpectedDiagnostic(32, 13, unsupportedSymbolKind: SymbolKind.PointerType),
+                GetBasicExpectedDiagnostic(34, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
+                GetBasicExpectedDiagnostic(35, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
+                GetBasicExpectedDiagnostic(36, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
+            ];
 
-<DiagnosticAnalyzer(LanguageNames.CSharp)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
+            await VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        context.RegisterSymbolAction(AddressOf AnalyzeSymbol,
-            SymbolKind.Alias,
-            SymbolKind.ArrayType,
-            SymbolKind.Assembly,
-            SymbolKind.Discard,
-            SymbolKind.DynamicType,
-            SymbolKind.ErrorType,
-            SymbolKind.Event,
-            SymbolKind.Field,
-            SymbolKind.Label,
-            SymbolKind.Local,
-            SymbolKind.Method,
-            SymbolKind.NetModule,
-            SymbolKind.NamedType,
-            SymbolKind.Namespace,
-            SymbolKind.Parameter,
-            SymbolKind.PointerType,
-            SymbolKind.Property,
-            SymbolKind.Preprocessing,
-            SymbolKind.RangeVariable,
-            SymbolKind.TypeParameter)
-    End Sub
+                <DiagnosticAnalyzer(LanguageNames.CSharp)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException()
+                        End Get
+                    End Property
 
-    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-    End Sub
-End Class
-";
-            DiagnosticResult[] expected = new[]
-            {
-                GetBasicExpectedDiagnostic(18, 13, unsupportedSymbolKind: SymbolKind.Alias),
-                GetBasicExpectedDiagnostic(19, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
-                GetBasicExpectedDiagnostic(20, 13, unsupportedSymbolKind: SymbolKind.Assembly),
-                GetBasicExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.Discard),
-                GetBasicExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.DynamicType),
-                GetBasicExpectedDiagnostic(23, 13, unsupportedSymbolKind: SymbolKind.ErrorType),
-                GetBasicExpectedDiagnostic(26, 13, unsupportedSymbolKind: SymbolKind.Label),
-                GetBasicExpectedDiagnostic(27, 13, unsupportedSymbolKind: SymbolKind.Local),
-                GetBasicExpectedDiagnostic(29, 13, unsupportedSymbolKind: SymbolKind.NetModule),
-                GetBasicExpectedDiagnostic(33, 13, unsupportedSymbolKind: SymbolKind.PointerType),
-                GetBasicExpectedDiagnostic(35, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
-                GetBasicExpectedDiagnostic(36, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
-                GetBasicExpectedDiagnostic(37, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
-            };
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                        context.RegisterSymbolAction(AddressOf AnalyzeSymbol,
+                            SymbolKind.Alias,
+                            SymbolKind.ArrayType,
+                            SymbolKind.Assembly,
+                            SymbolKind.Discard,
+                            SymbolKind.DynamicType,
+                            SymbolKind.ErrorType,
+                            SymbolKind.Event,
+                            SymbolKind.Field,
+                            SymbolKind.Label,
+                            SymbolKind.Local,
+                            SymbolKind.Method,
+                            SymbolKind.NetModule,
+                            SymbolKind.NamedType,
+                            SymbolKind.Namespace,
+                            SymbolKind.Parameter,
+                            SymbolKind.PointerType,
+                            SymbolKind.Property,
+                            SymbolKind.Preprocessing,
+                            SymbolKind.RangeVariable,
+                            SymbolKind.TypeParameter)
+                    End Sub
 
-            await VerifyVB.VerifyAnalyzerAsync(source, expected);
+                    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+                    End Sub
+                End Class
+                """, expected);
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
 
-    public override void Initialize(AnalysisContext context)
-    {
-        // Valid symbol kinds.
-        context.RegisterSymbolAction(AnalyzeSymbol,
-            SymbolKind.Event,
-            SymbolKind.Field,
-            SymbolKind.Method,
-            SymbolKind.NamedType,
-            SymbolKind.Namespace,
-            SymbolKind.Property);
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        // Valid symbol kinds.
+                        context.RegisterSymbolAction(AnalyzeSymbol,
+                            SymbolKind.Event,
+                            SymbolKind.Field,
+                            SymbolKind.Method,
+                            SymbolKind.NamedType,
+                            SymbolKind.Namespace,
+                            SymbolKind.Property);
 
-        // Overload resolution failure
-        context.RegisterSymbolAction({|CS1503:AnalyzeSyntax|},
-            SymbolKind.Event,
-            SymbolKind.Field,
-            SymbolKind.Method,
-            SymbolKind.NamedType,
-            SymbolKind.Namespace,
-            SymbolKind.Property);
-    }
+                        // Overload resolution failure
+                        context.RegisterSymbolAction({|CS1503:AnalyzeSyntax|},
+                            SymbolKind.Event,
+                            SymbolKind.Field,
+                            SymbolKind.Method,
+                            SymbolKind.NamedType,
+                            SymbolKind.Namespace,
+                            SymbolKind.Property);
+                    }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context)
-    {
-    }
+                    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+                    {
+                    }
 
-    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-    {
-    }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
-        }
+                    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+                    {
+                    }
+                }
+                """);
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.CSharp)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
+                <DiagnosticAnalyzer(LanguageNames.CSharp)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException()
+                        End Get
+                    End Property
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        
-        ' Valid symbol kinds
-        context.RegisterSymbolAction(AddressOf AnalyzeSymbol,
-            SymbolKind.Event,
-            SymbolKind.Field,
-            SymbolKind.Method,
-            SymbolKind.NamedType,
-            SymbolKind.Namespace,
-            SymbolKind.Property)
+                    Public Overrides Sub Initialize(context As AnalysisContext)
 
-        ' Overload resolution failure
-        context.{|BC30518:RegisterSymbolAction|}(AddressOf AnalyzeSyntax,
-            SymbolKind.Alias)
-    End Sub
+                        ' Valid symbol kinds
+                        context.RegisterSymbolAction(AddressOf AnalyzeSymbol,
+                            SymbolKind.Event,
+                            SymbolKind.Field,
+                            SymbolKind.Method,
+                            SymbolKind.NamedType,
+                            SymbolKind.Namespace,
+                            SymbolKind.Property)
 
-    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-    End Sub
+                        ' Overload resolution failure
+                        context.{|BC30518:RegisterSymbolAction|}(AddressOf AnalyzeSyntax,
+                            SymbolKind.Alias)
+                    End Sub
 
-    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
-    End Sub
-End Class
-";
+                    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+                    End Sub
 
-            await VerifyVB.VerifyAnalyzerAsync(source);
-        }
+                    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
+                    End Sub
+                End Class
+                """);
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
 #pragma warning disable RS0030 // Do not use banned APIs

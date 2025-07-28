@@ -20,16 +20,16 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         private readonly ImmutableArray<string> _capabilities = capabilities;
 
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+            => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
         public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
+            => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_capabilities);
+            => ValueTask.FromResult(_capabilities);
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
-            => ValueTaskFactory.CompletedTask;
+            => ValueTask.CompletedTask;
     }
 
     public readonly struct Update(
@@ -49,10 +49,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-        (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
-
-    private static readonly ImmutableArray<Update> EmptyUpdate = [];
-    private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = [];
+        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
     private DebuggingSessionId _sessionId;
@@ -95,10 +92,10 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
         var results = await _encService
-            .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_solutionActiveStatementSpanProvider, cancellationToken)
+            .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_solutionActiveStatementSpanProvider, cancellationToken)
             .ConfigureAwait(false);
 
-        if (!results.ModuleUpdates.Updates.IsEmpty)
+        if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
         {
             if (commitUpdates)
             {
@@ -110,11 +107,10 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
             }
         }
 
-        if (results.SyntaxError is not null)
+        var diagnostics = results.GetAllDiagnostics();
+        if (diagnostics.HasAnyErrors())
         {
-            // We do not need to acquire any updates or other
-            // diagnostics if there is a syntax error.
-            return (EmptyUpdate, EmptyDiagnostic.Add(results.SyntaxError));
+            return ([], diagnostics);
         }
 
         var updates = results.ModuleUpdates.Updates.SelectAsArray(
@@ -125,8 +121,6 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
                 update.PdbDelta,
                 update.UpdatedMethods,
                 update.UpdatedTypes));
-
-        var diagnostics = results.GetAllDiagnostics();
 
         return (updates, diagnostics);
     }

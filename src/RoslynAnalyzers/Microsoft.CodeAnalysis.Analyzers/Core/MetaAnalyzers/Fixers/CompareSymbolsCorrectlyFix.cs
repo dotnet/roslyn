@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     public abstract class CompareSymbolsCorrectlyFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(DiagnosticIds.CompareSymbolsCorrectlyRuleId);
+            [DiagnosticIds.CompareSymbolsCorrectlyRuleId];
 
         protected abstract SyntaxNode CreateConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
 
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     ? CreateConditionalAccessExpression(conditionalAccessMembers[1], conditionalAccessMembers[0])
                     : conditionalAccessMembers[0];
 
-                for (int i = 2; i < conditionalAccessMembers.Count - 1; i++)
+                for (var i = 2; i < conditionalAccessMembers.Count - 1; i++)
                 {
                     currentExpression = CreateConditionalAccessExpression(conditionalAccessMembers[i], currentExpression);
                 }
