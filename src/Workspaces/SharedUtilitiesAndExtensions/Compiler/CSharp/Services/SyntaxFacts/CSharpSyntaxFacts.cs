@@ -1665,6 +1665,13 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         closeParen = parenthesizedExpression.CloseParenToken;
     }
 
+    public void GetPartsOfPostfixUnaryExpression(SyntaxNode node, out SyntaxNode operand, out SyntaxToken operatorToken)
+    {
+        var prefixUnaryExpression = (PostfixUnaryExpressionSyntax)node;
+        operand = prefixUnaryExpression.Operand;
+        operatorToken = prefixUnaryExpression.OperatorToken;
+    }
+
     public void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)
     {
         var prefixUnaryExpression = (PrefixUnaryExpressionSyntax)node;

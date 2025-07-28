@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,6 +22,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
 {
+    private static readonly SyntaxAnnotation s_annotation = new();
+
     protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
         QuickInfoContext context, SyntaxToken token)
     {
@@ -186,6 +190,60 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
+    private (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(
+        SolutionServices services, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, CancellationToken cancellationToken)
+    {
+        var languageServices = services.GetLanguageServices(semanticModel.Language);
+        var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
+
+        var bindableParent = syntaxFacts.TryGetBindableParent(token);
+        if (bindableParent is null)
+            return default;
+
+        return TryGetNullabilityAnalysisForSuppressedExpression(out var analysis)
+            ? analysis
+            : GetNullabilityAnalysis(semanticModel, symbol, bindableParent, cancellationToken);
+
+        bool TryGetNullabilityAnalysisForSuppressedExpression(out (NullableAnnotation, NullableFlowState) analysis)
+        {
+            analysis = default;
+
+            // Look to see if we're inside a suppression (e.g. `expr!`).  The suppression changes the nullability analysis,
+            // and we don't actually want that here as we want to show the original nullability prior to the suppression applying.
+            //
+            // In that case, actually fork the semantic model with the `!` removed and then re-bind the token, getting the 
+            // analysis results from that.
+            var parentSuppression = token.GetRequiredParent().GetAncestorsOrThis<SyntaxNode>().FirstOrDefault(
+                node => syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression == node.RawKind);
+            if (parentSuppression is null)
+                return false;
+
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var newRoot = root.ReplaceNode(
+                parentSuppression,
+                syntaxFacts
+                    .GetOperandOfPostfixUnaryExpression(parentSuppression)
+                    .ReplaceToken(token, token.WithAdditionalAnnotations(s_annotation)));
+
+            var newTree = semanticModel.SyntaxTree.WithRootAndOptions(newRoot, semanticModel.SyntaxTree.Options);
+            var newToken = newTree.GetRoot(cancellationToken).GetAnnotatedTokens(s_annotation).Single();
+
+            var newBindableParent = syntaxFacts.TryGetBindableParent(newToken);
+            if (newBindableParent is null)
+                return false;
+
+            var newCompilation = semanticModel.Compilation.ReplaceSyntaxTree(semanticModel.SyntaxTree, newTree);
+            semanticModel = newCompilation.GetSemanticModel(newTree);
+
+            var symbols = BindSymbols(services, semanticModel, newToken, cancellationToken);
+            if (symbols.IsEmpty)
+                return false;
+
+            analysis = GetNullabilityAnalysis(semanticModel, symbols[0], newBindableParent, cancellationToken);
+            return true;
+        }
+    }
+
     protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
         => default;
 
@@ -230,14 +288,11 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var languageServices = services.GetLanguageServices(semanticModel.Language);
         var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
 
-        var bindableParent = syntaxFacts.TryGetBindableParent(token);
-
         if (filteredSymbols is [var firstSymbol, ..])
         {
             var isAwait = syntaxFacts.IsAwaitKeyword(token);
-            var nullabilityInfo = bindableParent != null
-                ? GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken)
-                : default;
+            var nullabilityInfo = GetNullabilityAnalysis(
+                services, semanticModel, firstSymbol, token, cancellationToken);
 
             return new TokenInformation(filteredSymbols, isAwait, nullabilityInfo);
         }
