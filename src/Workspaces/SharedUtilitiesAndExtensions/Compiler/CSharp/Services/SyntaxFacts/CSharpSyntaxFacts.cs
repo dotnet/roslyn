@@ -1667,9 +1667,9 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
     public void GetPartsOfPostfixUnaryExpression(SyntaxNode node, out SyntaxNode operand, out SyntaxToken operatorToken)
     {
-        var prefixUnaryExpression = (PostfixUnaryExpressionSyntax)node;
-        operand = prefixUnaryExpression.Operand;
-        operatorToken = prefixUnaryExpression.OperatorToken;
+        var postfixUnaryExpression = (PostfixUnaryExpressionSyntax)node;
+        operand = postfixUnaryExpression.Operand;
+        operatorToken = postfixUnaryExpression.OperatorToken;
     }
 
     public void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)

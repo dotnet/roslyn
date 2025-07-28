@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -213,17 +214,30 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             //
             // In that case, actually fork the semantic model with the `!` removed and then re-bind the token, getting the 
             // analysis results from that.
-            var parentSuppression = token.GetRequiredParent().GetAncestorsOrThis<SyntaxNode>().FirstOrDefault(
-                node => syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression == node.RawKind);
+            var tokenParent = token.GetRequiredParent();
+            var parentSuppression = GetOuterSuppression(tokenParent);
             if (parentSuppression is null)
                 return false;
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var newRoot = root.ReplaceNode(
-                parentSuppression,
-                syntaxFacts
-                    .GetOperandOfPostfixUnaryExpression(parentSuppression)
-                    .ReplaceToken(token, token.WithAdditionalAnnotations(s_annotation)));
+
+            var editor = new SyntaxEditor(root, services);
+            // First, mark the token, so we can find it later.
+            editor.ReplaceNode(
+                tokenParent, tokenParent.ReplaceToken(token, token.WithAdditionalAnnotations(s_annotation)));
+
+            // Now walk upwards, removing all the suppressions until we hit the top of the suppression chain.
+            for (var currentSuppression = parentSuppression;
+                 currentSuppression is not null;
+                 currentSuppression = GetOuterSuppression(currentSuppression))
+            {
+                editor.ReplaceNode(
+                    currentSuppression,
+                    (current, _) => syntaxFacts.GetOperandOfPostfixUnaryExpression(current));
+            }
+
+            // Now fork the semantic model with the new root that has the suppressions removed.
+            var newRoot = editor.GetChangedRoot();
 
             var newTree = semanticModel.SyntaxTree.WithRootAndOptions(newRoot, semanticModel.SyntaxTree.Options);
             var newToken = newTree.GetRoot(cancellationToken).GetAnnotatedTokens(s_annotation).Single();
@@ -241,6 +255,9 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
             analysis = GetNullabilityAnalysis(semanticModel, symbols[0], newBindableParent, cancellationToken);
             return true;
+
+            SyntaxNode? GetOuterSuppression(SyntaxNode node)
+                => node.Ancestors().FirstOrDefault(a => a.RawKind == syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression);
         }
     }
 
