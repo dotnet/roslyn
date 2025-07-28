@@ -75,8 +75,8 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSortedDictiona
 
     public SourceGeneratorExecutionVersion this[ProjectId projectId] => Map[projectId];
 
-    public static bool operator ==(SourceGeneratorExecutionVersionMap map1, SourceGeneratorExecutionVersionMap map2)
-        => map1.Map == map2.Map;
+    public static bool operator ==(SourceGeneratorExecutionVersionMap? map1, SourceGeneratorExecutionVersionMap? map2)
+        => map1?.Map == map2?.Map;
 
     public static bool operator !=(SourceGeneratorExecutionVersionMap map1, SourceGeneratorExecutionVersionMap map2)
         => !(map1 == map2);
