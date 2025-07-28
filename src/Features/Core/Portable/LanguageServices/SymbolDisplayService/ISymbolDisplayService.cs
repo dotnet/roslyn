@@ -20,10 +20,10 @@ internal static class ISymbolDisplayServiceExtensions
 {
     extension(ISymbolDisplayService service)
     {
-        public Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
+        public Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDescriptionOptions options, SymbolDescriptionGroups groups = SymbolDescriptionGroups.All, CancellationToken cancellationToken = default)
             => service.ToDescriptionStringAsync(semanticModel, position, [symbol], options, groups, cancellationToken);
 
-        public async Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
+        public async Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, SymbolDescriptionGroups groups = SymbolDescriptionGroups.All, CancellationToken cancellationToken = default)
         {
             var parts = await service.ToDescriptionPartsAsync(semanticModel, position, symbols, options, groups, cancellationToken).ConfigureAwait(false);
             return parts.ToDisplayString();
