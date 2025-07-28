@@ -350,7 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute | ReservedAttributes.TupleElementNamesAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.NullableAttribute
+                | ReservedAttributes.NativeIntegerAttribute
+                | ReservedAttributes.TupleElementNamesAttribute
+                | ReservedAttributes.ExtensionMarkerNameAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))

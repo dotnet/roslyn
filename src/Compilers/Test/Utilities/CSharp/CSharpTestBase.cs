@@ -876,6 +876,20 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        internal static readonly string ExtensionMarkerNameAttributeDefinition = """
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, Inherited = false)]
+    public sealed class ExtensionMarkerNameAttribute : Attribute
+    {
+        public ExtensionMarkerNameAttribute(string name)
+            => Name = name;
+
+        public string Name { get; }
+    }
+}
+""";
+
         #region A string containing expression-tree dumping utilities
         protected static readonly string ExpressionTestLibrary = """
 using System;

@@ -2659,7 +2659,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         CompileAndVerify(comp, expectedOutput: "M 3").VerifyDiagnostics();
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PEMethodSymbol_GetUseSiteInfo()
     {
         // missing implementation method for M
@@ -2668,23 +2668,33 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
         var src = """
 int.M();
 """;
@@ -2725,7 +2735,7 @@ object.M();
         AssertExtensionDeclaration(extension.GetPublicSymbol());
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Theory]
     [InlineData("public")]
     [InlineData("assembly")]
     [InlineData("family")]
@@ -2737,17 +2747,26 @@ object.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
-
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -2755,71 +2774,24 @@ object.M();
 
     .method public hidebysig static void M () cil managed 
     {
-        IL_0000: nop
-        IL_0001: ret
+        IL_0000: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
         var comp = CreateCompilationWithIL(src, ilSrc);
-        comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
-            // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "int.M()");
-        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+        Assert.Equal("void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
-    public void PENamedTypeSymbol_02()
-    {
-        // Accessibility of extension marker is not private, instance extension method
-        var ilSrc = $$"""
-.class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
-{
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
-    {
-        .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-        {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
-        }
-
-        .method public hidebysig instance void M () cil managed 
-        {
-            IL_0000: ldnull
-            IL_0001: throw
-        }
-    }
-
-    .method public hidebysig static void M ( int32 i ) cil managed 
-    {
-        IL_0000: nop
-        IL_0001: ret
-    }
-}
-""";
-        var src = """
-42.M();
-""";
-        var comp = CreateCompilationWithIL(src, ilSrc);
-        comp.VerifyEmitDiagnostics(
-            // (1,4): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-            // 42.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 4));
-    }
-
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_03()
     {
         // Extension marker method is generic
@@ -2828,17 +2800,27 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -2850,7 +2832,7 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
         var src = """
 int.M();
 """;
@@ -2861,7 +2843,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void PENamedTypeSymbol_04()
     {
         // Extension marker method is not static
@@ -2870,17 +2852,26 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
-
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -2888,11 +2879,11 @@ int.M();
 
     .method public hidebysig static void M () cil managed 
     {
-        IL_0000: nop
-        IL_0001: ret
+        IL_0000: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -2903,7 +2894,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_05()
     {
         // Extension marker doesn't return void
@@ -2912,18 +2903,28 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ldc.i4.0
-            IL_0001: ret
+            .method public hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ldc.i4.0
+                IL_0001: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -2935,7 +2936,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -2946,7 +2948,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void PENamedTypeSymbol_06()
     {
         // Extension marker lacks its parameter
@@ -2955,17 +2957,27 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' () cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' () cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -2977,7 +2989,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -2988,7 +3001,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void PENamedTypeSymbol_07()
     {
         // Extension marker has an extra parameter
@@ -2997,17 +3010,27 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3019,7 +3042,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3030,27 +3054,38 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_08()
     {
         // No containing type
         var ilSrc = """
-.class public auto ansi sealed specialname beforefieldinit '<>E__0'
+.class public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
     extends [mscorlib]System.Object
 {
-    .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
     {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-        IL_0000: ret
+        .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
     }
 
     .method public hidebysig static void M () cil managed 
     {
+        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+            43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+            30 36 32 46 35 39 45 44 34 44 36 39 00 00
+        )
         IL_0000: ldnull
         IL_0001: throw
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3060,36 +3095,45 @@ int.M();
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
 
-        var extension = comp.GlobalNamespace.GetTypeMember("<>E__0");
-        Assert.True(extension.IsExtension);
+        var extension = comp.GlobalNamespace.GetTypeMember("<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69");
+        Assert.False(extension.IsExtension);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void PENamedTypeSymbol_09()
     {
-        // Two extension markers
+        // Two extension marker methods
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
-        }
-
-        .method private hidebysig specialname static void '<Extension>$' ( string '' ) cil managed 
-        {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+             .method public hidebysig specialname static void '<Extension>$' ( string s ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3101,7 +3145,7 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
         var src = """
 int.M();
 """;
@@ -3112,26 +3156,36 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_10()
     {
-        // Arity mismatch between skeleton and implementation
+        // Arity mismatch between extension member and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3143,7 +3197,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3154,26 +3209,36 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_11()
     {
-        // Accessibility mismatch between skeleton and implementation
+        // Accessibility mismatch between extension and implementation members
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3185,7 +3250,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3196,38 +3262,49 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_12()
     {
-        // parameter count mismatch between skeleton and implementation
+        // parameter count mismatch between extension and implementation members
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
     }
 
-    .method public hidebysig static void M (string s) cil managed 
+    .method public hidebysig static void M ( string s ) cil managed 
     {
         IL_0000: nop
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3238,26 +3315,36 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_13()
     {
-        // return type mismatch between skeleton and implementation
+        // return type mismatch between extension and implementation members
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3265,11 +3352,11 @@ int.M();
 
     .method public hidebysig static int32 M () cil managed 
     {
-        IL_0000: nop
-        IL_0001: ret
+        IL_0000: ldnull
+        IL_0001: throw
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
         var src = """
 int.M();
 """;
@@ -3280,7 +3367,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_14()
     {
         // parameter type mismatch, instance method
@@ -3289,17 +3376,27 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig instance void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3311,7 +3408,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 42.M();
 """;
@@ -3322,7 +3420,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 4));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_15()
     {
         // parameter type mismatch, instance method
@@ -3331,17 +3429,27 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig instance void M ( string s ) cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3353,7 +3461,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 42.M();
 """;
@@ -3364,26 +3473,36 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M(string)").WithLocation(1, 4));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_16()
     {
-        // constraint mismatch between skeleton and implementation
+        // constraint mismatch between extension and implementation members
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M<T> () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3395,7 +3514,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3406,7 +3526,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M<T>()").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_17()
     {
         // implementation is not static
@@ -3415,17 +3535,27 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3433,11 +3563,11 @@ int.M();
 
     .method public hidebysig instance void M () cil managed 
     {
-        IL_0000: nop
-        IL_0001: ret
+        IL_0000: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3448,26 +3578,36 @@ int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void PENamedTypeSymbol_18()
     {
-        // skeleton type is not sealed
+        // grouping type is not sealed
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3475,11 +3615,11 @@ int.M();
 
     .method public hidebysig static void M () cil managed 
     {
-        IL_0000: nop
-        IL_0001: ret
+        IL_0000: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3492,28 +3632,38 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Theory]
     [InlineData("assembly")]
     [InlineData("family")]
     public void PENamedTypeSymbol_19(string accessibility)
     {
-        // skeleton type is not public
+        // grouping type is not public
         var ilSrc = $$"""
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested {{accessibility}} auto ansi specialname beforefieldinit sealed '<>E__0'
+    .class nested {{accessibility}} auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3525,7 +3675,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3538,70 +3689,36 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
-    public void PENamedTypeSymbol_20()
-    {
-        // skeleton type not sealed
-        var ilSrc = """
-.class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
-{
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi specialname beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
-    {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-        {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
-        }
-
-        .method public hidebysig static void M () cil managed 
-        {
-            IL_0000: ldnull
-            IL_0001: throw
-        }
-    }
-
-    .method public hidebysig static void M () cil managed 
-    {
-        IL_0000: nop
-        IL_0001: ret
-    }
-}
-""";
-        var src = """
-int.M();
-""";
-        var comp = CreateCompilationWithIL(src, ilSrc);
-        comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
-            // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
-
-        Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
-    }
-
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void PENamedTypeSymbol_21()
     {
-        // skeleton type has a base that's not object
+        // grouping type has a base that's not object
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.String
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3613,7 +3730,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3626,27 +3744,37 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void PENamedTypeSymbol_22()
     {
-        // skeleton type implements an interface
+        // grouping type implements an interface
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
         implements I
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3662,7 +3790,8 @@ int.M();
 .class interface private auto ansi abstract beforefieldinit I
 {
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3675,7 +3804,7 @@ int.M();
         Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void PENamedTypeSymbol_23()
     {
         // parameter type mismatch, static method
@@ -3684,17 +3813,27 @@ int.M();
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
 
         .method public hidebysig static void M ( string s ) cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
@@ -3706,7 +3845,8 @@ int.M();
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int.M();
 """;
@@ -3715,6 +3855,689 @@ int.M();
             // (1,5): error CS0570: 'E.extension(int).M(string)' is not supported by the language
             // int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M(string)").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_24()
+    {
+        // attributes on grouping and marker types or marker method are not loaded
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void MyAttribute::.ctor() = ( 01 00 00 00 )
+
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
+        {
+            .custom instance void MyAttribute::.ctor() = ( 01 00 00 00 )
+
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void MyAttribute::.ctor() = ( 01 00 00 00 )
+
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+}
+
+.class public auto ansi beforefieldinit MyAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+} 
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics();
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ToTestDisplayString());
+        AssertEx.SetEqual([], extension.GetAttributes().Select(a => a.ToString()));
+        Assert.Equal("", extension.Name);
+        AssertEx.Equal("<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.MetadataName);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_25()
+    {
+        var libSrc = """
+public static class E
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        AssertEx.Equal("E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", extension.ToTestDisplayString());
+        Assert.Equal("", extension.Name);
+        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", extension.MetadataName);
+        Assert.False(extension.MangleName);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_26()
+    {
+        // marker type has different arity than grouping type
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$2789E59A55056F0AD9E820EBD5BCDFBF'<T, U>
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( !T '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 32 37 38 39
+                45 35 39 41 35 35 30 35 36 46 30 41 44 39 45 38
+                32 30 45 42 44 35 42 43 44 46 42 46 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+
+    .method public hidebysig static void M<T> () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.Empty(comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_27()
+    {
+        // marker type has different type constraints than grouping type
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$2789E59A55056F0AD9E820EBD5BCDFBF'<class T>
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( !T '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 32 37 38 39
+                45 35 39 41 35 35 30 35 36 46 30 41 44 39 45 38
+                32 30 45 42 44 35 42 43 44 46 42 46 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+
+    .method public hidebysig static void M<T> () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension<T>(T).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension<T>(T).M()").WithLocation(1, 5));
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_28()
+    {
+        // implementation method has different type constraints than grouping and marker type
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$2789E59A55056F0AD9E820EBD5BCDFBF'<T>
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( !T '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 32 37 38 39
+                45 35 39 41 35 35 30 35 36 46 30 41 44 39 45 38
+                32 30 45 42 44 35 42 43 44 46 42 46 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+
+    .method public hidebysig static void M<class T> () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension<T>(T).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension<T>(T).M()").WithLocation(1, 5));
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_29()
+    {
+        // nested types in grouping and marker types not loaded
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+
+            .class nested public auto ansi beforefieldinit Nested1
+                extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+                {
+                    IL_0000: ldnull
+                    IL_0001: throw
+                }
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+
+        .class nested public auto ansi beforefieldinit Nested2
+            extends System.Object
+        {
+            .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+            {
+                IL_0000: ldnull
+                IL_0001: throw
+            }
+        }
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        Assert.Empty(extension.GetTypeMembers());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_30()
+    {
+        // fields in grouping and marker types not loaded
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+
+            .field public static int32 'field'
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+
+        .field public static int32 'field'
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        AssertEx.Equal(["void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], extension.GetMembers().ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_31()
+    {
+        // method from grouping or marker type not loaded
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+
+            .method public hidebysig static void Method1 () cil managed 
+            {
+                IL_0000: ret
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+
+        .method public hidebysig static void Method2 () cil managed 
+        {
+            IL_0000: ret
+        }
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig static void Method1 () cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig static void Method2 () cil managed 
+    {
+        IL_0000: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+int.Method1();
+int.Method2();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0117: 'int' does not contain a definition for 'Method1'
+            // int.Method1();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method1").WithArguments("int", "Method1").WithLocation(2, 5),
+            // (3,5): error CS0117: 'int' does not contain a definition for 'Method2'
+            // int.Method2();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method2").WithArguments("int", "Method2").WithLocation(3, 5));
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        AssertEx.Equal(["void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], extension.GetMembers().ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_32()
+    {
+        // property in grouping or marker type not loaded
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+
+            .method public hidebysig specialname static int32 get_P1 () cil managed 
+            {
+                IL_0000: ldc.i4.0
+                IL_0001: ret
+            }
+
+            .property int32 P1()
+            {
+                .get int32 E::get_P1()
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+
+        .method public hidebysig specialname static int32 get_P2 () cil managed 
+        {
+            IL_0000: ldc.i4.0
+            IL_0001: ret
+        }
+
+        .property int32 P2()
+        {
+            .get int32 E::get_P2()
+        }
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig static int32 get_P1 () cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig static int32 get_P2 () cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    } 
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+_ = int.P1;
+_ = int.P2;
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,9): error CS0117: 'int' does not contain a definition for 'P1'
+            // _ = int.P1;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P1").WithArguments("int", "P1").WithLocation(2, 9),
+            // (3,9): error CS0117: 'int' does not contain a definition for 'P2'
+            // _ = int.P2;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P2").WithArguments("int", "P2").WithLocation(3, 9));
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        AssertEx.Equal(["void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], extension.GetMembers().ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_33()
+    {
+        // event from grouping or marker type not loaded
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+
+            .method public hidebysig specialname static void add_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+            {
+                IL_0000: ret
+            }
+
+            .method public hidebysig specialname static void remove_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+            {
+                IL_0000: ret
+            }
+
+            .event [mscorlib]System.Action Event1
+            {
+                .addon void E::add_Event1(class [mscorlib]System.Action)
+                .removeon void E::remove_Event1(class [mscorlib]System.Action)
+            }
+        }
+
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+
+        .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+        {
+            IL_0000: ret
+        }
+
+        .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+        {
+            IL_0000: ret
+        }
+
+        .event [mscorlib]System.Action Event2
+        {
+            .addon void E::add_Event2(class [mscorlib]System.Action)
+            .removeon void E::remove_Event2(class [mscorlib]System.Action)
+        }
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname static void add_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname static void remove_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+    {
+        IL_0000: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+int.Event1 += (System.Action)null;
+int.Event2 += (System.Action)null;
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0117: 'int' does not contain a definition for 'Event1'
+            // int.Event1 += (System.Action)null;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Event1").WithArguments("int", "Event1").WithLocation(2, 5),
+            // (3,5): error CS0117: 'int' does not contain a definition for 'Event2'
+            // int.Event2 += (System.Action)null;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Event2").WithArguments("int", "Event2").WithLocation(3, 5));
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        AssertEx.Equal(["void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], extension.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -21870,11 +22693,38 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T>(T?)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<T>(T?)", extension.ComputeExtensionMarkerRawName());
+    }
+
+    /// <summary>Validates that the extension block was properly round-tripped (we didn't lose any details about type parameters, constraints or extension parameter).</summary>
+    /// <remarks>This does not include the extension parameter name or attributes. Use <paramref name="extraValidator"/> for that.</remarks>
+    private CompilationVerifier CompileAndVerifyAndValidate(CSharpCompilation comp, string expected, Action<ModuleSymbol> extraValidator = null, Verification verify = default)
+    {
+        return CompileAndVerify(comp,
+            sourceSymbolValidator: m => validate(m, expected, extraValidator),
+            symbolValidator: m => validate(m, expected, extraValidator),
+            verify: verify);
+
+        static void validate(ModuleSymbol module, string expected, Action<ModuleSymbol> extraValidator)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+
+            SymbolDisplayFormat format = SymbolDisplayFormat.TestFormatWithConstraints
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+
+            AssertEx.Equal(expected, extension.ToDisplayString(format));
+
+            if (extraValidator is not null)
+            {
+                extraValidator(module);
+            }
+        }
     }
 
     [Fact]
@@ -21892,11 +22742,18 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T>(T)";
+        CompileAndVerifyAndValidate(comp, expected, validate).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<T>(T!)", extension.ComputeExtensionMarkerRawName());
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            Assert.Equal(NullableAnnotation.NotAnnotated, extension.ExtensionParameter.TypeWithAnnotations.NullableAnnotation);
+        }
     }
 
     [Fact]
@@ -21918,7 +22775,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T>(T)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
@@ -21946,7 +22804,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T>((System.String?, T?, System.String!, T!, System.String, T)) where T : class!";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<class>(System.ValueTuple`6<System.String, !0, System.String, !0, System.String, !0>)", extension.ComputeExtensionGroupingRawName());
@@ -21974,11 +22833,21 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T>((T?, T, T))";
+        CompileAndVerifyAndValidate(comp, expected, validate).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(System.ValueTuple`3<!0, !0, !0>)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<T>((T?, T!, T))", extension.ComputeExtensionMarkerRawName());
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            var tupleElements = extension.ExtensionParameter.Type.TupleElementTypesWithAnnotations;
+            Assert.Equal(NullableAnnotation.Annotated, tupleElements[0].NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, tupleElements[1].NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, tupleElements[2].NullableAnnotation);
+        }
     }
 
     [Theory]
@@ -22011,7 +22880,10 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+
+        bool isActualKeyword = keyword is not ("await" or "record" or "dynamic" or "field" or "file" or "notnull" or "unmanaged");
+        var expected = $$"""E.extension<T>((System.Int32 {{(isActualKeyword ? "@" : "")}}{{keyword}}, System.Int32 x))""";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(System.ValueTuple`2<System.Int32, System.Int32>)", extension.ComputeExtensionGroupingRawName());
@@ -22043,7 +22915,8 @@ struct S<T0, T1, T2, T3, T4, T5>
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T>(S<System.String?, T?, System.String!, T!, System.String, T>) where T : class!";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<class>(S`6<System.String, !0, System.String, !0, System.String, !0>)", extension.ComputeExtensionGroupingRawName());
@@ -22075,11 +22948,21 @@ struct S<T0, T1, T2>
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T>(S<T?, T, T>)";
+        CompileAndVerifyAndValidate(comp, expected, validate).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(S`3<!0, !0, !0>)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<T>(S<T?, T!, T>)", extension.ComputeExtensionMarkerRawName());
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            var typeArguments = ((NamedTypeSymbol)extension.ExtensionParameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            Assert.Equal(NullableAnnotation.Annotated, typeArguments[0].NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, typeArguments[1].NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArguments[2].NullableAnnotation);
+        }
     }
 
     [Fact]
@@ -22101,7 +22984,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        string expected = "E.extension<T1, T2, T3>(System.Int32) where T1 : class! where T2 : class? where T3 : class";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<class, class, class>(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -22126,7 +23010,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T1, T2, T3>(System.Int32) where T1 : struct where T2 : unmanaged where T3 : notnull";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<valuetype .ctor (System.ValueType), valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)),>(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -22155,12 +23040,14 @@ static class E
 interface I { }
 """;
         var comp = CreateCompilation(src);
+        var expected = "E.extension<T1, T2, T3>(System.Int32) where T1 : I! where T2 : I? where T3 : I";
+        var verifier = CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<(I), (I), (I)>(System.Int32)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<T1, T2, T3>(System.Int32) where T1 : I! where T2 : I? where T3 : I", extension.ComputeExtensionMarkerRawName());
 
-        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
@@ -22224,7 +23111,8 @@ interface I1 { }
 interface I2 { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T1, T2, T3>(System.Int32) where T1 : I1, I2 where T2 : I2, I1";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<(I1, I2), (I1, I2),>(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -22247,12 +23135,14 @@ class AAttribute : System.Attribute { }
 class BAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
+        var expected = "E.extension<T1>(System.Int32)";
+        var verifier = CompileAndVerifyAndValidate(comp, expected, validate).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(System.Int32)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<[AAttribute/*()*/] [BAttribute/*()*/] T1>([AAttribute/*()*/] [BAttribute/*()*/] System.Int32)", extension.ComputeExtensionMarkerRawName());
 
-        CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("E", """
+        verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
@@ -22320,6 +23210,14 @@ class BAttribute : System.Attribute { }
         extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(System.Int32)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension<[AAttribute/*()*/] [BAttribute/*()*/] T1>([AAttribute/*()*/] [BAttribute/*()*/] System.Int32)", extension.ComputeExtensionMarkerRawName());
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            Assert.Equal(["AAttribute", "BAttribute"], extension.TypeParameters[0].GetAttributes().Select(a => a.ToString()));
+            Assert.Equal(["AAttribute", "BAttribute"], extension.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
+            Assert.Equal(module is SourceModuleSymbol ? "" : "value", extension.ExtensionParameter.Name);
+        }
     }
 
     [Fact]
@@ -22360,7 +23258,7 @@ namespace N
         var src = """
 static class E
 {
-    extension([My(10, "hello", P = 20, P2 = "hello2")] int)
+    extension([My(10, "hello", P = 20, P2 = "hello2")] int i)
     {
     }
 }
@@ -22373,11 +23271,12 @@ class MyAttribute : System.Attribute
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(System.Int32)";
+        CompileAndVerifyAndValidate(comp, expected, validate).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Int32)", extension.ComputeExtensionGroupingRawName());
-        AssertEx.Equal("""extension([MyAttribute/*(System.Int32, System.String)*/(10, "hello", P = 20, P2 = "hello2")] System.Int32)""", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("""extension([MyAttribute/*(System.Int32, System.String)*/(10, "hello", P = 20, P2 = "hello2")] System.Int32 i)""", extension.ComputeExtensionMarkerRawName());
 
         src = """
 static class E
@@ -22400,6 +23299,13 @@ class MyAttribute : System.Attribute
         extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Int32)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("""extension([MyAttribute/*(System.Int32, System.String)*/(10, "hello", P = 20, P2 = "hello2")] System.Int32)""", extension.ComputeExtensionMarkerRawName());
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            Assert.Equal(["""MyAttribute(10, "hello", P = 20, P2 = "hello2")"""], extension.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
+            Assert.Equal("i", extension.ExtensionParameter.Name);
+        }
     }
 
     [Fact]
@@ -22727,7 +23633,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(System.Object![,]![]?)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Object[,][])", extension.ComputeExtensionGroupingRawName());
@@ -22753,13 +23660,15 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(System.Object![,]![]?[,,,])";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         // Note: we're using the inner dimensions first order (whether nullability annotations are present or not)
         AssertEx.Equal("extension(System.Object[,][][,,,])", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension(System.Object![,]![]?[,,,])", extension.ComputeExtensionMarkerRawName());
     }
+
     [Fact]
     public void MarkerTypeRawName_34()
     {
@@ -22780,7 +23689,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(System.Object![][,]!)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Object[,][])", extension.ComputeExtensionGroupingRawName());
@@ -22807,7 +23717,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(System.Object![,]![])";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Object[,][])", extension.ComputeExtensionGroupingRawName());
@@ -22852,7 +23763,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(ref System.Int32)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -22895,7 +23807,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(ref readonly System.Int32)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -22915,7 +23828,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(in System.Int32)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -22935,7 +23849,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(scoped ref System.Int32)";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -22968,7 +23883,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(ref System.Int32)";
+        CompileAndVerifyAndValidate(comp, expected, validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Int32)", extension.ComputeExtensionGroupingRawName());
@@ -23008,6 +23924,12 @@ static class E
             // (16,27): error CS0102: The type 'E' already contains a definition for 'P2'
             //         public static int P2 => 0;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("E", "P2").WithLocation(16, 27));
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            Assert.Equal(["System.Diagnostics.CodeAnalysis.UnscopedRefAttribute"], extension.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
+        }
     }
 
     [Fact]
@@ -23025,11 +23947,18 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(System.Object!)";
+        CompileAndVerifyAndValidate(comp, expected, validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
         AssertEx.Equal("extension([System.Diagnostics.CodeAnalysis.AllowNullAttribute/*()*/] System.Object! o)", extension.ComputeExtensionMarkerRawName());
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            Assert.Equal(["System.Diagnostics.CodeAnalysis.AllowNullAttribute"], extension.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
+        }
     }
 
     [Fact]
@@ -23089,7 +24018,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension<T, U>(System.Int32) where T : class where U : struct";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<T, U>(System.Int32) where T : class where U : struct", extension.ComputeExtensionMarkerRawName());
@@ -23446,7 +24376,8 @@ unsafe static class E
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
+        var expected = "E.extension(delegate* unmanaged[SuppressGCTransition]<System.Int32>[])";
+        CompileAndVerifyAndValidate(comp, expected, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method unmanaged System.Int32 modopt(System.Runtime.CompilerServices.CallConvSuppressGCTransition) *()[])", extension.ComputeExtensionGroupingRawName());
@@ -24223,6 +25154,492 @@ public static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension([MyAttribute/*()*/] System.Int32)", extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_82()
+    {
+        // unmanaged constraint
+        var src = """
+public static class E
+{
+    extension<T>(int) where T : unmanaged
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var expected = "E.extension<T>(System.Int32) where T : unmanaged";
+        CompileAndVerifyAndValidate(comp, expected, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(System.Int32)",
+            extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<T>(System.Int32) where T : unmanaged",
+            extension.ComputeExtensionMarkerRawName());
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        expected = "E.extension<T>(System.Int32) where T : unmanaged";
+        CompileAndVerifyAndValidate(comp, expected, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void MarkerTypeRawName_83()
+    {
+        // nullable annotations on extension parameter
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension<T>(T) where T : class
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        var expected = "E.extension<T>(T!) where T : class!";
+        CompileAndVerifyAndValidate(comp, expected).VerifyDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension<class>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<T>(T!) where T : class!", extension.ComputeExtensionMarkerRawName());
+    }
+
+    [Fact]
+    public void ExtensionMarkerNameAttribute_01()
+    {
+        // synthesized attribute
+        var src = """
+public static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("ExtensionMarkerNameAttribute", """
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerNameAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 dc 17 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string name
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    } // end of method ExtensionMarkerNameAttribute::.ctor
+} // end of class System.Runtime.CompilerServices.ExtensionMarkerNameAttribute
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        static void validate(ModuleSymbol module)
+        {
+            if (module is PEModuleSymbol)
+            {
+                AssertEx.Equal("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute",
+                    module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").ToTestDisplayString());
+            }
+            else
+            {
+                Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute"));
+            }
+        }
+    }
+
+    [Fact]
+    public void ExtensionMarkerNameAttribute_02()
+    {
+        // no synthesized attribute
+        var src = """
+public static class E
+{
+    extension(int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute"));
+        }
+    }
+
+    [Fact]
+    public void ExtensionMarkerNameAttribute_03()
+    {
+        // attribute defined
+        var libComp = CreateCompilation(ExtensionMarkerNameAttributeDefinition);
+
+        var src = """
+public static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute"));
+        }
+    }
+
+    [Fact]
+    public void ExtensionMarkerNameAttribute_04()
+    {
+        // attribute erased on method
+        var src = """
+public static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            var method = extension.GetMembers().Single();
+            AssertEx.Equal("void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", method.ToTestDisplayString());
+            Assert.Equal([], method.GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void ExtensionMarkerNameAttribute_05()
+    {
+        // attribute erased on property
+        var src = """
+public static class E
+{
+    extension(int)
+    {
+        public static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            var members = extension.GetMembers().ToArray();
+            if (module is SourceModuleSymbol)
+            {
+                AssertEx.Equal(["System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", "System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P.get"],
+                    members.ToTestDisplayStrings());
+                Assert.Equal([], members[0].GetAttributes().Select(a => a.ToString()));
+                Assert.Equal([], members[1].GetAttributes().Select(a => a.ToString()));
+            }
+            else
+            {
+                AssertEx.Equal(["System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P.get", "System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }"],
+                    members.ToTestDisplayStrings());
+                Assert.Equal([], members[0].GetAttributes().Select(a => a.ToString()));
+                Assert.Equal([], members[1].GetAttributes().Select(a => a.ToString()));
+            }
+        }
+    }
+
+    [Fact]
+    public void ExtensionMarkerNameAttribute_06()
+    {
+        // attribute erased on operator
+        var src = """
+public static class E
+{
+    extension(int)
+    {
+        public static int operator +(int i1, int i2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var extension = module.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            var member = extension.GetMembers().Single();
+            AssertEx.Equal("System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.op_Addition(System.Int32 i1, System.Int32 i2)",
+                member.ToTestDisplayString());
+            Assert.Equal([], member.GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void ExtensionMarkerNameAttribute_07()
+    {
+        // attribute disallowed in source
+        var src = """
+using System.Runtime.CompilerServices;
+
+[assembly: ExtensionMarkerName("assembly")]
+[module: ExtensionMarkerName("module")]
+
+[ExtensionMarkerName("class")]
+public class C1 { }
+
+[ExtensionMarkerName("struct")]
+public struct S { }
+
+[ExtensionMarkerName("enum")]
+public enum E { }
+
+public class C2
+{
+    [ExtensionMarkerName("constructor")]
+    public C2() { }
+
+    [ExtensionMarkerName("method")]
+    public void M() { }
+    
+    public void M2([ExtensionMarkerName("parameter")] int i) { }
+
+    [return: ExtensionMarkerName("return")]
+    public int M3() => 0;
+
+    [ExtensionMarkerName("property")]
+    public int P => 0;
+
+    [ExtensionMarkerName("field")]
+    public int f = 0;
+
+    [ExtensionMarkerName("event")]
+    public event System.Action Event { add { } remove { } }
+}
+
+[ExtensionMarkerName("interface")]
+public interface I { }
+
+[ExtensionMarkerName("delegate")]
+public delegate void D();
+
+class C3<[ExtensionMarkerName("type parameter")] T> { }
+""" + ExtensionMarkerNameAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,12): error CS0592: Attribute 'ExtensionMarkerName' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
+            // [assembly: ExtensionMarkerName("assembly")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarkerName").WithArguments("ExtensionMarkerName", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(3, 12),
+            // (4,10): error CS0592: Attribute 'ExtensionMarkerName' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
+            // [module: ExtensionMarkerName("module")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarkerName").WithArguments("ExtensionMarkerName", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(4, 10),
+            // (6,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            // [ExtensionMarkerName("class")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""class"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(6, 2),
+            // (9,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            // [ExtensionMarkerName("struct")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""struct"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(9, 2),
+            // (12,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            // [ExtensionMarkerName("enum")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""enum"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(12, 2),
+            // (17,6): error CS0592: Attribute 'ExtensionMarkerName' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
+            //     [ExtensionMarkerName("constructor")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarkerName").WithArguments("ExtensionMarkerName", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(17, 6),
+            // (20,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            //     [ExtensionMarkerName("method")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""method"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(20, 6),
+            // (23,21): error CS0592: Attribute 'ExtensionMarkerName' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
+            //     public void M2([ExtensionMarkerName("parameter")] int i) { }
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarkerName").WithArguments("ExtensionMarkerName", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(23, 21),
+            // (25,14): error CS0592: Attribute 'ExtensionMarkerName' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
+            //     [return: ExtensionMarkerName("return")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarkerName").WithArguments("ExtensionMarkerName", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(25, 14),
+            // (28,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            //     [ExtensionMarkerName("property")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""property"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(28, 6),
+            // (31,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            //     [ExtensionMarkerName("field")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""field"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(31, 6),
+            // (34,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            //     [ExtensionMarkerName("event")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""event"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(34, 6),
+            // (38,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            // [ExtensionMarkerName("interface")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""interface"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(38, 2),
+            // (41,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionMarkerNameAttribute'. This is reserved for compiler usage.
+            // [ExtensionMarkerName("delegate")]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"ExtensionMarkerName(""delegate"")").WithArguments("System.Runtime.CompilerServices.ExtensionMarkerNameAttribute").WithLocation(41, 2),
+            // (44,11): error CS0592: Attribute 'ExtensionMarkerName' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
+            // class C3<[ExtensionMarkerName("type parameter")] T> { }namespace System.Runtime.CompilerServices
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarkerName").WithArguments("ExtensionMarkerName", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(44, 11));
+    }
+
+    [Fact]
+    public void GroupingType_01()
+    {
+        // tuple names don't go into grouping types
+        var src = """
+public static class E
+{
+    extension((int a, int b))
+    {
+        public static void M1() { }
+    }
+    extension((int c, int d))
+    {
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("E");
+            var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
+            AssertEx.Equal([
+                "TypeDefinition:E",
+                "TypeDefinition:<Extension>$49AAF2D3C1326E88AED3848611C299DA",
+                "TypeDefinition:<Marker>$AB62B2C6B27F13EA3A1F6BB0E641E504",
+                "TypeDefinition:<Marker>$1F33B79C79D1C037CA6976EB16158758"
+                ], reader.DumpNestedTypes(e.Handle));
+        }
+    }
+
+    [Fact]
+    public void GroupingType_02()
+    {
+        // nullability doesn't go into grouping types
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension(object?)
+    {
+        public static void M1() { }
+    }
+    extension(object)
+    {
+        public static void M2() { }
+    }
+#nullable disable
+    extension(object)
+    {
+        public static void M3() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("E");
+            var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
+            AssertEx.Equal([
+                "TypeDefinition:E",
+                "TypeDefinition:<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280",
+                "TypeDefinition:<Marker>$C28A9B43142182F45550A2A20368458B",
+                "TypeDefinition:<Marker>$44947657E3B15A1A640D61854E160848",
+                "TypeDefinition:<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280"
+                ], reader.DumpNestedTypes(e.Handle));
+        }
+    }
+
+    [Fact]
+    public void GroupingType_03()
+    {
+        // IL-level constraints go into grouping types
+        var src = """
+public static class E
+{
+    extension<T>(T) where T : class
+    {
+        public static void M1() { }
+    }
+    extension<T>(T) where T : struct
+    {
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("E");
+            var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
+            AssertEx.Equal([
+                "TypeDefinition:E",
+                "TypeDefinition:<Extension>$66F77D1E46F965A5B22D4932892FA78B",
+                "TypeDefinition:<Marker>$C8718A1AD9DFC47EBD0C706B9E6984E6",
+                "TypeDefinition:<Extension>$BCF902721DDD961E5243C324D8379E5C",
+                "TypeDefinition:<Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93"
+                ], reader.DumpNestedTypes(e.Handle));
+        }
+    }
+
+    [Fact]
+    public void GroupingType_04()
+    {
+        // C#-level constraints don't go into grouping types
+        var src = """
+#nullable enable
+public static class E
+{
+    extension<T>(T) where T : notnull
+    {
+        public static void M1() { }
+    }
+    extension<T>(T)
+    {
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("E");
+            var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
+            AssertEx.Equal([
+                "TypeDefinition:E",
+                "TypeDefinition:<Extension>$8048A6C8BE30A622530249B904B537EB",
+                "TypeDefinition:<Marker>$C7A07C3975E80DE5DBC93B5392C6C922",
+                "TypeDefinition:<Marker>$2789E59A55056F0AD9E820EBD5BCDFBF"
+                ], reader.DumpNestedTypes(e.Handle));
+        }
     }
 }
 

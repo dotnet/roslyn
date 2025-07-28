@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // PROTOTYPE: Is there a real need to cache this result for reuse?
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : optimization, Is there a real need to cache this result for reuse?
             return result;
         }
 
@@ -508,7 +508,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Preserve only the synthesized IsUnmanagedAttribute.
                 if (MustBeValueType)
                 {
-                    // PROTOTYPE: Make sure we have coverage for the WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor case
                     var unmanagedCtor = ((PEModuleBuilder)context.Module).TryGetSynthesizedIsUnmanagedAttribute()?.Constructors[0] ??
                         ((ExtensionGroupingType)DefiningType).ExtensionMarkerTypes[0].UnderlyingExtensions[0].DeclaringCompilation.
                             GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);

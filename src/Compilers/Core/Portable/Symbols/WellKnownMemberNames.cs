@@ -504,7 +504,13 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The name of marker method for an extension type.
+        /// The prefix for the grouping type name.
         /// </summary>
         internal const string ExtensionMarkerMethodName = "<Extension>$";
+
+        /// <summary>
+        /// The prefix for the marker type name.
+        /// </summary>
+        internal const string ExtensionMarkerTypeName = "<Marker>$";
     }
 }
