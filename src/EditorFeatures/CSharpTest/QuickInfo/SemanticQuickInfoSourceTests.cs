@@ -8271,6 +8271,56 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 List<string> y = null;
                 """));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53384")]
+    public Task TestDocumentationCData2()
+        => TestAsync("""
+            using I$$ = IGoo;
+            /// <summary>
+            /// summary for interface IGoo
+            /// <code><![CDATA[
+            /// void M()
+            /// {
+            ///     Console.WriteLine();
+            /// }
+            /// ]]></code>
+            /// </summary>
+            interface IGoo {  }
+            """,
+            MainDescription("interface IGoo"),
+            Documentation("""
+                summary for interface IGoo
+
+                void M()
+                {
+                    Console.WriteLine();
+                }
+                """));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53384")]
+    public Task TestDocumentationCData3()
+        => TestAsync("""
+            using I$$ = IGoo;
+            /// <summary>
+            /// summary for interface IGoo
+            /// <![CDATA[
+            /// void M()
+            /// {
+            ///     Console.WriteLine();
+            /// }
+            /// ]]>
+            /// </summary>
+            interface IGoo {  }
+            """,
+            MainDescription("interface IGoo"),
+            Documentation("""
+                summary for interface IGoo
+
+                void M()
+                {
+                    Console.WriteLine();
+                }
+                """));
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37503")]
     public Task DoNotNormalizeWhitespaceForCode()
         => TestAsync("""

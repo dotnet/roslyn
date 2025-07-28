@@ -104,7 +104,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
             args: (document, progressTracker),
             cancellationToken);
 
-        await foreach (var change in changes)
+        await foreach (var change in changes.ConfigureAwait(false))
             insertionOnlyChanges.Add(change);
 
         // Capture each location where we are inserting imports as well as the total
