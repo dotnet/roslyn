@@ -96,11 +96,6 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         internal (string target, string hint) NavigationTarget => _navigationTargetStack.Peek();
         internal TaggedTextStyle Style => _styleStack.Peek();
 
-        /// <summary>
-        /// Gets a value indicating whether we are currently inside a list element.
-        /// </summary>
-        internal bool IsInsideList => _listStack.Count > 0;
-
         public void AppendSingleSpace()
             => _pendingSingleSpace = true;
 
@@ -147,17 +142,11 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             {
                 // Mark the end of the previous list item
                 Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
-                // Clear all pending whitespace when transitioning between list items
-                _pendingSingleSpace = false;
-                _pendingLineBreak = false; 
-                _pendingParagraphBreak = false;
             }
-            else
-            {
-                MarkLineBreak();
-            }
+
             // The next list item has an incremented index, and has not yet been rendered to Builder.
             _listStack[^1] = (type, index + 1, renderedItem: false);
+            MarkLineBreak();
         }
 
         public void PopList()
@@ -562,13 +551,6 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         {
             // Don't normalize code from middle. Only trim leading/trailing new lines.
             state.AppendString(rawText.Trim('\n'));
-            return;
-        }
-
-        // When inside a list, suppress whitespace-only text nodes to prevent unwanted spaces
-        // between list items and within list item structures
-        if (state.IsInsideList && string.IsNullOrWhiteSpace(rawText))
-        {
             return;
         }
 

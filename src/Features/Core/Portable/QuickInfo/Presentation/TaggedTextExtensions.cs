@@ -59,6 +59,11 @@ internal static class TaggedTextExtensions
 
                 case TextTags.ContainerEnd:
                     // We're finished processing inline elements. Break out and let the caller continue
+
+                    if (taggedTexts is [var head, .. var tail] && head.Tag == TextTags.LineBreak)
+                    {
+                        taggedTexts = tail;
+                    }
                     done = true;
                     break;
 
