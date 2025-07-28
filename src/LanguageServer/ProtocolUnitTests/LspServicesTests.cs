@@ -78,7 +78,7 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
         var lspService = server.GetRequiredLspService<TestLspService>();
         Assert.True(lspService is CSharpLspService);
 
-        await using var server2 = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer }, composition);
+        await using var server2 = await CreateTestLspServerAsync(server.TestWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer }, LanguageNames.CSharp);
 
         var lspService2 = server2.GetRequiredLspService<TestLspService>();
         Assert.True(lspService2 is AlwaysActiveCSharpLspService);

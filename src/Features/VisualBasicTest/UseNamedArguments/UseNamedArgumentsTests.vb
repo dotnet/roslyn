@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
 
@@ -21,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNamedArguments
 
         <Fact>
         Public Async Function TestFirstArgument() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, arg2 As Integer)
         M([||]1, 2)
@@ -89,7 +88,7 @@ End Class")
 
         <Fact>
         Public Async Function TestConditionalMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 as Integer, arg2 as Integer)
         Me?.M([||]1, 2)
@@ -119,7 +118,7 @@ End Class")
 
         <Fact>
         Public Async Function TestConstructor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub New(arg1 As Integer, arg2 As Integer)
         Dim c = New C([||]1, 2)
@@ -285,7 +284,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, arg2 As Integer)
         M(arg1[||], arg2)
@@ -330,7 +329,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19758")>
         Public Async Function TestOnTuple() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Linq
 Class C
     Sub M(arr as Integer())
@@ -347,7 +346,7 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23269")>
         Public Async Function TestCharacterEscape() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M([If] As Integer, [For] As Integer)
         M([If][||], [For])

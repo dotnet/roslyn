@@ -6,12 +6,13 @@
 
 using System;
 using System.IO;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
     internal static class PathHelper
     {
-        private static readonly char[] DirectorySeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        private static readonly char[] DirectorySeparatorCharacters = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
         public static ReadOnlySpan<char> GetFileName(string? path)
         {

@@ -27,7 +27,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
-using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -3357,7 +3356,7 @@ System.Func<object> f = delegate ()
         public void LoadedFileWithWrongReturnType()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "return \"Who returns a string?\";"));
+                KeyValuePair.Create("a.csx", "return \"Who returns a string?\";"));
             var script = CreateSubmission(@"
 #load ""a.csx""
 42", returnType: typeof(int), options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver));

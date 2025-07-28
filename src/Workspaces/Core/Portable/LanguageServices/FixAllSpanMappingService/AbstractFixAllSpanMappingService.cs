@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingSer
 
         if (fixAllInContainingMember)
         {
-            return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))]);
+            return ImmutableDictionary.CreateRange([KeyValuePair.Create(document, ImmutableArray.Create(decl.FullSpan))]);
         }
         else
         {
@@ -63,7 +64,7 @@ internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingSer
             }
             else
             {
-                return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))]);
+                return ImmutableDictionary.CreateRange([KeyValuePair.Create(document, ImmutableArray.Create(decl.FullSpan))]);
             }
         }
     }

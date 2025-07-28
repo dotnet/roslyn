@@ -20,9 +20,8 @@ public sealed class CollectionExpressionStructureTests : AbstractCSharpSyntaxNod
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71932")]
-    public async Task TestOuterCollectionExpression()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestOuterCollectionExpression()
+        => VerifyBlockSpansAsync(
              """
                 class C
                 {
@@ -37,13 +36,11 @@ public sealed class CollectionExpressionStructureTests : AbstractCSharpSyntaxNod
                 }
                 """,
              Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71932")]
-    public async Task TestInnerCollectionExpressionWithoutComma()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestInnerCollectionExpressionWithoutComma()
+        => VerifyBlockSpansAsync(
              """
                 class C
                 {
@@ -61,13 +58,11 @@ public sealed class CollectionExpressionStructureTests : AbstractCSharpSyntaxNod
                 }
                 """,
              Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71932")]
-    public async Task TestInnerCollectionExpressionWithComma()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestInnerCollectionExpressionWithComma()
+        => VerifyBlockSpansAsync(
              """
                 class C
                 {
@@ -85,5 +80,4 @@ public sealed class CollectionExpressionStructureTests : AbstractCSharpSyntaxNod
                 }
                 """,
              Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

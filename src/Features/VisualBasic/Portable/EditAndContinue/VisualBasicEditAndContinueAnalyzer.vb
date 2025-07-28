@@ -6,12 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -2358,5 +2357,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Sub
 
 #End Region
+
+        Protected Overrides Iterator Function GetParseOptionsRudeEdits(oldOptions As ParseOptions, newOptions As ParseOptions) As IEnumerable(Of Diagnostic)
+            For Each rudeEdit In MyBase.GetParseOptionsRudeEdits(oldOptions, newOptions)
+                Yield rudeEdit
+            Next
+
+            Dim oldVBOptions = DirectCast(oldOptions, VisualBasicParseOptions)
+            Dim newVBOptions = DirectCast(newOptions, VisualBasicParseOptions)
+
+            If oldVBOptions.LanguageVersion <> newVBOptions.LanguageVersion Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.LangVersion,
+                                            oldVBOptions.SpecifiedLanguageVersion.ToDisplayString(),
+                                            newVBOptions.SpecifiedLanguageVersion.ToDisplayString())
+            End If
+
+            If Not oldVBOptions.PreprocessorSymbols.SequenceEqual(newVBOptions.PreprocessorSymbols) Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.DefineConstants,
+                                            GetPreprocessorSymbolsDisplay(oldVBOptions.PreprocessorSymbols),
+                                            GetPreprocessorSymbolsDisplay(newVBOptions.PreprocessorSymbols))
+            End If
+        End Function
+
+        Private Shared Function GetPreprocessorSymbolsDisplay(symbols As ImmutableArray(Of KeyValuePair(Of String, Object))) As String
+            Return String.Join(",", symbols.Select(Function(kvp) kvp.Key & "=" & kvp.Value.ToString()))
+        End Function
+
+        Protected Overrides Iterator Function GetCompilationOptionsRudeEdits(oldOptions As CompilationOptions, newOptions As CompilationOptions) As IEnumerable(Of Diagnostic)
+            For Each rudeEdit In MyBase.GetCompilationOptionsRudeEdits(oldOptions, newOptions)
+                Yield rudeEdit
+            Next
+
+            Dim oldVBOptions = DirectCast(oldOptions, VisualBasicCompilationOptions)
+            Dim newVBOptions = DirectCast(newOptions, VisualBasicCompilationOptions)
+
+            If oldVBOptions.RootNamespace <> newVBOptions.RootNamespace Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.RootNamespace, oldVBOptions.RootNamespace, newVBOptions.RootNamespace)
+            End If
+
+            If oldVBOptions.OptionStrict <> newVBOptions.OptionStrict Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionStrict, oldVBOptions.OptionStrict.ToString(), newVBOptions.OptionStrict.ToString())
+            End If
+
+            If oldVBOptions.OptionInfer <> newVBOptions.OptionInfer Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionInfer, GetOptionDisplay(oldVBOptions.OptionInfer), GetOptionDisplay(newVBOptions.OptionInfer))
+            End If
+
+            If oldVBOptions.OptionExplicit <> newVBOptions.OptionExplicit Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionExplicit, GetOptionDisplay(oldVBOptions.OptionExplicit), GetOptionDisplay(newVBOptions.OptionExplicit))
+            End If
+
+            If oldVBOptions.OptionCompareText <> newVBOptions.OptionCompareText Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionCompare, GetOptionCompareTextDisplay(oldVBOptions.OptionCompareText), GetOptionCompareTextDisplay(newVBOptions.OptionCompareText))
+            End If
+        End Function
+
+        Private Shared Function GetOptionDisplay(value As Boolean) As String
+            Return If(value, "On", "Off")
+        End Function
+
+        Private Shared Function GetOptionCompareTextDisplay(value As Boolean) As String
+            Return If(value, "Text", "Binary")
+        End Function
     End Class
 End Namespace

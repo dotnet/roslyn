@@ -10,13 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceParameter;
@@ -252,7 +252,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
             {
                 var (project, projectCallSites) = tuple;
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     projectCallSites,
                     cancellationToken,
                     async (tuple, cancellationToken) =>

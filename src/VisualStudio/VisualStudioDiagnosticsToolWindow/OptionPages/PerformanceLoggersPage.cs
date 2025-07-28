@@ -67,7 +67,7 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
         var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
         if (client != null)
         {
-            var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>().Where(isEnabled).ToImmutableArray();
+            var functionIds = Enum.GetValues<FunctionId>().Where(isEnabled).ToImmutableArray();
 
             threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
                 (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),

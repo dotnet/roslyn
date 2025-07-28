@@ -34,7 +34,22 @@ public readonly record struct SymbolRenameOptions(
     [property: DataMember(Order = 0)] bool RenameOverloads = false,
     [property: DataMember(Order = 1)] bool RenameInStrings = false,
     [property: DataMember(Order = 2)] bool RenameInComments = false,
-    [property: DataMember(Order = 3)] bool RenameFile = false);
+    [property: DataMember(Order = 3)] bool RenameFile = false)
+{
+    internal SymbolRenameOptions(
+        bool renameOverloads,
+        bool renameInStrings,
+        bool renameInComments,
+        bool renameFile,
+        bool renameInSourceGeneratedDocuments)
+        : this(renameOverloads, renameInStrings, renameInComments, renameFile)
+    {
+        RenameInSourceGeneratedDocuments = renameInSourceGeneratedDocuments;
+    }
+
+    [DataMember(Order = 4)]
+    internal bool RenameInSourceGeneratedDocuments { get; init; } = false;
+}
 
 /// <summary>
 /// Options for renaming a document.

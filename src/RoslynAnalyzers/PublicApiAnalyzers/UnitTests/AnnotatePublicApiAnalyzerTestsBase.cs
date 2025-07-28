@@ -53,10 +53,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newShippedApiText, string newUnshippedApiText)
-        {
-            await VerifyAdditionalFileFixAsync(source, oldShippedApiText, oldUnshippedApiText, newShippedApiText, newUnshippedApiText);
-        }
+        private Task VerifyCSharpAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newShippedApiText, string newUnshippedApiText)
+            => VerifyAdditionalFileFixAsync(source, oldShippedApiText, oldUnshippedApiText, newShippedApiText, newUnshippedApiText);
 
         private async Task VerifyAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newShippedApiText, string newUnshippedApiText)
         {
@@ -76,42 +74,30 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Fix tests
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenUnannotatedClassConstraintAsync()
-        {
-            var source = $$"""
+        public Task NoObliviousWhenUnannotatedClassConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C<T> where T : class
                 {
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"#nullable enable
-C<T>.C() -> void
-C<T>
-";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenAnnotatedClassConstraintAsync()
-        {
-            var source = $$"""
+        public Task NoObliviousWhenAnnotatedClassConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C<T> where T : class?
                 {
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"#nullable enable
-C<T>.C() -> void
-C<T>
-";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                """);
 
         [Fact]
         public async Task NoObliviousWhenAnnotatedClassConstraintMultipleFiles()
@@ -124,12 +110,14 @@ C<T>
                 """;
 
             var shippedText = @"#nullable enable";
-            var unshippedText1 = @"#nullable enable
-C<T>.C() -> void
-";
-            var unshippedText2 = @"#nullable enable
-C<T>
-";
+            var unshippedText1 = """
+                #nullable enable
+                C<T>.C() -> void
+                """;
+            var unshippedText2 = """
+                #nullable enable
+                C<T>
+                """;
 
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>
             {
@@ -149,74 +137,55 @@ C<T>
         }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task ObliviousWhenObliviousClassConstraintAsync()
-        {
-            var source = $$"""
+        public Task ObliviousWhenObliviousClassConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class {|{{ObliviousApiId}}:C|}<T> // oblivious
                 #nullable disable
                     where T : class
                 {
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"#nullable enable
-C<T>.C() -> void
-~C<T>
-";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                ~C<T>
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
-        {
-            var source = $$"""
+        public Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class D { }
                 {{EnabledModifier}} class C<T> where T : D
                 {
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"#nullable enable
-C<T>.C() -> void
-C<T>
-D
-D.D() -> void
-";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                D
+                D.D() -> void
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
-        {
-            var source = $$"""
+        public Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class D { }
                 {{EnabledModifier}} class C<T> where T : D?
                 {
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"#nullable enable
-C<T>.C() -> void
-C<T>
-D
-D.D() -> void
-";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                D
+                D.D() -> void
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
-        {
-            var source = $$"""
+        public Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class D { }
 
@@ -225,82 +194,63 @@ D.D() -> void
                     where T : D
                 {
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"#nullable enable
-C<T>.C() -> void
-~C<T>
-D
-D.D() -> void
-";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                ~C<T>
+                D
+                D.D() -> void
+                """);
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
-        {
-            var source = $$"""
+        public Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string? {|{{ShouldAnnotateApiFilesId}}:Field|};
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"C
-C.C() -> void
-C.Field -> string";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                C
+                C.C() -> void
+                C.Field -> string
+                """);
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
-        {
-            var source = $$"""
+        public Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string {|{{ShouldAnnotateApiFilesId}}:Field2|};
                 }
-                """;
-
-            var shippedText = @"";
-            var unshippedText = @"C
-C.C() -> void
-C.Field2 -> string";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, @"", """
+                C
+                C.C() -> void
+                C.Field2 -> string
+                """);
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
-        {
-            var source = $$"""
+        public Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string? {|{{ShouldAnnotateApiFilesId}}:Field|};
                     {{EnabledModifier}} string {|{{ShouldAnnotateApiFilesId}}:Field2|};
                 }
-                """;
-
-            var shippedText = @"C
-C.C() -> void
-C.Field -> string
-C.Field2 -> string";
-            var unshippedText = @"";
-
-            await VerifyCSharpAsync(source, shippedText, unshippedText);
-        }
+                """, """
+                C
+                C.C() -> void
+                C.Field -> string
+                C.Field2 -> string
+                """, @"");
 
         [Fact]
         public async Task AnnotatedMemberInAnnotatedShippedAPIAsync()
         {
-            var source = $$"""
+            var unshippedText = @"";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -308,31 +258,28 @@ C.Field2 -> string";
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """;
-
-            var shippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string";
-
-            var unshippedText = @"";
-
-            var fixedShippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!";
-
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, unshippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaUnshippedAsync()
         {
-            var source = $$"""
+            var shippedText = @"";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -340,31 +287,30 @@ C.Field2 -> string!";
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """;
-
-            var unshippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string";
-
-            var shippedText = @"";
-
-            var fixedUnshippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!";
-
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, shippedText, fixedUnshippedText);
+                """, shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """);
         }
 
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaMultipleUnshippedAsync()
         {
-            var source = $$"""
+            var shippedText = @"";
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>();
+
+            test.TestState.Sources.Add($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -372,35 +318,29 @@ C.Field2 -> string!";
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """;
-
-            var unshippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string";
-
-            var shippedText = @"";
-
-            var fixedUnshippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!";
-
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>();
-
-            test.TestState.Sources.Add(source);
+                """);
 
             test.TestState.AdditionalFiles.Add((ShippedFileName, shippedText));
             test.TestState.AdditionalFiles.Add((UnshippedFileName, string.Empty));
-            test.TestState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText));
+            test.TestState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """));
 
             test.FixedState.AdditionalFiles.Add((ShippedFileName, shippedText));
             test.FixedState.AdditionalFiles.Add((UnshippedFileName, string.Empty));
-            test.FixedState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, fixedUnshippedText));
+            test.FixedState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """));
 
             await test.RunAsync();
         }
@@ -408,7 +348,8 @@ C.Field2 -> string!";
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaShippedAsync()
         {
-            var source = $$"""
+            var shippedText = @"#nullable enable";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -416,28 +357,26 @@ C.Field2 -> string!";
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """;
-
-            var shippedText = @"#nullable enable";
-            var unshippedText = @"C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string";
-
-            var fixedUnshippedText = @"C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!";
-
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+                """, shippedText, """
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, newShippedApiText: shippedText, """
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """);
         }
 
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaBothAsync()
         {
-            var source = $$"""
+            var shippedText = @"#nullable enable";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -445,128 +384,130 @@ C.Field2 -> string!";
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """;
-
-            var shippedText = @"#nullable enable";
-            var unshippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string";
-
-            var fixedUnshippedText = @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!";
-
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+                """, shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, newShippedApiText: shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """);
         }
 
         [Fact]
         public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutObliviousAsync()
         {
-            var source = $$"""
+            var shippedText = $@"#nullable enable";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:ChangedField|};
                 }
-                """;
-            var shippedText = $@"#nullable enable";
-            var unshippedText = @"C
-C.C() -> void
-C.ChangedField -> string";
-            var fixedUnshippedText = @"C
-C.C() -> void
-C.ChangedField -> string?";
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+                """, shippedText, """
+                C
+                C.C() -> void
+                C.ChangedField -> string
+                """, newShippedApiText: shippedText, """
+                C
+                C.C() -> void
+                C.ChangedField -> string?
+                """);
         }
 
         [Fact]
         public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarkerAsync()
         {
-            var source = $$"""
+            var shippedText = $@"#nullable enable";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:{|{{ObliviousApiId}}:Field|}|}; // oblivious
                 }
-                """;
-            var shippedText = $@"#nullable enable";
-            var unshippedText = @"C
-C.C() -> void
-C.Field -> string";
-            var fixedUnshippedText = @"C
-C.C() -> void
-~C.Field -> string";
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+                """, shippedText, """
+                C
+                C.C() -> void
+                C.Field -> string
+                """, newShippedApiText: shippedText, """
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """);
         }
 
         [Fact]
         public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFileAsync()
         {
-            var source = $$"""
+            var unshippedText = @"";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:{|{{ObliviousApiId}}:Field|}|}; // oblivious
                 }
-                """;
-            var shippedText = $@"#nullable enable
-C
-C.C() -> void
-C.Field -> string";
-            var unshippedText = @"";
-            var fixedShippedText = $@"#nullable enable
-C
-C.C() -> void
-~C.Field -> string";
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+                """, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string
+                """, unshippedText, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
         public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullableAsync()
         {
-            var source = $$"""
+            var unshippedText = @"";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                 }
-                """;
-            var shippedText = $@"#nullable enable
-C
-C.C() -> void
-~C.Field -> string";
-            var unshippedText = @"";
-            var fixedShippedText = $@"#nullable enable
-C
-C.C() -> void
-C.Field -> string?";
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+                """, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """, unshippedText, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string?
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
         public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullableAsync()
         {
-            var source = $$"""
+            var unshippedText = @"";
+            await VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field|};
                 }
-                """;
-            var shippedText = $@"#nullable enable
-C
-C.C() -> void
-~C.Field -> string";
-            var unshippedText = @"";
-            var fixedShippedText = $@"#nullable enable
-C
-C.C() -> void
-C.Field -> string!";
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+                """, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """, unshippedText, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string!
+                """, newUnshippedApiText: unshippedText);
         }
 
         #endregion

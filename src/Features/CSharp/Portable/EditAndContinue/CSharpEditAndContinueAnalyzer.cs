@@ -11,14 +11,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -2678,14 +2677,14 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 tryStatement = (TryStatementSyntax)node;
                 coversAllChildren = false;
 
-                if (tryStatement.Catches.Count == 0)
+                if (tryStatement.Catches is not [var firstCatch, ..])
                 {
                     RoslynDebug.Assert(tryStatement.Finally != null);
                     return tryStatement.Finally.Span;
                 }
 
                 return TextSpan.FromBounds(
-                    tryStatement.Catches.First().SpanStart,
+                    firstCatch.SpanStart,
                     (tryStatement.Finally != null)
                         ? tryStatement.Finally.Span.End
                         : tryStatement.Catches.Last().Span.End);
@@ -3075,4 +3074,29 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     #endregion
+
+    protected override IEnumerable<Diagnostic> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        foreach (var rudeEdit in base.GetParseOptionsRudeEdits(oldOptions, newOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        var oldCSharpOptions = (CSharpParseOptions)oldOptions;
+        var newCSharpOptions = (CSharpParseOptions)newOptions;
+
+        if (oldCSharpOptions.LanguageVersion != newCSharpOptions.LanguageVersion)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.LangVersion,
+                oldCSharpOptions.SpecifiedLanguageVersion.ToDisplayString(),
+                newCSharpOptions.SpecifiedLanguageVersion.ToDisplayString());
+        }
+
+        if (!oldCSharpOptions.PreprocessorSymbolNames.SequenceEqual(newCSharpOptions.PreprocessorSymbolNames, StringComparer.Ordinal))
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.DefineConstants,
+                string.Join(",", oldCSharpOptions.PreprocessorSymbolNames),
+                string.Join(",", newCSharpOptions.PreprocessorSymbolNames));
+        }
+    }
 }

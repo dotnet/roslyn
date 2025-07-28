@@ -561,7 +561,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                 // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                 log.Write($"Syntax errors found in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
             }
 
             // Disallow modification of a file with experimental features enabled.
@@ -569,7 +569,21 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (ExperimentalFeaturesEnabled(newTree))
             {
                 log.Write($"Experimental features enabled in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, span: default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            }
+
+            // Changes in parse options might change the meaning of the code even if nothing else changed.
+            // If we allowed changing parse options such as preprocessor directives, enabled features, or language version
+            // it would lead to degraded experience for the user -- the parts of the source file that haven't changed
+            // since the option changed would have different semantics than the parts that have changed.
+            //
+            // Skip further analysis of the document if we detect any such change (classified as rude edits) in parse options.
+            if (GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
+            {
+                log.Write($"Parse options differ for '{filePath}'");
+
+                // All rude edits related to project-level setting changes will be reported during delta emit.
+                return DocumentAnalysisResults.Blocked(documentId, filePath, rudeEdits: [], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             var capabilities = new EditAndContinueCapabilitiesGrantor(await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
@@ -578,13 +592,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // If the document has changed at all, lets make sure Edit and Continue is supported
             if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
             {
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
-
-            // TODO: https://github.com/dotnet/roslyn/issues/78486
-            // Changes in parse options might change the meaning of the code even if nothing else changed.
-            // The IDE should disallow changing the options during debugging session. 
-            Debug.Assert(oldTree.Options.Equals(newTree.Options));
 
             // We are in break state when there are no active statements.
             var inBreakState = !oldActiveStatementMap.IsEmpty;
@@ -681,7 +690,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 hasBlockingRudeEdits ? default : capabilities.GrantedCapabilities,
                 analysisStopwatch.Elapsed,
                 hasChanges: true,
-                hasSyntaxErrors: false,
+                analysisBlocked: false,
                 hasBlockingRudeEdits);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -694,8 +703,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: [filePath])
                 : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [filePath, e.ToString()]);
 
-            // Report as "syntax error" - we can't analyze the document
-            return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            return DocumentAnalysisResults.Blocked(documentId, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
         }
 
         void LogRudeEdits(ImmutableArray<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
@@ -815,6 +823,117 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         }
 
         return map;
+    }
+
+    protected static Diagnostic CreateProjectRudeEdit(ProjectSettingKind kind, string oldValue, string newValue)
+        => Diagnostic.Create(
+            EditAndContinueDiagnosticDescriptors.GetDescriptor(kind),
+            Location.None,
+            [kind.ToString(), oldValue, newValue]);
+
+    protected virtual IEnumerable<Diagnostic> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        if (!FeaturesEqual(oldOptions.Features, newOptions.Features))
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.Features, ToDisplay(oldOptions.Features), ToDisplay(newOptions.Features));
+        }
+
+        static string ToDisplay(IReadOnlyDictionary<string, string> features)
+            => string.Join(",", features.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}"));
+
+        static bool FeaturesEqual(IReadOnlyDictionary<string, string> features, IReadOnlyDictionary<string, string> other)
+        {
+            if (ReferenceEquals(features, other))
+            {
+                return true;
+            }
+
+            if (features.Count != other.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in features)
+            {
+                if (!other.TryGetValue(key, out var otherValue) || value != otherValue)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    protected static string DefaultProjectSettingValue
+        => $"<{FeaturesResources.@default}>";
+
+    protected virtual IEnumerable<Diagnostic> GetCompilationOptionsRudeEdits(CompilationOptions oldOptions, CompilationOptions newOptions)
+    {
+        if (oldOptions.CheckOverflow != newOptions.CheckOverflow)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.CheckForOverflowUnderflow, oldOptions.CheckOverflow.ToString(), newOptions.CheckOverflow.ToString());
+        }
+
+        if (oldOptions.OutputKind != newOptions.OutputKind)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.OutputType, ToProjectPropertyValue(oldOptions.OutputKind), ToProjectPropertyValue(newOptions.OutputKind));
+
+            static string ToProjectPropertyValue(OutputKind kind)
+                => kind switch
+                {
+                    OutputKind.ConsoleApplication => "Exe",
+                    OutputKind.WindowsApplication => "WinExe",
+                    OutputKind.DynamicallyLinkedLibrary => "Library",
+                    OutputKind.NetModule => "Module",
+                    OutputKind.WindowsRuntimeApplication => "AppContainerExe",
+                    OutputKind.WindowsRuntimeMetadata => "WinMDObj",
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
+        }
+
+        if (oldOptions.Platform != newOptions.Platform)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.Platform, oldOptions.Platform.ToString(), newOptions.Platform.ToString());
+        }
+
+        if (oldOptions.MainTypeName != newOptions.MainTypeName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.StartupObject, oldOptions.MainTypeName ?? DefaultProjectSettingValue, newOptions.MainTypeName ?? DefaultProjectSettingValue);
+        }
+
+        if (oldOptions.ModuleName != newOptions.ModuleName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.ModuleAssemblyName, oldOptions.ModuleName ?? DefaultProjectSettingValue, newOptions.ModuleName ?? DefaultProjectSettingValue);
+        }
+
+        if (oldOptions.OptimizationLevel != newOptions.OptimizationLevel)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.OptimizationLevel, oldOptions.OptimizationLevel.ToString(), newOptions.OptimizationLevel.ToString());
+        }
+    }
+
+    public IEnumerable<Diagnostic> GetProjectSettingRudeEdits(Project oldProject, Project newProject)
+    {
+        Contract.ThrowIfNull(oldProject.ParseOptions);
+        Contract.ThrowIfNull(newProject.ParseOptions);
+        Contract.ThrowIfNull(oldProject.CompilationOptions);
+        Contract.ThrowIfNull(newProject.CompilationOptions);
+
+        foreach (var rudeEdit in GetParseOptionsRudeEdits(oldProject.ParseOptions, newProject.ParseOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        foreach (var rudeEdit in GetCompilationOptionsRudeEdits(oldProject.CompilationOptions, newProject.CompilationOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        if (oldProject.AssemblyName != newProject.AssemblyName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.AssemblyName, oldProject.AssemblyName, newProject.AssemblyName);
+        }
     }
 
     #endregion
@@ -1623,7 +1742,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (activeNode.NewTrackedNode != null)
             {
                 lazyKnownMatches ??= [];
-                lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
+                lazyKnownMatches.Add(KeyValuePair.Create(activeNode.OldNode, activeNode.NewTrackedNode));
             }
         }
 

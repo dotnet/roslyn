@@ -10,40 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\AccessibilityUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\IAssemblySymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\IMethodSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\INamedTypeSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\INamespaceOrTypeSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\IParameterSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\IPropertySymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ISymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ISymbolExtensions.RequiresUnsafeModifierVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ISymbolExtensions_Accessibility.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeGenerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeParameterSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.AnonymousTypeRemover.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.CollectTypeParameterSymbolsVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.MinimalAccessibilityVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.UnavailableTypeParameterRemover.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\ITypeSymbolExtensions.UnnamedErrorTypeRemover.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\MethodKindExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\PredefinedOperator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\PredefinedType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\PredefinedTypeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SignatureComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolDisplayFormats.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.AssemblyComparers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.EquivalenceVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.GetHashCodeVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.ParameterSymbolEqualityComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.SignatureTypeSymbolEquivalenceComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolVisibility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" />
@@ -51,5 +18,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Diagnostics\" />
   </ItemGroup>
 </Project>

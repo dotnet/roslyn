@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
@@ -95,7 +94,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <Fact>
@@ -184,7 +183,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <Fact>
@@ -273,7 +272,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <Fact>

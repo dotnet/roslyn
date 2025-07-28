@@ -2,11 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     <Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>

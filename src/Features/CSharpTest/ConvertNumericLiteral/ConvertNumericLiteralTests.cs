@@ -29,7 +29,7 @@ public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest_No
         => await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial));
 
     private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)
-        => await TestInRegularAndScript1Async(CreateTreeText("[||]" + initial), CreateTreeText(expected), (int)refactoring);
+        => await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), (int)refactoring);
 
     private static string CreateTreeText(string initial)
         => @"class X { void F() { var x = " + initial + @"; } }";
@@ -79,9 +79,8 @@ public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest_No
         => await TestFixOneAsync("0x1e5UL", "0b111100101UL", Refactoring.ChangeBase2);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19225")]
-    public async Task TestPreserveWhitespaces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPreserveWhitespaces()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -104,12 +103,10 @@ public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """, index: (int)Refactoring.ChangeBase2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19369")]
-    public async Task TestCaretPositionAtTheEnd()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCaretPositionAtTheEnd()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -122,12 +119,10 @@ public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest_No
                 int a = 0b101010;
             }
             """, index: (int)Refactoring.ChangeBase1);
-    }
 
     [Fact]
-    public async Task TestSelectionMatchesToken()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSelectionMatchesToken()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -140,17 +135,14 @@ public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest_No
                 int a = 0b101010;
             }
             """, index: (int)Refactoring.ChangeBase1);
-    }
 
     [Fact]
-    public async Task TestSelectionDoesNotMatchToken()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestSelectionDoesNotMatchToken()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 int a = [|42 * 2|];
             }
             """);
-    }
 }

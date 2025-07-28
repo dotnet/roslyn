@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var importStringGroups = CustomDebugInfoReader.GetCSharpGroupedImportStrings(
                 methodToken,
-                KeyValuePairUtil.Create(reader, methodVersion),
+                KeyValuePair.Create(reader, methodVersion),
                 getMethodCustomDebugInfo: (token, arg) => GetCustomDebugInfoBytes(arg.Key, token, arg.Value),
                 getMethodImportStrings: (token, arg) => GetImportStrings(arg.Key, token, arg.Value),
                 externAliasStrings: out externAliasStrings);
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
                 methodToken,
-                KeyValuePairUtil.Create(reader, methodVersion),
+                KeyValuePair.Create(reader, methodVersion),
                 (token, arg) => GetImportStrings(arg.Key, token, arg.Value));
 
             if (importStrings.IsDefault)

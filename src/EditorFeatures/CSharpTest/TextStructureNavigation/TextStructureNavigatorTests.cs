@@ -27,9 +27,7 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
 
     [Fact]
     public void Empty()
-    {
-        AssertExtent("""$${|Insignificant:|}""");
-    }
+        => AssertExtent("""$${|Insignificant:|}""");
 
     [WpfFact]
     public void Whitespace()
@@ -46,10 +44,8 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
 
     [WpfFact]
     public void EndOfFile()
-    {
-        AssertExtent(
+        => AssertExtent(
             """using System{|Significant:;|}$$""");
-    }
 
     [Fact]
     public void NewLine()
@@ -244,9 +240,7 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
     [InlineData("""class Test { private string s1 = " () test  {|Significant:$$"|}; }""")]
     [InlineData("""class Test { private string s1 = " () test  "{|Significant:$$;|} }""")]
     public void String(string content)
-    {
-        AssertExtent(content);
-    }
+        => AssertExtent(content);
 
     [WpfTheory]
     [InlineData("""class Test { private string s1 = {|Significant:$$"|} () test  "u8; }""")]
@@ -256,9 +250,7 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
     [InlineData("""class Test { private string s1 = " () test  {|Significant:$$"u8|}; }""")]
     [InlineData("""class Test { private string s1 = " () test  "u8{|Significant:$$;|} }""")]
     public void Utf8String(string content)
-    {
-        AssertExtent(content);
-    }
+        => AssertExtent(content);
 
     [WpfFact]
     public void InterpolatedString1()
@@ -378,9 +370,7 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
             """;
         """")]
     public void TestRawStringDelimiter1(string content)
-    {
-        AssertExtent(content);
-    }
+        => AssertExtent(content);
 
     [WpfTheory, WorkItem("""https://github.com/dotnet/roslyn/issues/59581""")]
     [InlineData(
@@ -408,9 +398,7 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
             {|Significant:""$$"|};
         """")]
     public void TestRawStringDelimiter2(string content)
-    {
-        AssertExtent(content);
-    }
+        => AssertExtent(content);
 
     [WpfTheory]
     [InlineData(
@@ -454,9 +442,7 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
             {|Significant:"""u$$8|};
         """")]
     public void TestUtf8RawStringDelimiter(string content)
-    {
-        AssertExtent(content);
-    }
+        => AssertExtent(content);
 
     private static void TestNavigator(
         string code,
@@ -558,16 +544,14 @@ public sealed class TextStructureNavigatorTests : AbstractTextStructureNavigator
     [InlineData(""""Console.WriteLine("""{|Significant:$$=============|}"""u8);"""")]
     [InlineData(""""Console.WriteLine("""{|Significant:=$$============|}"""u8);"""")]
     public void TestClampStringLiteral(string content)
-    {
-        AssertExtent(content);
-    }
+        => AssertExtent(content);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/77401")]
     [InlineData(@"{|Significant:""|}$$")]
     [InlineData(@"{|Significant:""""""|}$$")]
-    [InlineData(@"""""""{|Significant:u8|}$$")]
+    [InlineData(""""
+        """{|Significant:u8|}$$
+        """")]
     public void TestClampStringLiteral_Invalid(string content)
-    {
-        AssertExtent(content);
-    }
+        => AssertExtent(content);
 }

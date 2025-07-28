@@ -15,136 +15,83 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
 public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
     [Fact]
-    public async Task SingleClassInFile_RenameFile()
-    {
-        var code =
-@"[||]class Class1 { }";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-    }
+    public Task SingleClassInFile_RenameFile()
+        => TestRenameFileToMatchTypeAsync(@"[||]class Class1 { }", "Class1.cs");
 
     [Fact]
-    public async Task MoreThanOneTypeInFile_RenameFile()
-    {
-        var code =
-@"[||]class Class1
-{ 
-    class Inner { }
-}";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-    }
+    public Task MoreThanOneTypeInFile_RenameFile()
+        => TestRenameFileToMatchTypeAsync("""
+            [||]class Class1
+            { 
+                class Inner { }
+            }
+            """, "Class1.cs");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16284")]
-    public async Task MoreThanOneTypeInFile_RenameFile_InnerType()
-    {
-        var code =
-@"class Class1
-{ 
-    [||]class Inner { }
-}";
-
-        var expectedDocumentName = "Class1.Inner.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-    }
+    public Task MoreThanOneTypeInFile_RenameFile_InnerType()
+        => TestRenameFileToMatchTypeAsync("""
+            class Class1
+            { 
+                [||]class Inner { }
+            }
+            """, "Class1.Inner.cs");
 
     [Fact]
-    public async Task TestRenameFileWithFolders()
-    {
-        var code =
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document Folders=""A\B""> 
-[||]class Class1
-{ 
-    class Inner { }
-}
-        </Document>
-    </Project>
-</Workspace>";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName,
+    public Task TestRenameFileWithFolders()
+        => TestRenameFileToMatchTypeAsync("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document Folders="A\B"> 
+            [||]class Class1
+            { 
+                class Inner { }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, "Class1.cs",
             destinationDocumentContainers: ["A", "B"]);
-    }
 
     [Fact]
-    public async Task TestMissing_TypeNameMatchesFileName_RenameFile()
-    {
-        // testworkspace creates files like test1.cs, test2.cs and so on.. 
-        // so type name matches filename here and rename file action should not be offered.
-        var code =
-@"[||]class test1 { }";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
-    }
+    public Task TestMissing_TypeNameMatchesFileName_RenameFile()
+        => TestRenameFileToMatchTypeAsync(@"[||]class test1 { }", expectedCodeAction: false);
 
     [Fact]
-    public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile()
-    {
-        var code =
-@"[||]class Class1 { }
-class test1 { }";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
-    }
+    public Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile()
+        => TestRenameFileToMatchTypeAsync("""
+            [||]class Class1 { }
+            class test1 { }
+            """, expectedCodeAction: false);
 
     [Fact]
-    public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName_RenameFile()
-    {
-        var code =
-@"[||]class Class1 { }
-class Class2 { }";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-    }
+    public Task MultipleTopLevelTypesInFileAndNoneMatchFileName_RenameFile()
+        => TestRenameFileToMatchTypeAsync("""
+            [||]class Class1 { }
+            class Class2 { }
+            """, "Class1.cs");
 
     [Fact]
-    public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameFile()
-    {
-        var code =
-@"class Class1 { }
-[||]class Class2 { }";
-
-        var expectedDocumentName = "Class2.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-    }
+    public Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameFile()
+        => TestRenameFileToMatchTypeAsync("""
+            class Class1 { }
+            [||]class Class2 { }
+            """, "Class2.cs");
 
     [Fact]
-    public async Task NestedFile_Simple_RenameFile()
-    {
-        var code =
-@"class OuterType
-{
-    [||]class InnerType { }
-}";
-
-        var expectedDocumentName = "InnerType.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-    }
+    public Task NestedFile_Simple_RenameFile()
+        => TestRenameFileToMatchTypeAsync("""
+            class OuterType
+            {
+                [||]class InnerType { }
+            }
+            """, "InnerType.cs");
 
     [Fact]
-    public async Task NestedFile_DottedName_RenameFile()
-    {
-        var code =
-@"class OuterType
-{
-    [||]class InnerType { }
-}";
-
-        var expectedDocumentName = "OuterType.InnerType.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
-    }
+    public Task NestedFile_DottedName_RenameFile()
+        => TestRenameFileToMatchTypeAsync("""
+            class OuterType
+            {
+                [||]class InnerType { }
+            }
+            """, "OuterType.InnerType.cs");
 }

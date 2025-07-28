@@ -405,6 +405,7 @@ extends:
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
+          signingValidationAdditionalArtifactDropName: 'VSSetup'
           publishingInfraVersion: 3
           # Symbol validation is not entirely reliable as of yet, so should be turned off until
           # https://github.com/dotnet/arcade/issues/2871 is resolved.

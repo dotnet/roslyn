@@ -4,7 +4,6 @@
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification

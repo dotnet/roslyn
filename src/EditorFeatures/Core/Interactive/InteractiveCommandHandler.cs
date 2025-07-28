@@ -6,16 +6,16 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using System.Threading;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Interactive;
 

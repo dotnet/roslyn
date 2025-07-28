@@ -25,12 +25,7 @@ internal sealed class DocumentTaskDiagnosticSourceProvider([Import] IGlobalOptio
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.GetTrackedDocument<Document>() is { } document)
-        {
-            return new([new TaskListDiagnosticSource(document, globalOptions)]);
-        }
-
-        return new([]);
+        return new([new TaskListDiagnosticSource(context.GetRequiredDocument(), globalOptions)]);
     }
 }
 

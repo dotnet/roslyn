@@ -24,56 +24,60 @@ public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTes
     public async Task TestFormatDocumentRangeAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-{|format:void|} M()
-{
-            int i = 1;
-    }
-}";
-        var expected =
-@"class A
-{
-    void M()
-{
-            int i = 1;
-    }
-}";
+            """
+            class A
+            {
+            {|format:void|} M()
+            {
+                        int i = 1;
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var rangeToFormat = testLspServer.GetLocations("format").Single();
         var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.DocumentUri);
 
         var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
         var actualText = ApplyTextEdits(results, documentText);
-        Assert.Equal(expected, actualText);
+        Assert.Equal("""
+            class A
+            {
+                void M()
+            {
+                        int i = 1;
+                }
+            }
+            """, actualText);
     }
 
     [Theory, CombinatorialData]
     public async Task TestFormatDocumentRange_UseTabsAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-{|format:void|} M()
-{
-			int i = 1;
-	}
-}";
-        var expected =
-@"class A
-{
-	void M()
-{
-			int i = 1;
-	}
-}";
+            """
+            class A
+            {
+            {|format:void|} M()
+            {
+            			int i = 1;
+            	}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var rangeToFormat = testLspServer.GetLocations("format").Single();
         var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.DocumentUri);
 
         var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
         var actualText = ApplyTextEdits(results, documentText);
-        Assert.Equal(expected, actualText);
+        Assert.Equal("""
+            class A
+            {
+            	void M()
+            {
+            			int i = 1;
+            	}
+            }
+            """, actualText);
     }
 
     private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(

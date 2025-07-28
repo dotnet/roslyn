@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
+    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // Tracked by https://github.com/dotnet/roslyn/issues/78959 : Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
     {
         private string? lazyDocComment;
         private StrongBox<byte?>? lazyNullableContext;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool HasSpecialName => false;
+        internal override bool HasSpecialName => _originalMethod.HasSpecialNameAttribute;
 
         internal override int ParameterCount
         {
@@ -208,6 +208,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // as that would delegate to underlying parameter symbol
                 SourceParameterSymbolBase.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
             }
+
+            internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+            {
+                get
+                {
+                    var originalIndexes = this._underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+                    if (originalIndexes.IsDefaultOrEmpty || this._underlyingParameter.ContainingSymbol.IsStatic)
+                    {
+                        return originalIndexes;
+                    }
+
+                    // If this is the extension method receiver (ie, parameter 0), then any non-empty list of indexes must
+                    // be an error, and we should have already returned an empty list.
+                    Debug.Assert(_underlyingParameter.ContainingSymbol is not NamedTypeSymbol);
+                    return originalIndexes.SelectAsArray(static (index) => index switch
+                    {
+                        BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => throw ExceptionUtilities.Unreachable(),
+                        BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => 0,
+                        BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter,
+                        BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter => BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter,
+                        >= 0 => index + 1,
+                        _ => throw ExceptionUtilities.UnexpectedValue(index),
+                    });
+                }
+            }
+
+            internal sealed override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
         }
     }
 }

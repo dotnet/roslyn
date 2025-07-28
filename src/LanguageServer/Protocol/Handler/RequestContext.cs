@@ -55,7 +55,7 @@ internal readonly struct RequestContext
     /// </remarks>
     private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
 
-    public ILspLogger Logger => _logger;
+    public ILspLogger Logger { get; }
 
     /// <summary>
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
@@ -162,11 +162,6 @@ internal readonly struct RequestContext
 
     public readonly CancellationToken QueueCancellationToken;
 
-    /// <summary>
-    /// Tracing object that can be used to log information about the status of requests.
-    /// </summary>
-    private readonly ILspLogger _logger;
-
     public RequestContext(
         Workspace? workspace,
         Solution? solution,
@@ -197,7 +192,7 @@ internal readonly struct RequestContext
         ServerKind = serverKind;
         SupportedLanguages = supportedLanguages;
         _documentChangeTracker = documentChangeTracker;
-        _logger = logger;
+        Logger = logger;
         _trackedDocuments = trackedDocuments;
         _lspServices = lspServices;
         QueueCancellationToken = queueCancellationToken;
@@ -320,29 +315,6 @@ internal readonly struct RequestContext
         return _trackedDocuments[documentUri].Text;
     }
 
-    public TDocument? GetTrackedDocument<TDocument>() where TDocument : TextDocument
-    {
-        // Note: context.Document may be null in the case where the client is asking about a document that we have
-        // since removed from the workspace.  In this case, we don't really have anything to process.
-        // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
-        //
-        // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
-        // handler treats those as separate worlds that they are responsible for.
-        if (TextDocument is not TDocument document)
-        {
-            TraceDebug($"Ignoring diagnostics request because no {typeof(TDocument).Name} was provided");
-            return null;
-        }
-
-        if (!IsTracking(document.GetURI()))
-        {
-            TraceDebug($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
-            return null;
-        }
-
-        return document;
-    }
-
     /// <summary>
     /// Allows a mutating request to close a document and stop it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
@@ -362,22 +334,22 @@ internal readonly struct RequestContext
     }
 
     public void TraceDebug(string message)
-        => _logger.LogDebug(message);
+        => Logger.LogDebug(message);
 
     /// <summary>
     /// Logs an informational message.
     /// </summary>
     public void TraceInformation(string message)
-        => _logger.LogInformation(message);
+        => Logger.LogInformation(message);
 
     public void TraceWarning(string message)
-        => _logger.LogWarning(message);
+        => Logger.LogWarning(message);
 
     public void TraceError(string message)
-        => _logger.LogError(message);
+        => Logger.LogError(message);
 
     public void TraceException(Exception exception)
-        => _logger.LogException(exception);
+        => Logger.LogException(exception);
 
     public T GetRequiredLspService<T>() where T : class, ILspService
     {

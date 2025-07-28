@@ -13,366 +13,295 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
 {
     [Theory, CombinatorialData]
-    public async Task TestStringEscape1(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = ""goo\r\nbar"";",
+    public Task TestStringEscape1(TestHost testHost)
+        => TestInMethodAsync(@"var goo = ""goo\r\nbar"";",
             testHost,
             Keyword("var"),
             Escape(@"\r"),
             Escape(@"\n"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape1_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = ""goo\r\nbar""u8;",
+    public Task TestStringEscape1_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = ""goo\r\nbar""u8;",
             testHost,
             Keyword("var"),
             Escape(@"\r"),
             Escape(@"\n"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape2(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
+    public Task TestStringEscape2(TestHost testHost)
+        => TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape2_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = @""goo\r\nbar""u8;",
+    public Task TestStringEscape2_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = @""goo\r\nbar""u8;",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape3(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $""goo{{1}}bar"";",
+    public Task TestStringEscape3(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $""goo{{1}}bar"";",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape3_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $""goo{{1}}bar""u8;",
+    public Task TestStringEscape3_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $""goo{{1}}bar""u8;",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape4(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
+    public Task TestStringEscape4(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape4_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""goo{{1}}bar""u8;",
+    public Task TestStringEscape4_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""goo{{1}}bar""u8;",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape5(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar"";",
+    public Task TestStringEscape5(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar"";",
             testHost,
             Keyword("var"),
             Escape(@"\r"),
             Escape(@"{{"),
             Escape(@"}}"),
             Escape(@"\n"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape5_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar""u8;",
+    public Task TestStringEscape5_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar""u8;",
             testHost,
             Keyword("var"),
             Escape(@"\r"),
             Escape(@"{{"),
             Escape(@"}}"),
             Escape(@"\n"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape6(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
+    public Task TestStringEscape6(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape6_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar""u8;",
+    public Task TestStringEscape6_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar""u8;",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape7(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar"";",
+    public Task TestStringEscape7(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $""goo\r{1}\nbar"";",
             testHost,
             Keyword("var"),
             Escape(@"\r"),
             Escape(@"\n"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape7_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar""u8;",
+    public Task TestStringEscape7_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $""goo\r{1}\nbar""u8;",
             testHost,
             Keyword("var"),
             Escape(@"\r"),
             Escape(@"\n"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+    public Task TestStringEscape8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape8_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}""u8;",
+    public Task TestStringEscape8_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}""u8;",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape9(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
+    public Task TestStringEscape9(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestStringEscape9_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $@""{{{12:X}}}""u8;",
+    public Task TestStringEscape9_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $@""{{{12:X}}}""u8;",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral1(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = """"""goo\r\nbar"""""";",
+    public Task TestNotStringEscapeInRawLiteral1(TestHost testHost)
+        => TestInMethodAsync(@"var goo = """"""goo\r\nbar"""""";",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral1_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = """"""goo\r\nbar""""""u8;",
+    public Task TestNotStringEscapeInRawLiteral1_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = """"""goo\r\nbar""""""u8;",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral2(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral2(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = """
                 goo\r\nbar
                 """;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral2_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral2_utf8(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = """
                 goo\r\nbar
                 """u8;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral3(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral3(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = $"""
                 goo\r\nbar
                 """;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral3_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral3_utf8(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = $"""
                 goo\r\nbar
                 """u8;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral4(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = """"""\"""""";",
+    public Task TestNotStringEscapeInRawLiteral4(TestHost testHost)
+        => TestInMethodAsync(@"var goo = """"""\"""""";",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral4_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = """"""\""""""u8;",
+    public Task TestNotStringEscapeInRawLiteral4_utf8(TestHost testHost)
+        => TestInMethodAsync(@"var goo = """"""\""""""u8;",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral5(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral5(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = """
                 \
                 """;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral5_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral5_utf8(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = """
                 \
                 """u8;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral6(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral6(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = $"""
                 \
                 """;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotStringEscapeInRawLiteral6_utf8(TestHost testHost)
-    {
-        await TestInMethodAsync(""""
+    public Task TestNotStringEscapeInRawLiteral6_utf8(TestHost testHost)
+        => TestInMethodAsync(""""
             var goo = $"""
                 \
                 """u8;
             """",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
     [CombinatorialData]
-    public async Task TestCharEscape1(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = '\n';",
+    public Task TestCharEscape1(TestHost testHost)
+        => TestInMethodAsync(@"var goo = '\n';",
             testHost,
             Keyword("var"),
             Escape(@"\n"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
     [CombinatorialData]
-    public async Task TestCharEscape2(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = '\\';",
+    public Task TestCharEscape2(TestHost testHost)
+        => TestInMethodAsync(@"var goo = '\\';",
             testHost,
             Keyword("var"),
             Escape(@"\\"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
     [CombinatorialData]
-    public async Task TestCharEscape3(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = '\'';",
+    public Task TestCharEscape3(TestHost testHost)
+        => TestInMethodAsync(@"var goo = '\'';",
             testHost,
             Keyword("var"),
             Escape(@"\'"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
     [CombinatorialData]
-    public async Task TestCharEscape5(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = '""';",
+    public Task TestCharEscape5(TestHost testHost)
+        => TestInMethodAsync(@"var goo = '""';",
             testHost,
             Keyword("var"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
     [CombinatorialData]
-    public async Task TestCharEscape4(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = '\u000a';",
+    public Task TestCharEscape4(TestHost testHost)
+        => TestInMethodAsync(@"var goo = '\u000a';",
             testHost,
             Keyword("var"),
             Escape(@"\u000a"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEscapeFourBytesCharacter(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestEscapeFourBytesCharacter(TestHost testHost)
+        => TestAsync("""
             class C
             {
                     void M()
@@ -382,12 +311,10 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             }
             """, testHost,
             Keyword("var"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEscapeCharacter(TestHost testHost)
-    {
-        await TestAsync("""""
+    public Task TestEscapeCharacter(TestHost testHost)
+        => TestAsync("""""
             class C
             {
                 string x1 = "\xabcd";
@@ -426,13 +353,11 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Escape("""
                 ""
                 """));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/76709")]
-    public async Task TestEscapeCharacter2(TestHost testHost)
-    {
-        await TestAsync("""""
+    public Task TestEscapeCharacter2(TestHost testHost)
+        => TestAsync("""""
             class C
             {
                 string x1 = "\x0003e";
@@ -443,5 +368,4 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
             Escape("\\x0003"),
             Escape("\\0"),
             Escape("\\0"));
-    }
 }

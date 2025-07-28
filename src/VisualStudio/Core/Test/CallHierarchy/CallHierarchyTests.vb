@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Roslyn.Test.Utilities
 

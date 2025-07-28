@@ -270,7 +270,7 @@ end class")
 
         <Fact>
         Public Async Function TestOnTopLevelProp() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "public class C
     public property a as integer
     end property

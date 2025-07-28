@@ -74,13 +74,15 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             }
         };
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -129,9 +131,11 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             }
         };
         var markup =
-@"namespace M
-{{|caret:|}
-}";
+            """
+            namespace M
+            {{|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -158,13 +162,15 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
     public async Task TestGetCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -186,19 +192,20 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
     public async Task TestGetExtensionMethodCoreLsp(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M(A a)
-    {
-        a.{|caret:|}
-    }
-}
+            """
+            class A
+            {
+                void M(A a)
+                {
+                    a.{|caret:|}
+                }
+            }
 
-static class Extensions
-{
-    public static void Goo(this A a) { }
-}
-";
+            static class Extensions
+            {
+                public static void Goo(this A a) { }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -220,19 +227,20 @@ static class Extensions
     public async Task TestGetExtensionMethodCoreVSLsp(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M(A a)
-    {
-        a.{|caret:|}
-    }
-}
+            """
+            class A
+            {
+                void M(A a)
+                {
+                    a.{|caret:|}
+                }
+            }
 
-static class Extensions
-{
-    public static void Goo(this A a) { }
-}
-";
+            static class Extensions
+            {
+                public static void Goo(this A a) { }
+            }
+            """;
 
         // If the client supports more completion kinds, then we can give a more precise answer.
         var capabilities = CreateCoreCompletionCapabilities();
@@ -259,13 +267,15 @@ static class Extensions
     public async Task TestGetCompletionsTypingAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        A{|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    A{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -286,13 +296,15 @@ static class Extensions
     public async Task TestGetCompletionsDoesNotIncludeUnimportedTypesAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var solution = testLspServer.TestWorkspace.CurrentSolution;
 
@@ -314,10 +326,12 @@ static class Extensions
     public async Task TestGetCompletionsUsesSnippetOptionAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    {|caret:|}
-}";
+            """
+            class A
+            {
+                {|caret:|}
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
 
@@ -337,13 +351,15 @@ static class Extensions
     public async Task TestGetCompletionsWithPreselectAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        A classA = new {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    A classA = new {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -364,20 +380,21 @@ static class Extensions
     public async Task TestGetCompletionsIsInSuggestionMode(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-using System.Collections.Generic;
-using System.Linq; 
-namespace M
-{
-    class Item
-    {
-        void M()
-        {
-            var items = new List<Item>();
-            items.Count(i{|caret:|}
-        }
-    }
-}";
+            """
+            using System.Collections.Generic;
+            using System.Linq; 
+            namespace M
+            {
+                class Item
+                {
+                    void M()
+                    {
+                        var items = new List<Item>();
+                        items.Count(i{|caret:|}
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -394,19 +411,23 @@ namespace M
     public async Task TestGetDateAndTimeCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        DateTime.Now.ToString(""{|caret:|});
-    }
-}";
+            """
+            using System;
+            class A
+            {
+                void M()
+                {
+                    DateTime.Now.ToString("{|caret:|});
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
             invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
-            triggerCharacter: "\"",
+            triggerCharacter: """
+            "
+            """,
             triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
@@ -423,19 +444,23 @@ class A
     public async Task TestGetDateAndTimeCompletionOnGuid(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        Guid.NewGuid().ToString(""{|caret:|});
-    }
-}";
+            """
+            using System;
+            class A
+            {
+                void M()
+                {
+                    Guid.NewGuid().ToString("{|caret:|});
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
             invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
-            triggerCharacter: "\"",
+            triggerCharacter: """
+            "
+            """,
             triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
@@ -448,14 +473,16 @@ class A
     public async Task TestGetRegexCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System.Text.RegularExpressions;
-class A
-{
-    void M()
-    {
-        new Regex(""{|caret:|}"");
-    }
-}";
+            """
+            using System.Text.RegularExpressions;
+            class A
+            {
+                void M()
+                {
+                    new Regex("{|caret:|}");
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -485,14 +512,16 @@ class A
     public async Task TestGetRegexLiteralCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System.Text.RegularExpressions;
-class A
-{
-    void M()
-    {
-        new Regex(@""\{|caret:|}"");
-    }
-}";
+            """
+            using System.Text.RegularExpressions;
+            class A
+            {
+                void M()
+                {
+                    new Regex(@"\{|caret:|}");
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -522,14 +551,16 @@ class A
     public async Task TestGetRegexCompletionsReplaceTextAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System.Text.RegularExpressions;
-class A
-{
-    void M()
-    {
-        Regex r = new(""\\{|caret:|}"");
-    }
-}";
+            """
+            using System.Text.RegularExpressions;
+            class A
+            {
+                void M()
+                {
+                    Regex r = new("\\{|caret:|}");
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -580,14 +611,16 @@ class A
         };
 
         var markup =
-@"using System.Text.RegularExpressions;
-class A
-{
-    void M()
-    {
-        new Regex(""{|caret:|}"");
-    }
-}";
+            """
+            using System.Text.RegularExpressions;
+            class A
+            {
+                void M()
+                {
+                    new Regex("{|caret:|}");
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -613,13 +646,15 @@ class A
     public async Task TestCompletionListCacheAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var cache = GetCompletionListCache(testLspServer);
         Assert.NotNull(cache);
@@ -676,13 +711,15 @@ class A
     public async Task TestGetCompletionsWithDeletionInvokeKindAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -705,15 +742,17 @@ class A
     public async Task TestDoNotProvideOverrideTextEditsOrInsertTextAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"abstract class A
-{
-    public abstract void M();
-}
+            """
+            abstract class A
+            {
+                public abstract void M();
+            }
 
-class B : A
-{
-    override {|caret:|}
-}";
+            class B : A
+            {
+                override {|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -733,15 +772,17 @@ class B : A
     public async Task TestDoNotProvidePartialMethodTextEditsOrInsertTextAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"partial class C
-{
-    partial void Method();
-}
+            """
+            partial class C
+            {
+                partial void Method();
+            }
 
-partial class C
-{
-    partial {|caret:|}
-}";
+            partial class C
+            {
+                partial {|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -760,14 +801,16 @@ partial class C
     public async Task TestSoftSelectedItemsHaveNoCommitCharactersWithoutVSCapabilityAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System.Text.RegularExpressions;
-class A
-{
-    void M()
-    {
-        new Regex(""[{|caret:|}"")
-    }
-}";
+            """
+            using System.Text.RegularExpressions;
+            class A
+            {
+                void M()
+                {
+                    new Regex("[{|caret:|}")
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -787,39 +830,41 @@ class A
     public async Task TestLargeCompletionListIsMarkedIncompleteAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        T{|caret:|}
-    }
-}";
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    T{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -836,42 +881,44 @@ class A
     public async Task TestIncompleteCompletionListContainsPreselectedItemAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    class W
-    {
-    }
-    void M()
-    {
-        W someW = new {|caret:|}
-    }
-}";
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                class W
+                {
+                }
+                void M()
+                {
+                    W someW = new {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
@@ -892,39 +939,41 @@ class A
     public async Task TestRequestForIncompleteListIsFilteredDownAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        T{|caret:|}
-    }
-}";
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    T{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
         await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
@@ -958,39 +1007,41 @@ class A
     public async Task TestIncompleteCompletionListFiltersWithPatternMatchingAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        T{|caret:|}
-    }
-}";
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    T{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
         await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
@@ -1024,39 +1075,41 @@ class A
     public async Task TestIncompleteCompletionListWithDeletionAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        T{|caret:|}
-    }
-}";
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    T{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
         await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
@@ -1114,44 +1167,46 @@ class A
     public async Task TestNewCompletionRequestDoesNotUseIncompleteListAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        T{|firstCaret:|}
-    }
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    T{|firstCaret:|}
+                }
 
-    void M2()
-    {
-        Console.WH{|secondCaret:|}
-    }
-}";
+                void M2()
+                {
+                    Console.WH{|secondCaret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var firstCaret = testLspServer.GetLocations("firstCaret").Single();
         await testLspServer.OpenDocumentAsync(firstCaret.DocumentUri);
@@ -1183,39 +1238,41 @@ class A
     public async Task TestRequestForIncompleteListWhenMissingCachedListAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        Ta{|caret:|}
-    }
-}";
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    Ta{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
@@ -1235,46 +1292,48 @@ class A
     public async Task TestRequestForIncompleteListUsesCorrectCachedListAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M1()
-    {
-        int Taaa = 1;
-        T{|firstCaret:|}
-    }
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M1()
+                {
+                    int Taaa = 1;
+                    T{|firstCaret:|}
+                }
 
-    void M2()
-    {
-        int Saaa = 1;
-        {|secondCaret:|}
-    }
-}";
+                void M2()
+                {
+                    int Saaa = 1;
+                    {|secondCaret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var firstCaretLocation = testLspServer.GetLocations("firstCaret").Single();
         await testLspServer.OpenDocumentAsync(firstCaretLocation.DocumentUri);
@@ -1330,13 +1389,15 @@ class A
     public async Task TestCompletionRequestRespectsListSizeOptionAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -1358,39 +1419,41 @@ class A
     public async Task TestRequestForIncompleteListFiltersDownToEmptyAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Dynamic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        T{|caret:|}
-    }
-}";
+            """
+            using System;
+            using System.Buffers;
+            using System.Buffers.Binary;
+            using System.Buffers.Text;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Collections.ObjectModel;
+            using System.ComponentModel;
+            using System.ComponentModel.Design;
+            using System.Configuration;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Drawing;
+            using System.Dynamic;
+            using System.Globalization;
+            using System.IO;
+            using System.Linq;
+            using System.Media;
+            using System.Net;
+            using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Threading;
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    T{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
         await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
@@ -1423,14 +1486,16 @@ class A
     public async Task TestHasSuggestionModeItemAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System.Threading.Tasks;
-class A
-{
-    void M()
-    {
-        Task.Run(abcdefg{|caret:|}
-    }
-}";
+            """
+            using System.Threading.Tasks;
+            class A
+            {
+                void M()
+                {
+                    Task.Run(abcdefg{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -1451,9 +1516,11 @@ class A
     public async Task EditRangeShouldNotEndAtCursorPosition(bool mutatingLspWorkspace)
     {
         var markup =
-@"public class C1 {}
+            """
+            public class C1 {}
 
-pub{|caret:|}class";
+            pub{|caret:|}class
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
@@ -1475,13 +1542,15 @@ pub{|caret:|}class";
     public async Task TestHasInsertTextModeIfSupportedAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         var capabilities = CreateCoreCompletionCapabilities();
         capabilities.TextDocument.Completion.CompletionItem = new LSP.CompletionItemSetting
         {
@@ -1503,13 +1572,15 @@ pub{|caret:|}class";
     public async Task TestDoesNotHaveInsertTextModeIfNotSupportedAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         var capabilities = CreateCoreCompletionCapabilities();
         capabilities.TextDocument.Completion.CompletionItem = new LSP.CompletionItemSetting
         {

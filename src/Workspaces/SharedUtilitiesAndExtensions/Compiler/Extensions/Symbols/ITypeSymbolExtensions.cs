@@ -40,20 +40,12 @@ internal static partial class ITypeSymbolExtensions
         return isNullableValueType || isNonNullableReferenceType;
     }
 
-    public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
+    public static ImmutableArray<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
     {
         var allInterfaces = type.AllInterfaces;
-        if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
-        {
-            var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1)
-            {
-                namedType
-            };
-            result.AddRange(allInterfaces);
-            return result;
-        }
-
-        return allInterfaces;
+        return type is INamedTypeSymbol { TypeKind: TypeKind.Interface } namedType && !allInterfaces.Contains(namedType)
+            ? [namedType, .. allInterfaces]
+            : allInterfaces;
     }
 
     public static bool IsAbstractClass([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
@@ -682,29 +674,32 @@ internal static partial class ITypeSymbolExtensions
                 break;
         }
 
+        // Special case certain structs that we know for certain are immutable, but which may have not been marked that
+        // way (especially in older frameworks before we had the `readonly struct` feature).
+        if (IsWellKnownImmutableValueType(type))
+            return false;
+
+        // An error type may or may not be a struct, and it may or may not be mutable.  As we cannot make a determination,
+        // we return null to allow the caller to decide what to do.
         if (type.IsErrorType())
-        {
             return null;
-        }
 
         if (type.TypeKind != TypeKind.Struct)
-        {
             return false;
-        }
+
+        if (type.IsReadOnly)
+            return false;
 
         var hasPrivateField = false;
         foreach (var member in type.GetMembers())
         {
             if (member is not IFieldSymbol fieldSymbol)
-            {
                 continue;
-            }
+
+            if (!fieldSymbol.IsConst && !fieldSymbol.IsReadOnly && !fieldSymbol.IsStatic)
+                return true;
 
             hasPrivateField |= fieldSymbol.DeclaredAccessibility == Accessibility.Private;
-            if (!fieldSymbol.IsConst && !fieldSymbol.IsReadOnly && !fieldSymbol.IsStatic)
-            {
-                return true;
-            }
         }
 
         if (!hasPrivateField)
@@ -722,6 +717,38 @@ internal static partial class ITypeSymbolExtensions
         }
 
         return false;
+
+        static bool IsWellKnownImmutableValueType(ITypeSymbol type)
+        {
+            // We know that these types are immutable, even if they don't have the IsReadOnly attribute.
+            if (type is not INamedTypeSymbol
+                {
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System),
+                        ContainingNamespace.IsGlobalNamespace: true
+                    }
+                })
+            {
+                return false;
+            }
+
+            if (type.Name
+                    is nameof(DateTime)
+                    or nameof(ArraySegment<>)
+                    or nameof(DateTimeOffset)
+                    or nameof(Guid)
+                    or nameof(Index)
+                    or nameof(Range)
+                    or nameof(ReadOnlyMemory<>)
+                    or nameof(ReadOnlySpan<>)
+                    or nameof(TimeSpan))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public static bool IsDisposable([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? iDisposableType)
@@ -749,7 +776,7 @@ internal static partial class ITypeSymbolExtensions
     public static bool IsSpan([NotNullWhen(true)] this ITypeSymbol? type)
         => type is INamedTypeSymbol
         {
-            Name: nameof(Span<int>),
+            Name: nameof(Span<>),
             TypeArguments.Length: 1,
             ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
         };
@@ -757,7 +784,7 @@ internal static partial class ITypeSymbolExtensions
     public static bool IsReadOnlySpan([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is INamedTypeSymbol
         {
-            Name: nameof(ReadOnlySpan<int>),
+            Name: nameof(ReadOnlySpan<>),
             TypeArguments.Length: 1,
             ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
         };

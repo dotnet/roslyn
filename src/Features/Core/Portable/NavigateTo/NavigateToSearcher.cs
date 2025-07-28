@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -366,7 +367,7 @@ internal sealed class NavigateToSearcher
             }
             else
             {
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     source: groups,
                     cancellationToken,
                     SearchCoreAsync).ConfigureAwait(false);

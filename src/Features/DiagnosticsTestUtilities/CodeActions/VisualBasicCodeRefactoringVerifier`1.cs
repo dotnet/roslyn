@@ -13,6 +13,13 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
     where TCodeRefactoring : CodeRefactoringProvider, new()
 {
     /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, string)"/>
+    public static Task VerifyRefactoringAsync(
+        string source)
+    {
+        return VerifyRefactoringAsync(source, DiagnosticResult.EmptyDiagnosticResults, source);
+    }
+
+    /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, string)"/>
     public static Task VerifyRefactoringAsync(string source, string fixedSource)
     {
         return VerifyRefactoringAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);

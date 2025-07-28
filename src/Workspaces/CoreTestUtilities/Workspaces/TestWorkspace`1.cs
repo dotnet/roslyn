@@ -118,7 +118,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
             s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(language,
                 StructuredAnalyzerConfigOptions.Create(
                     new DictionaryAnalyzerConfigOptions(
-                        options.Select(static o => KeyValuePairUtil.Create(o.name, o.value)).ToImmutableDictionary())))),
+                        options.Select(static o => KeyValuePair.Create(o.name, o.value)).ToImmutableDictionary())))),
             changeKind: WorkspaceChangeKind.SolutionChanged);
     }
 
@@ -471,7 +471,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
         this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public override void CloseDocument(DocumentId documentId)
