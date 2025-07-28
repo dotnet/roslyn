@@ -52,11 +52,10 @@ internal static class ReferenceLocationExtensions
     {
         foreach (var reference in references)
         {
-            // Filter out references in nameof expressions and typeof expressions
+            // Filter out name-only references (e.g. nameof expressions, typeof expressions)
             // This fixes the most common Call Hierarchy false positives
-            if (IsTokenInNameofOrTypeof(reference))
+            if (reference.SymbolUsageInfo.ValueUsageInfoOpt?.IsNameOnly() == true)
                 continue;
-            
             var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
             if (containingSymbol != null)
             {
@@ -69,51 +68,6 @@ internal static class ReferenceLocationExtensions
                 locations.Add(reference.Location);
             }
         }
-    }
-
-    /// <summary>
-    /// Checks if a reference location is in a nameof expression or typeof expression.
-    /// These are common false positives in Call Hierarchy.
-    /// </summary>
-    private static bool IsTokenInNameofOrTypeof(ReferenceLocation reference)
-    {
-        if (!reference.Location.IsInSource)
-            return false;
-
-        var syntaxTree = reference.Location.SourceTree;
-        if (syntaxTree == null)
-            return false;
-
-        var root = syntaxTree.GetRoot();
-        var token = root.FindToken(reference.Location.SourceSpan.Start, findInsideTrivia: true);
-
-        var document = reference.Document;
-        var syntaxFacts = document.GetRequiredLanguageService<Microsoft.CodeAnalysis.LanguageService.ISyntaxFactsService>();
-
-        // Walk up the tree to check for nameof expressions or typeof expressions
-        var current = token.Parent;
-        while (current != null)
-        {
-            // Quick check for typeof expressions using direct RawKind comparison
-            if (current.RawKind == syntaxFacts.SyntaxKinds.TypeOfExpression)
-                return true;
-
-            // Check for nameof expressions (invocation where expression is "nameof")
-            if (current.RawKind == syntaxFacts.SyntaxKinds.InvocationExpression)
-            {
-                syntaxFacts.GetPartsOfInvocationExpression(current, out var expression, out _);
-                if (syntaxFacts.IsSimpleName(expression))
-                {
-                    var identifier = syntaxFacts.GetIdentifierOfSimpleName(expression);
-                    if (identifier.ValueText == "nameof")
-                        return true;
-                }
-            }
-
-            current = current.Parent;
-        }
-
-        return false;
     }
 
     private static ISymbol? GetEnclosingMethodOrPropertyOrField(
