@@ -494,9 +494,10 @@ public sealed class FixReturnTypeTests
             {
                 public async Task Method()
                 {
+                    await Task.CompletedTask;
                     var v = new { A = 0, B = 1 };
                     var a = new[] { v };
-                    {|CS0127:return|} v;
+                    {|CS1997:return|} v;
                 }
             }
             """, """
@@ -506,6 +507,7 @@ public sealed class FixReturnTypeTests
             {
                 public async Task<object> Method()
                 {
+                    await Task.CompletedTask;
                     var v = new { A = 0, B = 1 };
                     var a = new[] { v };
                     return v;
