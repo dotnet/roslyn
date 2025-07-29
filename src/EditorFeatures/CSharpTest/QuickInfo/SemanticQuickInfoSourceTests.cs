@@ -9995,7 +9995,10 @@ AnonymousTypes(
             MainDescription($"({FeaturesResources.local_variable}) int i"),
             Documentation("Comment for i. It is > 0"));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
     public Task TestLocalDeclarationNullable1()
         => TestWithOptionsAsync(
             Options.Regular,
@@ -10014,7 +10017,10 @@ AnonymousTypes(
             MainDescription($"({FeaturesResources.local_variable}) Program? second"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
     public Task TestLocalDeclarationNullable1_A()
         => TestWithOptionsAsync(
             Options.Regular,
@@ -10033,7 +10039,10 @@ AnonymousTypes(
             MainDescription($"class Program?"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
     public Task TestLocalDeclarationNullable2()
         => TestWithOptionsAsync(
             Options.Regular,
@@ -10052,7 +10061,10 @@ AnonymousTypes(
             MainDescription($"({FeaturesResources.local_variable}) Program? second"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "second")));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
     public Task TestLocalDeclarationNullable2_A()
         => TestWithOptionsAsync(
             Options.Regular,
@@ -10071,7 +10083,10 @@ AnonymousTypes(
             MainDescription($"class Program?"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "second")));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
     public Task TestLocalDeclarationNullable3()
         => TestWithOptionsAsync(
             Options.Regular,
@@ -10090,7 +10105,10 @@ AnonymousTypes(
             MainDescription($"({FeaturesResources.local_variable}) string? second"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
     public Task TestLocalDeclarationNullable3_A()
         => TestWithOptionsAsync(
             Options.Regular,
