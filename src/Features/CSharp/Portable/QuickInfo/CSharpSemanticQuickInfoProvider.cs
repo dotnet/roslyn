@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -199,6 +200,18 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
     protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
     {
+        try
+        {
+            return await GetOnTheFlyDocsInfoWorkerAsync(context, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+        {
+            return null;
+        }
+    }
+
+    private static async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoWorkerAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    {
         var document = context.Document;
         var position = context.Position;
 
@@ -213,10 +226,9 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         {
             return null;
         }
+
         if (document.IsRazorDocument())
-        {
             return null;
-        }
 
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
