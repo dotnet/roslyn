@@ -92,4 +92,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
         return new RemoteProjectLoadResult(loadedFile, _hostProjectFactory, IsMiscellaneousFile: false, preferredBuildHostKind, actualBuildHostKind);
     }
+
+    protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    {
+        // Nothing else to unload for ordinary projects.
+        return ValueTask.CompletedTask;
+    }
 }

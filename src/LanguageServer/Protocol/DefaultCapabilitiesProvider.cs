@@ -153,6 +153,15 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
             };
         }
 
+        var diagnosticDynamicRegistationCapabilities = clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration;
+        if (diagnosticDynamicRegistationCapabilities is false)
+        {
+            capabilities.DiagnosticOptions = new DiagnosticOptions()
+            {
+                InterFileDependencies = true
+            };
+        }
+
         return capabilities;
     }
 

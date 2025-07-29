@@ -163,7 +163,7 @@ internal sealed class CodeRefactoringService(
             {
                 // Try to consume from the results that produceItems is sending us.  The moment we get a single result,
                 // we know we're done and we have at least one refactoring.
-                await foreach (var unused in items)
+                await foreach (var unused in items.ConfigureAwait(false))
                 {
                     // Cancel all the other items that are still running (or are asked to run in the future).
                     args.linkedTokenSource.Cancel();

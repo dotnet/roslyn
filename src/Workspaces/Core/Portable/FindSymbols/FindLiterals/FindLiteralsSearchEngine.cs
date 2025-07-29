@@ -96,7 +96,7 @@ internal sealed class FindLiteralsSearchEngine
         {
             foreach (var item in source)
             {
-                await foreach (var result in selector(item))
+                await foreach (var result in selector(item).ConfigureAwait(false))
                     yield return result;
             }
         }

@@ -579,6 +579,12 @@ internal static class ISyntaxFactsExtensions
         return name;
     }
 
+    public static SyntaxNode GetOperandOfPostfixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+    {
+        syntaxFacts.GetPartsOfPostfixUnaryExpression(node, out var operand, out _);
+        return operand;
+    }
+
     public static SyntaxNode GetOperandOfPrefixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
     {
         syntaxFacts.GetPartsOfPrefixUnaryExpression(node, out _, out var operand);
