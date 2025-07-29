@@ -141,20 +141,11 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
                 return null;
         }
 
-        if (symbol.GetMemberType() is { IsValueType: false, NullableAnnotation: NullableAnnotation.None })
-            return string.Format(FeaturesResources._0_is_not_nullable_aware, symbol.ToDisplayString(s_nullableDisplayFormat));
-
-        var typeInfo = GetTypeInfo(semanticModel, symbol, node, cancellationToken);
-
-        // Nullability is a reference type only feature, value types can use
-        // something like "int?"  to be nullable but that ends up encasing as
-        // Nullable<int>, which isn't exactly the same. To avoid confusion and
-        // extra noise, we won't show nullable flow state for value types
-        if (typeInfo.Type is { IsValueType: true })
+        var nullabilityInfo = GetNullabilityInfo();
+        if (nullabilityInfo is not (var annotation, var flowState))
             return null;
 
-        var nullability = typeInfo.Nullability;
-        return (nullability.Annotation, nullability.FlowState) switch
+        return (annotation, flowState) switch
         {
             (_, NullableFlowState.None) => null,
             (NullableAnnotation.None, _) => string.Format(FeaturesResources._0_is_not_nullable_aware, symbol.ToDisplayString(s_nullableDisplayFormat)),
@@ -162,6 +153,24 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
             (_, NullableFlowState.NotNull) => string.Format(FeaturesResources._0_is_not_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
             _ => null
         };
+
+        (NullableAnnotation annotation, NullableFlowState flowState)? GetNullabilityInfo()
+        {
+            if (symbol.GetMemberType() is { IsValueType: false, NullableAnnotation: NullableAnnotation.None })
+                return (NullableAnnotation.None, NullableFlowState.NotNull);
+
+            var typeInfo = GetTypeInfo(semanticModel, symbol, node, cancellationToken);
+
+            // Nullability is a reference type only feature, value types can use
+            // something like "int?"  to be nullable but that ends up encasing as
+            // Nullable<int>, which isn't exactly the same. To avoid confusion and
+            // extra noise, we won't show nullable flow state for value types
+            if (typeInfo.Type is { IsValueType: true })
+                return null;
+
+            var nullability = typeInfo.Nullability;
+            return (nullability.Annotation, nullability.FlowState);
+        }
 
         static TypeInfo GetTypeInfo(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
         {
