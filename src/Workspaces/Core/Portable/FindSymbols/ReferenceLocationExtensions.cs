@@ -56,6 +56,7 @@ internal static class ReferenceLocationExtensions
             // This fixes the most common Call Hierarchy false positives
             if (reference.SymbolUsageInfo.ValueUsageInfoOpt?.IsNameOnly() == true)
                 continue;
+
             var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
             if (containingSymbol != null)
             {
