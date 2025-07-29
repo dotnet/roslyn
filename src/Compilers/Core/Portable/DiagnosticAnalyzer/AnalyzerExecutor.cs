@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
             var context = new CompilationAnalysisContext(
-                Compilation, AnalyzerOptions, addDiagnostic,
+                Compilation, AnalyzerOptions, addDiagnostic.AddDiagnosticAction,
                 isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation);
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
             var context = new SymbolAnalysisContext(
-                symbol, Compilation, AnalyzerOptions, addDiagnostic,
+                symbol, Compilation, AnalyzerOptions, addDiagnostic.AddDiagnosticAction,
                 isSupportedDiagnostic, isGeneratedCodeSymbol, filterTree,
                 filterSpan, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, symbol);
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
-            var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
+            var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic.AddDiagnosticAction,
                 isSupportedDiagnostic, isGeneratedCode, filterTree, filterSpan, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
@@ -1412,100 +1412,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzerManager.IsSupportedDiagnostic(analyzer, diagnostic, _isCompilerAnalyzer, this, cancellationToken);
         }
 
-        private Action<Diagnostic> GetAddDiagnostic(ISymbol contextSymbol, ImmutableArray<SyntaxReference> cachedDeclaringReferences, DiagnosticAnalyzer analyzer, Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis, CancellationToken cancellationToken)
+        private AnalyzerDiagnosticReporter GetAddDiagnostic(ISymbol contextSymbol, ImmutableArray<SyntaxReference> cachedDeclaringReferences, DiagnosticAnalyzer analyzer, Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis, CancellationToken cancellationToken)
         {
-            return GetAddDiagnostic(contextSymbol, cachedDeclaringReferences, Compilation, analyzer, _addNonCategorizedDiagnostic,
-                 _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic, getTopMostNodeForAnalysis, _shouldSuppressGeneratedCodeDiagnostic, cancellationToken);
+            return AnalyzerDiagnosticReporter.GetInstance(
+                AnalyzerDiagnosticReporter.DiagnosticReporterKind.Symbol,
+                contextFile: null, span: null, Compilation, analyzer,
+                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic, _shouldSuppressGeneratedCodeDiagnostic,
+                contextSymbol, cachedDeclaringReferences, getTopMostNodeForAnalysis, cancellationToken);
         }
 
-        private static Action<Diagnostic> GetAddDiagnostic(
-            ISymbol contextSymbol,
-            ImmutableArray<SyntaxReference> cachedDeclaringReferences,
-            Compilation compilation,
-            DiagnosticAnalyzer analyzer,
-            Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
-            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
-            Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
-            CancellationToken cancellationToken)
+        private AnalyzerDiagnosticReporter GetAddCompilationDiagnostic(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return diagnostic =>
-            {
-                if (shouldSuppressGeneratedCodeDiagnostic(diagnostic, analyzer, compilation, cancellationToken))
-                {
-                    return;
-                }
-
-                if (addCategorizedLocalDiagnostic == null)
-                {
-                    Debug.Assert(addNonCategorizedDiagnostic != null);
-                    addNonCategorizedDiagnostic(diagnostic, cancellationToken);
-                    return;
-                }
-
-                Debug.Assert(addNonCategorizedDiagnostic == null);
-                Debug.Assert(addCategorizedNonLocalDiagnostic != null);
-
-                if (diagnostic.Location.IsInSource)
-                {
-                    foreach (var syntaxRef in cachedDeclaringReferences)
-                    {
-                        if (syntaxRef.SyntaxTree == diagnostic.Location.SourceTree)
-                        {
-                            var syntax = getTopMostNodeForAnalysis(contextSymbol, syntaxRef, compilation, cancellationToken);
-                            if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
-                            {
-                                addCategorizedLocalDiagnostic(diagnostic, analyzer, false, cancellationToken);
-                                return;
-                            }
-                        }
-                    }
-                }
-
-                addCategorizedNonLocalDiagnostic(diagnostic, analyzer, cancellationToken);
-            };
-        }
-
-        private Action<Diagnostic> GetAddCompilationDiagnostic(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-        {
-            return diagnostic =>
-            {
-                if (_shouldSuppressGeneratedCodeDiagnostic(diagnostic, analyzer, Compilation, cancellationToken))
-                {
-                    return;
-                }
-
-                if (_addCategorizedNonLocalDiagnostic == null)
-                {
-                    Debug.Assert(_addNonCategorizedDiagnostic != null);
-                    _addNonCategorizedDiagnostic(diagnostic, cancellationToken);
-                    return;
-                }
-
-                _addCategorizedNonLocalDiagnostic(diagnostic, analyzer, cancellationToken);
-            };
+            return AnalyzerDiagnosticReporter.GetInstance(
+                AnalyzerDiagnosticReporter.DiagnosticReporterKind.Compilation,
+                contextFile: null, span: null, Compilation, analyzer,
+                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic, _shouldSuppressGeneratedCodeDiagnostic,
+                contextSymbol: null, cachedDeclaringReferences: default, getTopMostNodeForAnalysis: null, cancellationToken);
         }
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), span: null, Compilation, analyzer, isSyntaxDiagnostic: false,
-                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
-                _shouldSuppressGeneratedCodeDiagnostic, cancellationToken);
+            return AnalyzerDiagnosticReporter.GetInstance(
+                AnalyzerDiagnosticReporter.DiagnosticReporterKind.Semantic,
+                new SourceOrAdditionalFile(tree), span: null, Compilation, analyzer,
+                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic, _shouldSuppressGeneratedCodeDiagnostic,
+                contextSymbol: null, cachedDeclaringReferences: default, getTopMostNodeForAnalysis: null, cancellationToken);
         }
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, TextSpan? span, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), span, Compilation, analyzer, isSyntaxDiagnostic: false,
-                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
-                _shouldSuppressGeneratedCodeDiagnostic, cancellationToken);
+            return AnalyzerDiagnosticReporter.GetInstance(
+                AnalyzerDiagnosticReporter.DiagnosticReporterKind.Semantic,
+                new SourceOrAdditionalFile(tree), span, Compilation, analyzer,
+                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic, _shouldSuppressGeneratedCodeDiagnostic,
+                contextSymbol: null, cachedDeclaringReferences: default, getTopMostNodeForAnalysis: null, cancellationToken);
         }
 
         private AnalyzerDiagnosticReporter GetAddSyntaxDiagnostic(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(file, span: null, Compilation, analyzer, isSyntaxDiagnostic: true,
-                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
-                _shouldSuppressGeneratedCodeDiagnostic, cancellationToken);
+            return AnalyzerDiagnosticReporter.GetInstance(
+                AnalyzerDiagnosticReporter.DiagnosticReporterKind.Syntax,
+                file, span: null, Compilation, analyzer,
+                _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic, _shouldSuppressGeneratedCodeDiagnostic,
+                contextSymbol: null, cachedDeclaringReferences: default, getTopMostNodeForAnalysis: null, cancellationToken);
         }
 
         private bool ShouldExecuteNode(SyntaxNode node, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
