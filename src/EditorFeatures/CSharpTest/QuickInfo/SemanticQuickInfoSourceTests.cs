@@ -7036,6 +7036,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     [InlineData("is not null")]
     [InlineData("is string")]
     [InlineData("is string s")]
+    [InlineData("is object")]
+    [InlineData("is object s")]
     [InlineData("is { }")]
     [InlineData("is 0")]
     [InlineData("== null")]
@@ -7058,6 +7060,40 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription($"({FeaturesResources.local_variable}) object? user"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "user")));
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66854")]
+    [InlineData("is null", true)]
+    [InlineData("is not null", true)]
+    [InlineData("is string", false)]
+    [InlineData("is string s", false)]
+    [InlineData("is object", false)]
+    [InlineData("is object s", true)]
+    [InlineData("is { }", true)]
+    [InlineData("is 0", false)]
+    [InlineData("== null", true)]
+    [InlineData("!= null", true)]
+    public Task NonNullValueCheckedAgainstNull_2(string test, bool expectNullable)
+        => TestWithOptionsAsync(TestOptions.Regular8,
+            $$"""
+            #nullable enable
+
+            public class Example
+            {
+                private void Main()
+                {
+                    var user = new object();
+
+                    if (user {{test}})
+                        Console.WriteLine();
+
+                    Console.WriteLine($$user);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) object? user"),
+            NullabilityAnalysis(expectNullable
+                ? string.Format(FeaturesResources._0_may_be_null_here, "user")
+                : string.Format(FeaturesResources._0_is_not_null_here, "user")));
 
     [Fact]
     public Task NullableParameterThatIsNotNull()
