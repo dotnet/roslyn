@@ -135,7 +135,7 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
         // something like "int?"  to be nullable but that ends up encasing as
         // Nullable<int>, which isn't exactly the same. To avoid confusion and
         // extra noise, we won't show nullable flow state for value types
-        if (typeInfo.Type?.IsValueType == true)
+        if (typeInfo.Type is { IsValueType: true })
             return default;
 
         var nullability = typeInfo.Nullability;
