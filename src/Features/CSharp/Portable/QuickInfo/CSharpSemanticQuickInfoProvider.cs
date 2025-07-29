@@ -22,13 +22,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
 [ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
-internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInfoProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSemanticQuickInfoProvider()
-    {
-    }
+    /// <summary>
+    /// Display variable name only.
+    /// </summary>
+    private static readonly SymbolDisplayFormat s_nullableDisplayFormat = new();
 
     /// <summary>
     /// If the token is the '=>' in a lambda, or the 'delegate' in an anonymous function,
@@ -83,7 +84,7 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-    protected override (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(
+    protected override string? GetNullabilityAnalysis(
         SemanticModel semanticModel,
         ISymbol symbol,
         SyntaxNode node,
@@ -91,14 +92,31 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
     {
         // Anything less than C# 8 we just won't show anything, even if the compiler could theoretically give analysis
         if (semanticModel.SyntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp8)
-            return default;
+            return null;
 
         // If the user doesn't have nullable enabled, don't show anything. For now we're not trying to be more precise if the user has just annotations or just
         // warnings. If the user has annotations off then things that are oblivious might become non-null (which is a lie) and if the user has warnings off then
         // that probably implies they're not actually trying to know if their code is correct. We can revisit this if we have specific user scenarios.
         var nullableContext = semanticModel.GetNullableContext(node.SpanStart);
         if (!nullableContext.WarningsEnabled() || !nullableContext.AnnotationsEnabled())
-            return default;
+            return null;
+
+        return GetNullabilityAnalysisWorker(semanticModel, symbol, node, cancellationToken);
+    }
+
+    private string? GetNullabilityAnalysisWorker(
+        SemanticModel semanticModel,
+        ISymbol symbol,
+        SyntaxNode node,
+        CancellationToken cancellationToken)
+    {
+        // When hovering over the 'var' keyword, give the nullability of the variable being declared there.
+        if (node is IdentifierNameSyntax { Identifier.ValueText: "var", Parent: VariableDeclarationSyntax { Variables: [var declarator] } })
+        {
+            var variable = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            if (variable is ISymbol local)
+                return GetNullabilityAnalysis(semanticModel, local, declarator, cancellationToken);
+        }
 
         // Although GetTypeInfo can return nullability for uses of all sorts of things, it's not always useful for quick info.
         // For example, if you have a call to a method with a nullable return, the fact it can be null is already captured
@@ -106,8 +124,8 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
         switch (symbol)
         {
             // Ignore constant values for nullability flow state
-            case IFieldSymbol { HasConstantValue: true }: return default;
-            case ILocalSymbol { HasConstantValue: true }: return default;
+            case IFieldSymbol { HasConstantValue: true }: return null;
+            case ILocalSymbol { HasConstantValue: true }: return null;
 
             // Symbols with useful quick info
             case IFieldSymbol:
@@ -123,11 +141,11 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
                 break;
 
             default:
-                return default;
+                return null;
         }
 
         if (symbol.GetMemberType() is { IsValueType: false, NullableAnnotation: NullableAnnotation.None })
-            return (NullableAnnotation.None, NullableFlowState.NotNull);
+            return string.Format(FeaturesResources._0_is_not_nullable_aware, symbol.ToDisplayString(s_nullableDisplayFormat));
 
         var typeInfo = GetTypeInfo(semanticModel, symbol, node, cancellationToken);
 
@@ -136,10 +154,17 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
         // Nullable<int>, which isn't exactly the same. To avoid confusion and
         // extra noise, we won't show nullable flow state for value types
         if (typeInfo.Type is { IsValueType: true })
-            return default;
+            return null;
 
         var nullability = typeInfo.Nullability;
-        return (nullability.Annotation, nullability.FlowState);
+        return (nullability.Annotation, nullability.FlowState) switch
+        {
+            (_, NullableFlowState.None) => null,
+            (NullableAnnotation.None, _) => string.Format(FeaturesResources._0_is_not_nullable_aware, symbol.ToDisplayString(s_nullableDisplayFormat)),
+            (_, NullableFlowState.MaybeNull) => string.Format(FeaturesResources._0_may_be_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
+            (_, NullableFlowState.NotNull) => string.Format(FeaturesResources._0_is_not_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
+            _ => null
+        };
 
         static TypeInfo GetTypeInfo(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
         {

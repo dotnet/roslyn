@@ -188,9 +188,9 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
-    protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
+    protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
 
-    private (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(
+    private string? GetNullabilityAnalysis(
         SolutionServices services, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, CancellationToken cancellationToken)
     {
         var languageServices = services.GetLanguageServices(semanticModel.Language);
@@ -198,13 +198,13 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         var bindableParent = syntaxFacts.TryGetBindableParent(token);
         if (bindableParent is null)
-            return default;
+            return null;
 
         return TryGetNullabilityAnalysisForSuppressedExpression(out var analysis)
             ? analysis
             : GetNullabilityAnalysis(semanticModel, symbol, bindableParent, cancellationToken);
 
-        bool TryGetNullabilityAnalysisForSuppressedExpression(out (NullableAnnotation, NullableFlowState) analysis)
+        bool TryGetNullabilityAnalysisForSuppressedExpression(out string? analysis)
         {
             analysis = default;
 
