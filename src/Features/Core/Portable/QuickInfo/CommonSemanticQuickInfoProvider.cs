@@ -8,10 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
 {
+    private static readonly SyntaxAnnotation s_annotation = new();
+
     protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
         QuickInfoContext context, SyntaxToken token)
     {
@@ -188,7 +190,77 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
     protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
 
-    private TokenInformation BindToken(
+    private (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(
+        SolutionServices services, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, CancellationToken cancellationToken)
+    {
+        var languageServices = services.GetLanguageServices(semanticModel.Language);
+        var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
+
+        var bindableParent = syntaxFacts.TryGetBindableParent(token);
+        if (bindableParent is null)
+            return default;
+
+        return TryGetNullabilityAnalysisForSuppressedExpression(out var analysis)
+            ? analysis
+            : GetNullabilityAnalysis(semanticModel, symbol, bindableParent, cancellationToken);
+
+        bool TryGetNullabilityAnalysisForSuppressedExpression(out (NullableAnnotation, NullableFlowState) analysis)
+        {
+            analysis = default;
+
+            // Look to see if we're inside a suppression (e.g. `expr!`).  The suppression changes the nullability analysis,
+            // and we don't actually want that here as we want to show the original nullability prior to the suppression applying.
+            //
+            // In that case, actually fork the semantic model with the `!` removed and then re-bind the token, getting the 
+            // analysis results from that.
+            var tokenParent = token.GetRequiredParent();
+            var parentSuppression = GetOuterSuppression(tokenParent);
+            if (parentSuppression is null)
+                return false;
+
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+
+            var editor = new SyntaxEditor(root, services);
+            // First, mark the token, so we can find it later.
+            editor.ReplaceNode(
+                tokenParent, tokenParent.ReplaceToken(token, token.WithAdditionalAnnotations(s_annotation)));
+
+            // Now walk upwards, removing all the suppressions until we hit the top of the suppression chain.
+            for (var currentSuppression = parentSuppression;
+                 currentSuppression is not null;
+                 currentSuppression = GetOuterSuppression(currentSuppression))
+            {
+                editor.ReplaceNode(
+                    currentSuppression,
+                    (current, _) => syntaxFacts.GetOperandOfPostfixUnaryExpression(current));
+            }
+
+            // Now fork the semantic model with the new root that has the suppressions removed.
+            var newRoot = editor.GetChangedRoot();
+
+            var newTree = semanticModel.SyntaxTree.WithRootAndOptions(newRoot, semanticModel.SyntaxTree.Options);
+            var newToken = newTree.GetRoot(cancellationToken).GetAnnotatedTokens(s_annotation).Single();
+
+            var newBindableParent = syntaxFacts.TryGetBindableParent(newToken);
+            if (newBindableParent is null)
+                return false;
+
+            var newCompilation = semanticModel.Compilation.ReplaceSyntaxTree(semanticModel.SyntaxTree, newTree);
+            semanticModel = newCompilation.GetSemanticModel(newTree);
+
+            var symbols = BindSymbols(services, semanticModel, newToken, cancellationToken);
+            if (symbols.IsEmpty)
+                return false;
+
+            analysis = GetNullabilityAnalysis(semanticModel, symbols[0], newBindableParent, cancellationToken);
+            return true;
+
+            SyntaxNode? GetOuterSuppression(SyntaxNode node)
+                => node.Ancestors().FirstOrDefault(a => a.RawKind == syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression);
+        }
+    }
+
+    protected ImmutableArray<ISymbol> BindSymbols(
         SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
     {
         var languageServices = services.GetLanguageServices(semanticModel.Language);
@@ -203,26 +275,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken), checkAccessibility: true);
         AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : [], checkAccessibility: false);
 
-        if (filteredSymbols is [var firstSymbol, ..])
-        {
-            var isAwait = syntaxFacts.IsAwaitKeyword(token);
-            var nullabilityInfo = bindableParent != null
-                ? GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken)
-                : default;
-
-            return new TokenInformation(filteredSymbols.ToImmutableAndClear(), isAwait, nullabilityInfo);
-        }
-
-        // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
-        // least bind it to a type.
-        if (syntaxFacts.IsOperator(token))
-        {
-            var typeInfo = semanticModel.GetTypeInfo(token.Parent!, cancellationToken);
-            if (IsOk(typeInfo.Type))
-                return new TokenInformation([typeInfo.Type]);
-        }
-
-        return default;
+        return filteredSymbols.ToImmutableAndClear();
 
         void AddSymbols(ImmutableArray<ISymbol> symbols, bool checkAccessibility)
         {
@@ -238,6 +291,35 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                     filteredSymbols.Add(symbol);
             }
         }
+    }
+
+    private TokenInformation BindToken(
+        SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+    {
+        var filteredSymbols = BindSymbols(services, semanticModel, token, cancellationToken);
+
+        var languageServices = services.GetLanguageServices(semanticModel.Language);
+        var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
+
+        if (filteredSymbols is [var firstSymbol, ..])
+        {
+            var isAwait = syntaxFacts.IsAwaitKeyword(token);
+            var nullabilityInfo = GetNullabilityAnalysis(
+                services, semanticModel, firstSymbol, token, cancellationToken);
+
+            return new TokenInformation(filteredSymbols, isAwait, nullabilityInfo);
+        }
+
+        // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
+        // least bind it to a type.
+        if (syntaxFacts.IsOperator(token))
+        {
+            var typeInfo = semanticModel.GetTypeInfo(token.Parent!, cancellationToken);
+            if (IsOk(typeInfo.Type))
+                return new TokenInformation([typeInfo.Type]);
+        }
+
+        return default;
     }
 
     private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, SolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)

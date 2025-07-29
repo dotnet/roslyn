@@ -6997,6 +6997,40 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             MainDescription($"({FeaturesResources.parameter}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42543")]
+    public Task NullableParameterThatIsMaybeNull_Suppressed1()
+        => TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            #nullable enable
+
+            class X
+            {
+                void N(string? s)
+                {
+                    string s2 = $$s!;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string? s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42543")]
+    public Task NullableParameterThatIsMaybeNull_Suppressed2()
+        => TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            #nullable enable
+
+            class X
+            {
+                void N(string? s)
+                {
+                    string s2 = $$s!!;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string? s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
+
     [Fact]
     public Task NullableParameterThatIsNotNull()
         => TestWithOptionsAsync(TestOptions.Regular8,
