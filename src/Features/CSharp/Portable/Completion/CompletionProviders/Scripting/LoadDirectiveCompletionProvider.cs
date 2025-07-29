@@ -25,6 +25,7 @@ internal sealed class LoadDirectiveCompletionProvider : AbstractLoadDirectiveCom
     {
     }
 
+    internal override string Language => LanguageNames.CSharp;
     protected override string DirectiveName => "load";
 
     protected override bool TryGetCompletionPrefix(SyntaxTree tree, int position, [NotNullWhen(true)] out string? literalValue, out TextSpan textSpan, CancellationToken cancellationToken)

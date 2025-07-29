@@ -24,6 +24,7 @@ internal sealed class ReferenceDirectiveCompletionProvider : AbstractReferenceDi
     {
     }
 
+    internal override string Language => LanguageNames.CSharp;
     protected override string DirectiveName => "r";
 
     protected override bool TryGetCompletionPrefix(SyntaxTree tree, int position, [NotNullWhen(true)] out string? literalValue, out TextSpan textSpan, CancellationToken cancellationToken)

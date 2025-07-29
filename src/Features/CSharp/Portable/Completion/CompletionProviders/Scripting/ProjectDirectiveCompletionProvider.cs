@@ -53,6 +53,7 @@ internal sealed class ProjectDirectiveCompletionProvider : AbstractDirectivePath
          selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
     protected override bool RequireQuotes => false;
+    internal override string Language => LanguageNames.CSharp;
     protected override string DirectiveName => ":project";
 
     protected override bool TryGetCompletionPrefix(SyntaxTree tree, int position, [NotNullWhen(true)] out string? literalValue, out TextSpan textSpan, CancellationToken cancellationToken)

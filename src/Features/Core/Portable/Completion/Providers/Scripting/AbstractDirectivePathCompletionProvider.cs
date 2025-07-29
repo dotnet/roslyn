@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
+internal abstract class AbstractDirectivePathCompletionProvider : LSPCompletionProvider
 {
     protected static bool IsDirectorySeparator(char ch)
          => ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
@@ -64,19 +65,23 @@ internal abstract class AbstractDirectivePathCompletionProvider : CompletionProv
         }
     }
 
-    public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+    public sealed override ImmutableHashSet<char> TriggerCharacters { get; } = PathUtilities.IsUnixLikePlatform
+        ? [' ', '/']
+        : [' ', '/', '\\'];
+
+    public sealed override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
     {
-        var lineStart = text.Lines.GetLineFromPosition(caretPosition).Start;
+        var lineStart = text.Lines.GetLineFromPosition(insertedCharacterPosition).Start;
 
         // check if the line starts with {whitespace}#{whitespace}{DirectiveName}{whitespace}"
 
-        var poundIndex = text.IndexOfNonWhiteSpace(lineStart, caretPosition - lineStart);
+        var poundIndex = text.IndexOfNonWhiteSpace(lineStart, insertedCharacterPosition - lineStart);
         if (poundIndex == -1 || text[poundIndex] != '#')
         {
             return false;
         }
 
-        var directiveNameStartIndex = text.IndexOfNonWhiteSpace(poundIndex + 1, caretPosition - poundIndex - 1);
+        var directiveNameStartIndex = text.IndexOfNonWhiteSpace(poundIndex + 1, insertedCharacterPosition - poundIndex - 1);
         if (directiveNameStartIndex == -1 || !text.ContentEquals(directiveNameStartIndex, DirectiveName))
         {
             return false;
@@ -85,7 +90,7 @@ internal abstract class AbstractDirectivePathCompletionProvider : CompletionProv
         if (RequireQuotes)
         {
             var directiveNameEndIndex = directiveNameStartIndex + DirectiveName.Length;
-            var quoteIndex = text.IndexOfNonWhiteSpace(directiveNameEndIndex, caretPosition - directiveNameEndIndex);
+            var quoteIndex = text.IndexOfNonWhiteSpace(directiveNameEndIndex, insertedCharacterPosition - directiveNameEndIndex);
             if (quoteIndex == -1 || text[quoteIndex] != '"')
             {
                 return false;
