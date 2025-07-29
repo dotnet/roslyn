@@ -184,7 +184,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
             if (symbol is ILocalSymbol && node is VariableDeclaratorSyntax
                 {
-                    Parent: VariableDeclarationSyntax { Type: IdentifierNameSyntax { IsVar: true } },
+                    Parent: VariableDeclarationSyntax { Type.IsVar: true },
                     Initializer.Value: { } initializer,
                 })
             {
