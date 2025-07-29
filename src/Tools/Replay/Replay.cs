@@ -105,7 +105,7 @@ static async Task<int> RunAsync(ReplayOptions options)
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
+            await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None).ConfigureAwait(false))
             {
                 Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
             }

@@ -12,25 +12,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal abstract partial class AbstractSymbolDisplayService : ISymbolDisplayService
+internal abstract partial class AbstractSymbolDisplayService(LanguageServices services) : ISymbolDisplayService
 {
-    protected readonly LanguageServices LanguageServices;
-
-    protected AbstractSymbolDisplayService(LanguageServices services)
-    {
-        LanguageServices = services;
-    }
+    protected readonly LanguageServices LanguageServices = services;
 
     protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken);
-
-    public Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
-        => ToDescriptionStringAsync(semanticModel, position, [symbol], options, groups, cancellationToken);
-
-    public async Task<string> ToDescriptionStringAsync(SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
-    {
-        var parts = await ToDescriptionPartsAsync(semanticModel, position, symbols, options, groups, cancellationToken).ConfigureAwait(false);
-        return parts.ToDisplayString();
-    }
 
     public Task<ImmutableArray<SymbolDisplayPart>> ToDescriptionPartsAsync(SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
     {
@@ -45,9 +31,7 @@ internal abstract partial class AbstractSymbolDisplayService : ISymbolDisplaySer
         SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
     {
         if (symbols.Length == 0)
-        {
             return SpecializedCollections.EmptyDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>();
-        }
 
         var builder = CreateDescriptionBuilder(semanticModel, position, options, cancellationToken);
         return await builder.BuildDescriptionSectionsAsync(symbols).ConfigureAwait(false);

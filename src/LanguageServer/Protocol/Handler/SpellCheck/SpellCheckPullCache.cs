@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck;
 internal record struct SpellCheckState(ISpellCheckSpanService Service, Document Document);
 
 /// <summary>
-/// Simplified version of <see cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}"/> that only uses a 
+/// Simplified version of <see cref="VersionedPullCache{TVersion, TState, TComputedData}"/> that only uses a 
 /// single cheap key to check results against.
 /// </summary>
-internal sealed class SpellCheckPullCache(string uniqueKey) : VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)?, object?, SpellCheckState, ImmutableArray<SpellCheckSpan>>(uniqueKey)
+internal sealed class SpellCheckPullCache(string uniqueKey) : VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum), SpellCheckState, ImmutableArray<SpellCheckSpan>>(uniqueKey)
 {
-    public override async Task<(Checksum parseOptionsChecksum, Checksum textChecksum)?> ComputeCheapVersionAsync(SpellCheckState state, CancellationToken cancellationToken)
+    public override async Task<(Checksum parseOptionsChecksum, Checksum textChecksum)> ComputeVersionAsync(SpellCheckState state, CancellationToken cancellationToken)
     {
         var project = state.Document.Project;
         var parseOptionsChecksum = project.State.GetParseOptionsChecksum();
@@ -39,12 +39,6 @@ internal sealed class SpellCheckPullCache(string uniqueKey) : VersionedPullCache
     {
         var spans = await state.Service.GetSpansAsync(state.Document, cancellationToken).ConfigureAwait(false);
         return spans;
-    }
-
-    public override Task<object?> ComputeExpensiveVersionAsync(SpellCheckState state, CancellationToken cancellationToken)
-    {
-        // Spell check does not need an expensive version check - we return null to effectively skip this check.
-        return SpecializedTasks.Null<object>();
     }
 
     private void SerializeSpellCheckSpan(SpellCheckSpan span, ObjectWriter writer)

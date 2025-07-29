@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -13,6 +14,12 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 internal abstract class SemanticSearchWorkspace(HostServices services, ISemanticSearchSolutionService solutionService)
     : Workspace(services, WorkspaceKind.SemanticSearch)
 {
+    /// <summary>
+    /// Location of the directory containing reference assemblies used for semantic search queries.
+    /// The assemblies are shared between design-time (in-proc workspace) and compile-time (OOP service).
+    /// </summary>
+    public static readonly string ReferenceAssembliesDirectory = Path.Combine(Path.GetDirectoryName(typeof(SemanticSearchWorkspace).Assembly.Location)!, "SemanticSearchRefs");
+
     public override bool CanOpenDocuments
         => true;
 
@@ -23,7 +30,7 @@ internal abstract class SemanticSearchWorkspace(HostServices services, ISemantic
     {
         var (updated, newSolution) = await this.SetCurrentSolutionAsync(
             useAsync: true,
-            transformation: oldSolution => solutionService.SetQueryText(oldSolution, query),
+            transformation: oldSolution => solutionService.SetQueryText(oldSolution, query, ReferenceAssembliesDirectory),
             changeKind: solutionService.GetWorkspaceChangeKind,
             onBeforeUpdate: null,
             onAfterUpdate: null,

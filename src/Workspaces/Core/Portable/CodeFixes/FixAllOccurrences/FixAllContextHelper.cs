@@ -85,7 +85,7 @@ internal static partial class FixAllContextHelper
                         {
                             using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
 
-                            await foreach (var diagnostics in results)
+                            await foreach (var diagnostics in results.ConfigureAwait(false))
                                 builder.AddRange(diagnostics);
 
                             return builder.ToImmutableAndClear();

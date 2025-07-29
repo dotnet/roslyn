@@ -2,7 +2,6 @@
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.24081.1</RoslynDiagnosticsNugetPackageVersion>
-    <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.24319.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.796-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <_BasicReferenceAssembliesVersion>1.8.3</_BasicReferenceAssembliesVersion>
@@ -59,7 +58,7 @@
       Visual Studio
     -->
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.36524" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.12.40391" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.2.1017" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="17.12.2037-preview3" />
@@ -252,7 +251,7 @@
     <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="1.0.0-beta3.21075.2" />
-    <PackageVersion Include="Microsoft.ILVerification" Version="8.0.0-rtm.23523.3" />
+    <PackageVersion Include="Microsoft.ILVerification" Version="9.0.7" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />

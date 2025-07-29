@@ -8,6 +8,16 @@
     <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
     <_BuildTaskAssemblyFile>$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll</_BuildTaskAssemblyFile>
     <_ApisDir>$(MSBuildThisFileDirectory)Apis\</_ApisDir>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies</PackageId>
+    <PackageDescription>
+      References assemblies for Roslyn semantic search queries.
+    </PackageDescription>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddGeneratedReferenceAssembliesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -78,4 +88,12 @@
 
   <!-- Generates ref assemblies -->
   <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputFile)" />
+
+  <!-- Package reference assemblies under the tools directory. -->
+  <Target Name="_AddGeneratedReferenceAssembliesToPackage" DependsOnTargets="GenerateFilteredReferenceAssemblies">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(_OutputFile)" 
+                              PackagePath="tools/$(TargetFramework)/%(FileName)%(Extension)"/>
+    </ItemGroup>
+  </Target>
 </Project>
