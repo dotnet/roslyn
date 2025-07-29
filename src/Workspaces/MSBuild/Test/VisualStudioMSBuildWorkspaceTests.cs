@@ -2320,6 +2320,41 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
+    public async Task TestAnalyzerWithLaterCompilerDependency_HasError()
+    {
+        string[] projPaths = [@"AnalyzerSolution\CSharp_AnalyzerWithLaterCompilerDependency.csproj", @"AnalyzerSolution\VisualBasic_AnalyzerWithLaterCompilerDependency.vbproj"];
+        var files = GetAnalyzerWithLaterCompilerDependencySolutionFiles();
+
+        CreateFiles(files);
+
+        var analyzerFilePath = CreateAnalyzerWithLaterFakeCompiler("AnalyzerSolution");
+
+        using var workspace = CreateMSBuildWorkspace();
+        foreach (var projectPath in projPaths)
+        {
+            var projectFullPath = GetSolutionFileName(projectPath);
+
+            var proj = await workspace.OpenProjectAsync(projectFullPath);
+            Assert.Equal(1, proj.AnalyzerReferences.Count);
+            var analyzerReference = proj.AnalyzerReferences[0] as AnalyzerFileReference;
+            Assert.NotNull(analyzerReference);
+            Assert.True(analyzerReference.FullPath.EndsWith("AnalyzerWithLaterFakeCompilerDependency.dll", StringComparison.OrdinalIgnoreCase));
+        }
+
+        // prove that project gets opened instead.
+        Assert.Equal(2, workspace.CurrentSolution.Projects.Count());
+
+        Assert.Equal(2, workspace.Diagnostics.Count);
+
+        foreach (var diagnostic in workspace.Diagnostics)
+        {
+            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnostic.Kind);
+            Assert.Equal($"ReferencesNewerCompiler: {analyzerFilePath}: 100.0.0.0", diagnostic.Message);
+        }
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
     public async Task TestAdditionalFilesStandalone()
     {
         var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };

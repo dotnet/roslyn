@@ -6,9 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Roslyn.Test.Utilities;
 
@@ -25,6 +30,88 @@ public class WorkspaceTestBase : TestBase
     {
         ProjectGuardFiles.EnsureWrittenToTemp();
         this.SolutionDirectory = Temp.CreateDirectory();
+    }
+
+    public string CreateAnalyzerWithLaterFakeCompiler(string folderPath)
+    {
+        var analyzerWithLaterFakeCompileDirectory = SolutionDirectory.CreateDirectory(folderPath);
+        var laterFakeCompilerAssembly = GenerateDll(
+            "Microsoft.CodeAnalysis",
+            analyzerWithLaterFakeCompileDirectory,
+            publicKeyOpt: typeof(SyntaxNode).Assembly.GetName().GetPublicKey()?.ToImmutableArray() ?? default,
+            csSource: """
+            using System;
+            using System.Reflection;
+
+            [assembly: AssemblyVersionAttribute("100.0.0.0")]
+
+            namespace Microsoft.CodeAnalysis.Diagnostics
+            {
+                public class DiagnosticAnalyzerAttribute : Attribute
+                {
+                    public DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages) { }
+                }
+
+                public class DiagnosticAnalyzer
+                {
+                }
+            }
+            """);
+
+        var laterCompilerReference = MetadataReference.CreateFromFile(laterFakeCompilerAssembly);
+        var analyzerWithLaterFakeCompilerDependency = GenerateDll(
+            "AnalyzerWithLaterFakeCompilerDependency",
+            analyzerWithLaterFakeCompileDirectory,
+            csSource: """
+                using Microsoft.CodeAnalysis.Diagnostics;
+
+                [DiagnosticAnalyzer("C#", "Visual Basic")]
+                public class Analyzer : DiagnosticAnalyzer
+                {
+                }
+            """,
+            laterCompilerReference);
+
+        return analyzerWithLaterFakeCompilerDependency;
+    }
+
+    private static string GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
+    {
+        return GenerateDll(assemblyName, directory, csSource, publicKeyOpt: default, additionalReferences);
+    }
+
+    private static string GenerateDll(string assemblyName, TempDirectory directory, string csSource, ImmutableArray<byte> publicKeyOpt, params MetadataReference[] additionalReferences)
+    {
+        CSharpCompilationOptions options = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: 9999);
+
+        if (!publicKeyOpt.IsDefault)
+        {
+            options = options.WithPublicSign(true).WithCryptoPublicKey(publicKeyOpt);
+        }
+
+        var analyzerDependencyCompilation = CSharpCompilation.Create(
+            assemblyName: assemblyName,
+            syntaxTrees: [SyntaxFactory.ParseSyntaxTree(SourceText.From(csSource, encoding: null, SourceHashAlgorithms.Default))],
+            references: (new MetadataReference[]
+            {
+                    NetStandard20.References.mscorlib,
+                    NetStandard20.References.netstandard,
+                    NetStandard20.References.SystemRuntime
+            }).Concat(additionalReferences),
+            options: options);
+
+        var tempFile = directory.CreateFile($"{assemblyName}.dll");
+        tempFile.WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
+
+        // Mark the file as read only to prevent mutations. The output of this type is frequently used across
+        // unit tests boundaries. Need a guardrail to make sure one test doesn't pollute the output of
+        // another test.
+        _ = new FileInfo(tempFile.Path)
+        {
+            IsReadOnly = true
+        };
+
+        return tempFile.Path;
     }
 
     /// <summary>
@@ -235,6 +322,24 @@ public class WorkspaceTestBase : TestBase
             (@"AnalyzerSolution\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
             (@"AnalyzerSolution\XamlFile.xaml", Resources.SourceFiles.Xaml.MainWindow),
             (@"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj", Resources.ProjectFiles.VisualBasic.AnalyzerReference),
+            (@"AnalyzerSolution\VisualBasicClass.vb", Resources.SourceFiles.VisualBasic.VisualBasicClass),
+            (@"AnalyzerSolution\My Project\Application.Designer.vb", Resources.SourceFiles.VisualBasic.Application_Designer),
+            (@"AnalyzerSolution\My Project\Application.myapp", Resources.SourceFiles.VisualBasic.Application),
+            (@"AnalyzerSolution\My Project\AssemblyInfo.vb", Resources.SourceFiles.VisualBasic.AssemblyInfo),
+            (@"AnalyzerSolution\My Project\Resources.Designer.vb", Resources.SourceFiles.VisualBasic.Resources_Designer),
+            (@"AnalyzerSolution\My Project\Resources.resx", Resources.SourceFiles.VisualBasic.Resources),
+            (@"AnalyzerSolution\My Project\Settings.Designer.vb", Resources.SourceFiles.VisualBasic.Settings_Designer),
+            (@"AnalyzerSolution\My Project\Settings.settings", Resources.SourceFiles.VisualBasic.Settings));
+    }
+
+    protected static FileSet GetAnalyzerWithLaterCompilerDependencySolutionFiles()
+    {
+        return new FileSet(
+            (@"AnalyzerReference.sln", Resources.SolutionFiles.AnalyzerReference),
+            (@"AnalyzerSolution\CSharp_AnalyzerWithLaterCompilerDependency.csproj", Resources.ProjectFiles.CSharp.AnalyzerWithLaterCompilerDependency),
+            (@"AnalyzerSolution\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
+            (@"AnalyzerSolution\XamlFile.xaml", Resources.SourceFiles.Xaml.MainWindow),
+            (@"AnalyzerSolution\VisualBasic_AnalyzerWithLaterCompilerDependency.vbproj", Resources.ProjectFiles.VisualBasic.AnalyzerWithLaterCompilerDependency),
             (@"AnalyzerSolution\VisualBasicClass.vb", Resources.SourceFiles.VisualBasic.VisualBasicClass),
             (@"AnalyzerSolution\My Project\Application.Designer.vb", Resources.SourceFiles.VisualBasic.Application_Designer),
             (@"AnalyzerSolution\My Project\Application.myapp", Resources.SourceFiles.VisualBasic.Application),
