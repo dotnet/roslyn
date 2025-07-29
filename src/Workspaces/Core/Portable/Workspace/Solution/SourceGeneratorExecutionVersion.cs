@@ -54,7 +54,7 @@ internal readonly record struct SourceGeneratorExecutionVersion(
            (left.MajorVersion == right.MajorVersion && left.MinorVersion > right.MinorVersion);
 
     public static bool operator <(SourceGeneratorExecutionVersion left, SourceGeneratorExecutionVersion right)
-    => !(left == right || left > right);
+        => !(left == right || left > right);
 
 }
 
