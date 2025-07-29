@@ -24,8 +24,8 @@ internal interface IDiagnosticSource
     /// <summary>
     /// True if this source produces diagnostics that are considered 'live' or not.  Live errors represent up to date
     /// information that should supersede other sources.  Non 'live' errors (aka "build errors") are recognized to
-    /// potentially represent stale results from a point in the past when the computation occurred.  The only time
-    /// Roslyn produces non-live errors through an explicit user gesture to "run code analysis". Because these represent
+    /// potentially represent stale results from a point in the past when the computation occurred.  An example of when
+    /// Roslyn produces non-live errors is with an explicit user gesture to "run code analysis". Because these represent
     /// errors from the past, we do want them to be superseded by a more recent live run, or a more recent build from
     /// another source.
     /// </summary>
