@@ -198,7 +198,8 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
     }
 
-    protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(
+        QuickInfoContext context, CancellationToken cancellationToken)
     {
         try
         {
@@ -210,7 +211,8 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
     }
 
-    private static async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoWorkerAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    private static async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoWorkerAsync(
+        QuickInfoContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         var position = context.Position;
@@ -249,9 +251,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
 
         if (symbol.DeclaringSyntaxReferences.Length == 0)
-        {
             return null;
-        }
 
         // Checks to see if any of the files containing the symbol are excluded.
         var hasContentExcluded = false;
@@ -267,17 +267,12 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
 
         var solution = document.Project.Solution;
-        var declarationCode = symbol.DeclaringSyntaxReferences.Select(reference =>
+        var declarationCode = symbol.DeclaringSyntaxReferences.SelectAsArray(reference =>
         {
             var span = reference.Span;
             var syntaxReferenceDocument = solution.GetDocument(reference.SyntaxTree);
-            if (syntaxReferenceDocument is not null)
-            {
-                return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
-            }
-
-            return null;
-        }).ToImmutableArray();
+            return syntaxReferenceDocument is null ? null : new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
+        });
 
         var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
 
