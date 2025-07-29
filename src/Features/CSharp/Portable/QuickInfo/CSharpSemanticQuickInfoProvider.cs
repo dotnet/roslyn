@@ -106,7 +106,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         //  $$var v = ...;
         //
         // Should say both the type of 'v' and say if 'v' is non-null/null at this point.
-        if (node is IdentifierNameSyntax { Identifier.ValueText: "var", Parent: VariableDeclarationSyntax { Variables: [var declarator] } })
+        if (node is IdentifierNameSyntax { IsVar: true, Parent: VariableDeclarationSyntax { Variables: [var declarator] } })
         {
             // Recurse back into GetNullabilityAnalysis which acts as if the user asked for QI on the
             // variable declarator itself.
@@ -184,7 +184,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
             if (symbol is ILocalSymbol && node is VariableDeclaratorSyntax
                 {
-                    Parent: VariableDeclarationSyntax { Type: IdentifierNameSyntax { Identifier.ValueText: "var" } },
+                    Parent: VariableDeclarationSyntax { Type.IsVar: true },
                     Initializer.Value: { } initializer,
                 })
             {
