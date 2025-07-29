@@ -255,17 +255,12 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
 
         var solution = document.Project.Solution;
-        var declarationCode = symbol.DeclaringSyntaxReferences.Select(reference =>
+        var declarationCode = symbol.DeclaringSyntaxReferences.SelectAsArray(reference =>
         {
             var span = reference.Span;
             var syntaxReferenceDocument = solution.GetDocument(reference.SyntaxTree);
-            if (syntaxReferenceDocument is not null)
-            {
-                return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
-            }
-
-            return null;
-        }).ToImmutableArray();
+            return syntaxReferenceDocument is null ? null : new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
+        });
 
         var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
 
