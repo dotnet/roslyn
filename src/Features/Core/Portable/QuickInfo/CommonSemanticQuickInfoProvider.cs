@@ -188,7 +188,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
-    protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
+    protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => null;
 
     private string? GetNullabilityAnalysis(
         SolutionServices services, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, CancellationToken cancellationToken)
@@ -206,7 +206,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         bool TryGetNullabilityAnalysisForSuppressedExpression(out string? analysis)
         {
-            analysis = default;
+            analysis = null;
 
             // Look to see if we're inside a suppression (e.g. `expr!`).  The suppression changes the nullability analysis,
             // and we don't actually want that here as we want to show the original nullability prior to the suppression applying.
