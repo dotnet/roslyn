@@ -1,6 +1,7 @@
 parameters:
 # Sbom related params
   enableSbom: true
+  runAsPublic: false
   PackageVersion: 9.0.0
   BuildDropPath: '$(Build.SourcesDirectory)/artifacts'
 
@@ -15,6 +16,7 @@ jobs:
         parameters:
           PackageVersion: ${{ parameters.packageVersion }}
           BuildDropPath: ${{ parameters.buildDropPath }}
+          ManifestDirPath: $(Build.ArtifactStagingDirectory)/sbom
           publishArtifacts: false
 
     # publish artifacts
