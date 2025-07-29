@@ -111,7 +111,7 @@ internal static partial class SyntaxGeneratorExtensions
 
         if (syntaxFacts.IsIsTypeExpression(expressionOrPattern))
         {
-            syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+            syntaxFacts.GetPartsOfIsTypeExpression(expressionOrPattern, out var expression, out var type);
             if (syntaxFacts.SupportsNotPattern(options))
                 return generatorInternal.IsPatternExpression(expression, generatorInternal.NotPattern(type));
 
@@ -121,7 +121,7 @@ internal static partial class SyntaxGeneratorExtensions
 
         if (syntaxFacts.IsIsNotTypeExpression(expressionOrPattern))
         {
-            syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+            syntaxFacts.GetPartsOfIsTypeExpression(expressionOrPattern, out var expression, out var type);
             return generator.IsTypeExpression(expression, type);
         }
 

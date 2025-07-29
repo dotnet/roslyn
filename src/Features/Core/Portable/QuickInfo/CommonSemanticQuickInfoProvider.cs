@@ -200,11 +200,11 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (bindableParent is null)
             return null;
 
-        return TryGetNullabilityAnalysisForSuppressedExpression(out var analysis)
+        return TryGetNullabilityAnalysisForRewrittenExpression(out var analysis)
             ? analysis
             : GetNullabilityAnalysis(semanticModel, symbol, bindableParent, cancellationToken);
 
-        bool TryGetNullabilityAnalysisForSuppressedExpression(out string? analysis)
+        bool TryGetNullabilityAnalysisForRewrittenExpression(out string? analysis)
         {
             analysis = null;
 
@@ -213,9 +213,13 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             //
             // In that case, actually fork the semantic model with the `!` removed and then re-bind the token, getting the 
             // analysis results from that.
+            //
+            // Similarly, checks like `x is null` actually change the nullability of 'x' in the analysis.  While this change
+            // is desirable, we still want to show the original nullability of 'x' prior to the check.  In other words, what
+            // the null state was flowing in, not flowing out.
             var tokenParent = token.GetRequiredParent();
-            var parentSuppression = GetOuterSuppression(tokenParent);
-            if (parentSuppression is null)
+            var nodeToRewrite = GetNodeToRewrite(tokenParent);
+            if (nodeToRewrite is null)
                 return false;
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
@@ -226,13 +230,31 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                 tokenParent, tokenParent.ReplaceToken(token, token.WithAdditionalAnnotations(s_annotation)));
 
             // Now walk upwards, removing all the suppressions until we hit the top of the suppression chain.
-            for (var currentSuppression = parentSuppression;
-                 currentSuppression is not null;
-                 currentSuppression = GetOuterSuppression(currentSuppression))
+            for (var current = nodeToRewrite;
+                 current is not null;
+                 current = GetNodeToRewrite(current))
             {
                 editor.ReplaceNode(
-                    currentSuppression,
-                    (current, _) => syntaxFacts.GetOperandOfPostfixUnaryExpression(current));
+                    current,
+                    (current, generator) =>
+                    {
+                        if (syntaxFacts.IsPostfixUnaryExpression(current))
+                            return syntaxFacts.GetOperandOfPostfixUnaryExpression(current);
+
+                        if (syntaxFacts.IsIsTypeExpression(current))
+                        {
+                            syntaxFacts.GetPartsOfIsTypeExpression(current, out var left, out _);
+                            return left;
+                        }
+
+                        if (syntaxFacts.IsIsPatternExpression(current))
+                        {
+                            syntaxFacts.GetPartsOfIsPatternExpression(current, out var left, out _, out _);
+                            return left;
+                        }
+
+                        return current;
+                    });
             }
 
             // Now fork the semantic model with the new root that has the suppressions removed.
@@ -255,8 +277,31 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             analysis = GetNullabilityAnalysis(semanticModel, symbols[0], newBindableParent, cancellationToken);
             return true;
 
-            SyntaxNode? GetOuterSuppression(SyntaxNode node)
-                => node.Ancestors().FirstOrDefault(a => a.RawKind == syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression);
+            SyntaxNode? GetNodeToRewrite(SyntaxNode node)
+            {
+                var last = node;
+                for (var current = last.Parent; current != null; last = current, current = current.Parent)
+                {
+                    if (current.RawKind == syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression)
+                        return current;
+
+                    if (syntaxFacts.IsIsTypeExpression(current))
+                    {
+                        syntaxFacts.GetPartsOfIsTypeExpression(current, out var left, out _);
+                        if (left == last)
+                            return current;
+                    }
+
+                    if (syntaxFacts.IsIsPatternExpression(current))
+                    {
+                        syntaxFacts.GetPartsOfIsPatternExpression(current, out var left, out _, out _);
+                        if (left == last)
+                            return current;
+                    }
+                }
+
+                return null;
+            }
         }
     }
 

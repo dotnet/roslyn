@@ -1635,7 +1635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
-        Public Sub GetPartsOfAnyIsTypeExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef type As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAnyIsTypeExpression
+        Public Sub GetPartsOfIsTypeExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef type As SyntaxNode) Implements ISyntaxFacts.GetPartsOfIsTypeExpression
             Dim typeOfExpression = DirectCast(node, TypeOfExpressionSyntax)
             expression = typeOfExpression.Expression
             type = typeOfExpression.Type
