@@ -15,19 +15,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.TextDocumentContent;
 [Method(Methods.WorkspaceTextDocumentContentName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class TextDocumentContentHandler() : ILspServiceDocumentRequestHandler<TextDocumentContentParams, TextDocumentContentResult>
+internal sealed class TextDocumentContentHandler() : ILspServiceDocumentRequestHandler<TextDocumentContentParams, TextDocumentContentResult>
 {
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentContentParams request)
-    {
-        return new TextDocumentIdentifier
-        {
-            DocumentUri = request.Uri
-        };
-    }
+    public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentContentParams request) => new() { DocumentUri = request.Uri };
 
     public async Task<TextDocumentContentResult> HandleRequestAsync(TextDocumentContentParams request, RequestContext context, CancellationToken cancellationToken)
     {

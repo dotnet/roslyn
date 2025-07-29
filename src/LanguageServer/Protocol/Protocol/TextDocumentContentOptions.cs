@@ -22,6 +22,6 @@ internal class TextDocumentContentOptions
     public string[] Schemes
     {
         get;
-        set;
+        init;
     }
 }

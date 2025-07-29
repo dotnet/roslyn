@@ -53,11 +53,8 @@ internal sealed class PdbSourceDocumentLoaderService(
 
         // We might have already navigated to this file before, so it might exist, but
         // we still need to re-validate the checksum and make sure its not the wrong file
-        var existingSourceText = await persister
-            .TryGetExistingTextAsync(documentPath, encoding, sourceDocument.ChecksumAlgorithm, (sourceText) => VerifySourceText(sourceText, sourceDocument), cancellationToken)
-            .ConfigureAwait(false);
 
-        if (existingSourceText is not null)
+        if (persister.TryGetExistingText(documentPath, encoding, sourceDocument.ChecksumAlgorithm, (sourceText) => VerifySourceText(sourceText, sourceDocument), out var existingSourceText))
         {
             telemetry.SetSourceFileSource("embedded");
             _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);

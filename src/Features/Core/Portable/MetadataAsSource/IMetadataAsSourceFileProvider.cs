@@ -12,7 +12,7 @@ internal interface IMetadataAsSourceFileProvider
     /// <summary>
     /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
     /// </summary>
-    Task<(MetadataAsSourceFile File, MetadataAsSourceFileMetadata FileMetadata)?> GetGeneratedFileAsync(
+    Task<(MetadataAsSourceFile file, MetadataAsSourceFileMetadata fileMetadata)?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,
         Workspace sourceWorkspace,
         Project sourceProject,

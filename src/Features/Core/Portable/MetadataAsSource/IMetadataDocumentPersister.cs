@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ internal interface IMetadataDocumentPersister
     /// <summary>
     /// Tries to get existing persisted text for a document path that was generated previously.
     /// </summary>
-    Task<SourceText?> TryGetExistingTextAsync(string documentPath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, Func<SourceText, bool> verifyExistingDocument, CancellationToken cancellationToken);
+    bool TryGetExistingText(string documentPath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, Func<SourceText, bool> verifyExistingDocument, [NotNullWhen(true)] out SourceText? sourceText);
 
     /// <summary>
     /// Writes the generated metadata file to a persistent location.

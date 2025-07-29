@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -12,12 +13,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal class VirtualMetadataDocumentPersister() : IMetadataDocumentPersister
+internal sealed class VirtualMetadataDocumentPersister() : IMetadataDocumentPersister
 {
     public const string VirtualFileScheme = "roslyn-metadata";
+
     public void CleanupGeneratedDocuments()
     {
-        // Documents will be cleaned up by the workspace, nothing else we need to do here.
+        // Nothing is ever persisted to disk, so cleanup has no meaning here.
         return;
     }
 
@@ -32,11 +34,13 @@ internal class VirtualMetadataDocumentPersister() : IMetadataDocumentPersister
         return $"{VirtualFileScheme}://{providerName}/{identifier:N}/{fileName}";
     }
 
-    public Task<SourceText?> TryGetExistingTextAsync(string documentPath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, Func<SourceText, bool> verifyExistingDocument, CancellationToken cancellationToken)
+    public bool TryGetExistingText(string documentPath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, Func<SourceText, bool> verifyExistingDocument, [NotNullWhen(true)] out SourceText? sourceText)
     {
         // Nothing to do - this document is only persisted in memory by the workspace.  If the workspace does not have it, we can't retrieve it.
-        return SpecializedTasks.Null<SourceText>();
+        sourceText = null;
+        return false;
     }
+
     public Task<bool> WriteMetadataDocumentAsync(string documentPath, Encoding encoding, SourceText text, Action<Exception>? logFailure, CancellationToken cancellationToken)
     {
         // Nothing to do - this document is an in-memory only document.  It relies on the workspace to store the text for it.

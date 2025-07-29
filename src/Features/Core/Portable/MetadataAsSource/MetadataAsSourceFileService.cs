@@ -82,19 +82,14 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            IMetadataDocumentPersister persister;
+            var persister = GetPersister(options);
             if (_workspace is null)
             {
                 _workspace = new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
 
-                persister = GetPersister(options);
                 // We're being initialized the first time.  Use this time to clean up any stale metadata-as-source files
                 // from previous VS sessions.
                 persister.CleanupGeneratedDocuments();
-            }
-            else
-            {
-                persister = GetPersister(options);
             }
 
             Contract.ThrowIfNull(_workspace);
@@ -108,8 +103,8 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
                 var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, telemetryMessage, persister, cancellationToken).ConfigureAwait(false);
                 if (result is not null)
                 {
-                    _generatedFilenameToInformation[result.Value.File.FilePath] = result.Value.FileMetadata;
-                    return result.Value.File;
+                    _generatedFilenameToInformation[result.Value.file.FilePath] = result.Value.fileMetadata;
+                    return result.Value.file;
                 }
             }
         }

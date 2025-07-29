@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -13,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal class FileSystemMetadataDocumentPersister : IMetadataDocumentPersister
+internal sealed class FileSystemMetadataDocumentPersister : IMetadataDocumentPersister
 {
     /// <summary>
     /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
@@ -35,12 +36,22 @@ internal class FileSystemMetadataDocumentPersister : IMetadataDocumentPersister
     private static string CreateMutexName(string directoryName)
         => $"{MetadataAsSourceFileService.MetadataAsSource}-{directoryName}";
 
-    public Task<SourceText?> TryGetExistingTextAsync(string documentPath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, Func<SourceText, bool> verifyExistingDocument, CancellationToken cancellationToken)
+    public bool TryGetExistingText(string documentPath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, Func<SourceText, bool> verifyExistingDocument, [NotNullWhen(true)] out SourceText? sourceText)
     {
-        return TryGetExistingTextFromDisk(documentPath, encoding, checksumAlgorithm, verifyExistingDocument) is SourceText sourceText
-            ? Task.FromResult<SourceText?>(sourceText)
-            : SpecializedTasks.Null<SourceText>();
+        sourceText = null;
+        if (!File.Exists(documentPath))
+            return false;
+
+        using var stream = new FileStream(documentPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+        sourceText = SourceText.From(stream, encoding, checksumAlgorithm, throwIfBinaryDetected: true);
+
+        if (verifyExistingDocument is not null && !verifyExistingDocument(sourceText))
+            return false;
+
+        return true;
     }
+
     public async Task<bool> WriteMetadataDocumentAsync(string documentPath, Encoding encoding, SourceText text, Action<Exception>? logFailure, CancellationToken cancellationToken)
     {
         try
@@ -117,25 +128,6 @@ internal class FileSystemMetadataDocumentPersister : IMetadataDocumentPersister
             {
             }
         }
-    }
-
-    public static SourceText? TryGetExistingTextFromDisk(
-        string documentPath,
-        Encoding encoding,
-        SourceHashAlgorithm checksumAlgorithm,
-        Func<SourceText, bool> verifyExistingDocument)
-    {
-        if (!File.Exists(documentPath))
-            return null;
-
-        using var stream = new FileStream(documentPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
-
-        var sourceText = SourceText.From(stream, encoding, checksumAlgorithm, throwIfBinaryDetected: true);
-
-        if (verifyExistingDocument is not null && !verifyExistingDocument(sourceText))
-            return null;
-
-        return sourceText;
     }
 
     private static async Task<bool> EnsureDirectoryExistsAsync(string directoryName, CancellationToken cancellationToken)

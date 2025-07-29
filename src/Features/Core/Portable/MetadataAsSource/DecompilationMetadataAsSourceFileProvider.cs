@@ -90,8 +90,8 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         var existingDocument = metadataWorkspace.CurrentSolution.GetDocument(fileInfo.DocumentId);
         if (existingDocument is null)
         {
-            var sourceText = await persister.TryGetExistingTextAsync(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm,
-                verifyExistingDocument: text => true, cancellationToken).ConfigureAwait(false);
+            persister.TryGetExistingText(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm,
+                verifyExistingDocument: text => true, out var sourceText);
 
             // We don't have this file in the workspace.  We need to create a project to put it in.
             var temporaryProjectInfo = GenerateProjectAndDocumentInfo(fileInfo, metadataWorkspace.CurrentSolution.Services, sourceProject, topLevelNamedType);
@@ -170,7 +170,7 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
 
         var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
-        return (new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip), new MetadataAsSourceFileMetadata(fileInfo.SignaturesOnly, fileInfo.Workspace, fileInfo.SourceProjectId));
+        return (new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip), new MetadataAsSourceFileMetadata(fileInfo.Workspace, fileInfo.SourceProjectId, fileInfo.SignaturesOnly));
     }
 
     private (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)

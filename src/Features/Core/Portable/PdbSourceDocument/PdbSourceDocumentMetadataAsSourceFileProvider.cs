@@ -57,7 +57,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     /// </summary>
     private readonly HashSet<ProjectId> _sourceLinkEnabledProjects = [];
 
-    public async Task<(MetadataAsSourceFile File, MetadataAsSourceFileMetadata FileMetadata)?> GetGeneratedFileAsync(
+    public async Task<(MetadataAsSourceFile file, MetadataAsSourceFileMetadata fileMetadata)?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,
         Workspace sourceWorkspace,
         Project sourceProject,
@@ -251,7 +251,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             sourceDescription);
         var documentTooltip = navigateDocument.FilePath + Environment.NewLine + dllPath;
 
-        return (new MetadataAsSourceFile(navigateDocument.FilePath!, navigateLocation, documentName, documentTooltip), new MetadataAsSourceFileMetadata(SignaturesOnly: false, sourceWorkspace, sourceProject.Id));
+        return (new MetadataAsSourceFile(navigateDocument.FilePath!, navigateLocation, documentName, documentTooltip), new MetadataAsSourceFileMetadata(sourceWorkspace, sourceProject.Id, SignaturesOnly: false));
     }
 
     private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion, SourceHashAlgorithm checksumAlgorithm)
