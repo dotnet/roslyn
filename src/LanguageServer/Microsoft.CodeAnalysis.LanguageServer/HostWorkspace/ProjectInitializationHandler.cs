@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class ProjectInitializationHandler : IDisposable
 {
     internal const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
+    internal const string ProjectReloadStartedName = "workspace/projectReloadStarted";
+    internal const string ProjectReloadCompletedName = "workspace/projectReloadCompleted";
 
     private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -42,11 +44,20 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
     }
 
-    public static async Task SendProjectInitializationCompleteNotificationAsync()
+    public static Task SendProjectInitializationCompleteNotificationAsync()
+        => SendNotificationAsync(ProjectInitializationCompleteName);
+
+    public static Task SendProjectReloadStartedNotificationAsync()
+        => SendNotificationAsync(ProjectReloadStartedName);
+
+    public static Task SendProjectReloadCompletedNotificationAsync()
+        => SendNotificationAsync(ProjectReloadCompletedName);
+
+    private static async Task SendNotificationAsync(string methodName)
     {
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        await languageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
+        await languageServerManager.SendNotificationAsync(methodName, CancellationToken.None);
     }
 
     public async Task SubscribeToInitializationCompleteAsync(CancellationToken cancellationToken)
