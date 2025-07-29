@@ -7038,6 +7038,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     [InlineData("is string s")]
     [InlineData("is { }")]
     [InlineData("is 0")]
+    [InlineData("== null")]
+    [InlineData("!= null")]
     public Task NonNullValueCheckedAgainstNull_1(string test)
         => TestWithOptionsAsync(TestOptions.Regular8,
             $$"""
