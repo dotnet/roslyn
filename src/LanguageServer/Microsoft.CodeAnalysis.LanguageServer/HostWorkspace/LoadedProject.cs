@@ -243,14 +243,13 @@ internal sealed class LoadedProject : IDisposable
         var telemetryInfo = new ProjectLoadTelemetryReporter.TelemetryInfo { OutputKind = outputKind, MetadataReferences = metadataReferences };
         return (telemetryInfo, needsRestore);
 
-        // logMessage should be a string with two placeholders; the first is the project name, the second is the number of items.
+        // logMessage must have 4 placeholders: project name, number of items, added items count, and removed items count.
         void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)
         {
             var newItems = new HashSet<T>(loadedCollection, comparer);
             var oldItems = new HashSet<T>(oldLoadedCollection ?? [], comparer);
 
             var addedCount = 0;
-            var removedCount = 0;
 
             foreach (var newItem in newItems)
             {
@@ -262,10 +261,10 @@ internal sealed class LoadedProject : IDisposable
                 }
             }
 
+            var removedCount = oldItems.Count;
             foreach (var oldItem in oldItems)
             {
                 removeItem(oldItem);
-                removedCount++;
             }
 
             if (addedCount != 0 || removedCount != 0)
