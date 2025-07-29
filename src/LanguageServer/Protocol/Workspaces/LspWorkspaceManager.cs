@@ -52,7 +52,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// workspace).
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private readonly Dictionary<Workspace, (int? forkedFromVersion, SourceGeneratorExecutionVersionMap? versionMap, Solution solution)> _cachedLspSolutions = [];
+    private readonly Dictionary<Workspace, (int? forkedFromVersion, Checksum? sourceGeneratorChecksum, Solution solution)> _cachedLspSolutions = [];
 
     /// <summary>
     /// Stores the current source text for each URI that is being tracked by LSP. Each time an LSP text sync
@@ -392,14 +392,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             if (doesAllTextMatch && doesAllSourceGeneratedTextMatch)
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
-                _cachedLspSolutions[workspace] = (forkedFromVersion: null, versionMap: null, workspaceCurrentSolution);
+                _cachedLspSolutions[workspace] = (forkedFromVersion: null, sourceGeneratorChecksum: null, workspaceCurrentSolution);
                 return (workspaceCurrentSolution, IsForked: false);
             }
 
+            var forkedFromVersion = workspaceCurrentSolution.SolutionStateContentVersion;
+            var sourceGeneratorChecksum = workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap.GetChecksum();
+
             // Step 4: See if we can reuse a previously forked solution.
             if (cachedSolution != default &&
-                cachedSolution.forkedFromVersion == workspaceCurrentSolution.SolutionStateContentVersion &&
-                cachedSolution.versionMap == workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap)
+                cachedSolution.forkedFromVersion == forkedFromVersion &&
+                cachedSolution.sourceGeneratorChecksum == sourceGeneratorChecksum)
             {
                 return (cachedSolution.solution, IsForked: true);
             }
@@ -420,8 +423,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
 
             // Remember this forked solution and the workspace version it was forked from.
-            _cachedLspSolutions[workspace] =
-                (workspaceCurrentSolution.SolutionStateContentVersion, workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap, lspSolution);
+            _cachedLspSolutions[workspace] = (forkedFromVersion, sourceGeneratorChecksum, lspSolution);
             return (lspSolution, IsForked: true);
         }
 
