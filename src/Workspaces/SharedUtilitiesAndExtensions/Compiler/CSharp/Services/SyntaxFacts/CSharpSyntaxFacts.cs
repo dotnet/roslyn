@@ -1376,7 +1376,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
     }
 
-    public void GetPartsOfIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type)
+    public void GetPartsOfAnyIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type)
     {
         var isPatternExpression = (BinaryExpressionSyntax)node;
         expression = isPatternExpression.Left;

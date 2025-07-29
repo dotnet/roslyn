@@ -243,7 +243,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
                         if (syntaxFacts.IsIsTypeExpression(current))
                         {
-                            syntaxFacts.GetPartsOfIsTypeExpression(current, out var left, out _);
+                            syntaxFacts.GetPartsOfAnyIsTypeExpression(current, out var left, out _);
                             return left;
                         }
 
@@ -287,7 +287,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
                     if (syntaxFacts.IsIsTypeExpression(current))
                     {
-                        syntaxFacts.GetPartsOfIsTypeExpression(current, out var left, out _);
+                        syntaxFacts.GetPartsOfAnyIsTypeExpression(current, out var left, out _);
                         if (left == last)
                             return current;
                     }
