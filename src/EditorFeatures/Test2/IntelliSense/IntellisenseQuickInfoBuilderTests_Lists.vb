@@ -315,76 +315,76 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
 
             Dim expected = New ContainerElement(
-                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+    ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+    New ContainerElement(
+        ContainerElementStyle.Stacked,
+        New ContainerElement(
+            ContainerElementStyle.Wrapped,
+            New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+            New ClassifiedTextElement(
+                New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
+                New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+        New ContainerElement(
+            ContainerElementStyle.Wrapped,
+            New ClassifiedTextElement(
+                New ClassifiedTextRun(ClassificationTypeNames.Text, "1. ")),
+            New ContainerElement(
+                ContainerElementStyle.Stacked,
                 New ContainerElement(
-                    ContainerElementStyle.Stacked,
+                    ContainerElementStyle.Wrapped,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "• ")),
+                    New ContainerElement(
+                        ContainerElementStyle.Stacked,
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Line1")),
+                        New ContainerElement(
+                            ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                            New ClassifiedTextElement(
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "Line2"))))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
                     New ContainerElement(
                         ContainerElementStyle.Wrapped,
-                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
                         New ClassifiedTextElement(
-                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
-                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
-                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
-                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
-                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
-                    New ContainerElement(
-                        ContainerElementStyle.Wrapped,
-                        New ClassifiedTextElement(
-                            New ClassifiedTextRun(ClassificationTypeNames.Text, "1. ")),
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "• ")),
                         New ContainerElement(
                             ContainerElementStyle.Stacked,
-                            New ContainerElement(
-                                ContainerElementStyle.Wrapped,
-                                New ClassifiedTextElement(
-                                    New ClassifiedTextRun(ClassificationTypeNames.Text, "• ")),
-                                New ContainerElement(
-                                    ContainerElementStyle.Stacked,
-                                    New ClassifiedTextElement(
-                                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Line1")),
-                                    New ContainerElement(
-                                        ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
-                                        New ClassifiedTextElement(
-                                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Line2"))))),
-                            New ContainerElement(
-                                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
-                                New ContainerElement(
-                                    ContainerElementStyle.Wrapped,
-                                    New ClassifiedTextElement(
-                                        New ClassifiedTextRun(ClassificationTypeNames.Text, "• ")),
-                                    New ContainerElement(
-                                        ContainerElementStyle.Stacked,
-                                        New ClassifiedTextElement(
-                                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 1.2")))))))),
+                            New ClassifiedTextElement(
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 1.2")))))))),
+    New ContainerElement(
+        ContainerElementStyle.Wrapped,
+        New ClassifiedTextElement(
+            New ClassifiedTextRun(ClassificationTypeNames.Text, "2. ")),
+        New ContainerElement(
+            ContainerElementStyle.Stacked,
+            New ContainerElement(
+                ContainerElementStyle.Stacked,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "1. ")),
+                    New ContainerElement(
+                        ContainerElementStyle.Stacked,
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2.1")))),
                 New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "2. ")),
                     New ContainerElement(
                         ContainerElementStyle.Stacked,
-                        New ContainerElement(
-                            ContainerElementStyle.Wrapped,
-                            New ClassifiedTextElement(
-                                New ClassifiedTextRun(ClassificationTypeNames.Text, "1. ")),
-                            New ContainerElement(
-                                ContainerElementStyle.Stacked,
-                                New ClassifiedTextElement(
-                                    New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2.1")))),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Line1")),
                         New ContainerElement(
                             ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
-                            New ContainerElement(
-                                ContainerElementStyle.Wrapped,
-                                New ClassifiedTextElement(
-                                    New ClassifiedTextRun(ClassificationTypeNames.Text, "2. ")),
-                                New ContainerElement(
-                                    ContainerElementStyle.Stacked,
-                                    New ClassifiedTextElement(
-                                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Line1")),
-                                    New ContainerElement(
-                                        ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
-                                        New ClassifiedTextElement(
-                                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Line2")))))))))
+                            New ClassifiedTextElement(
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "Line2")))))))))
 
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function

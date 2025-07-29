@@ -274,7 +274,8 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             _italic text_  
             <u>underline text</u>  
               
-            •&nbsp;Item 1\.&nbsp;•&nbsp;Item 2\.  
+            •&nbsp;Item 1\.  
+            •&nbsp;Item 2\.  
               
             [link text](https://google.com)
             """, results.Documentation.Value.Second.Value);
@@ -332,7 +333,8 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             italic text
             underline text
 
-            • Item 1. • Item 2.
+            • Item 1.
+            • Item 2.
 
             link text
             """, results.Documentation.Value.Second.Value);
