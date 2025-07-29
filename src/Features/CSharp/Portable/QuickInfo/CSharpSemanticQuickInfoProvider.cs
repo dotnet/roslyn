@@ -101,20 +101,17 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         if (!nullableContext.WarningsEnabled() || !nullableContext.AnnotationsEnabled())
             return null;
 
-        return GetNullabilityAnalysisWorker(semanticModel, symbol, node, cancellationToken);
-    }
-
-    private string? GetNullabilityAnalysisWorker(
-        SemanticModel semanticModel,
-        ISymbol symbol,
-        SyntaxNode node,
-        CancellationToken cancellationToken)
-    {
-        // When hovering over the 'var' keyword, give the nullability of the variable being declared there.
+        // When hovering over the 'var' keyword, give the nullability of the variable being declared there. e.g.
+        //
+        //  $$var v = ...;
+        //
+        // Should say both the type of 'v' and say if 'v' is non-null/null at this point.
         if (node is IdentifierNameSyntax { Identifier.ValueText: "var", Parent: VariableDeclarationSyntax { Variables: [var declarator] } })
         {
+            // Recurse back into GetNullabilityAnalysis which acts as if the user asked for QI on the
+            // variable declarator itself.
             var variable = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-            if (variable is ISymbol local)
+            if (variable is ILocalSymbol local)
                 return GetNullabilityAnalysis(semanticModel, local, declarator, cancellationToken);
         }
 
@@ -168,20 +165,20 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
         static TypeInfo GetTypeInfo(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
         {
+            // We may be on the declarator of some local like:
+            //
+            // string x = "";
+            // var $$y = 1;
+            //
+            // In this case, 'y' will have the type 'string?'.  But we'll still want to say that it is has a non-null
+            // value to begin with.
+
             if (symbol is ILocalSymbol && node is VariableDeclaratorSyntax
                 {
                     Parent: VariableDeclarationSyntax { Type: IdentifierNameSyntax { Identifier.ValueText: "var" } },
                     Initializer.Value: { } initializer,
                 })
             {
-                // We may be on the declarator of some local like:
-                //
-                // string x = "";
-                // var y = 1;
-                //
-                // In this case, 'y' will have the type 'string?'.  But we'll still want to say that it is has a non-null
-                // value to begin with.
-
                 return semanticModel.GetTypeInfo(initializer, cancellationToken);
             }
             else
