@@ -59,7 +59,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(MockServiceProvider),
                 GetType(StubVsServiceExporter(Of )),
                 GetType(StubVsServiceExporter(Of ,)),
-                GetType(SolutionEventsBatchScopeCreator),
                 GetType(ProjectCodeModelFactory),
                 GetType(CPSProjectFactory),
                 GetType(VisualStudioRuleSetManagerFactory),

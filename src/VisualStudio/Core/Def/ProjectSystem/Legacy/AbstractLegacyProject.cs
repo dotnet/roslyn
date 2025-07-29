@@ -53,12 +53,6 @@ internal abstract partial class AbstractLegacyProject
 
     private static readonly char[] PathSeparatorCharacters = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
-    #region Mutable fields that should only be used from the UI thread
-
-    private readonly SolutionEventsBatchScopeCreator _batchScopeCreator;
-
-    #endregion
-
     public AbstractLegacyProject(
         string projectSystemName,
         IVsHierarchy hierarchy,
@@ -153,8 +147,6 @@ internal abstract partial class AbstractLegacyProject
         var projectHierarchyGuid = GetProjectIDGuid(hierarchy);
 
         _externalErrorReporter = new ProjectExternalErrorReporter(ProjectSystemProject.Id, projectHierarchyGuid, externalErrorReportingPrefix, language, workspaceImpl);
-        _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
-        _batchScopeCreator.StartTrackingProject(ProjectSystemProject, Hierarchy);
     }
 
     public string AssemblyName => ProjectSystemProject.AssemblyName;
@@ -164,8 +156,6 @@ internal abstract partial class AbstractLegacyProject
 
     public virtual void Disconnect()
     {
-        _batchScopeCreator.StopTrackingProject(ProjectSystemProject);
-
         ProjectSystemProjectOptionsProcessor?.Dispose();
         ProjectCodeModel.OnProjectClosed();
         ProjectSystemProject.RemoveFromWorkspace();
