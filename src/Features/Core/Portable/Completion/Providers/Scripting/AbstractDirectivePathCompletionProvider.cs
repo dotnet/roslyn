@@ -65,9 +65,11 @@ internal abstract class AbstractDirectivePathCompletionProvider : LSPCompletionP
         }
     }
 
+    // TODO: CompletionUtilities.CommonTriggerCharacters from C# layer is not available here.
+    // But, these types appear to only be used in C# layer.
     public sealed override ImmutableHashSet<char> TriggerCharacters { get; } = PathUtilities.IsUnixLikePlatform
-        ? [' ', '/']
-        : [' ', '/', '\\'];
+        ? ['.', '#', '>', ':', ' ', '/']
+        : ['.', '#', '>', ':', ' ', '/', '\\'];
 
     public sealed override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
     {
