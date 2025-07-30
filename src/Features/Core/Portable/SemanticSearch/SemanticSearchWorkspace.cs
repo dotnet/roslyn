@@ -30,7 +30,7 @@ internal abstract class SemanticSearchWorkspace(HostServices services, ISemantic
     {
         var (updated, newSolution) = await this.SetCurrentSolutionAsync(
             useAsync: true,
-            transformation: oldSolution => solutionService.SetQueryText(oldSolution, query),
+            transformation: oldSolution => solutionService.SetQueryText(oldSolution, query, ReferenceAssembliesDirectory),
             changeKind: solutionService.GetWorkspaceChangeKind,
             onBeforeUpdate: null,
             onAfterUpdate: null,

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -197,7 +197,21 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
     }
 
-    protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(
+        QuickInfoContext context, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await GetOnTheFlyDocsInfoWorkerAsync(context, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+        {
+            return null;
+        }
+    }
+
+    private static async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoWorkerAsync(
+        QuickInfoContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         var position = context.Position;
@@ -213,10 +227,9 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         {
             return null;
         }
+
         if (document.IsRazorDocument())
-        {
             return null;
-        }
 
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -237,9 +250,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
 
         if (symbol.DeclaringSyntaxReferences.Length == 0)
-        {
             return null;
-        }
 
         // Checks to see if any of the files containing the symbol are excluded.
         var hasContentExcluded = false;
@@ -255,17 +266,12 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
 
         var solution = document.Project.Solution;
-        var declarationCode = symbol.DeclaringSyntaxReferences.Select(reference =>
+        var declarationCode = symbol.DeclaringSyntaxReferences.SelectAsArray(reference =>
         {
             var span = reference.Span;
             var syntaxReferenceDocument = solution.GetDocument(reference.SyntaxTree);
-            if (syntaxReferenceDocument is not null)
-            {
-                return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
-            }
-
-            return null;
-        }).ToImmutableArray();
+            return syntaxReferenceDocument is null ? null : new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
+        });
 
         var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
 
