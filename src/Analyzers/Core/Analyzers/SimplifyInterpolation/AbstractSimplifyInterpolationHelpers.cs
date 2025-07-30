@@ -30,7 +30,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
 
     public ImmutableDictionary<IMethodSymbol, string> BuildKnownToStringFormatsLookupTable(Compilation compilation)
     {
-        var builder = ImmutableDictionary.CreateBuilder<IMethodSymbol, string>(SymbolEqualityComparer.Default);
+        using var _ = PooledDictionary<IMethodSymbol, string>.GetInstance(out var builder);
 
         var dateTimeType = compilation.GetSpecialType(SpecialType.System_DateTime);
         AddDateMethods(dateTimeType);
@@ -48,7 +48,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
             AddTimeMethods(timeOnlyType);
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableDictionary(SymbolEqualityComparer.Default);
 
         void AddDateMethods(INamedTypeSymbol dateType)
         {
