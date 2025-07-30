@@ -2550,9 +2550,9 @@ public class GeneratedClass
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
                             <Document>
-                                public class [|MyClass$$Attribute|] : System.Attribute
+                                public class {|MyClass2Attribute:MyClass$$Attribute|} : System.Attribute
                                 {
-                                    public [|MyClassAttribute|]()
+                                    public {|MyClass2Attribute:MyClassAttribute|}()
                                     {
             
                                     }
@@ -2568,6 +2568,70 @@ public class GeneratedClass
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "2")
+
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameConversionOperator(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class {|Repro1Bar:Repro1|}
+                                {
+                                    public static explicit operator {|Repro1Bar:Repro1$$|}(C _)
+                                    {
+                                        return null;
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameConversionOperator2(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class {|Repro1Bar:Repro1$$|}
+                                {
+                                    public static explicit operator {|Repro1Bar:Repro1|}(C _)
+                                    {
+                                        return null;
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
 
                 Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 

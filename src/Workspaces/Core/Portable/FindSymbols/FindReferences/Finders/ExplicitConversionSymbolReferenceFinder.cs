@@ -76,6 +76,14 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
+    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(IMethodSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+    {
+        var underlyingNamedType = GetUnderlyingNamedType(symbol.ReturnType);
+        return underlyingNamedType != null
+            ? new(ImmutableArray.Create<ISymbol>(underlyingNamedType))
+            : new(ImmutableArray<ISymbol>.Empty);
+    }
+
     private static bool IsPotentialReference(
         ISyntaxFactsService syntaxFacts, SyntaxToken token)
     {

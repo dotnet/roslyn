@@ -118,6 +118,11 @@ internal sealed partial class SymbolicRenameLocations
                 return true;
             }
 
+            if (originalSymbol is IMethodSymbol { MethodKind: MethodKind.Conversion } conversionMethod && referencedSymbol.Equals(conversionMethod.ReturnType))
+            {
+                return true;
+            }
+
             return false;
 
             // Local functions
