@@ -48208,12 +48208,16 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
-        comp.VerifyEmitDiagnostics();
+        DiagnosticDescription[] expectedDiagnostics = [
+            // (13,20): warning CS1710: XML comment has a duplicate typeparam tag for 'T'
+            //     /// <typeparam name="T">Second description for T</typeparam>
+            Diagnostic(ErrorCode.WRN_DuplicateTypeParamTag, @"name=""T""").WithArguments("T").WithLocation(13, 20)];
+
+        comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
 
         var extensions = e.GetTypeMembers().ToArray();
-        var extension1 = e.GetTypeMembers()[0];
         AssertEx.Equal("""
 <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
@@ -48224,9 +48228,8 @@ static class E
     <param name="t">Second description for t</param>
 </member>
 
-""", extension1.GetDocumentationCommentXml());
+""", extensions[0].GetDocumentationCommentXml());
 
-        var extension2 = e.GetTypeMembers()[1];
         AssertEx.Equal("""
 <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
@@ -48237,7 +48240,7 @@ static class E
     <param name="t">Second description for t</param>
 </member>
 
-""", extension2.GetDocumentationCommentXml());
+""", extensions[1].GetDocumentationCommentXml());
 
         var expected = """
 <?xml version="1.0"?>
@@ -48269,7 +48272,7 @@ static class E
     </members>
 </doc>
 """;
-        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp, expectedDiagnostics));
     }
 
     [Fact]
@@ -48362,7 +48365,6 @@ static class E
         AssertEx.Equal("T:E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F",
             nestedExtension.GetDocumentationCommentId());
 
-        // PROTOTYPE should we be merging these nested extension blocks instead?
         var expected = """
 <?xml version="1.0"?>
 <doc>

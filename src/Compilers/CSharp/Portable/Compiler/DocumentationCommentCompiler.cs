@@ -226,7 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 1. visit the type
             if (symbol.IsExtension && (SourceNamedTypeSymbol)symbol.ContainingType is { } containingType)
             {
-                ImmutableArray<SourceNamedTypeSymbol> extensions = containingType.GetExtensionGroupingInfo().GetMatchingExtensions((SourceNamedTypeSymbol)symbol);
+                // We've been asked to generate the docs for a given extension block. We'll produce the merged docs for the merged blocks.
+                ImmutableArray<SourceNamedTypeSymbol> extensions = containingType.GetExtensionGroupingInfo().GetMergedExtensions((SourceNamedTypeSymbol)symbol);
                 appendMergedExtensionBlocks(extensions);
             }
             else
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!_isForSingleSymbol);
                 ExtensionGroupingInfo extensionGroupingInfo = ((SourceMemberContainerTypeSymbol)containingType).GetExtensionGroupingInfo();
 
-                foreach (ArrayBuilder<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
+                foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
                 {
                     appendMergedExtensionBlocks(extensions);
 
@@ -309,8 +310,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         firstExtension = extension;
                     }
+                    else
+                    {
+                        Debug.Assert(firstExtension.GetEscapedDocumentationCommentId() == extension.GetEscapedDocumentationCommentId());
+                    }
 
-                    if (!TryGetDocumentationCommentNodes(extension, out var maxDocumentationMode, out var foundDocCommentNodes))
+                    if (!TryGetDocumentationCommentNodes(extension, out DocumentationMode maxDocumentationMode, out ImmutableArray<DocumentationCommentTriviaSyntax> foundDocCommentNodes))
                     {
                         // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                         // just write a comment saying that info was lost for this symbol.
@@ -530,10 +535,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             string? withUnprocessedIncludes;
             bool haveParseError;
-            HashSet<TypeParameterSymbol>? documentedTypeParameters;
+            HashSet<string>? documentedTypeParameterNames;
             HashSet<ParameterSymbol>? documentedParameters;
             ImmutableArray<CSharpSyntaxNode> includeElementNodes;
-            if (!tryProcessDocumentationCommentTriviaNodes(symbol, shouldSkipPartialDefinitionComments, docCommentNodes, out withUnprocessedIncludes, out haveParseError, out documentedTypeParameters, out documentedParameters, out includeElementNodes))
+            if (!tryProcessDocumentationCommentTriviaNodes(symbol, shouldSkipPartialDefinitionComments, docCommentNodes, out withUnprocessedIncludes, out haveParseError, out documentedTypeParameterNames, out documentedParameters, out includeElementNodes))
             {
                 return;
             }
@@ -557,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the formatting engine would have trouble determining what prefix to remove from each line.
                 TextWriter? expanderWriter = shouldSkipPartialDefinitionComments ? null : _writer; // Don't actually write partial method definition parts.
                 IncludeElementExpander.ProcessIncludes(withUnprocessedIncludes, symbol, includeElementNodes,
-                    _compilation, ref documentedParameters, ref documentedTypeParameters, ref _includedFileCache, expanderWriter, _diagnostics, _cancellationToken);
+                    _compilation, ref documentedParameters, ref documentedTypeParameterNames, ref _includedFileCache, expanderWriter, _diagnostics, _cancellationToken);
             }
             else if (_writer != null && !shouldSkipPartialDefinitionComments)
             {
@@ -588,14 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (documentedTypeParameters != null)
+                if (documentedTypeParameterNames != null)
                 {
-                    PooledHashSet<string> documentedTypeParameterNames = PooledHashSet<string>.GetInstance();
-                    foreach (var documentedTypeParameter in documentedTypeParameters)
-                    {
-                        documentedTypeParameterNames.Add(documentedTypeParameter.Name);
-                    }
-
                     foreach (TypeParameterSymbol typeParameter in GetTypeParameters(symbol))
                     {
                         if (!documentedTypeParameterNames.Contains(typeParameter.Name))
@@ -606,8 +605,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _diagnostics.Add(ErrorCode.WRN_MissingTypeParamTag, location, typeParameter, symbol);
                         }
                     }
-
-                    documentedTypeParameterNames.Free();
                 }
             }
             return;
@@ -625,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
                 [NotNullWhen(true)] out string? withUnprocessedIncludes,
                 out bool haveParseError,
-                out HashSet<TypeParameterSymbol>? documentedTypeParameters,
+                out HashSet<string>? documentedTypeParameterNames,
                 out HashSet<ParameterSymbol>? documentedParameters,
                 out ImmutableArray<CSharpSyntaxNode> includeElementNodes)
             {
@@ -636,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<CSharpSyntaxNode>? includeElementNodesBuilder = null;
 
                 documentedParameters = null;
-                documentedTypeParameters = null;
+                documentedTypeParameterNames = null;
 
                 // Saw an XmlException while parsing one of the DocumentationCommentTriviaSyntax nodes.
                 haveParseError = false;
@@ -678,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Will respect the DocumentationMode.
                     string substitutedText = DocumentationCommentWalker.GetSubstitutedText(_compilation, _diagnostics, symbol, trivia,
-                        includeElementNodesBuilder, ref documentedParameters, ref documentedTypeParameters);
+                        includeElementNodesBuilder, ref documentedParameters, ref documentedTypeParameterNames);
 
                     string formattedXml = FormatComment(substitutedText);
 
@@ -1260,7 +1257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             Symbol memberSymbol,
             ref HashSet<ParameterSymbol> documentedParameters,
-            ref HashSet<TypeParameterSymbol> documentedTypeParameters,
+            ref HashSet<string> documentedTypeParameterNames,
             BindingDiagnosticBag diagnostics)
         {
             XmlNameAttributeElementKind elementKind = syntax.GetElementKind();
@@ -1277,9 +1274,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (elementKind == XmlNameAttributeElementKind.TypeParameter)
             {
-                if (documentedTypeParameters == null)
+                if (documentedTypeParameterNames == null)
                 {
-                    documentedTypeParameters = new HashSet<TypeParameterSymbol>();
+                    documentedTypeParameterNames = new HashSet<string>();
                 }
             }
 
@@ -1335,9 +1332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (elementKind == XmlNameAttributeElementKind.TypeParameter)
                     {
                         Debug.Assert(referencedSymbol.Kind == SymbolKind.TypeParameter);
-                        Debug.Assert(documentedTypeParameters != null);
+                        Debug.Assert(documentedTypeParameterNames != null);
 
-                        if (!documentedTypeParameters.Add((TypeParameterSymbol)referencedSymbol))
+                        if (!documentedTypeParameterNames.Add(((TypeParameterSymbol)referencedSymbol).Name))
                         {
                             diagnostics.Add(ErrorCode.WRN_DuplicateTypeParamTag, syntax.Location, identifier);
                         }

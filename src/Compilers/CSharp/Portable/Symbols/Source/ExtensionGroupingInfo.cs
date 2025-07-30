@@ -160,50 +160,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
-        internal ImmutableArray<SourceNamedTypeSymbol> GetMatchingExtensions(SourceNamedTypeSymbol extension)
+        // Given an extension block, returns all the extensions that are grouped together with it
+        internal ImmutableArray<SourceNamedTypeSymbol> GetMergedExtensions(SourceNamedTypeSymbol extension)
         {
             Debug.Assert(extension.IsExtension);
             return GetCorrespondingMarkerType(extension).UnderlyingExtensions;
         }
 
         // Returns all the extension blocks but grouped/merged by equivalency (ie. same marker name)
-        internal IEnumerable<ArrayBuilder<SourceNamedTypeSymbol>> EnumerateMergedExtensionBlocks()
+        internal IEnumerable<ImmutableArray<SourceNamedTypeSymbol>> EnumerateMergedExtensionBlocks()
         {
-            Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>> groupingMap = this._groupingMap;
-            ArrayBuilder<string> groupingNames = sortStrings(groupingMap.Keys);
-
-            foreach (var groupName in groupingNames)
+            GetGroupingTypes();
+            foreach (var groupingType in _lazyGroupingTypes)
             {
-                MultiDictionary<string, SourceNamedTypeSymbol> markerMap = groupingMap[groupName];
-                ArrayBuilder<string> markerNames = sortStrings(markerMap.Keys);
-
-                foreach (var markerName in markerNames)
+                foreach (var markerType in groupingType.ExtensionMarkerTypes)
                 {
-                    ArrayBuilder<SourceNamedTypeSymbol> extensions = sortSourceNamedTypeSymbols(markerMap[markerName]);
-                    yield return extensions;
-
-                    extensions.Free();
+                    yield return markerType.UnderlyingExtensions;
                 }
-
-                markerNames.Free();
-            }
-
-            groupingNames.Free();
-
-            static ArrayBuilder<string> sortStrings(IReadOnlyCollection<string> groupingMapKeys)
-            {
-                var groupingNamesBuilder = ArrayBuilder<string>.GetInstance(groupingMapKeys.Count);
-                groupingNamesBuilder.AddRange(groupingMapKeys);
-                groupingNamesBuilder.Sort(StringComparer.Ordinal);
-                return groupingNamesBuilder;
-            }
-
-            static ArrayBuilder<SourceNamedTypeSymbol> sortSourceNamedTypeSymbols(IEnumerable<SourceNamedTypeSymbol> extensions)
-            {
-                var groupingNamesBuilder = ArrayBuilder<SourceNamedTypeSymbol>.GetInstance();
-                groupingNamesBuilder.AddRange(extensions);
-                groupingNamesBuilder.Sort(LexicalOrderSymbolComparer.Instance);
-                return groupingNamesBuilder;
             }
         }
 
