@@ -14,8 +14,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [Export(typeof(IVSTypeScriptDiagnosticAnalyzerService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptAnalyzerService(IDiagnosticsRefresher refresher) : IVSTypeScriptDiagnosticAnalyzerService
+internal sealed class VSTypeScriptAnalyzerService(
+    [Import(AllowDefault = true)] IDiagnosticsRefresher? refresher)
+    : IVSTypeScriptDiagnosticAnalyzerService
 {
     public void Reanalyze(Workspace? workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
-        => refresher.RequestWorkspaceRefresh();
+        => refresher?.RequestWorkspaceRefresh();
 }

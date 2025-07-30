@@ -23,9 +23,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia;
 [ExtensionOrder(Before = nameof(InvocationExpressionSignatureHelpProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation) : InvocationExpressionSignatureHelpProviderBase
+internal sealed class PythiaSignatureHelpProvider(
+    [Import(AllowDefault = true)] Lazy<IPythiaSignatureHelpProviderImplementation?> implementation)
+    : InvocationExpressionSignatureHelpProviderBase
 {
-    private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation = implementation;
+    private readonly Lazy<IPythiaSignatureHelpProviderImplementation?> _lazyImplementation = implementation;
 
     internal override async Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
         ImmutableArray<IMethodSymbol> accessibleMethods,
@@ -36,7 +38,11 @@ internal sealed class PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProvi
         IMethodSymbol? currentSymbol,
         CancellationToken cancellationToken)
     {
-        var (items, selectedItemIndex) = await _lazyImplementation.Value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, symbolInfo, cancellationToken).ConfigureAwait(false);
+        var value = _lazyImplementation.Value;
+        if (value is null)
+            return ([], null);
+
+        var (items, selectedItemIndex) = await value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, symbolInfo, cancellationToken).ConfigureAwait(false);
         return (items.SelectAsArray(item => item.UnderlyingObject), selectedItemIndex);
     }
 }
