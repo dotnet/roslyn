@@ -34,9 +34,9 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         => context.RegisterCompilationStartAction(
             context =>
             {
-                var comp = context.Compilation;
-                var knownToStringFormats = Helpers.BuildKnownToStringFormatsLookupTable(comp);
-                context.RegisterOperationAction(context => AnalyzeInterpolation(context, comp.FormattableStringType(), knownToStringFormats), OperationKind.Interpolation);
+                var compilation = context.Compilation;
+                var knownToStringFormats = Helpers.BuildKnownToStringFormatsLookupTable(compilation);
+                context.RegisterOperationAction(context => AnalyzeInterpolation(context, compilation.FormattableStringType(), knownToStringFormats), OperationKind.Interpolation);
             });
 
     private void AnalyzeInterpolation(

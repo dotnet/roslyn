@@ -28,21 +28,21 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
 
     protected abstract SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation);
 
-    public ImmutableDictionary<IMethodSymbol, string> BuildKnownToStringFormatsLookupTable(Compilation comp)
+    public ImmutableDictionary<IMethodSymbol, string> BuildKnownToStringFormatsLookupTable(Compilation compilation)
     {
         var builder = ImmutableDictionary.CreateBuilder<IMethodSymbol, string>(SymbolEqualityComparer.Default);
 
-        var dateTimeType = comp.GetSpecialType(SpecialType.System_DateTime);
+        var dateTimeType = compilation.GetSpecialType(SpecialType.System_DateTime);
         AddDateMethods(dateTimeType);
         AddTimeMethods(dateTimeType);
 
-        var dateOnlyType = comp.DateOnlyType();
+        var dateOnlyType = compilation.DateOnlyType();
         if (dateOnlyType is not null)
         {
             AddDateMethods(dateOnlyType);
         }
 
-        var timeOnlyType = comp.TimeOnlyType();
+        var timeOnlyType = compilation.TimeOnlyType();
         if (timeOnlyType is not null)
         {
             AddTimeMethods(timeOnlyType);
