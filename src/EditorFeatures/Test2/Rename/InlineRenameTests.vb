@@ -2577,6 +2577,7 @@ public class GeneratedClass
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77082")>
         Public Async Function RenameConversionOperator(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
