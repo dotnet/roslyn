@@ -795,9 +795,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (CSharpAttributeData attribute in attributes)
                 {
-                    var stringBuilder = PooledStringBuilder.GetInstance();
-                    appendAttribute(attribute, stringBuilder.Builder);
-                    attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    if (!attribute.IsConditionallyOmitted)
+                    {
+                        var stringBuilder = PooledStringBuilder.GetInstance();
+                        appendAttribute(attribute, stringBuilder.Builder);
+                        attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    }
                 }
 
                 attributesBuilder.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic

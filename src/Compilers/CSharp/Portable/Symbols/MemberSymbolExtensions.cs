@@ -42,6 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((PropertySymbol)member).Parameters;
                 case SymbolKind.Event:
                     return ImmutableArray<ParameterSymbol>.Empty;
+                case SymbolKind.NamedType:
+                    var namedType = (NamedTypeSymbol)member;
+                    if (namedType.IsExtension)
+                    {
+                        return namedType.ExtensionParameter is not null
+                            ? [namedType.ExtensionParameter]
+                            : [];
+                    }
+                    goto default;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
@@ -341,6 +350,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                 case SymbolKind.Field:
                     return 0;
+                case SymbolKind.NamedType:
+                    var namedType = (NamedTypeSymbol)member;
+                    if (namedType.IsExtension)
+                    {
+                        return namedType.ExtensionParameter is not null ? 1 : 0;
+                    }
+                    goto default;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }

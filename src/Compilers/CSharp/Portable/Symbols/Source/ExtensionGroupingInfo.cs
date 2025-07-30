@@ -184,6 +184,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Reports a diagnostic when two extension blocks grouped into a single marker type have different C#-level signatures.
+        /// Note: It's fine for two extension blocks with different IL-level signatures to be grouped into the same grouping type, so we don't check for collisions there.
+        /// </summary>
+        internal void CheckSignatureCollisions(BindingDiagnosticBag diagnostics)
+        {
+            foreach (ImmutableArray<SourceNamedTypeSymbol> mergedBlocks in EnumerateMergedExtensionBlocks())
+            {
+                checkCollisions(mergedBlocks, diagnostics);
+            }
+
+            return;
+
+            static void checkCollisions(ImmutableArray<SourceNamedTypeSymbol> mergedBlocks, BindingDiagnosticBag diagnostics)
+            {
+                SourceNamedTypeSymbol first = mergedBlocks[0];
+
+                for (int i = 1; i < mergedBlocks.Length; i++)
+                {
+                    if (!MemberSignatureComparer.ExtensionSignatureComparer.Equals(first, (SourceNamedTypeSymbol?)mergedBlocks[i]))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, mergedBlocks[i].Locations[0]);
+                    }
+                }
+            }
+        }
+
         private abstract class ExtensionGroupingOrMarkerType : Cci.INestedTypeDefinition
         {
             ushort ITypeDefinition.Alignment => 0;
