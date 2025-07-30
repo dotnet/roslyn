@@ -29,10 +29,10 @@ internal abstract class QuickInfoServiceWithProviders(LanguageServices services)
             var mefExporter = _services.SolutionServices.ExportProvider;
 
             var providers = ExtensionOrderer
-                .Order(mefExporter.GetExports<QuickInfoProvider, QuickInfoProviderMetadata>()
+                .Order(mefExporter
+                    .GetExports<QuickInfoProvider, QuickInfoProviderMetadata>()
                     .Where(lz => lz.Metadata.Language == _services.Language))
-                .Select(lz => lz.Value)
-                .ToImmutableArray();
+                .SelectAsArray(lz => lz.Value);
 
             ImmutableInterlocked.InterlockedCompareExchange(ref _providers, providers, default);
         }
