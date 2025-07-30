@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -50,7 +49,7 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         : base(adornment,
                removalCallback: null,
                topSpace: null,
-               baseline: null,
+               baseline: null, // Add baseline calculation
                textHeight: null,
                bottomSpace: null,
                PositionAffinity.Predecessor,
@@ -124,17 +123,21 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         ClassificationTypeMap typeMap,
         bool classify)
     {
+        var textViewLine = textView.TextViewLines.WpfTextViewLines[0];
+
         // Constructs the hint block which gets assigned parameter name and FontStyles according to the options
-        // page. For better monospaced alignment, we use the same font size as the editor text.
+        // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
+        // well with VS at any zoom level or font size.
         var block = new TextBlock
         {
             FontFamily = format.Typeface.FontFamily,
-            FontSize = format.FontRenderingEmSize, // Use same font size as editor for proper baseline alignment
+            FontSize = 0.75 * format.FontRenderingEmSize,
             FontStyle = FontStyles.Normal,
             Foreground = format.ForegroundBrush,
-            // Add padding on all sides to ensure text with descenders is not cut off
-            // Vertical padding ensures characters like 'g', 'j', 'p', 'q', 'y' are fully visible
-            Padding = new Thickness(left: 2, top: 1, right: 2, bottom: 1)
+            // Adds a little bit of padding to the left of the text relative to the border to make the text seem
+            // more balanced in the border
+            Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
+            HorizontalAlignment = HorizontalAlignment.Center,
         };
 
         var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
@@ -155,43 +158,46 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
 
         block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-        // Calculate proper height to accommodate text with descenders
-        // Use line height which includes space for descenders
-        var lineHeight = format.Typeface.FontFamily.LineSpacing * format.FontRenderingEmSize;
-        
         // Encapsulates the TextBlock within a border. Gets foreground/background colors from the options menu.
         // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
         // left or right side.
-        var left = leftPadding * 5;
-        var right = rightPadding * 5;
+        var left = leftPadding * textViewLine.VirtualSpaceWidth;
+        var right = rightPadding * textViewLine.VirtualSpaceWidth;
+        var width = Math.Round((block.DesiredSize.Width / textViewLine.VirtualSpaceWidth) + 0.5) * textViewLine.VirtualSpaceWidth;
 
         var border = new Border
         {
             Background = format.BackgroundBrush,
             Child = block,
             CornerRadius = new CornerRadius(2),
-            VerticalAlignment = VerticalAlignment.Center, // Center instead of Bottom to prevent clipping
+            VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(left, top: 0, right, bottom: 0),
-            // Add padding to the border itself to ensure proper spacing
-            Padding = new Thickness(1)
+            Width = width,
         };
 
-        // Calculate container height to properly accommodate the text including descenders
-        // Use the line height plus a small buffer for proper spacing
-        var containerHeight = Math.Max(lineHeight, block.DesiredSize.Height + 2);
-        
+        // gets pixel distance of baseline to top of the font height
+        //var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
+        //var dockPanel = new DockPanel
+        //{
+        //    Height = dockPanelHeight,
+        //    LastChildFill = false,
+        //    // VerticalAlignment is set to Top because it will rest to the top relative to the StackPanel
+        //    VerticalAlignment = VerticalAlignment.Top
+        //};
+
+        //dockPanel.Children.Add(border);
+        //DockPanel.SetDock(border, Dock.Bottom);
+
         var stackPanel = new StackPanel
         {
-            // Set height to accommodate the full line height including descenders
-            Height = containerHeight,
-            Orientation = Orientation.Vertical,
-            VerticalAlignment = VerticalAlignment.Center
+            // Height set to align the baseline of the text within the TextBlock with the baseline of text in the editor
+            //Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize)),
+            Height = block.DesiredSize.Height,
+            //VerticalAlignment = VerticalAlignment.Top,
+            Orientation = Orientation.Horizontal
         };
 
-        // Center the border within the stack panel
-        border.VerticalAlignment = VerticalAlignment.Center;
         stackPanel.Children.Add(border);
-        
         // Need to set these properties to avoid unnecessary reformatting because some dependency properties
         // affect layout
         TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
@@ -200,7 +206,6 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
 
         return stackPanel;
     }
-
     private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
     {
         using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
