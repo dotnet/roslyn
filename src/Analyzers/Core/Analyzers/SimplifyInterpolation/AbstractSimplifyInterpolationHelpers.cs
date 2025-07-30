@@ -124,7 +124,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
     {
         Contract.ThrowIfNull(expression.SemanticModel);
 
-        if (expression is IInvocationOperation { TargetMethod: var targetMethod } invocation &&
+        if (expression is IInvocationOperation { TargetMethod: { } targetMethod } invocation &&
             HasNonImplicitInstance(invocation, out var instance) &&
             !syntaxFacts.IsBaseExpression(instance.Syntax))
         {
