@@ -64,6 +64,14 @@ internal sealed class ExtensionMethodImportCompletionProvider() : AbstractExtens
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
     {
+        // If we have:
+        //
+        //      X.Y.$$
+        //      var v = ...
+        //
+        // Then this will seem as if we're asking for completion inside the error qualified type symbol 'X.Y.var' in
+        // a qualified type name context (i.e. "types only"). To address that, we call into our helper which checks and
+        // reinterprets that case as if we have `X.Y.` in an expression context instead.
         if (node is ExpressionSyntax expression &&
             expression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(semanticModel, out _, out var container) &&
             container is not null and not IErrorTypeSymbol)
