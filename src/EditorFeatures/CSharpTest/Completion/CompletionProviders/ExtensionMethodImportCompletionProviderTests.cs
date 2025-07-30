@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -76,9 +77,12 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         }
     }
 
-    private static string GetMarkup(string current, string referenced, ReferenceType refType,
-                                    string currentLanguage = LanguageNames.CSharp,
-                                    string referencedLanguage = LanguageNames.CSharp)
+    private static string GetMarkup(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string current,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string referenced,
+        ReferenceType refType,
+        string currentLanguage = LanguageNames.CSharp,
+        string referencedLanguage = LanguageNames.CSharp)
         => refType switch
         {
             ReferenceType.None => CreateMarkupForSingleProject(current, referenced, currentLanguage),
@@ -89,6 +93,14 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
     public static IEnumerable<object[]> BuiltInTypesWithReferenceTypeData
         => CombineWithReferenceTypeData(BuiltInTypes);
+
+    private Task VerifyImportItemExistsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string expectedItem, string inlineDescription, Glyph? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
+        => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
+
+    private Task VerifyImportItemIsAbsentAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
+        => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
 
     [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
     public async Task TestPredefinedType(string type1, string type2, ReferenceType refType)
@@ -2279,9 +2291,38 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
 
-    private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, Glyph? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
-        => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79096")]
+    public Task TestTopLevelExpressionConfusedAsQualifiedType()
+        => VerifyItemExistsAsync(
+             """
+             using Microsoft.Extensions.Hosting;
 
-    private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
-        => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
+             var builder = new Builder();
+
+             builder.Services.$$
+             var host = builder.Build();
+
+             class Builder
+             {
+                 public C Services { get; }
+             }
+
+             class C
+             {
+             }
+
+             namespace N
+             {
+                 static class SC
+                 {
+                     public static void M(this C c)
+                     {
+                     }
+                 }
+             }
+             """,
+             "M",
+             displayTextSuffix: "",
+             inlineDescription: "N",
+             sourceCodeKind: SourceCodeKind.Regular);
 }
