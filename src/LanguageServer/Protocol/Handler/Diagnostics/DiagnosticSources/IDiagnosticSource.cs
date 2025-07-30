@@ -29,7 +29,6 @@ internal interface IDiagnosticSource
     /// errors from the past, we do want them to be superseded by a more recent live run, or a more recent build from
     /// another source.
     /// </summary>
-    bool IsLiveSource();
 
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         RequestContext context,

@@ -217,8 +217,6 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
             public Project GetProject() => textDocument.Project;
 
-            public bool IsLiveSource() => true;
-
             public string ToDisplayString() => textDocument.ToString()!;
         }
     }
