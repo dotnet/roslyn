@@ -4,7 +4,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -19,12 +18,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 [ExportWorkspaceService(typeof(ISourceGeneratedDocumentSpanMappingService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorSourceGeneratedDocumentSpanMappingService(
+internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
     [Import(AllowDefault = true)] IRazorSourceGeneratedDocumentSpanMappingService? implementation) : ISourceGeneratedDocumentSpanMappingService
 {
     private readonly IRazorSourceGeneratedDocumentSpanMappingService? _implementation = implementation;
 
-    public async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
     {
         if (_implementation is null ||
             !oldDocument.IsRazorSourceGeneratedDocument() ||
@@ -56,7 +55,7 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingService(
         return changesBuilder.ToImmutableAndClear();
     }
 
-    public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         if (_implementation is null ||
             !document.IsRazorSourceGeneratedDocument())
@@ -65,7 +64,7 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingService(
         }
 
         var mappedSpans = await _implementation.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);
-        if (mappedSpans.IsDefaultOrEmpty)
+        if (mappedSpans.Length != spans.Length)
         {
             return [];
         }
@@ -73,10 +72,9 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingService(
         using var _ = ArrayBuilder<MappedSpanResult>.GetInstance(out var spansBuilder);
         foreach (var span in mappedSpans)
         {
-            if (!span.IsDefault)
-            {
-                spansBuilder.Add(new MappedSpanResult(span.FilePath, span.LinePositionSpan, span.Span));
-            }
+            spansBuilder.Add(span.IsDefault
+                ? default
+                : new MappedSpanResult(span.FilePath, span.LinePositionSpan, span.Span));
         }
 
         return spansBuilder.ToImmutableAndClear();

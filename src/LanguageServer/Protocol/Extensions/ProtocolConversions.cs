@@ -1015,6 +1015,20 @@ internal static partial class ProtocolConversions
             return null;
         }
 
+        if (textDocument is SourceGeneratedDocument sourceGeneratedDocument &&
+            textDocument.Project.Solution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>() is { } sourceGeneratedSpanMappingService)
+        {
+            var result = await sourceGeneratedSpanMappingService.MapSpansAsync(sourceGeneratedDocument, textSpans, cancellationToken).ConfigureAwait(false);
+            if (result.IsDefaultOrEmpty)
+            {
+                return null;
+            }
+
+            Contract.ThrowIfFalse(textSpans.Length == result.Length,
+                $"The number of input spans {textSpans.Length} should match the number of mapped spans returned {result.Length}");
+            return result;
+        }
+
         var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
         if (spanMappingService == null)
         {
