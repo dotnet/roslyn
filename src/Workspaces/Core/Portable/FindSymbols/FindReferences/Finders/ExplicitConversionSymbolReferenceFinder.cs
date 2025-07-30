@@ -80,8 +80,8 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
     {
         var underlyingNamedType = GetUnderlyingNamedType(symbol.ReturnType);
         return underlyingNamedType != null
-            ? new(ImmutableArray.Create<ISymbol>(underlyingNamedType))
-            : new(ImmutableArray<ISymbol>.Empty);
+            ? new([underlyingNamedType])
+            : new([]);
     }
 
     private static bool IsPotentialReference(
