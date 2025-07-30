@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.Solution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -377,7 +376,9 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         Assert.Null(secondRequest.Text);
     }
 
-    private async Task<TestLspServer> CreateTestLspServerWithGeneratorAsync(bool mutatingLspWorkspace, string generatedDocumentText)
+    private async Task<TestLspServer> CreateTestLspServerWithGeneratorAsync(
+        bool mutatingLspWorkspace,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string generatedDocumentText)
     {
         var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
         await AddGeneratorAsync(new SingleFileTestGenerator(generatedDocumentText), testLspServer.TestWorkspace);

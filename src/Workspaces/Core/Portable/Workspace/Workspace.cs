@@ -1648,68 +1648,7 @@ public abstract partial class Workspace : IDisposable
                 }
             }
 
-            ApplySourceGeneratorExecutionMap();
-
             return true;
-        }
-
-        void ApplySourceGeneratorExecutionMap()
-        {
-            // Consider the following scenario.  We start with a solution with content version C1, and a
-            // SG execution map at version SG1.
-            //
-            // Simulatanously, two things happens:
-            //
-            // 1. A host event is detected that wants to update the SG execution map to SG2 (like a
-            //    file save or project buid).
-            // 2. A feature attempts to update the content of the workspace.
-            //
-            // These are two conceptual events that are fine to process in any order.  Importantly,
-            // most (all?) features are unaware of what the host is doing, and should not be blocked
-            // from making a change to the workspace just because the host said a save/build occurred.
-            //
-            // As such, we allow TryApplyChanges to continue, as long as the *content* versions of
-            // the before/after solution are the same (see the code at the start of TryApplyChanges).
-            // However, consider if the host event updates the SG execution map to SG2 first, then the
-            // content change comes in.  If we are not careful, then applying the content change solution
-            // will lose the information about the SG execution map changes, and we may end up not 
-            // regenerating source generators that should be re-run according to the host execution policy
-            // here.
-            //
-            // In order to prevent that, when we make a content change, we then analyze the before/after
-            // sg execution maps.  If they differ, then we take the latter of the two versions, forcing
-            // the execution policy request that might have come earlier to apply to the compilation trackers
-            // that have come in afterwards.
-            this.SetCurrentSolution(
-                oldSolution =>
-                {
-                    var oldExecutionMap = oldSolution.CompilationState.SourceGeneratorExecutionVersionMap;
-                    var newExecutionMap = newSolution.CompilationState.SourceGeneratorExecutionVersionMap;
-
-                    // Common case, there were no sg execution map changes between the two solutions.  So we
-                    // can just bail and have this be a no-op.
-                    if (oldExecutionMap == newExecutionMap)
-                        return oldSolution;
-
-                    // Ok the existing solution and us diverged with sg execution info.  That means a request
-                    // from the host to rerun generators snuck in before we updated the content info.  Take
-                    // any projects the host wants to update, and make sure we update our map so that happens.
-                    //
-                    // Note: we only have to keep track of these deviations.  UpdateSpecificSourceGeneratorExecutionVersions
-                    // will preserve the sg versions for any projects we don't refer to in the map we pass along.
-                    var builder = newExecutionMap.Map.ToBuilder();
-                    foreach (var (projectId, newVersion) in newExecutionMap.Map)
-                    {
-                        if (oldExecutionMap.Map.TryGetValue(projectId, out var oldVersion) &&
-                            oldVersion > newVersion)
-                        {
-                            builder[projectId] = oldVersion;
-                        }
-                    }
-
-                    return oldSolution.UpdateSpecificSourceGeneratorExecutionVersions(new(builder.ToImmutable()));
-                },
-                static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null));
         }
     }
 
