@@ -35,18 +35,8 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         var dateTimeType = compilation.GetSpecialType(SpecialType.System_DateTime);
         AddDateMethods(dateTimeType);
         AddTimeMethods(dateTimeType);
-
-        var dateOnlyType = compilation.DateOnlyType();
-        if (dateOnlyType is not null)
-        {
-            AddDateMethods(dateOnlyType);
-        }
-
-        var timeOnlyType = compilation.TimeOnlyType();
-        if (timeOnlyType is not null)
-        {
-            AddTimeMethods(timeOnlyType);
-        }
+        AddDateMethods(compilation.DateOnlyType());
+        AddTimeMethods(compilation.TimeOnlyType());
 
         return builder.ToImmutableDictionary(SymbolEqualityComparer.Default);
 
