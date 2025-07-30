@@ -4,7 +4,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 [ExportWorkspaceService(typeof(ISourceGeneratedDocumentSpanMappingService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorSourceGeneratedDocumentSpanMappingService(
+internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
     [Import(AllowDefault = true)] IRazorSourceGeneratedDocumentSpanMappingService? implementation) : ISourceGeneratedDocumentSpanMappingService
 {
     private readonly IRazorSourceGeneratedDocumentSpanMappingService? _implementation = implementation;
