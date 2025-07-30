@@ -349,6 +349,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     contextInfo,
                     cancellationToken);
             }
+
+            addDiagnostic.Free();
         }
 
         /// <summary>
@@ -409,6 +411,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         cancellationToken);
                 }
             }
+
+            addDiagnostic.Free();
         }
 
         /// <summary>
@@ -514,6 +518,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             _analyzerManager.MarkSymbolEndAnalysisComplete(symbol, analyzer);
+
+            addDiagnostic.Free();
         }
 
         /// <summary>
