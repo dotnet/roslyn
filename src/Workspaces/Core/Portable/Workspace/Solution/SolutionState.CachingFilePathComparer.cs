@@ -120,7 +120,13 @@ NotAscii:
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static uint RotateLeft(uint value, int offset)
-                => (value << offset) | (value >> (32 - offset));
+            {
+#if NET
+                return BitOperations.RotateLeft(value, offset);
+#else
+                return (value << offset) | (value >> (32 - offset));
+#endif
+            }
         }
 
         // From https://github.com/dotnet/runtime/blob/5aa9687e110faa19d1165ba680e52585a822464d/src/libraries/System.Private.CoreLib/src/System/Text/Unicode/Utf16Utility.cs#L16.
