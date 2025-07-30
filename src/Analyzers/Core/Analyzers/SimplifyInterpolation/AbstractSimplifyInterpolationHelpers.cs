@@ -50,25 +50,23 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
 
         return builder.ToImmutableDictionary(SymbolEqualityComparer.Default);
 
-        void AddDateMethods(INamedTypeSymbol dateType)
+        void AddDateMethods(INamedTypeSymbol? dateType)
         {
             AddMethodIfAvailable(dateType, nameof(DateTime.ToLongDateString), "D");
             AddMethodIfAvailable(dateType, nameof(DateTime.ToShortDateString), "d");
         }
 
-        void AddTimeMethods(INamedTypeSymbol timeType)
+        void AddTimeMethods(INamedTypeSymbol? timeType)
         {
             AddMethodIfAvailable(timeType, nameof(DateTime.ToLongTimeString), "T");
             AddMethodIfAvailable(timeType, nameof(DateTime.ToShortTimeString), "t");
         }
 
-        void AddMethodIfAvailable(INamedTypeSymbol type, string name, string format)
+        void AddMethodIfAvailable(INamedTypeSymbol? type, string name, string format)
         {
-            var method = type.GetMembers(name).FirstOrDefault(m => m is IMethodSymbol { Parameters.Length: 0 });
-            if (method is not null)
-            {
-                builder.Add((IMethodSymbol)method, format);
-            }
+            var member = type?.GetMembers(name).FirstOrDefault(m => m is IMethodSymbol { Parameters.Length: 0 });
+            if (member is IMethodSymbol method)
+                builder.Add(method, format);
         }
     }
 
