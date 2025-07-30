@@ -192,17 +192,10 @@ public abstract partial class Workspace : IDisposable
                 return (solution, solution);
             }
 
-            var newContentVersion = DetermineNextSolutionStateContentVersion(newSolution: solution, oldSolution: oldSolution);
-            _latestSolution = solution.WithNewWorkspace(
-                oldSolution.WorkspaceKind, newContentVersion, oldSolution.Services);
+            _latestSolution = solution.WithNewWorkspaceFrom(oldSolution);
             return (oldSolution, _latestSolution);
         }
     }
-
-    private static int DetermineNextSolutionStateContentVersion(Solution newSolution, Solution oldSolution)
-        => oldSolution.SolutionState == newSolution.SolutionState
-            ? oldSolution.SolutionStateContentVersion // If the solution state is the same, we can keep the same version.
-            : oldSolution.SolutionStateContentVersion + 1; // Otherwise, increment the version.
 
     /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, Func{Solution, Solution, ValueTuple{WorkspaceChangeKind, ProjectId?, DocumentId?}}, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
     internal bool SetCurrentSolution(
@@ -543,8 +536,7 @@ public abstract partial class Workspace : IDisposable
                         continue;
                     }
 
-                    var newContentVersion = DetermineNextSolutionStateContentVersion(newSolution: newSolution, oldSolution: oldSolution);
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, newContentVersion, oldSolution.Services);
+                    newSolution = newSolution.WithNewWorkspaceFrom(oldSolution);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);

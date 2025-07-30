@@ -235,11 +235,15 @@ internal sealed partial class SolutionState
     /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
     /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
     /// </summary>
-    public SolutionState WithNewWorkspace(
-        string? workspaceKind,
-        int solutionStateContentVersion,
-        SolutionServices services)
+    public SolutionState WithNewWorkspaceFrom(Solution oldSolution)
     {
+        var workspaceKind = oldSolution.WorkspaceKind;
+        var services = oldSolution.Services;
+
+        var solutionStateContentVersion = oldSolution.SolutionState == this
+            ? oldSolution.SolutionStateContentVersion // If the solution state is the same, we can keep the same version.
+            : oldSolution.SolutionStateContentVersion + 1; // Otherwise, increment the version.
+
         if (workspaceKind == WorkspaceKind &&
             solutionStateContentVersion == ContentVersion &&
             services == Services)
