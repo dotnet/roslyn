@@ -54,7 +54,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
 
         void AddMethodIfAvailable(INamedTypeSymbol? type, string name, string format)
         {
-            var member = type?.GetMembers(name).FirstOrDefault(m => m is IMethodSymbol { Parameters.Length: 0 });
+            var member = type?.GetMembers(name).FirstOrDefault(m => m is IMethodSymbol { IsStatic: false, Parameters.Length: 0 });
             if (member is IMethodSymbol method)
                 builder.Add(method, format);
         }
