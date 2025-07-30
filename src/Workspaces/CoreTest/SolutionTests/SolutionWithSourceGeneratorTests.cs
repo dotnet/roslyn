@@ -1249,7 +1249,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task WithTextWorksOnUnrealisedGeneratedDocument(TestHost testHost)
+    public async Task WithTextWorksOnUnrealizedGeneratedDocument(TestHost testHost)
     {
         using var workspace = CreateWorkspace(testHost: testHost);
 
@@ -1284,7 +1284,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task WithSyntaxRootWorksOnUnrealisedGeneratedDocument(TestHost testHost)
+    public async Task WithSyntaxRootWorksOnUnrealizedGeneratedDocument(TestHost testHost)
     {
         using var workspace = CreateWorkspace(testHost: testHost);
 
