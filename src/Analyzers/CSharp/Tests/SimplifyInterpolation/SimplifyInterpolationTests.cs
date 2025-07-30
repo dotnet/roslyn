@@ -1241,4 +1241,70 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
                 }
             }
             """);
+
+    [Theory]
+    [InlineData("DateTime", "ToLongDateString", "D")]
+    [InlineData("DateTime", "ToShortDateString", "d")]
+    [InlineData("DateTime", "ToLongTimeString", "T")]
+    [InlineData("DateTime", "ToShortTimeString", "t")]
+    [InlineData("DateOnly", "ToLongDateString", "D")]
+    [InlineData("DateOnly", "ToShortDateString", "d")]
+    [InlineData("TimeOnly", "ToLongTimeString", "T")]
+    [InlineData("TimeOnly", "ToShortTimeString", "t")]
+    public async Task TestWellKnowToStringMethods(string targetType, string targetMethodName, string expectedFormat)
+    {
+        // Replace polyfills of `DateOnly` and `TimeOnly`
+        // with .NET 6+ reference assemblies when porting this test to VerifyCS
+        await TestInRegularAndScriptAsync($$$"""
+            using System;
+            
+            class C
+            {
+                void M({{{targetType}}} obj)
+                {
+                    _ = $"prefix {obj{|Unnecessary:[||].{{{targetMethodName}}}()|}} suffix";
+                }
+            }
+
+            namespace System
+            {
+                public readonly struct DateOnly
+                {
+                    public string ToLongDateString() => default;
+                    public string ToShortDateString() => default;
+                }
+
+                public readonly struct TimeOnly
+                {
+                    public string ToLongTimeString() => default;
+                    public string ToShortTimeString() => default;
+                }
+            }
+            """, $$"""
+            using System;
+            
+            class C
+            {
+                void M({{targetType}} obj)
+                {
+                    _ = $"prefix {obj:{{expectedFormat}}} suffix";
+                }
+            }
+
+            namespace System
+            {
+                public readonly struct DateOnly
+                {
+                    public string ToLongDateString() => default;
+                    public string ToShortDateString() => default;
+                }
+            
+                public readonly struct TimeOnly
+                {
+                    public string ToLongTimeString() => default;
+                    public string ToShortTimeString() => default;
+                }
+            }
+            """);
+    }
 }

@@ -28,10 +28,43 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
 
     protected abstract SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation);
 
+    public ImmutableDictionary<IMethodSymbol, string> BuildKnownToStringFormatsLookupTable(Compilation compilation)
+    {
+        using var _ = PooledDictionary<IMethodSymbol, string>.GetInstance(out var builder);
+
+        var dateTimeType = compilation.GetSpecialType(SpecialType.System_DateTime);
+        AddDateMethods(dateTimeType);
+        AddTimeMethods(dateTimeType);
+        AddDateMethods(compilation.DateOnlyType());
+        AddTimeMethods(compilation.TimeOnlyType());
+
+        return builder.ToImmutableDictionary(SymbolEqualityComparer.Default);
+
+        void AddDateMethods(INamedTypeSymbol? dateType)
+        {
+            AddMethodIfAvailable(dateType, nameof(DateTime.ToLongDateString), "D");
+            AddMethodIfAvailable(dateType, nameof(DateTime.ToShortDateString), "d");
+        }
+
+        void AddTimeMethods(INamedTypeSymbol? timeType)
+        {
+            AddMethodIfAvailable(timeType, nameof(DateTime.ToLongTimeString), "T");
+            AddMethodIfAvailable(timeType, nameof(DateTime.ToShortTimeString), "t");
+        }
+
+        void AddMethodIfAvailable(INamedTypeSymbol? type, string name, string format)
+        {
+            var member = type?.GetMembers(name).FirstOrDefault(m => m is IMethodSymbol { IsStatic: false, Parameters.Length: 0 });
+            if (member is IMethodSymbol method)
+                builder.Add(method, format);
+        }
+    }
+
     public void UnwrapInterpolation(
         IVirtualCharService virtualCharService,
         ISyntaxFacts syntaxFacts,
         IInterpolationOperation interpolation,
+        ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
         out TExpressionSyntax? unwrapped,
         out TExpressionSyntax? alignment,
         out bool negate,
@@ -49,7 +82,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
             UnwrapAlignmentPadding(expression, out expression, out alignment, out negate, unnecessarySpans);
 
         if (interpolation.FormatString == null)
-            UnwrapFormatString(virtualCharService, syntaxFacts, expression, out expression, out formatString, unnecessarySpans);
+            UnwrapFormatString(virtualCharService, syntaxFacts, expression, knownToStringFormats, out expression, out formatString, unnecessarySpans);
 
         unwrapped = GetPreservedInterpolationExpressionSyntax(expression) as TExpressionSyntax;
 
@@ -84,42 +117,57 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         IVirtualCharService virtualCharService,
         ISyntaxFacts syntaxFacts,
         IOperation expression,
+        ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
         out IOperation unwrapped,
         out string? formatString,
         ArrayBuilder<TextSpan> unnecessarySpans)
     {
         Contract.ThrowIfNull(expression.SemanticModel);
 
-        if (expression is IInvocationOperation { TargetMethod.Name: nameof(ToString) } invocation &&
+        if (expression is IInvocationOperation { TargetMethod: { } targetMethod } invocation &&
             HasNonImplicitInstance(invocation, out var instance) &&
-            !syntaxFacts.IsBaseExpression(instance.Syntax) &&
-            instance.Type != null &&
-            !instance.Type.IsRefLikeType)
+            !syntaxFacts.IsBaseExpression(instance.Syntax))
         {
-            if (invocation.Arguments.Length == 1
-                || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
+            if (targetMethod.Name == nameof(ToString) &&
+                instance.Type is { IsRefLikeType: false })
             {
-                if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                    FindType<IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
-                    instance.Type.Implements(systemIFormattable))
+                if (invocation.Arguments.Length == 1
+                    || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                 {
+                    if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
+                        FindType<IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
+                        instance.Type.Implements(systemIFormattable))
+                    {
+                        unwrapped = instance;
+                        formatString = value;
+
+                        unnecessarySpans.AddRange(invocation.Syntax.Span
+                            .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan)
+                            .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
+                        return;
+                    }
+                }
+
+                if (IsObjectToStringOverride(invocation.TargetMethod)
+                    || (invocation.Arguments.Length == 1 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 0)))
+                {
+                    // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
+                    // Just remove entirely.
                     unwrapped = instance;
-                    formatString = value;
+                    formatString = "";
 
                     unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan)
-                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
+                        .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan));
                     return;
                 }
             }
 
-            if (IsObjectToStringOverride(invocation.TargetMethod)
-                || (invocation.Arguments.Length == 1 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 0)))
+            if (knownToStringFormats.TryGetValue(targetMethod, out var format))
             {
-                // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
-                // Just remove entirely.
+                // A call to a known ToString-like method, e.g. `DateTime.ToLongDateString()`
+                // We replace this call with predefined format specifier
                 unwrapped = instance;
-                formatString = "";
+                formatString = format;
 
                 unnecessarySpans.AddRange(invocation.Syntax.Span
                     .Subtract(GetPreservedInterpolationExpressionSyntax(instance).FullSpan));

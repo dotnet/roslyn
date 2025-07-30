@@ -294,6 +294,12 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? InterpolatedStringHandlerAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerAttribute).FullName!);
 
+    public static INamedTypeSymbol? DateOnlyType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.DateOnly");
+
+    public static INamedTypeSymbol? TimeOnlyType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.TimeOnly");
+
     /// <summary>
     /// Gets a type by its metadata name to use for code analysis within a <see cref="Compilation"/>. This method
     /// attempts to find the "best" symbol to use for code analysis, which is the symbol matching the first of the
