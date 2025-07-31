@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -64,10 +64,10 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
         {
             var diagnostics = codeAnalysisService.GetLastComputedProjectDiagnostics(Project.Id);
 
-            //This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
+            // This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
             // user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
             // that has been produced.
-            diagnostics = [.. diagnostics.Select(d => d.WithCustomTags(d.CustomTags.Add(WellKnownDiagnosticTags.Build)))];
+            diagnostics = ProtocolConversions.AddBuildTagIfNotPresent(diagnostics);
             return Task.FromResult(diagnostics);
         }
     }

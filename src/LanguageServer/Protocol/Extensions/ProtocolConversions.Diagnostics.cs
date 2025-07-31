@@ -17,6 +17,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal static partial class ProtocolConversions
 {
+    internal static ImmutableArray<DiagnosticData> AddBuildTagIfNotPresent(ImmutableArray<DiagnosticData> diagnostics)
+    {
+        return diagnostics.SelectAsArray(static d =>
+        {
+            if (d.CustomTags.Contains(WellKnownDiagnosticTags.Build))
+                return d;
+
+            return d.WithCustomTags(d.CustomTags.Add(WellKnownDiagnosticTags.Build));
+        });
+    }
+
     /// <summary>
     /// Converts from <see cref="DiagnosticData"/> to <see cref="LSP.Diagnostic"/>
     /// </summary>
