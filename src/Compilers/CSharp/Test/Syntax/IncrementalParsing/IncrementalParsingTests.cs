@@ -854,7 +854,7 @@ class C
     extension(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("extension", "class D");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify();
@@ -912,7 +912,7 @@ class C
     extension(object) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("extension", "class D");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify(
@@ -979,7 +979,7 @@ class C
     extension E(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("extension", "class");
             oldTree.GetDiagnostics().Verify(
                 // (4,15): error CS9281: Extension declarations may not have a name.
@@ -1040,7 +1040,7 @@ class C
     class D(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("class D", "extension");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify();
@@ -1096,7 +1096,7 @@ class C
     class D(object) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("class D", "extension");
             oldTree.GetDiagnostics().Verify(
                 // (4,19): error CS1001: Identifier expected
@@ -1156,7 +1156,7 @@ class C
     struct D(object x) { }
 }
 ";
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("struct", "extension");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify(
@@ -1218,7 +1218,7 @@ class C
     extension(object, Type z1) { }
 }
 """;
-            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
             var newTree = oldTree.WithReplaceFirst("z1", "z2");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify();
