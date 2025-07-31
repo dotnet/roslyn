@@ -30,4 +30,32 @@ internal static class Extensions
 
     public static bool IsRazorSourceGeneratedDocument(this Document document)
         => document is SourceGeneratedDocument { Identity.Generator.TypeName: "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" };
+
+    public static async Task<ImmutableArray<MappedSpanResult>?> TryGetMappedSpanResultAsync(this Document document, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)
+    {
+        if (document is SourceGeneratedDocument sourceGeneratedDocument &&
+            document.Project.Solution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>() is { } sourceGeneratedSpanMappingService)
+        {
+            var result = await sourceGeneratedSpanMappingService.MapSpansAsync(sourceGeneratedDocument, textSpans, cancellationToken).ConfigureAwait(false);
+            if (result.IsDefaultOrEmpty)
+            {
+                return null;
+            }
+
+            Contract.ThrowIfFalse(textSpans.Length == result.Length,
+                $"The number of input spans {textSpans.Length} should match the number of mapped spans returned {result.Length}");
+            return result;
+        }
+
+        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
+        if (spanMappingService == null)
+        {
+            return null;
+        }
+
+        var mappedSpanResult = await spanMappingService.MapSpansAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfFalse(textSpans.Length == mappedSpanResult.Length,
+            $"The number of input spans {textSpans.Length} should match the number of mapped spans returned {mappedSpanResult.Length}");
+        return mappedSpanResult;
+    }
 }
