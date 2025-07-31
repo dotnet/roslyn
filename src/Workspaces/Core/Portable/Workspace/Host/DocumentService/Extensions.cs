@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -30,6 +34,17 @@ internal static class Extensions
 
     public static bool IsRazorSourceGeneratedDocument(this Document document)
         => document is SourceGeneratedDocument { Identity.Generator.TypeName: "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" };
+
+    public static bool CanMapSpans(this Document document)
+    {
+        if (document is SourceGeneratedDocument sourceGeneratedDocument &&
+            document.Project.Solution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>() is { } sourceGeneratedSpanMappingService)
+        {
+            return sourceGeneratedSpanMappingService.CanMapSpans(sourceGeneratedDocument);
+        }
+
+        return document.DocumentServiceProvider.GetService<ISpanMappingService>() is not null;
+    }
 
     public static async Task<ImmutableArray<MappedSpanResult>?> TryGetMappedSpanResultAsync(this Document document, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)
     {

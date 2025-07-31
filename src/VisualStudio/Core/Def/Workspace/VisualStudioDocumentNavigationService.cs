@@ -195,19 +195,11 @@ internal sealed class VisualStudioDocumentNavigationService(
             return null;
         }
 
-        if (textDocument is SourceGeneratedDocument generatedDocument)
-        {
-            return _sourceGeneratedFileManager.Value.GetNavigationCallback(
-                generatedDocument,
-                await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
-        }
-
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
         if (textDocument is Document document &&
-            textDocument.DocumentServiceProvider.GetService<ISpanMappingService>() is ISpanMappingService spanMappingService)
+            document.CanMapSpans())
         {
             var mappedSpanResult = await GetMappedSpanAsync(
-                spanMappingService,
                 document,
                 await getTextSpanForMappingAsync(document).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
@@ -233,6 +225,13 @@ internal sealed class VisualStudioDocumentNavigationService(
                 return await GetNavigableLocationForMappedFileAsync(
                     workspace, document, mappedSpan, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        if (textDocument is SourceGeneratedDocument generatedDocument)
+        {
+            return _sourceGeneratedFileManager.Value.GetNavigationCallback(
+                generatedDocument,
+                await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
         }
 
         return GetNavigationCallback(documentId, workspace, getVsTextSpan);
@@ -313,15 +312,20 @@ internal sealed class VisualStudioDocumentNavigationService(
         return cancellationToken => NavigateToTextBufferAsync(textBuffer, vsTextSpan, cancellationToken);
     }
 
-    private static async Task<MappedSpanResult?> GetMappedSpanAsync(
-        ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
+    private static async Task<MappedSpanResult?> GetMappedSpanAsync(Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        var results = await spanMappingService.MapSpansAsync(
-            generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
+        var results = await generatedDocument.TryGetMappedSpanResultAsync([textSpan], cancellationToken).ConfigureAwait(false);
 
-        if (!results.IsDefaultOrEmpty)
+        if (results == null)
         {
-            return results.First();
+            return null;
+        }
+
+        var mappedSpans = results.GetValueOrDefault();
+
+        if (!mappedSpans.IsDefaultOrEmpty)
+        {
+            return mappedSpans.First();
         }
 
         return null;
