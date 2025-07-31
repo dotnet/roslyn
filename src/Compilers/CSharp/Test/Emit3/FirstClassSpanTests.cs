@@ -23,7 +23,7 @@ public class FirstClassSpanTests : CSharpTestBase
         return new TheoryData<LanguageVersion>()
         {
             LanguageVersion.CSharp13,
-            LanguageVersionFacts.CSharpNext,
+            LanguageVersion.CSharp14,
             LanguageVersion.Preview,
         };
     }
@@ -76,7 +76,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -113,7 +113,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "Derived";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -166,7 +166,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(5, 5)
         };
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, TestOptions.ReleaseExe);
@@ -195,7 +195,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -312,7 +312,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ForEachMissingMember, "a.R()").WithArguments("void", "GetEnumerator").WithLocation(8, 27)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -364,7 +364,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "ArrayTypeMismatchException" : "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -422,7 +422,7 @@ public class FirstClassSpanTests : CSharpTestBase
         var expectedOutput = "3";
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition],
-            parseOptions: TestOptions.RegularNext);
+            parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition]);
@@ -452,7 +452,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -483,7 +483,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -513,7 +513,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "ArrayTypeMismatchException" : "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -543,7 +543,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -574,7 +574,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -607,7 +607,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(T[], T[])", "C.M<T>(System.ReadOnlySpan<T>, System.Span<T>)").WithLocation(5, 3)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -656,7 +656,7 @@ public class FirstClassSpanTests : CSharpTestBase
         var expectedOutput = "2 Int64";
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition],
-            parseOptions: TestOptions.RegularNext);
+            parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition]);
@@ -690,7 +690,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(T, T)", "C.M<T>(System.Span<T>, System.Span<T>)").WithLocation(6, 3)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -720,7 +720,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Collections.Generic.IEnumerable<int>, System.ReadOnlySpan<int>)", "C.M(System.Span<int>, System.Span<int>)").WithLocation(5, 3)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -887,7 +887,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
@@ -968,7 +968,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
@@ -1047,7 +1047,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }         
             """;
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
@@ -1275,7 +1275,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1306,7 +1306,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 23)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1340,7 +1340,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1374,7 +1374,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1408,7 +1408,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 26)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1438,7 +1438,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1468,7 +1468,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 24)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3214,7 +3214,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        CompileAndVerify(source, parseOptions: TestOptions.RegularNext, verify: Verification.FailsILVerify)
+        CompileAndVerify(source, parseOptions: TestOptions.Regular14, verify: Verification.FailsILVerify)
             .VerifyDiagnostics().VerifyIL("C.M", expectedIl);
         CompileAndVerify(source, verify: Verification.FailsILVerify)
             .VerifyDiagnostics().VerifyIL("C.M", expectedIl);
@@ -3518,7 +3518,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string?>)arg").WithArguments("string[]", "System.Span<string?>").WithLocation(13, 39)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3578,7 +3578,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<object>)arg").WithArguments("string?[]", "System.ReadOnlySpan<object>").WithLocation(13, 47)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3641,7 +3641,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<object>)arg").WithArguments("System.Span<string?>", "System.ReadOnlySpan<object>").WithLocation(13, 51)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3704,7 +3704,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<object>)arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<object>").WithLocation(13, 59)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3761,7 +3761,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(Span<string[]>)arg").WithArguments("string?[][]", "System.Span<string[]>").WithLocation(10, 43)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3811,7 +3811,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string[]>)arg").WithArguments("string?[][]", "System.ReadOnlySpan<string[]>").WithLocation(11, 51)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3939,7 +3939,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<I<string>>)arg").WithArguments("System.Span<I<object?>>", "System.ReadOnlySpan<I<string>>").WithLocation(12, 57)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -4024,7 +4024,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<I<string?>>", "System.ReadOnlySpan<I<object>>").WithLocation(5, 64)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -4677,7 +4677,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -4747,7 +4747,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -4787,7 +4787,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -4827,7 +4827,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -4951,7 +4951,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "a.M").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(4, 5)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -4982,7 +4982,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.M").WithLocation(4, 12)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -5024,7 +5024,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
 
         var tree = comp.SyntaxTrees.Single();
@@ -5081,7 +5081,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "a.M<int>").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(5, 5)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -5152,7 +5152,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<int, int>").WithLocation(10, 23)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -5285,7 +5285,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
 
@@ -5504,7 +5504,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("Span").WithLocation(4, 14)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -5540,7 +5540,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("ReadOnlySpan").WithLocation(4, 14)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -5696,7 +5696,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -5720,7 +5720,7 @@ public class FirstClassSpanTests : CSharpTestBase
             //         => (Span<I<object>>)x;
             Diagnostic(ErrorCode.ERR_NoExplicitConv, $"({type}<I<object>>)x").WithArguments("I<string>[]", $"System.{type}<I<object>>").WithLocation(6, 12));
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -5952,7 +5952,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T[]", "System.Span<U>").WithLocation(8, 26)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6037,7 +6037,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "456";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -6070,7 +6070,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "3 4";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -6103,7 +6103,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1 x";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
@@ -6136,7 +6136,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1 x";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
@@ -6169,7 +6169,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1 x";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -6210,7 +6210,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "456";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -6309,8 +6309,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(3, 5)
         ];
 
-        verifyWithMissing(missingRosHelper, TestOptions.RegularNext);
-        verifyWithMissing(missingSpanHelper, TestOptions.RegularNext, expectedDiagnostics);
+        verifyWithMissing(missingRosHelper, TestOptions.Regular14);
+        verifyWithMissing(missingSpanHelper, TestOptions.Regular14, expectedDiagnostics);
 
         verifyWithMissing(missingRosHelper, TestOptions.RegularPreview);
         verifyWithMissing(missingSpanHelper, TestOptions.RegularPreview, expectedDiagnostics);
@@ -6382,8 +6382,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.ReadOnlySpan<T>", "op_Implicit").WithLocation(3, 5)
         ];
 
-        verifyWithMissing(missingRosHelper, TestOptions.RegularNext, expectedDiagnostics);
-        verifyWithMissing(missingSpanHelper, TestOptions.RegularNext);
+        verifyWithMissing(missingRosHelper, TestOptions.Regular14, expectedDiagnostics);
+        verifyWithMissing(missingSpanHelper, TestOptions.Regular14);
 
         verifyWithMissing(missingRosHelper, TestOptions.RegularPreview, expectedDiagnostics);
         verifyWithMissing(missingSpanHelper, TestOptions.RegularPreview);
@@ -6426,7 +6426,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -6467,7 +6467,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -6509,7 +6509,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -6550,7 +6550,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -6591,7 +6591,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
@@ -6656,11 +6656,11 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
     }
@@ -6719,7 +6719,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp).VerifyDiagnostics().VerifyIL("C.M", expectedIl);
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7229,11 +7229,11 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
     }
@@ -7372,7 +7372,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp).VerifyDiagnostics().VerifyIL("C.M1", expectedIl);
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7403,7 +7403,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7453,7 +7453,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7525,7 +7525,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "ra rSystem.String[] ra ra ra";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7617,7 +7617,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "ra";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7813,7 +7813,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "sa";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7840,7 +7840,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "ra";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7924,7 +7924,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "sa";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -7974,7 +7974,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "sa";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8002,7 +8002,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "212";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8032,7 +8032,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2122";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8064,7 +8064,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "22";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
@@ -8097,7 +8097,7 @@ public class FirstClassSpanTests : CSharpTestBase
             var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.Regular13);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2]);
@@ -8119,7 +8119,7 @@ public class FirstClassSpanTests : CSharpTestBase
             CreateCompilationWithSpanAndMemoryExtensions([source1, source3],
                 parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilationWithSpanAndMemoryExtensions([source1, source3],
-                parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+                parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilationWithSpanAndMemoryExtensions([source1, source3]).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -8136,7 +8136,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
             var expectedOutput = "2";
 
-            var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source4], parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source4], parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source4]);
@@ -8169,7 +8169,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8208,7 +8208,7 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigUDConv, "new D()").WithArguments("D.implicit operator System.Span<object>(D)", "D.implicit operator System.ReadOnlySpan<string>(D)", "D", "System.ReadOnlySpan<object>").WithLocation(3, 5)
         };
 
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -8263,7 +8263,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "22";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8295,7 +8295,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "22";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8327,7 +8327,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8382,7 +8382,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8410,7 +8410,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8461,7 +8461,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "22";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8493,7 +8493,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "22";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
@@ -8554,7 +8554,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2]);
@@ -8574,7 +8574,7 @@ public class FirstClassSpanTests : CSharpTestBase
         comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3]);
@@ -8616,7 +8616,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "121212";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8645,7 +8645,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "1";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2]);
@@ -8667,7 +8667,7 @@ public class FirstClassSpanTests : CSharpTestBase
         comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3]);
@@ -8698,7 +8698,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
@@ -8727,7 +8727,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "2";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
@@ -8793,7 +8793,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "ra rSystem.String[] ra ra ra ab rSystem.Object[] rb rb";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
@@ -8860,7 +8860,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "ra ab";
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);

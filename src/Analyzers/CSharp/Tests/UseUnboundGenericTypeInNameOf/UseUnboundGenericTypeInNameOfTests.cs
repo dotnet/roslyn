@@ -46,7 +46,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -64,7 +64,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
             {
                 { CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf, false, CodeStyle.NotificationOption2.Silent }
             },
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -162,7 +162,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -191,7 +191,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -224,7 +224,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -257,7 +257,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -290,7 +290,7 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -310,6 +310,6 @@ public sealed class UseUnboundGenericTypeInNameOfTests
 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 }

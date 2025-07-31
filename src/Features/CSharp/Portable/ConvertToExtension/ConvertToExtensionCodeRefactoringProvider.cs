@@ -260,7 +260,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 CodeGenerationContext.Default,
                 CSharpCodeGenerationOptions.Default,
                 (CSharpCodeGenerationService)codeGenerationService,
-                LanguageVersionExtensions.CSharpNext);
+                LanguageVersion.CSharp14);
 
             var firstExtensionInfo = group[0];
             var typeParameters = firstExtensionInfo.MethodTypeParameters.CastArray<ITypeParameterSymbol>();

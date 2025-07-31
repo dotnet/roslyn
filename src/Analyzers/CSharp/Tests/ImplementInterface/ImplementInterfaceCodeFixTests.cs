@@ -11836,7 +11836,7 @@ class Goo : [|IComparable|]
                 }
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78281")]
@@ -11878,7 +11878,7 @@ class Goo : [|IComparable|]
                 """,
             CodeActionIndex = 1,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79584")]
@@ -11900,7 +11900,7 @@ class Goo : [|IComparable|]
                 """.Replace("\r\n", "\n"),
              CodeActionIndex = 1,
              ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+             LanguageVersion = LanguageVersion.CSharp14,
              Options = { { FormattingOptions2.NewLine, "\n" } },
          }.RunAsync();
 }
