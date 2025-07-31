@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticSource, TextDocument document) : IDiagnosticSource
 {
-    bool IDiagnosticSource.IsLiveSource() => true;
     Project IDiagnosticSource.GetProject() => document.Project;
     ProjectOrDocumentId IDiagnosticSource.GetId() => new(document.Id);
     TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { DocumentUri = document.GetURI() };

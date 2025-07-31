@@ -313,7 +313,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             diagnosticData,
             capabilities.HasVisualStudioLspCapability(),
             diagnosticSource.GetProject(),
-            diagnosticSource.IsLiveSource(),
             PotentialDuplicate,
             GlobalOptions);
     }
