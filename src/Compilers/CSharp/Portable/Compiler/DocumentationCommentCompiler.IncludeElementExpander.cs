@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private int _nextSourceIncludeElementIndex;
             private HashSet<Location> _inProgressIncludeElementNodes;
             private HashSet<ParameterSymbol> _documentedParameters;
-            private HashSet<string> _documentedTypeParameterNames;
+            private HashSet<TypeParameterSymbol> _documentedTypeParameters;
             private DocumentationCommentIncludeCache _includedFileCache;
 
             private IncludeElementExpander(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<CSharpSyntaxNode> sourceIncludeElementNodes,
                 CSharpCompilation compilation,
                 HashSet<ParameterSymbol> documentedParameters,
-                HashSet<string> documentedTypeParameterNames,
+                HashSet<TypeParameterSymbol> documentedTypeParameters,
                 DocumentationCommentIncludeCache includedFileCache,
                 BindingDiagnosticBag diagnostics,
                 CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _cancellationToken = cancellationToken;
 
                 _documentedParameters = documentedParameters;
-                _documentedTypeParameterNames = documentedTypeParameterNames;
+                _documentedTypeParameters = documentedTypeParameters;
                 _includedFileCache = includedFileCache;
 
                 _nextSourceIncludeElementIndex = 0;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<CSharpSyntaxNode> sourceIncludeElementNodes,
                 CSharpCompilation compilation,
                 ref HashSet<ParameterSymbol> documentedParameters,
-                ref HashSet<string> documentedTypeParameterNames,
+                ref HashSet<TypeParameterSymbol> documentedTypeParameters,
                 ref DocumentationCommentIncludeCache includedFileCache,
                 TextWriter writer,
                 BindingDiagnosticBag diagnostics,
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sourceIncludeElementNodes,
                     compilation,
                     documentedParameters,
-                    documentedTypeParameterNames,
+                    documentedTypeParameters,
                     includedFileCache,
                     diagnostics,
                     cancellationToken);
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(expander._nextSourceIncludeElementIndex == expander._sourceIncludeElementNodes.Length);
 
                 documentedParameters = expander._documentedParameters;
-                documentedTypeParameterNames = expander._documentedTypeParameterNames;
+                documentedTypeParameters = expander._documentedTypeParameters;
                 includedFileCache = expander._includedFileCache;
             }
 
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var nameDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
                 Binder binder = MakeNameBinder(isParameter, isTypeParameterRef, _memberSymbol, _compilation, originatingSyntax.SyntaxTree);
-                DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameterNames, nameDiagnostics);
+                DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, nameDiagnostics);
                 RecordBindingDiagnostics(nameDiagnostics, sourceLocation); // Respects DocumentationMode.
                 nameDiagnostics.Free();
             }

@@ -48208,10 +48208,12 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
+        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : missing warning
         DiagnosticDescription[] expectedDiagnostics = [
-            // (13,20): warning CS1710: XML comment has a duplicate typeparam tag for 'T'
-            //     /// <typeparam name="T">Second description for T</typeparam>
-            Diagnostic(ErrorCode.WRN_DuplicateTypeParamTag, @"name=""T""").WithArguments("T").WithLocation(13, 20)];
+            //// (13,20): warning CS1710: XML comment has a duplicate typeparam tag for 'T'
+            ////     /// <typeparam name="T">Second description for T</typeparam>
+            //Diagnostic(ErrorCode.WRN_DuplicateTypeParamTag, @"name=""T""").WithArguments("T").WithLocation(13, 20)
+            ];
 
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
@@ -48734,6 +48736,25 @@ public static class E
 
         p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("P:E.<Extension>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
+    }
+
+    [Fact]
+    public void XmlDoc_16()
+    {
+        var src = """
+static class E
+{
+    /// <typeparam name="T">description for T</typeparam>
+    extension<T, T>(int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0692: Duplicate type parameter 'T'
+            //     extension<T, T>(int)
+            Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(4, 18));
     }
 
     [Fact]

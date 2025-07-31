@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ArrayBuilder<CSharpSyntaxNode> _includeElementNodes;
 
             private HashSet<ParameterSymbol> _documentedParameters;
-            private HashSet<string> _documentedTypeParameterNames;
+            private HashSet<TypeParameterSymbol> _documentedTypeParameters;
 
             private DocumentationCommentWalker(
                 CSharpCompilation compilation,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 StringWriter writer,
                 ArrayBuilder<CSharpSyntaxNode> includeElementNodes,
                 HashSet<ParameterSymbol> documentedParameters,
-                HashSet<string> documentedTypeParameterNames)
+                HashSet<TypeParameterSymbol> documentedTypeParameters)
                 : base(SyntaxWalkerDepth.StructuredTrivia)
             {
                 _compilation = compilation;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _includeElementNodes = includeElementNodes;
 
                 _documentedParameters = documentedParameters;
-                _documentedTypeParameterNames = documentedTypeParameterNames;
+                _documentedTypeParameters = documentedTypeParameters;
             }
 
             /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 StringBuilder builder)
             {
                 StringWriter writer = new StringWriter(builder, CultureInfo.InvariantCulture);
-                DocumentationCommentWalker walker = new DocumentationCommentWalker(compilation, BindingDiagnosticBag.Discarded, symbol, writer, includeElementNodes, documentedParameters: null, documentedTypeParameterNames: null);
+                DocumentationCommentWalker walker = new DocumentationCommentWalker(compilation, BindingDiagnosticBag.Discarded, symbol, writer, includeElementNodes, documentedParameters: null, documentedTypeParameters: null);
 
                 // Before: <param name="NAME">CONTENT</param>
                 // After: <summary>CONTENT</summary>
@@ -121,17 +121,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DocumentationCommentTriviaSyntax trivia,
                 ArrayBuilder<CSharpSyntaxNode> includeElementNodes,
                 ref HashSet<ParameterSymbol> documentedParameters,
-                ref HashSet<string> documentedTypeParameterNames)
+                ref HashSet<TypeParameterSymbol> documentedTypeParameters)
             {
                 PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
                 using (StringWriter writer = new StringWriter(pooled.Builder, CultureInfo.InvariantCulture))
                 {
-                    DocumentationCommentWalker walker = new DocumentationCommentWalker(compilation, diagnostics, symbol, writer, includeElementNodes, documentedParameters, documentedTypeParameterNames);
+                    DocumentationCommentWalker walker = new DocumentationCommentWalker(compilation, diagnostics, symbol, writer, includeElementNodes, documentedParameters, documentedTypeParameters);
                     walker.Visit(trivia);
 
                     // Copy back out in case they have been initialized.
                     documentedParameters = walker._documentedParameters;
-                    documentedTypeParameterNames = walker._documentedTypeParameterNames;
+                    documentedTypeParameters = walker._documentedTypeParameters;
                 }
                 return pooled.ToStringAndFree();
             }
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder binder = factory.GetBinder(nameAttr, nameAttr.Identifier.SpanStart);
 
                     // Do this for diagnostics, even if we aren't writing.
-                    BindName(nameAttr, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameterNames, _diagnostics);
+                    BindName(nameAttr, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, _diagnostics);
 
                     // Do descend - we still need to write out the tokens of the attribute.
                 }
