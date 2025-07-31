@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             Return New CallHierarchyTestState(workspace)
         End Function
 
-        Public Shared Function Create(<StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)> markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
+        Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
             Dim workspace = EditorTestWorkspace.CreateCSharp(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
             Return New CallHierarchyTestState(workspace)
         End Function

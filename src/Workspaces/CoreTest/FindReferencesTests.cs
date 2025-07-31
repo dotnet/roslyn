@@ -671,6 +671,160 @@ public sealed class FindReferencesTests : TestBase
         Assert.True(typeResult.Locations.Count(loc => loc.Alias != null) == 1);
     }
 
+    //[Fact]
+    //public async Task MemberAccessReadWriteSemantics_AndNameofExclusion()
+    //{
+    //    var text = """
+
+    //        class C
+    //        {
+    //            public C InnerC;
+    //            public int Field;
+                
+    //            void M()
+    //            {
+    //                // In "InnerC.Field = 5", InnerC should be READ and Field should be WRITTEN
+    //                InnerC.Field = 5;
+                    
+    //                // Test the nameof case - these should NOT appear in call hierarchy
+    //                var name1 = nameof(InnerC.Field);
+    //                var name2 = nameof(InnerC);
+                    
+    //                // This should appear as a normal read
+    //                var value = InnerC.Field;
+    //            }
+    //        }
+
+    //        """;
+    //    using var workspace = CreateWorkspace();
+    //    var solution = GetSingleDocumentSolution(workspace, text);
+    //    var project = solution.Projects.First();
+    //    var compilation = await project.GetCompilationAsync();
+        
+    //    // Get the Field symbol
+    //    var typeC = compilation.GetTypeByMetadataName("C");
+    //    var fieldSymbol = typeC.GetMembers("Field").OfType<IFieldSymbol>().First();
+        
+    //    // Find all references to the Field
+    //    var result = (await SymbolFinder.FindReferencesAsync(fieldSymbol, solution)).ToList();
+    //    Assert.Equal(1, result.Count); // 1 symbol found (the field itself)
+        
+    //    var referenceLocations = result[0].Locations.ToList();
+        
+    //    // We should have:
+    //    // 1. The field declaration
+    //    // 2. The write access (InnerC.Field = 5)
+    //    // 3. The read access (var value = InnerC.Field)
+    //    // 4. nameof references should NOT be included
+    //    Assert.Equal(3, referenceLocations.Count);
+        
+    //    // Verify that the nameof references are correctly excluded
+    //    // by checking that none of the reference locations fall within the nameof expressions
+    //    var document = solution.Projects.First().Documents.First();
+    //    var syntaxTree = await document.GetSyntaxTreeAsync();
+    //    var root = await syntaxTree.GetRootAsync();
+        
+    //    // Find all nameof expressions in the code
+    //    var nameofExpressions = root.DescendantNodes()
+    //        .Where(n => n.ToString().StartsWith("nameof("))
+    //        .ToList();
+        
+    //    Assert.Equal(2, nameofExpressions.Count); // We have two nameof expressions
+        
+    //    // Verify that none of our reference locations are within nameof expressions
+    //    foreach (var referenceLocation in referenceLocations)
+    //    {
+    //        var span = referenceLocation.Location.SourceSpan;
+    //        foreach (var nameofExpr in nameofExpressions)
+    //        {
+    //            Assert.False(nameofExpr.Span.Contains(span), 
+    //                $"Reference location {span} should not be within nameof expression {nameofExpr.Span}");
+    //        }
+    //    }
+        
+    //    // Get the InnerC field symbol to test read semantics
+    //    var innerCSymbol = typeC.GetMembers("InnerC").OfType<IFieldSymbol>().First();
+    //    var innerCResult = (await SymbolFinder.FindReferencesAsync(innerCSymbol, solution)).ToList();
+    //    Assert.Equal(1, innerCResult.Count);
+        
+    //    var innerCLocations = innerCResult[0].Locations.ToList();
+    //    // Should have: declaration, read access in assignment, read access in value assignment, 
+    //    // but NOT the nameof references
+    //    Assert.Equal(3, innerCLocations.Count);
+        
+    //    // Verify that nameof references to InnerC are also excluded
+    //    foreach (var referenceLocation in innerCLocations)
+    //    {
+    //        var span = referenceLocation.Location.SourceSpan;
+    //        foreach (var nameofExpr in nameofExpressions)
+    //        {
+    //            Assert.False(nameofExpr.Span.Contains(span), 
+    //                $"InnerC reference location {span} should not be within nameof expression {nameofExpr.Span}");
+    //        }
+    //    }
+    //}
+
+    [Fact]
+    public async Task MemberAccessReadWriteSemantics_NotAffectedByWalkUp()
+    {
+        var text = """
+
+            class C
+            {
+                public C InnerC;
+                public int Field;
+                
+                void M()
+                {
+                    // Test the critical case: a.b.c = 5
+                    // InnerC (b) should be READ, Field (c) should be WRITTEN
+                    InnerC.Field = 5;
+                }
+            }
+
+            """;
+        using var workspace = CreateWorkspace();
+        var solution = GetSingleDocumentSolution(workspace, text);
+        var project = solution.Projects.First();
+        var compilation = await project.GetCompilationAsync();
+        
+        var typeC = compilation.GetTypeByMetadataName("C");
+        var innerCSymbol = typeC.GetMembers("InnerC").OfType<IFieldSymbol>().First();
+        var fieldSymbol = typeC.GetMembers("Field").OfType<IFieldSymbol>().First();
+        
+        // Find references to InnerC
+        var innerCReferences = (await SymbolFinder.FindReferencesAsync(innerCSymbol, solution)).ToList();
+        Assert.Equal(1, innerCReferences.Count);
+        
+        var innerCLocations = innerCReferences[0].Locations.Where(loc => !loc.IsImplicit).ToList();
+        Assert.Equal(1, innerCLocations.Count); // Should only have the assignment usage, not declaration
+        
+        var innerCUsage = innerCLocations.Single();
+        
+        // CRITICAL TEST: In "InnerC.Field = 5", InnerC should be READ (not written)
+        // This is the key assertion - in a.b.c = 5, 'b' (InnerC) is read to access 'c' (Field)
+        Assert.True(innerCUsage.SymbolUsageInfo.IsReadFrom(), 
+            "InnerC should be READ in 'InnerC.Field = 5'. " +
+            $"The walk-up logic should not affect this. UsageInfo: {innerCUsage.SymbolUsageInfo}");
+        
+        Assert.False(innerCUsage.SymbolUsageInfo.IsWrittenTo(), 
+            "InnerC should NOT be WRITTEN in 'InnerC.Field = 5'. " +
+            $"Only Field should be written. UsageInfo: {innerCUsage.SymbolUsageInfo}");
+        
+        // Verify Field is written as expected
+        var fieldReferences = (await SymbolFinder.FindReferencesAsync(fieldSymbol, solution)).ToList();
+        Assert.Equal(1, fieldReferences.Count);
+        
+        var fieldLocations = fieldReferences[0].Locations.Where(loc => !loc.IsImplicit).ToList();
+        Assert.Equal(1, fieldLocations.Count); // Should only have the assignment usage, not declaration
+        
+        var fieldUsage = fieldLocations.Single();
+        
+        Assert.True(fieldUsage.SymbolUsageInfo.IsWrittenTo(), 
+            "Field should be WRITTEN in 'InnerC.Field = 5'. " +
+            $"UsageInfo: {fieldUsage.SymbolUsageInfo}");
+    }
+    
     private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)
     {
         void verifier(Location location)
