@@ -305,32 +305,8 @@ internal struct StackFrameParser
         }
     }
 
-    private Result<StackFrameGeneratedNameNode> TryParseStateMachineMethodName(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken)
-    {
-        var encapsulatingMethod = new StackFrameGeneratedMethodNameNode(lessThanToken, identifier, greaterThanToken, dollarToken: null);
-        var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator(scanNumericsAfter: true);
-        if (!success)
-        {
-            return Result<StackFrameGeneratedNameNode>.Abort;
-        }
-
-        if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
-        {
-            return Result<StackFrameGeneratedNameNode>.Abort;
-        }
-
-        var generatedIdentifier = _lexer.TryScanIdentifier();
-        if (!generatedIdentifier.HasValue)
-        {
-            return Result<StackFrameGeneratedNameNode>.Abort;
-        }
-
-        return new StackFrameStateMachineMethodNameNode(encapsulatingMethod, generatedNameSeparator, dotToken, generatedIdentifier.Value);
-    }
-
     private Result<StackFrameGeneratedNameNode> TryParseLocalMethodName(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken)
     {
-
         var encapsulatingMethod = new StackFrameGeneratedMethodNameNode(lessThanToken, identifier, greaterThanToken, dollarToken: null);
         var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator();
         if (!success)
@@ -356,6 +332,29 @@ internal struct StackFrameParser
         }
 
         return new StackFrameLocalMethodNameNode(encapsulatingMethod, generatedNameSeparator, generatedIdentifier.Value, suffixSeparator, suffix);
+    }
+
+    private Result<StackFrameGeneratedNameNode> TryParseStateMachineMethodName(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken)
+    {
+        var encapsulatingMethod = new StackFrameGeneratedMethodNameNode(lessThanToken, identifier, greaterThanToken, dollarToken: null);
+        var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator(scanNumericsAfter: true);
+        if (!success)
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        var generatedIdentifier = _lexer.TryScanIdentifier();
+        if (!generatedIdentifier.HasValue)
+        {
+            return Result<StackFrameGeneratedNameNode>.Abort;
+        }
+
+        return new StackFrameStateMachineMethodNameNode(encapsulatingMethod, generatedNameSeparator, dotToken, generatedIdentifier.Value);
     }
 
     /// <summary>
