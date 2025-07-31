@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Build errors are recognized to potentially represent stale results from a point in the past when the computation occurred.
         /// An example of when Roslyn produces non-live errors is with an explicit user gesture to "run code analysis".
-        /// Because these representerrors from the past, we do want them to be superseded by a more recent live run,
+        /// Because these represent errors from the past, we do want them to be superseded by a more recent live run,
         /// or a more recent build from another source.
         /// </remarks>
         public const string Build = nameof(Build);
