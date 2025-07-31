@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -141,7 +142,11 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
         foreach (var descriptor in descriptors)
         {
             var referencedDocumentId = DocumentId.CreateFromSerialized(
-                ProjectId.CreateFromSerialized(descriptor.ProjectGuid), descriptor.DocumentGuid);
+                ProjectId.CreateFromSerialized(descriptor.ProjectGuid),
+                descriptor.DocumentGuid,
+                // HACK: work around https://github.com/dotnet/roslyn/issues/79699
+                isSourceGenerated: !File.Exists(descriptor.FilePath),
+                debugName: null);
 
             var document = await solution.GetDocumentAsync(referencedDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document == null)
@@ -149,22 +154,22 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
                 continue;
             }
 
-            var spanMapper = document.DocumentServiceProvider.GetService<ISpanMappingService>();
-            if (spanMapper == null)
+            var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
+            var results = await document.TryGetMappedSpanResultAsync([span], cancellationToken).ConfigureAwait(false);
+            if (results is null)
             {
                 // for normal document, just add one as they are
                 list.Add(descriptor);
                 continue;
             }
 
-            var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
-            var results = await spanMapper.MapSpansAsync(document, [span], cancellationToken).ConfigureAwait(false);
+            var mappedSpans = results.GetValueOrDefault();
 
             // external component violated contracts. the mapper should preserve input order/count. 
             // since we gave in 1 span, it should return 1 span back
-            Contract.ThrowIfTrue(results.IsDefaultOrEmpty);
+            Contract.ThrowIfTrue(mappedSpans.IsDefaultOrEmpty);
 
-            var result = results[0];
+            var result = mappedSpans[0];
             if (result.IsDefault)
             {
                 // it is allowed for mapper to return default 
@@ -175,6 +180,28 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
             var excerpter = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
             if (excerpter == null)
             {
+                if (document.IsRazorSourceGeneratedDocument())
+                {
+                    // HACK: Until Razor has a workspace level excerpt service, we'll just display the result as best we can
+                    list.Add(new ReferenceLocationDescriptor(
+                        descriptor.LongDescription,
+                        descriptor.Language,
+                        descriptor.Glyph,
+                        result.Span.Start,
+                        result.Span.Length,
+                        result.LinePositionSpan.Start.Line,
+                        result.LinePositionSpan.Start.Character,
+                        descriptor.ProjectGuid,
+                        descriptor.DocumentGuid,
+                        result.FilePath,
+                        descriptor.ReferenceLineText,
+                        descriptor.ReferenceStart,
+                        descriptor.ReferenceLength,
+                        "",
+                        "",
+                        "",
+                        ""));
+                }
                 continue;
             }
 
