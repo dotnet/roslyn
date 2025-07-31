@@ -48217,7 +48217,7 @@ static class E
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
 
-        var extensions = e.GetTypeMembers().ToArray();
+        var extensions = e.GetTypeMembers();
         AssertEx.Equal("""
 <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
@@ -49050,6 +49050,32 @@ class C<T, U> { }
             // (10,19): warning CS1712: Type parameter 'U' has no matching typeparam tag in the XML comment on 'E.extension<T2, U>(C<T2, U>)' (but other type parameters do)
             //     extension<T2, U>(C<T2, U> c)
             Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "U").WithArguments("U", "E.extension<T2, U>(C<T2, U>)").WithLocation(10, 19));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_08()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T1">Description for T1</typeparam>
+    extension<T1, U>(C<T1, U> c)
+    {
+    }
+
+    extension<T1, U>(C<T1, U> c)
+    {
+    }
+}
+
+class C<T, U> { }
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,19): warning CS1712: Type parameter 'U' has no matching typeparam tag in the XML comment on 'E.extension<T1, U>(C<T1, U>)' (but other type parameters do)
+            //     extension<T1, U>(C<T1, U> c)
+            Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "U").WithArguments("U", "E.extension<T1, U>(C<T1, U>)").WithLocation(5, 19));
     }
 
     [Fact]

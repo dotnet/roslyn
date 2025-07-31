@@ -49,12 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable();
         }
-
-        internal override string ExtensionGroupingName
-            => _underlyingType.ExtensionGroupingName;
-
-        internal override string ExtensionMarkerName
-            => _underlyingType.ExtensionMarkerName;
     }
 
     /// <summary>
@@ -140,11 +134,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { throw ExceptionUtilities.Unreachable(); }
         }
-
-        internal override string ExtensionGroupingName
-            => _underlyingType.ExtensionGroupingName;
-
-        internal override string ExtensionMarkerName
-            => _underlyingType.ExtensionMarkerName;
     }
 }
