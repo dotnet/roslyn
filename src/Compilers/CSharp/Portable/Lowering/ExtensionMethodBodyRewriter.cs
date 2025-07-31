@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.Add(parameter, rewrittenParameters[parameter.Ordinal]);
                 }
-
                 _symbolMap = builder.ToImmutable();
             }
 
@@ -94,10 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewritten = new RewrittenLambdaOrLocalFunctionSymbol(node.Symbol, _rewrittenContainingMethod);
 
+            var savedState = EnterMethod(node.Symbol, rewritten);
+
             // BoundMethodDefIndex in instrumentation will refer to the lambda method symbol, so we need to map it.
             _symbolMap = _symbolMap.Add(node.Symbol, rewritten);
 
-            var savedState = EnterMethod(node.Symbol, rewritten);
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
             (_rewrittenContainingMethod, _symbolMap) = savedState;
 
