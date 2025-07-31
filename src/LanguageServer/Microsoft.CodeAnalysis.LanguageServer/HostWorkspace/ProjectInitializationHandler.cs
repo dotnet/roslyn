@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -44,20 +46,27 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
     }
 
-    public static Task SendProjectInitializationCompleteNotificationAsync()
-        => SendNotificationAsync(ProjectInitializationCompleteName);
+    public static ValueTask SendProjectReloadStartedNotificationAsync(ImmutableArray<string> projectPaths)
+        => SendNotificationAsync(ProjectReloadStartedName, new ProjectReloadStatusParams(projectPaths));
 
-    public static Task SendProjectReloadStartedNotificationAsync()
-        => SendNotificationAsync(ProjectReloadStartedName);
+    public static ValueTask SendProjectReloadCompletedNotificationAsync(ImmutableArray<string> projectPaths)
+        => SendNotificationAsync(ProjectReloadCompletedName, new ProjectReloadStatusParams(projectPaths));
 
-    public static Task SendProjectReloadCompletedNotificationAsync()
-        => SendNotificationAsync(ProjectReloadCompletedName);
+    private sealed record ProjectReloadStatusParams(
+        [property: JsonPropertyName("projectFilePaths")] ImmutableArray<string> ProjectFilePaths);
 
-    private static async Task SendNotificationAsync(string methodName)
+    private static async ValueTask SendNotificationAsync(string methodName, ProjectReloadStatusParams @params)
     {
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        await languageServerManager.SendNotificationAsync(methodName, CancellationToken.None);
+        await languageServerManager.SendNotificationAsync(methodName, @params, CancellationToken.None);
+    }
+
+    public static async ValueTask SendProjectInitializationCompleteNotificationAsync()
+    {
+        Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
+        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
+        await languageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
     }
 
     public async Task SubscribeToInitializationCompleteAsync(CancellationToken cancellationToken)
@@ -124,7 +133,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         {
             _logger.LogDebug("Devkit project initialization completed");
             VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
-            _ = SendProjectInitializationCompleteNotificationAsync().ReportNonFatalErrorAsync();
+            _ = SendProjectInitializationCompleteNotificationAsync().AsTask().ReportNonFatalErrorAsync();
         }
     }
 }
