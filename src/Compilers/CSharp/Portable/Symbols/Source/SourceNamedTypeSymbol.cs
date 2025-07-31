@@ -1826,7 +1826,7 @@ next:;
             get
             {
                 return IsExtension
-                    ? GetExtensionMarkerMetadataName()
+                    ? ExtensionMarkerName
                     : base.MetadataName;
             }
         }

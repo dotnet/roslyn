@@ -2695,7 +2695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override string ExtensionName
+        internal override string ExtensionGroupingName
         {
             get
             {
@@ -2705,6 +2705,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.MetadataName; // PROTOTYPE: is this the right value to return?
+            }
+        }
+
+        internal override string ExtensionMarkerName
+        {
+            get
+            {
+                if (!IsExtension)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                return MetadataName;
             }
         }
 

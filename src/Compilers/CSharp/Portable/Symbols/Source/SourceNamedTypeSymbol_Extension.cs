@@ -33,19 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public string? LazyExtensionMarkerName;
         }
 
-        internal override string ExtensionName
-        {
-            get
-            {
-                if (!IsExtension)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                return GetExtensionGroupingMetadataName(); // PROTOTYPE: is this the right value to return?
-            }
-        }
-
         /// <summary>
         /// This name uses an IL-looking format to encode CLR-level information of an extension block (ie. arity, constraints, extended type).
         /// It is meant be to hashed to produce the content-based name for the extension grouping type.
@@ -1107,38 +1094,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public string GetExtensionGroupingMetadataName()
+        internal override string ExtensionGroupingName
         {
-            Debug.Assert(IsExtension);
-
-            if (_lazyExtensionInfo is null)
+            get
             {
-                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
-            }
+                Debug.Assert(IsExtension);
+                if (_lazyExtensionInfo is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                }
 
-            if (_lazyExtensionInfo.LazyExtensionGroupingName is null)
-            {
-                _lazyExtensionInfo.LazyExtensionGroupingName = WellKnownMemberNames.ExtensionMarkerMethodName + RawNameToHashString(ComputeExtensionGroupingRawName());
-            }
+                if (_lazyExtensionInfo.LazyExtensionGroupingName is null)
+                {
+                    _lazyExtensionInfo.LazyExtensionGroupingName = WellKnownMemberNames.ExtensionMarkerMethodName + RawNameToHashString(ComputeExtensionGroupingRawName());
+                }
 
-            return _lazyExtensionInfo.LazyExtensionGroupingName;
+                return _lazyExtensionInfo.LazyExtensionGroupingName;
+            }
         }
 
-        public string GetExtensionMarkerMetadataName()
+        internal override string ExtensionMarkerName
         {
-            Debug.Assert(IsExtension);
-
-            if (_lazyExtensionInfo is null)
+            get
             {
-                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
-            }
+                Debug.Assert(IsExtension);
+                if (_lazyExtensionInfo is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                }
 
-            if (_lazyExtensionInfo.LazyExtensionMarkerName is null)
-            {
-                _lazyExtensionInfo.LazyExtensionMarkerName = "<Marker>$" + RawNameToHashString(ComputeExtensionMarkerRawName()); // PROTOTYPE: Add a constant for this prefix.
-            }
+                if (_lazyExtensionInfo.LazyExtensionMarkerName is null)
+                {
+                    _lazyExtensionInfo.LazyExtensionMarkerName = "<Marker>$" + RawNameToHashString(ComputeExtensionMarkerRawName()); // PROTOTYPE: Add a constant for this prefix.
+                }
 
-            return _lazyExtensionInfo.LazyExtensionMarkerName;
+                return _lazyExtensionInfo.LazyExtensionMarkerName;
+            }
         }
 
         private static string RawNameToHashString(string rawName)

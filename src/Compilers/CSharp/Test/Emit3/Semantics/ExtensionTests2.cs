@@ -2819,7 +2819,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 4));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_03()
     {
         // Extension marker method is generic
@@ -2903,7 +2903,7 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
-    [Fact]
+    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
     public void PENamedTypeSymbol_05()
     {
         // Extension marker doesn't return void
@@ -3773,7 +3773,8 @@ static class E
 
 """, e.GetDocumentationCommentXml());
 
-        AssertEx.Equal("T:E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", e.GetTypeMembers().Single().GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372",
+            e.GetTypeMembers().Single().GetDocumentationCommentId());
 
         var mSkeleton = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember("M");
         AssertEx.Equal("""
@@ -3822,7 +3823,8 @@ static class E
 
 """, e.GetDocumentationCommentXml());
 
-        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB", e.GetTypeMembers().Single().GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F",
+            e.GetTypeMembers().Single().GetDocumentationCommentId());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);

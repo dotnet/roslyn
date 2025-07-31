@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (target.GetIsNewExtensionMember())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(target, ((SourceNamedTypeSymbol)target.ContainingType).GetExtensionMarkerMetadataName()));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(target, ((SourceNamedTypeSymbol)target.ContainingType).ExtensionMarkerName));
             }
         }
 

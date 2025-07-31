@@ -175,15 +175,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
-                if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
+                Symbol containingSymbol = symbol.ContainingSymbol;
+                if ((object)containingSymbol != null && (containingSymbol.Name.Length != 0 || containingSymbol is NamedTypeSymbol { IsExtension: true }))
                 {
-                    Visit(symbol.ContainingSymbol, builder);
+                    Visit(containingSymbol, builder);
                     builder.Append('.');
                 }
 
-                // PROTOTYPE: Finalize the doc ID story. When we refer to a member, we probably need to use grouping type name,
-                //            but when we refer to an extension block, we probably need to "dot" through both names. 
-                builder.Append(symbol.IsExtension ? symbol.ExtensionName : symbol.Name);
+                builder.Append(symbol.IsExtension ? symbol.ExtensionGroupingName : symbol.Name);
 
                 if (symbol.Arity != 0)
                 {
