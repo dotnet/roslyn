@@ -112,7 +112,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this {{type1}} x)
+                    public static bool ExtensionMethod(this {{type1}} x)
                         => true;
                 }
             }
@@ -136,7 +136,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -152,7 +152,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this MyInt x)
+                    public static bool ExtensionMethod(this MyInt x)
                         => true;
                 }
             }
@@ -175,7 +175,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -191,7 +191,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this MyInt x)
+                    public static bool ExtensionMethod(this MyInt x)
                         => true;
                 }
             }
@@ -214,7 +214,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -230,7 +230,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this MyAlias x)
+                    public static bool ExtensionMethod(this MyAlias x)
                         => true;
                 }
             }
@@ -253,7 +253,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -269,7 +269,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this MyAlias x)
+                    public static bool ExtensionMethod(this MyAlias x)
                         => true;
                 }
             }
@@ -292,7 +292,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -307,7 +307,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this System.DateTime x)
+                    public static bool ExtensionMethod(this System.DateTime x)
                         => true;
                 }
             }
@@ -330,7 +330,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -346,7 +346,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod<T>(this GenericCollection.List<T> x)
+                    public static bool ExtensionMethod<T>(this GenericCollection.List<T> x)
                         => true;
                 }
             }
@@ -369,7 +369,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              displayTextSuffix: "<>",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
@@ -385,7 +385,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this int x)
+                    public static bool ExtensionMethod(this int x)
                         => true;
                 }
             }
@@ -409,7 +409,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -426,7 +426,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this MyType t)
+                    public static bool ExtensionMethod(this MyType t)
                         => true;
                 }
             }
@@ -448,7 +448,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -465,7 +465,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this object t)
+                    public static bool ExtensionMethod(this object t)
                         => true;
                 }
             }
@@ -487,7 +487,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -510,7 +510,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this {{tupleType}} t)
+                    public static bool ExtensionMethod(this {{tupleType}} t)
                         => true;
                 }
             }
@@ -532,7 +532,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -554,7 +554,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this MyBase t)
+                    public static bool ExtensionMethod(this MyBase t)
                         => true;
                 }
             }
@@ -576,7 +576,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -600,7 +600,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this IEnumerable<string> t)
+                    public static bool ExtensionMethod(this IEnumerable<string> t)
                         => true;
                 }
             }
@@ -623,7 +623,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -646,7 +646,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod<T>(this T t)
+                    public static bool ExtensionMethod<T>(this T t)
                         => true;
                 }
             }
@@ -671,7 +671,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              displayTextSuffix: "<>",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
@@ -689,7 +689,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 internal static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this int x)
+                    public static bool ExtensionMethod(this int x)
                         => true;
                 }
             }
@@ -712,7 +712,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemIsAbsentAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              inlineDescription: "Foo");
     }
 
@@ -726,7 +726,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 internal static class ExtensionClass
                 {
-                    internal static bool ExtentionMethod(this int x)
+                    internal static bool ExtensionMethod(this int x)
                         => true;
                 }
             }
@@ -749,7 +749,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, ReferenceType.None);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
              inlineDescription: "Foo");
     }
@@ -767,7 +767,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 internal static class ExtensionClass
                 {
-                    internal static bool ExtentionMethod(this int x)
+                    internal static bool ExtensionMethod(this int x)
                         => true;
                 }
             }
@@ -788,7 +788,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, refType);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodInternal,
              inlineDescription: "Foo");
     }
@@ -807,7 +807,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this MyGeneric<int> x)
+                    public static bool ExtensionMethod(this MyGeneric<int> x)
                         => true;
                 }
             }
@@ -830,7 +830,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -847,7 +847,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod(this int x)
+                    public static bool ExtensionMethod(this int x)
                         => true;
                 }
             }
@@ -870,7 +870,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -914,7 +914,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             Namespace NS
                 Public Module Foo
                     <Extension>
-                    public Function ExtentionMethod(x As {vbType}) As Boolean
+                    public Function ExtensionMethod(x As {vbType}) As Boolean
                         Return True
                     End Function
                 End Module
@@ -938,7 +938,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "NS");
     }
@@ -952,7 +952,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
             Public Module Foo
                 <Extension>
-                public Function ExtentionMethod(x As Integer) As Boolean
+                public Function ExtensionMethod(x As Integer) As Boolean
                     Return True
                 End Function
             End Module
@@ -975,7 +975,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Root");
     }
@@ -989,7 +989,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
             Public Module Foo
                 <Extension>
-                public Function ExtentionMethod(x As Integer) As Boolean
+                public Function ExtensionMethod(x As Integer) As Boolean
                     Return True
                 End Function
             End Module
@@ -1012,7 +1012,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemIsAbsentAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              inlineDescription: "");
     }
 
@@ -1026,7 +1026,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 internal static class ExtensionClass
                 {
-                    internal static bool ExtentionMethod(this int x)
+                    internal static bool ExtensionMethod(this int x)
                         => true;
                 }
             }
@@ -1050,7 +1050,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         var markup = GetMarkup(file2, file1, ReferenceType.None);
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod",
+             "ExtensionMethod",
              glyph: Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
              inlineDescription: "Foo");
     }
@@ -1195,7 +1195,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static partial class ExtensionClass
                 {
-                    public static bool ExtentionMethod1(this string x)
+                    public static bool ExtensionMethod1(this string x)
                         => true;
                 }
             }
@@ -1207,7 +1207,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static partial class ExtensionClass
                 {
-                    public static bool ExtentionMethod2(this string x)
+                    public static bool ExtensionMethod2(this string x)
                         => true;
                 }
             }
@@ -1228,13 +1228,13 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod1",
+             "ExtensionMethod1",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod2",
+             "ExtensionMethod2",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -1252,7 +1252,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 {{accessibility}} static class ExtensionClass
                 {
-                    public static bool ExtentionMethod1(this int x)
+                    public static bool ExtensionMethod1(this int x)
                         => true;
                 }
             }
@@ -1264,7 +1264,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 internal static class ExtensionClass
                 {
-                    public static bool ExtentionMethod2(this int x)
+                    public static bool ExtensionMethod2(this int x)
                         => true;
                 }
             }
@@ -1290,13 +1290,13 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod1",
+             "ExtensionMethod1",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod2",
+             "ExtensionMethod2",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -1311,7 +1311,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 internal static class ExtensionClass
                 {
-                    public static bool ExtentionMethod1(this int x)
+                    public static bool ExtensionMethod1(this int x)
                         => true;
                 }
             }
@@ -1323,7 +1323,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 internal static class ExtensionClass
                 {
-                    public static bool ExtentionMethod2(this int x)
+                    public static bool ExtensionMethod2(this int x)
                         => true;
                 }
             }
@@ -1347,13 +1347,13 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod1",
+             "ExtensionMethod1",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
 
         await VerifyImportItemExistsAsync(
              markup,
-             "ExtentionMethod2",
+             "ExtensionMethod2",
              glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
@@ -1373,7 +1373,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 {{containerAccessibility}} static class ExtensionClass
                 {
-                    {{methodAccessibility}} static bool ExtentionMethod(this int x)
+                    {{methodAccessibility}} static bool ExtensionMethod(this int x)
                         => true;
                 }
             }
@@ -1399,7 +1399,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         {
             await VerifyImportItemExistsAsync(
                  markup,
-                 "ExtentionMethod",
+                 "ExtensionMethod",
                  glyph: Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
         }
@@ -1407,20 +1407,20 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         {
             await VerifyImportItemIsAbsentAsync(
                  markup,
-                 "ExtentionMethod",
+                 "ExtensionMethod",
                  inlineDescription: "Foo");
         }
     }
 
     [Theory]
-    [InlineData(ReferenceType.Project, "[]", "ExtentionMethod2")]
-    [InlineData(ReferenceType.Project, "[][]", "ExtentionMethod3")]
-    [InlineData(ReferenceType.Project, "[,]", "ExtentionMethod4")]
-    [InlineData(ReferenceType.Project, "[][,]", "ExtentionMethod5")]
-    [InlineData(ReferenceType.Metadata, "[]", "ExtentionMethod2")]
-    [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
-    [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
-    [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
+    [InlineData(ReferenceType.Project, "[]", "ExtensionMethod2")]
+    [InlineData(ReferenceType.Project, "[][]", "ExtensionMethod3")]
+    [InlineData(ReferenceType.Project, "[,]", "ExtensionMethod4")]
+    [InlineData(ReferenceType.Project, "[][,]", "ExtensionMethod5")]
+    [InlineData(ReferenceType.Metadata, "[]", "ExtensionMethod2")]
+    [InlineData(ReferenceType.Metadata, "[][]", "ExtensionMethod3")]
+    [InlineData(ReferenceType.Metadata, "[,]", "ExtensionMethod4")]
+    [InlineData(ReferenceType.Metadata, "[][,]", "ExtensionMethod5")]
     public async Task TestExtensionMethodsForSimpleArrayType(ReferenceType refType, string rank, string expectedName)
     {
         var refDoc = $$"""
@@ -1430,19 +1430,19 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod1(this int x)
+                    public static bool ExtensionMethod1(this int x)
                         => true;
 
-                    public static bool ExtentionMethod2(this int[] x)
+                    public static bool ExtensionMethod2(this int[] x)
                         => true;
 
-                    public static bool ExtentionMethod3(this int[][] x)
+                    public static bool ExtensionMethod3(this int[][] x)
                         => true;
 
-                    public static bool ExtentionMethod4(this int[,] x)
+                    public static bool ExtensionMethod4(this int[,] x)
                         => true;
 
-                    public static bool ExtentionMethod5(this int[][,] x)
+                    public static bool ExtensionMethod5(this int[][,] x)
                         => true;
                 }
             }
@@ -1475,14 +1475,14 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     }
 
     [Theory]
-    [InlineData(ReferenceType.Project, "[]", "ExtentionMethod2")]
-    [InlineData(ReferenceType.Project, "[][]", "ExtentionMethod3")]
-    [InlineData(ReferenceType.Project, "[,]", "ExtentionMethod4")]
-    [InlineData(ReferenceType.Project, "[][,]", "ExtentionMethod5")]
-    [InlineData(ReferenceType.Metadata, "[]", "ExtentionMethod2")]
-    [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
-    [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
-    [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
+    [InlineData(ReferenceType.Project, "[]", "ExtensionMethod2")]
+    [InlineData(ReferenceType.Project, "[][]", "ExtensionMethod3")]
+    [InlineData(ReferenceType.Project, "[,]", "ExtensionMethod4")]
+    [InlineData(ReferenceType.Project, "[][,]", "ExtensionMethod5")]
+    [InlineData(ReferenceType.Metadata, "[]", "ExtensionMethod2")]
+    [InlineData(ReferenceType.Metadata, "[][]", "ExtensionMethod3")]
+    [InlineData(ReferenceType.Metadata, "[,]", "ExtensionMethod4")]
+    [InlineData(ReferenceType.Metadata, "[][,]", "ExtensionMethod5")]
     public async Task TestExtensionMethodsForGenericArrayType(ReferenceType refType, string rank, string expectedName)
     {
         var refDoc = $$"""
@@ -1492,19 +1492,19 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class ExtensionClass
                 {
-                    public static bool ExtentionMethod1<T>(this T x)
+                    public static bool ExtensionMethod1<T>(this T x)
                         => true;
 
-                    public static bool ExtentionMethod2<T>(this T[] x)
+                    public static bool ExtensionMethod2<T>(this T[] x)
                         => true;
 
-                    public static bool ExtentionMethod3<T>(this T[][] x)
+                    public static bool ExtensionMethod3<T>(this T[][] x)
                         => true;
 
-                    public static bool ExtentionMethod4<T>(this T[,] x)
+                    public static bool ExtensionMethod4<T>(this T[,] x)
                         => true;
 
-                    public static bool ExtentionMethod5<T>(this T[][,] x)
+                    public static bool ExtensionMethod5<T>(this T[][,] x)
                         => true;
                 }
             }
@@ -1554,7 +1554,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class Extensions
                 {
-                    public static bool ExtentionMethod(this NS1.C1 c) => false;
+                    public static bool ExtensionMethod(this NS1.C1 c) => false;
                 }
             }
             """;
@@ -1580,7 +1580,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
             markup,
-            "ExtentionMethod",
+            "ExtensionMethod",
             glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2");
     }
@@ -1599,7 +1599,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class Extensions
                 {
-                    public static bool ExtentionMethod(this {{tupleType}}[] x) => false;
+                    public static bool ExtensionMethod(this {{tupleType}}[] x) => false;
                 }
             }
             """;
@@ -1625,7 +1625,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
             markup,
-            "ExtentionMethod",
+            "ExtensionMethod",
             glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2");
     }
@@ -1644,7 +1644,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class Extensions
                 {
-                    public static bool ExtentionMethod(this {{tupleType}} x) => false;
+                    public static bool ExtensionMethod(this {{tupleType}} x) => false;
                 }
             }
             """;
@@ -1670,7 +1670,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
             markup,
-            "ExtentionMethod",
+            "ExtensionMethod",
             glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2");
     }
@@ -1687,7 +1687,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class Extensions
                 {
-                    public static bool ExtentionMethod<T>(this T t) => false;
+                    public static bool ExtensionMethod<T>(this T t) => false;
                 }
             }
             """;
@@ -1713,11 +1713,11 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
             markup,
-            "ExtentionMethod",
+            "ExtensionMethod",
             displayTextSuffix: "<>",
             glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2",
-            expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<int>()");
+            expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtensionMethod<int>()");
     }
 
     [Theory]
@@ -1732,12 +1732,12 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class Extensions
                 {
-                    public static bool ExtentionMethod(this int t) => false;
-                    public static bool ExtentionMethod(this int t, int a) => false;
-                    public static bool ExtentionMethod(this int t, int a, int b) => false;
-                    public static bool ExtentionMethod<T>(this int t, T a) => false;
-                    public static bool ExtentionMethod<T>(this int t, T a, T b) => false;
-                    public static bool ExtentionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
+                    public static bool ExtensionMethod(this int t) => false;
+                    public static bool ExtensionMethod(this int t, int a) => false;
+                    public static bool ExtensionMethod(this int t, int a, int b) => false;
+                    public static bool ExtensionMethod<T>(this int t, T a) => false;
+                    public static bool ExtensionMethod<T>(this int t, T a, T b) => false;
+                    public static bool ExtensionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
                 }
             }
             """;
@@ -1763,18 +1763,18 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
         await VerifyImportItemExistsAsync(
             markup,
-            "ExtentionMethod",
+            "ExtensionMethod",
             glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2",
-            expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod() (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})");
+            expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtensionMethod() (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})");
 
         await VerifyImportItemExistsAsync(
             markup,
-            "ExtentionMethod",
+            "ExtensionMethod",
             displayTextSuffix: "<>",
             glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2",
-            expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<T>(T a) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.generic_overloads})");
+            expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtensionMethod<T>(T a) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.generic_overloads})");
     }
 
     [InlineData(ReferenceType.Project)]
@@ -2009,9 +2009,9 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             {
                 public static class Extensions
                 {
-                    public static int ExtentionMethod(this int t, int a) => 0;
-                    public static int[] ExtentionMethod(this int t, int a, int b) => null;
-                    public static string ExtentionMethod(this int t, int a, int b, int c) => false;
+                    public static int ExtensionMethod(this int t, int a) => 0;
+                    public static int[] ExtensionMethod(this int t, int a, int b) => null;
+                    public static string ExtensionMethod(this int t, int a, int b, int c) => false;
                 }
             }
             """;
@@ -2040,12 +2040,12 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         if (matchTargetType)
         {
             expectedFilters.Add(FilterSet.TargetTypedFilter);
-            expectedDescription = $"({CSharpFeaturesResources.extension}) {targetType} int.ExtentionMethod({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})";
+            expectedDescription = $"({CSharpFeaturesResources.extension}) {targetType} int.ExtensionMethod({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})";
         }
 
         await VerifyImportItemExistsAsync(
             markup,
-            "ExtentionMethod",
+            "ExtensionMethod",
             expectedFilters: expectedFilters,
             inlineDescription: "NS2",
             expectedDescriptionOrNull: expectedDescription);
