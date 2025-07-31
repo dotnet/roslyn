@@ -618,6 +618,4 @@ public sealed class CSharpCallHierarchyTests
         // Only the actual method call should appear, not the nameof reference
         testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), ["N.G.Main()"]);
     }
-
-  
 }
