@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref expression,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: false,
                 methodArgumentInfo.Arguments,
                 method,
                 argsToParamsOpt: default,

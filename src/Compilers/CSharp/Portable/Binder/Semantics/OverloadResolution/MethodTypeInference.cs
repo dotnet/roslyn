@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
                 options: OverloadResolution.Options.IsMethodGroupConversion |
                          (isFunctionPointerResolution ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
-                returnRefKind: delegateRefKind,
+                acceptOnlyMethods: true, returnRefKind: delegateRefKind,
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null,
                 callingConventionInfo: in callingConventionInfo);

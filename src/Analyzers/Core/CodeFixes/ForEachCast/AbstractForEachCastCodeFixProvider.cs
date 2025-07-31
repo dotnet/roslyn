@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ForEachCast;
 
@@ -29,7 +28,7 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
     {
         if (context.Diagnostics.First().Properties.ContainsKey(ForEachCastHelpers.IsFixable))
         {
-            RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<SyntaxNode>));
+            RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<>));
         }
 
         return Task.CompletedTask;

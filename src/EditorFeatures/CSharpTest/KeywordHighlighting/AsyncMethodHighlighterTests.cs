@@ -19,9 +19,8 @@ public sealed class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlight
         => typeof(AsyncAwaitHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -47,12 +46,10 @@ public sealed class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlight
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_1()
-    {
-        await TestAsync(
+    public Task TestExample2_1()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -78,5 +75,4 @@ public sealed class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlight
                 }
             }
             """);
-    }
 }

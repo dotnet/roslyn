@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1254,15 +1255,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, arguments.AttributeSyntaxOpt.Location);
             }
 
+            if (ContainingSymbol is SynthesizedExtensionMarker)
+            {
+                // Interpolated string handler arguments are not allowed in this context.
+                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed, arguments.AttributeSyntaxOpt.Location);
+                setInterpolatedStringHandlerAttributeError(ref arguments);
+                return;
+            }
+
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
 
             ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
+            ParameterSymbol? extensionParameter = ContainingType.ExtensionParameter;
 
             ImmutableArray<int> parameterOrdinals;
-            ArrayBuilder<ParameterSymbol?> parameters;
             if (attributeIndex == 0)
             {
-                if (decodeName(constructorArgument, ref arguments) is not (int ordinal, var parameter))
+                if (decodeName(constructorArgument, ref arguments) is not int ordinal)
                 {
                     // If an error needs to be reported, it will already have been reported by another step.
                     setInterpolatedStringHandlerAttributeError(ref arguments);
@@ -1270,8 +1279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 parameterOrdinals = ImmutableArray.Create(ordinal);
-                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
-                parameters.Add(parameter);
             }
             else if (attributeIndex == 1)
             {
@@ -1284,13 +1291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 bool hadError = false;
-                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
                 var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);
                 foreach (var nestedArgument in constructorArgument.Values)
                 {
-                    if (decodeName(nestedArgument, ref arguments) is (int ordinal, var parameter) && !hadError)
+                    if (decodeName(nestedArgument, ref arguments) is int ordinal && !hadError)
                     {
-                        parameters.Add(parameter);
                         ordinalsBuilder.Add(ordinal);
                     }
                     else
@@ -1301,7 +1306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hadError)
                 {
-                    parameters.Free();
                     ordinalsBuilder.Free();
                     setInterpolatedStringHandlerAttributeError(ref arguments);
                     return;
@@ -1317,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
             parameterWellKnownAttributeData.InterpolatedStringHandlerArguments = parameterOrdinals;
 
-            (int Ordinal, ParameterSymbol? Parameter)? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            int? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             {
                 Debug.Assert(arguments.AttributeSyntaxOpt is not null);
                 if (constant.IsNull)
@@ -1338,14 +1342,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (name == "")
                 {
                     // Name refers to the "this" instance parameter.
-                    if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod })
+                    if (!ContainingSymbol.RequiresInstanceReceiver()
+                        || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod }
+                        || ContainingSymbol.GetIsNewExtensionMember())
                     {
-                        // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                        // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
                         diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
                         return null;
                     }
 
-                    return (BoundInterpolatedStringArgumentPlaceholder.InstanceParameter, null);
+                    return BoundInterpolatedStringArgumentPlaceholder.InstanceParameter;
+                }
+
+                if (string.Equals(extensionParameter?.Name, name, StringComparison.Ordinal))
+                {
+                    if (!ContainingSymbol.RequiresInstanceReceiver())
+                    {
+                        // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
+                        diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
+                        return null;
+                    }
+
+                    return BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver;
                 }
 
                 var parameter = containingSymbolParameters.FirstOrDefault(static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), name);
@@ -1371,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, arguments.AttributeSyntaxOpt.Location, parameter.Name, this.Name);
                 }
 
-                return (parameter.Ordinal, parameter);
+                return parameter.Ordinal;
             }
 
             static void setInterpolatedStringHandlerAttributeError(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)

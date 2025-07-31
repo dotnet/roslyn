@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     /// </summary>
     internal static class DocumentationCommentIdParser
     {
-        private static readonly char[] s_nameDelimiters = { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
+        private static readonly char[] s_nameDelimiters = [':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~'];
 
         public static (string ParentName, string SymbolName)? ParseDeclaredSymbolId(string id)
         {

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -40,7 +41,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
     private static IEnumerable<object[]> CombineWithReferenceTypeData(IEnumerable<List<object>> data)
     {
-        foreach (var refKind in Enum.GetValues(typeof(ReferenceType)))
+        foreach (var refKind in Enum.GetValues<ReferenceType>())
         {
             foreach (var d in data)
             {
@@ -76,9 +77,12 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
         }
     }
 
-    private static string GetMarkup(string current, string referenced, ReferenceType refType,
-                                    string currentLanguage = LanguageNames.CSharp,
-                                    string referencedLanguage = LanguageNames.CSharp)
+    private static string GetMarkup(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string current,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string referenced,
+        ReferenceType refType,
+        string currentLanguage = LanguageNames.CSharp,
+        string referencedLanguage = LanguageNames.CSharp)
         => refType switch
         {
             ReferenceType.None => CreateMarkupForSingleProject(current, referenced, currentLanguage),
@@ -89,6 +93,14 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
 
     public static IEnumerable<object[]> BuiltInTypesWithReferenceTypeData
         => CombineWithReferenceTypeData(BuiltInTypes);
+
+    private Task VerifyImportItemExistsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string expectedItem, string inlineDescription, Glyph? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
+        => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
+
+    private Task VerifyImportItemIsAbsentAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
+        => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
 
     [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
     public async Task TestPredefinedType(string type1, string type2, ReferenceType refType)
@@ -1931,9 +1943,8 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
-    {
-        var markup = """
+    public Task TestCommitWithCustomizedCharForMethod(char commitChar)
+        => VerifyProviderCommitAsync("""
             public class C
             {
             }
@@ -1957,9 +1968,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
                     }
                 }
             }
-            """;
-
-        var expected = $$"""
+            """, "ToInt", $$"""
         using AA;
 
         public class C
@@ -1985,9 +1994,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
                 }
             }
         }
-        """;
-        await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
-    }
+        """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
 
     [Theory]
     [InlineData("int", true, "int a")]
@@ -2045,9 +2052,8 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     }
 
     [Fact]
-    public async Task TestComplexConstraint_NotShownOnObject()
-    {
-        await VerifyItemIsAbsentAsync(
+    public Task TestComplexConstraint_NotShownOnObject()
+        => VerifyItemIsAbsentAsync(
              """
              interface I
              {
@@ -2072,12 +2078,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnExactInterfaceConstraintMatch()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnExactInterfaceConstraintMatch()
+        => VerifyItemExistsAsync(
              """
              interface I
              {
@@ -2102,12 +2106,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter()
+        => VerifyItemExistsAsync(
              """
              interface I
              {
@@ -2132,12 +2134,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter_BaseInterface()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnInterfaceMatchThroughChainedTypeParameter_BaseInterface()
+        => VerifyItemExistsAsync(
              """
              interface I1
              {
@@ -2166,12 +2166,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnExactBaseTypeConstraintMatch()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnExactBaseTypeConstraintMatch()
+        => VerifyItemExistsAsync(
              """
              class C
              {
@@ -2196,12 +2194,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter()
+        => VerifyItemExistsAsync(
              """
              class C
              {
@@ -2226,12 +2222,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedType()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedType()
+        => VerifyItemExistsAsync(
              """
              class C1
              {
@@ -2260,12 +2254,10 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedBaseTypeAndInterface()
-    {
-        await VerifyItemExistsAsync(
+    public Task TestComplexConstraint_ShownOnBaseTypeMatchThroughChainedTypeParameter_InheritedBaseTypeAndInterface()
+        => VerifyItemExistsAsync(
              """
              interface I1
              {
@@ -2298,11 +2290,39 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "<>",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
-    }
 
-    private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, Glyph? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
-        => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79096")]
+    public Task TestTopLevelExpressionConfusedAsQualifiedType()
+        => VerifyItemExistsAsync(
+             """
+             using Microsoft.Extensions.Hosting;
 
-    private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
-        => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
+             var builder = new Builder();
+
+             builder.Services.$$
+             var host = builder.Build();
+
+             class Builder
+             {
+                 public C Services { get; }
+             }
+
+             class C
+             {
+             }
+
+             namespace N
+             {
+                 static class SC
+                 {
+                     public static void M(this C c)
+                     {
+                     }
+                 }
+             }
+             """,
+             "M",
+             displayTextSuffix: "",
+             inlineDescription: "N",
+             sourceCodeKind: SourceCodeKind.Regular);
 }

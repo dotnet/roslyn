@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -63,14 +64,22 @@ namespace Roslyn.Diagnostics.Analyzers
 
             static string? getPrefix(string text)
             {
-                if (text.StartsWith("@\"", StringComparison.OrdinalIgnoreCase))
+                if (text.StartsWith("""
+                    @"
+                    """, StringComparison.OrdinalIgnoreCase))
                 {
-                    return "@\"";
+                    return """
+                        @"
+                        """;
                 }
 
-                if (text.StartsWith("\"", StringComparison.OrdinalIgnoreCase))
+                if (text.StartsWith("""
+                    "
+                    """, StringComparison.OrdinalIgnoreCase))
                 {
-                    return "\"";
+                    return """
+                        "
+                        """;
                 }
 
                 return null;

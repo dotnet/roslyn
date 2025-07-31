@@ -16,7 +16,21 @@ public struct MatchingPair
     public string New;
 
     public override readonly string ToString()
-        => "{ \"" + Old.Replace("\"", "\\\"") + "\", \"" + New.Replace("\"", "\\\"") + "\" }";
+        => """
+        { "
+        """ + Old.Replace("""
+               "
+               """, """
+               \"
+               """) + """
+        ", "
+        """ + New.Replace("""
+                          "
+                          """, """
+                          \"
+                          """) + """
+        " }
+        """;
 }
 
 public class MatchingPairs : IEnumerable<MatchingPair>

@@ -1391,17 +1391,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Struct:
-                    if (member.Name == this.Name)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), this.Name);
-                    }
+                    checkContainingTypeName(member, this.Name, diagnostics);
                     break;
                 case TypeKind.Interface:
                     if (member.IsStatic)
                     {
-                        goto case TypeKind.Class;
+                        checkContainingTypeName(member, this.Name, diagnostics);
                     }
+
                     break;
+                case TypeKind.Extension:
+                    // Since implementation methods have the same name as the extension method, we don't need to report the problem twice
+                    if (member.Kind != SymbolKind.Method && this.ContainingType is { } containingType)
+                    {
+                        checkContainingTypeName(member, containingType.Name, diagnostics);
+                    }
+
+                    if (this.ExtensionParameter is { Type: NamedTypeSymbol { Name: var extendedTypeName } })
+                    {
+                        checkExtendedTypeName(member, extendedTypeName, diagnostics);
+                    }
+
+                    break;
+            }
+
+            static void checkContainingTypeName(Symbol member, string typeName, BindingDiagnosticBag diagnostics)
+            {
+                if (member.Name == typeName)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), typeName);
+                }
+            }
+
+            static void checkExtendedTypeName(Symbol member, string typeName, BindingDiagnosticBag diagnostics)
+            {
+                if (member.Name == typeName)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberNameSameAsExtendedType, member.GetFirstLocation(), typeName);
+                }
             }
         }
 
@@ -1812,8 +1839,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckExtensionMembers(this.GetMembers(), diagnostics);
             }
 
-            CheckMemberNamesDistinctFromType(diagnostics); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should this check "see through" extensions?
-            CheckMemberNameConflicts(diagnostics);
+            CheckMemberNamesDistinctFromType(diagnostics);
+            CheckMemberNameConflictsAndUnmatchedOperators(diagnostics);
             CheckRecordMemberNames(diagnostics);
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
@@ -1822,7 +1849,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
-            CheckForUnmatchedOperators(diagnostics);
             CheckForRequiredMemberAttribute(diagnostics);
 
             if (IsScriptClass || IsSubmissionClass)
@@ -2341,7 +2367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckMemberNameConflicts(BindingDiagnosticBag diagnostics)
+        private void CheckMemberNameConflictsAndUnmatchedOperators(BindingDiagnosticBag diagnostics)
         {
             if (IsExtension)
             {
@@ -2354,6 +2380,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             checkMemberNameConflicts(GetMembersByName(), GetTypeMembersDictionary(), GetMembersUnordered(), diagnostics);
+
+            // We also produce a warning if == / != is overridden without also overriding
+            // Equals and GetHashCode, or if Equals is overridden without GetHashCode.
+
+            CheckForEqualityAndGetHashCode(diagnostics);
+
             return;
 
             void checkMemberNameConflicts(
@@ -2365,6 +2397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool mightHaveMembersFromDistinctNonPartialDeclarations = !(Locations.Length == 1 || IsPartial);
                 CheckMemberNameConflicts(this, mightHaveMembersFromDistinctNonPartialDeclarations, typesByName, membersByName, diagnostics);
                 CheckAccessorNameConflicts(this, mightHaveMembersFromDistinctNonPartialDeclarations, membersByName, membersUnordered, diagnostics);
+                CheckForUnmatchedOperators(membersByName, diagnostics);
             }
 
             void checkMemberNameConflictsInExtensions(BindingDiagnosticBag diagnostics)
@@ -2474,27 +2507,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private readonly struct ExtensionGroupingKey : IEquatable<ExtensionGroupingKey>
+        internal readonly struct ExtensionGroupingKey : IEquatable<ExtensionGroupingKey>
         {
-            public readonly int ExtensionArity;
-            public readonly TypeSymbol ReceiverType;
+            public readonly NamedTypeSymbol NormalizedExtension;
 
             public ExtensionGroupingKey(NamedTypeSymbol extension)
             {
-                ExtensionArity = extension.Arity;
-
                 if (extension.Arity != 0)
                 {
                     extension = extension.Construct(IndexedTypeParameterSymbol.Take(extension.Arity));
                 }
 
-                if (extension.ExtensionParameter is { } receiverParameter)
+                NormalizedExtension = extension;
+            }
+
+            private readonly int ExtensionArity
+            {
+                get
                 {
-                    ReceiverType = receiverParameter.Type;
+                    return NormalizedExtension.Arity;
                 }
-                else
+            }
+
+            private readonly TypeSymbol ReceiverType
+            {
+                get
                 {
-                    ReceiverType = ErrorTypeSymbol.UnknownResultType;
+                    if (NormalizedExtension.ExtensionParameter is { } receiverParameter)
+                    {
+                        return receiverParameter.Type;
+                    }
+                    else
+                    {
+                        return ErrorTypeSymbol.UnknownResultType;
+                    }
                 }
             }
 
@@ -2702,7 +2748,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckForUnmatchedOperators(BindingDiagnosticBag diagnostics)
+        private static void CheckForUnmatchedOperators(
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName,
+            BindingDiagnosticBag diagnostics)
         {
             // SPEC: The true and false unary operators require pairwise declaration.
             // SPEC: A compile-time error occurs if a class or struct declares one
@@ -2720,42 +2768,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: type for each parameter. The following operators require pairwise
             // SPEC: declaration: == and !=, > and <, >= and <=.
 
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.TrueOperatorName, WellKnownMemberNames.FalseOperatorName);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.EqualityOperatorName, WellKnownMemberNames.InequalityOperatorName);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.LessThanOperatorName, WellKnownMemberNames.GreaterThanOperatorName);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.LessThanOrEqualOperatorName, WellKnownMemberNames.GreaterThanOrEqualOperatorName);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.TrueOperatorName, WellKnownMemberNames.FalseOperatorName);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.EqualityOperatorName, WellKnownMemberNames.InequalityOperatorName);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.LessThanOperatorName, WellKnownMemberNames.GreaterThanOperatorName);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.LessThanOrEqualOperatorName, WellKnownMemberNames.GreaterThanOrEqualOperatorName);
 
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDecrementOperatorName, WellKnownMemberNames.DecrementOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedIncrementOperatorName, WellKnownMemberNames.IncrementOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedUnaryNegationOperatorName, WellKnownMemberNames.UnaryNegationOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedAdditionOperatorName, WellKnownMemberNames.AdditionOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDivisionOperatorName, WellKnownMemberNames.DivisionOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedMultiplyOperatorName, WellKnownMemberNames.MultiplyOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionOperatorName, WellKnownMemberNames.SubtractionOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedExplicitConversionName, WellKnownMemberNames.ExplicitConversionName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedDecrementOperatorName, WellKnownMemberNames.DecrementOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedIncrementOperatorName, WellKnownMemberNames.IncrementOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedUnaryNegationOperatorName, WellKnownMemberNames.UnaryNegationOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedAdditionOperatorName, WellKnownMemberNames.AdditionOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedDivisionOperatorName, WellKnownMemberNames.DivisionOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedMultiplyOperatorName, WellKnownMemberNames.MultiplyOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedSubtractionOperatorName, WellKnownMemberNames.SubtractionOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedExplicitConversionName, WellKnownMemberNames.ExplicitConversionName, symmetricCheck: false);
 
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedAdditionAssignmentOperatorName, WellKnownMemberNames.AdditionAssignmentOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDivisionAssignmentOperatorName, WellKnownMemberNames.DivisionAssignmentOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName, WellKnownMemberNames.MultiplicationAssignmentOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName, WellKnownMemberNames.SubtractionAssignmentOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDecrementAssignmentOperatorName, WellKnownMemberNames.DecrementAssignmentOperatorName, symmetricCheck: false);
-            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedIncrementAssignmentOperatorName, WellKnownMemberNames.IncrementAssignmentOperatorName, symmetricCheck: false);
-
-            // We also produce a warning if == / != is overridden without also overriding
-            // Equals and GetHashCode, or if Equals is overridden without GetHashCode.
-
-            CheckForEqualityAndGetHashCode(diagnostics);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedAdditionAssignmentOperatorName, WellKnownMemberNames.AdditionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedDivisionAssignmentOperatorName, WellKnownMemberNames.DivisionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName, WellKnownMemberNames.MultiplicationAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName, WellKnownMemberNames.SubtractionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedDecrementAssignmentOperatorName, WellKnownMemberNames.DecrementAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedIncrementAssignmentOperatorName, WellKnownMemberNames.IncrementAssignmentOperatorName, symmetricCheck: false);
         }
 
-        private void CheckForUnmatchedOperator(BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2, bool symmetricCheck = true)
+        private static void CheckForUnmatchedOperator(
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName,
+            BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2, bool symmetricCheck = true)
         {
             var ops1 = ArrayBuilder<MethodSymbol>.GetInstance();
-            this.AddOperators(operatorName1, ops1);
+            addOperators(membersByName, operatorName1, ops1);
 
             if (symmetricCheck)
             {
                 var ops2 = ArrayBuilder<MethodSymbol>.GetInstance();
-                this.AddOperators(operatorName2, ops2);
+                addOperators(membersByName, operatorName2, ops2);
                 CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportOperatorNeedsMatch);
                 CheckForUnmatchedOperator(diagnostics, ops2, ops1, operatorName1, reportOperatorNeedsMatch);
                 ops2.Free();
@@ -2763,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!ops1.IsEmpty)
             {
                 var ops2 = ArrayBuilder<MethodSymbol>.GetInstance();
-                this.AddOperators(operatorName2, ops2);
+                addOperators(membersByName, operatorName2, ops2);
                 CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportCheckedOperatorNeedsMatch);
                 ops2.Free();
             }
@@ -2782,6 +2827,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void reportCheckedOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
             {
                 diagnostics.Add(ErrorCode.ERR_CheckedOperatorNeedsMatch, op1.GetFirstLocation(), op1);
+            }
+
+            static void addOperators(
+                Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName,
+                string operatorName1, ArrayBuilder<MethodSymbol> ops1)
+            {
+                if (membersByName.TryGetValue(operatorName1.AsMemory(), out ImmutableArray<Symbol> candidates))
+                {
+                    AddOperators(ops1, candidates);
+                }
             }
         }
 
@@ -2841,6 +2896,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckForEqualityAndGetHashCode(BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(!this.IsExtension);
+
             if (this.IsInterfaceType())
             {
                 // Interfaces are allowed to define Equals without GetHashCode if they want.
@@ -4635,7 +4692,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case MethodKind.Constructor:
                         case MethodKind.Conversion:
-                        case MethodKind.UserDefinedOperator:
                         case MethodKind.Destructor:
                         case MethodKind.EventAdd:
                         case MethodKind.EventRemove:
@@ -4643,6 +4699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.ExplicitInterfaceImplementation:
                             break;
                         case MethodKind.Ordinary:
+                        case MethodKind.UserDefinedOperator:
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:
                             return true;

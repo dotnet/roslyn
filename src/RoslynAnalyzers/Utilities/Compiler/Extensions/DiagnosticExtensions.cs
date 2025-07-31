@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -172,12 +173,6 @@ namespace Analyzer.Utilities.Extensions
             => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
 
         public static void ReportNoLocationDiagnostic(
-            this SyntaxNodeAnalysisContext context,
-            DiagnosticDescriptor rule,
-            params object[] args)
-            => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
-
-        public static void ReportNoLocationDiagnostic(
             this Compilation compilation,
             DiagnosticDescriptor rule,
             Action<Diagnostic> addDiagnostic,
@@ -230,11 +225,11 @@ namespace Analyzer.Utilities.Extensions
                             object?[] parameters;
                             if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.GetParameters().Length == 3)
                             {
-                                parameters = new object?[] { tree, rule.Id, null };
+                                parameters = [tree, rule.Id, null];
                             }
                             else
                             {
-                                parameters = new object?[] { tree, rule.Id, CancellationToken.None, null };
+                                parameters = [tree, rule.Id, CancellationToken.None, null];
                             }
 
                             if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.Invoke(syntaxTreeOptionsProvider, parameters) is true &&

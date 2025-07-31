@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using EnvDTE;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -15,34 +13,36 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeClassWithMissingBraceTests : AbstractFileCodeElementTests
 {
     public FileCodeClassWithMissingBraceTests()
-        : base(@"using System;
+        : base("""
+            using System;
 
 
-public abstract class Goo : IDisposable, ICloneable
-{
+            public abstract class Goo : IDisposable, ICloneable
+            {
 
 
-[Serializable]
-public class Bar
-{
-    int a;
+            [Serializable]
+            public class Bar
+            {
+                int a;
 
-    public int A
-    {
-        get
-        {
-            return a;
-        }
-    }
+                public int A
+                {
+                    get
+                    {
+                        return a;
+                    }
+                }
 
-namespace N
-{
-}
+            namespace N
+            {
+            }
 
-class Baz
-{
+            class Baz
+            {
 
-")
+
+            """)
     {
     }
 

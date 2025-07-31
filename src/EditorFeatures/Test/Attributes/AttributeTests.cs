@@ -36,10 +36,8 @@ public sealed class AttributeTests
 
     [Fact]
     public void CreateExportBraceMatcherAttributeWithNullArg()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
+        => Assert.Throws<ArgumentNullException>(() =>
             new ExportBraceMatcherAttribute(null));
-    }
 
     [Fact]
     public void CreateExportCompletionProviderAttributeWithNullArg()

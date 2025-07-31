@@ -9,7 +9,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Completion;
 

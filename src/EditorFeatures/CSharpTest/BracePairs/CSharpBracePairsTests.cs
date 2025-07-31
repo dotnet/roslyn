@@ -15,9 +15,8 @@ public sealed class CSharpBracePairsTests : AbstractBracePairsTests
         => EditorTestWorkspace.CreateCSharp(input);
 
     [Fact]
-    public async Task Test1()
-    {
-        await Test("""
+    public Task Test1()
+        => Test("""
             public class C
             {|a:{|}
                 void M{|b:(|}int i{|b:)|}
@@ -30,5 +29,4 @@ public sealed class CSharpBracePairsTests : AbstractBracePairsTests
                 {|g:}|}
             {|a:}|}
             """);
-    }
 }

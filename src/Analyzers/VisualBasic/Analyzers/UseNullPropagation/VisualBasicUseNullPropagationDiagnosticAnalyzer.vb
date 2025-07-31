@@ -3,12 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseNullPropagation
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
@@ -26,6 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             MemberAccessExpressionSyntax,
             MultiLineIfBlockSyntax,
             ExpressionStatementSyntax)
+
+        Public Shared ReadOnly Instance As New VisualBasicUseNullPropagationDiagnosticAnalyzer()
 
         Protected Overrides ReadOnly Property IfStatementSyntaxKind As SyntaxKind = SyntaxKind.MultiLineIfBlock
 

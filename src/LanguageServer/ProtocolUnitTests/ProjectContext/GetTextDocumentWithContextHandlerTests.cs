@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,11 +23,13 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
     public async Task SingleDocumentReturnsSingleContext(bool mutatingLspWorkspace)
     {
         var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj"">
-        <Document FilePath = ""C:\C.cs"">{|caret:|}</Document>
-    </Project>
-</Workspace>";
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                    <Document FilePath = "C:\C.cs">{|caret:|}</Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
         var documentUri = testLspServer.GetLocations("caret").Single().DocumentUri;
@@ -47,14 +48,16 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
     public async Task MultipleDocumentsReturnsMultipleContexts(bool mutatingLspWorkspace)
     {
         var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{|caret:|}</Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
-        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1"">{|caret:|}</Document>
-    </Project>
-</Workspace>";
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="C:\C.cs">{|caret:|}</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+                    <Document IsLinkFile="true" LinkFilePath="C:\C.cs" LinkAssemblyName="CSProj1">{|caret:|}</Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
         var documentUri = testLspServer.GetLocations("caret").Single().DocumentUri;
@@ -71,14 +74,16 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
     public async Task SwitchingContextsChangesDefaultContext(bool mutatingLspWorkspace)
     {
         var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{|caret:|}</Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
-        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
-    </Project>
-</Workspace>";
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="C:\C.cs">{|caret:|}</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+                    <Document IsLinkFile="true" LinkFilePath="C:\C.cs" LinkAssemblyName="CSProj1"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
 

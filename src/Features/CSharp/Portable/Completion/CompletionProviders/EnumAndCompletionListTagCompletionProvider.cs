@@ -23,10 +23,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(CSharpSuggestionModeCompletionProvider))]
-[Shared]
-internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class EnumAndCompletionListTagCompletionProvider()
+    : LSPCompletionProvider
 {
     private static readonly CompletionItemRules s_enumTypeRules =
         CompletionItemRules.Default.WithCommitCharacterRules([CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')])
@@ -34,12 +36,6 @@ internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCo
                                    .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
     private static readonly ImmutableHashSet<char> s_triggerCharacters = [' ', '[', '(', '~'];
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EnumAndCompletionListTagCompletionProvider()
-    {
-    }
 
     internal override string Language => LanguageNames.CSharp;
 
@@ -53,7 +49,7 @@ internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCo
         // then.
         return
             text[characterPosition] is ' ' or '[' or '(' or '~' ||
-            options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
+            (options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition));
     }
 
     public override ImmutableHashSet<char> TriggerCharacters => s_triggerCharacters;
@@ -105,20 +101,19 @@ internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCo
     }
 
     private static async Task HandleSingleTypeAsync(
-        CompletionContext context, SemanticModel semanticModel, SyntaxToken token, ITypeSymbol type, bool isParams, CancellationToken cancellationToken)
+        CompletionContext context,
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        ITypeSymbol type,
+        bool isParams,
+        CancellationToken cancellationToken)
     {
         if (isParams && type is IArrayTypeSymbol arrayType)
             type = arrayType.ElementType;
 
         // If we have a Nullable<T>, unwrap it.
-        if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-        {
-            var typeArg = type.GetTypeArguments().FirstOrDefault();
-            if (typeArg == null)
-                return;
-
+        if (type.IsNullable(out var typeArg))
             type = typeArg;
-        }
 
         // When true, this completion provider shows both the type (e.g. DayOfWeek) and its qualified members (e.g.
         // DayOfWeek.Friday). We set this to false for enum-like cases (static members of structs and classes) so we
@@ -196,8 +191,7 @@ internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCo
                 // Use enum member name as an additional filter text, which would promote this item
                 // during matching when user types member name only, like "Red" instead of 
                 // "Colors.Red"
-                var memberDisplayName = $"{displayText}.{field.Name}";
-                var additionalFilterTexts = ImmutableArray.Create(field.Name);
+                var memberDisplayName = $"{displayText}.{field.Name.EscapeIdentifier()}";
 
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: memberDisplayName,
@@ -207,8 +201,7 @@ internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCo
                     contextPosition: position,
                     sortText: $"{sortText}_{index:0000}",
                     filterText: memberDisplayName,
-                    tags: WellKnownTagArrays.TargetTypeMatch)
-                    .WithAdditionalFilterTexts(additionalFilterTexts));
+                    tags: WellKnownTagArrays.TargetTypeMatch).WithAdditionalFilterTexts([field.Name]));
             }
         }
         else if (enclosingNamedType is not null)

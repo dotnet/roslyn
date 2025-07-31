@@ -5,11 +5,11 @@
 #nullable disable
 
 extern alias InteractiveHost;
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive;
@@ -60,8 +59,8 @@ internal sealed class InteractiveWindowResetCommand : IInteractiveWindowCommand
     {
         get
         {
-            yield return KeyValuePairUtil.Create(NoConfigParameterName, EditorFeaturesWpfResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
-            yield return KeyValuePairUtil.Create(PlatformNames, EditorFeaturesWpfResources.Interactive_host_process_platform);
+            yield return KeyValuePair.Create(NoConfigParameterName, EditorFeaturesWpfResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
+            yield return KeyValuePair.Create(PlatformNames, EditorFeaturesWpfResources.Interactive_host_process_platform);
         }
     }
 

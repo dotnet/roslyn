@@ -29,20 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class InlineRenameService(
     IThreadingContext threadingContext,
-    IUIThreadOperationExecutor uiThreadOperationExecutor,
     ITextBufferAssociatedViewService textBufferAssociatedViewService,
     ITextBufferFactoryService textBufferFactoryService,
     ITextBufferCloneService textBufferCloneService,
     IFeatureServiceFactory featureServiceFactory,
     IGlobalOptionService globalOptions,
-    [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
     IAsynchronousOperationListenerProvider listenerProvider) : IInlineRenameService
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
     private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService = textBufferAssociatedViewService;
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
-    private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices = refactorNotifyServices;
     private readonly ITextBufferFactoryService _textBufferFactoryService = textBufferFactoryService;
     private readonly ITextBufferCloneService _textBufferCloneService = textBufferCloneService;
     private readonly IFeatureServiceFactory _featureServiceFactory = featureServiceFactory;
@@ -109,12 +105,10 @@ internal sealed class InlineRenameService(
             renameInfo,
             options,
             previewChanges,
-            _uiThreadOperationExecutor,
             _textBufferAssociatedViewService,
             _textBufferFactoryService,
             _textBufferCloneService,
             _featureServiceFactory,
-            _refactorNotifyServices,
             _asyncListener);
 
         return new InlineRenameSessionInfo(ActiveSession);

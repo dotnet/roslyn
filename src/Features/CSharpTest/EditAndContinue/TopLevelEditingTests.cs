@@ -24,22 +24,28 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 [UseExportProvider]
 public sealed class TopLevelEditingTests : EditingTestBase
 {
-    private static readonly string s_attributeSource = @"
-[System.AttributeUsage(System.AttributeTargets.All)]class A : System.Attribute { public A() {} public A(int x) { } }
-";
+    private static readonly string s_attributeSource = """
+
+        [System.AttributeUsage(System.AttributeTargets.All)]class A : System.Attribute { public A() {} public A(int x) { } }
+
+        """;
     #region Usings
 
     [Fact]
     public void Using_Global_Insert1()
     {
-        var src1 = @"
-using System.Collections.Generic;
-";
-        var src2 = @"
-global using D = System.Diagnostics;
-global using System.Collections;
-using System.Collections.Generic;
-";
+        var src1 = """
+
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            global using D = System.Diagnostics;
+            global using System.Collections;
+            using System.Collections.Generic;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -52,14 +58,18 @@ using System.Collections.Generic;
     [Fact]
     public void Using_Global_Insert2()
     {
-        var src1 = @"
-using unsafe D3 = int*;
-";
-        var src2 = @"
-global using D1 = int;
-using D2 = (int, int);
-using unsafe D3 = int*;
-";
+        var src1 = """
+
+            using unsafe D3 = int*;
+
+            """;
+        var src2 = """
+
+            global using D1 = int;
+            using D2 = (int, int);
+            using unsafe D3 = int*;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -72,9 +82,11 @@ using unsafe D3 = int*;
     [Fact]
     public void Using_Delete1()
     {
-        var src1 = @"
-using System.Diagnostics;
-";
+        var src1 = """
+
+            using System.Diagnostics;
+
+            """;
         var src2 = @"";
 
         var edits = GetTopEdits(src1, src2);
@@ -86,14 +98,18 @@ using System.Diagnostics;
     [Fact]
     public void Using_Delete2()
     {
-        var src1 = @"
-using D = System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
-";
-        var src2 = @"
-using System.Collections.Generic;
-";
+        var src1 = """
+
+            using D = System.Diagnostics;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            using System.Collections.Generic;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -106,14 +122,18 @@ using System.Collections.Generic;
     [Fact]
     public void Using_Delete3()
     {
-        var src1 = @"
-global using D1 = int;
-using D2 = (int, int);
-using unsafe D3 = int*;
-";
-        var src2 = @"
-using D2 = (int, int);
-";
+        var src1 = """
+
+            global using D1 = int;
+            using D2 = (int, int);
+            using unsafe D3 = int*;
+
+            """;
+        var src2 = """
+
+            using D2 = (int, int);
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -126,14 +146,18 @@ using D2 = (int, int);
     [Fact]
     public void Using_Insert1()
     {
-        var src1 = @"
-using System.Collections.Generic;
-";
-        var src2 = @"
-using D = System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
-";
+        var src1 = """
+
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            using D = System.Diagnostics;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -146,15 +170,19 @@ using System.Collections.Generic;
     [Fact]
     public void Using_Insert2()
     {
-        var src1 = @"
-using System.Collections.Generic;
-";
-        var src2 = @"
-global using D1 = int;
-using D2 = (int, int);
-using unsafe D3 = int*;
-using System.Collections.Generic;
-";
+        var src1 = """
+
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            global using D1 = int;
+            using D2 = (int, int);
+            using unsafe D3 = int*;
+            using System.Collections.Generic;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -168,16 +196,20 @@ using System.Collections.Generic;
     [Fact]
     public void Using_Update1()
     {
-        var src1 = @"
-using System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
-";
-        var src2 = @"
-using System.Diagnostics;
-using X = System.Collections;
-using System.Collections.Generic;
-";
+        var src1 = """
+
+            using System.Diagnostics;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            using System.Diagnostics;
+            using X = System.Collections;
+            using System.Collections.Generic;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -189,16 +221,20 @@ using System.Collections.Generic;
     [Fact]
     public void Using_Update2()
     {
-        var src1 = @"
-using System.Diagnostics;
-using X1 = System.Collections;
-using System.Collections.Generic;
-";
-        var src2 = @"
-using System.Diagnostics;
-using X2 = System.Collections;
-using System.Collections.Generic;
-";
+        var src1 = """
+
+            using System.Diagnostics;
+            using X1 = System.Collections;
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            using System.Diagnostics;
+            using X2 = System.Collections;
+            using System.Collections.Generic;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -210,16 +246,20 @@ using System.Collections.Generic;
     [Fact]
     public void Using_Update3()
     {
-        var src1 = @"
-using System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
-";
-        var src2 = @"
-using System;
-using System.Collections;
-using System.Collections.Generic;
-";
+        var src1 = """
+
+            using System.Diagnostics;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -231,16 +271,20 @@ using System.Collections.Generic;
     [Fact]
     public void Using_Update4()
     {
-        var src1 = @"
-using X = int;
-using Y = int;
-using Z = int;
-";
-        var src2 = @"
-using X = string;
-using unsafe Y = int*;
-global using Z = int;
-";
+        var src1 = """
+
+            using X = int;
+            using Y = int;
+            using Z = int;
+
+            """;
+        var src2 = """
+
+            using X = string;
+            using unsafe Y = int*;
+            global using Z = int;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -254,16 +298,20 @@ global using Z = int;
     [Fact]
     public void Using_Reorder1()
     {
-        var src1 = @"
-using System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
-";
-        var src2 = @"
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-";
+        var src1 = """
+
+            using System.Diagnostics;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            """;
+        var src2 = """
+
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -273,14 +321,18 @@ using System.Diagnostics;
     [Fact]
     public void Using_Reorder2()
     {
-        var src1 = @"
-using X = int;
-using Y = string;
-";
-        var src2 = @"
-using Y = string;
-using X = int;
-";
+        var src1 = """
+
+            using X = int;
+            using Y = string;
+
+            """;
+        var src2 = """
+
+            using Y = string;
+            using X = int;
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -290,26 +342,30 @@ using X = int;
     [Fact]
     public void Using_InsertDelete1()
     {
-        var src1 = @"
-namespace N
-{
-    using System.Collections;
-}
+        var src1 = """
 
-namespace M
-{
-}
-";
-        var src2 = @"
-namespace N
-{
-}
+            namespace N
+            {
+                using System.Collections;
+            }
 
-namespace M
-{
-    using System.Collections;
-}
-";
+            namespace M
+            {
+            }
+
+            """;
+        var src2 = """
+
+            namespace N
+            {
+            }
+
+            namespace M
+            {
+                using System.Collections;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -320,19 +376,23 @@ namespace M
     [Fact]
     public void Using_InsertDelete2()
     {
-        var src1 = @"
-namespace N
-{
-    using System.Collections;
-}
-";
-        var src2 = @"
-using System.Collections;
+        var src1 = """
 
-namespace N
-{
-}
-";
+            namespace N
+            {
+                using System.Collections;
+            }
+
+            """;
+        var src2 = """
+
+            using System.Collections;
+
+            namespace N
+            {
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -346,47 +406,51 @@ namespace N
         // This test specifically validates the scenario we _don't_ support, namely when inserting or deleting
         // a using directive, if existing code changes in meaning as a result, we don't issue edits for that code.
         // If this ever regresses then please buy a lottery ticket because the feature has magically fixed itself.
-        var src1 = @"
-using System.IO;
-using DirectoryInfo = N.C;
+        var src1 = """
 
-namespace N
-{
-    public class C
-    {
-        public C(string a) { }
-        public FileAttributes Attributes { get; set; }
-    }
+            using System.IO;
+            using DirectoryInfo = N.C;
 
-    public class D
-    {
-        public void M()
-        {
-            var d = new DirectoryInfo(""aa"");
-            var x = directoryInfo.Attributes;
-        }
-    }
-}";
-        var src2 = @"
-using System.IO;
+            namespace N
+            {
+                public class C
+                {
+                    public C(string a) { }
+                    public FileAttributes Attributes { get; set; }
+                }
 
-namespace N
-{
-    public class C
-    {
-        public C(string a) { }
-        public FileAttributes Attributes { get; set; }
-    }
+                public class D
+                {
+                    public void M()
+                    {
+                        var d = new DirectoryInfo("aa");
+                        var x = directoryInfo.Attributes;
+                    }
+                }
+            }
+            """;
+        var src2 = """
 
-    public class D
-    {
-        public void M()
-        {
-            var d = new DirectoryInfo(""aa"");
-            var x = directoryInfo.Attributes;
-        }
-    }
-}";
+            using System.IO;
+
+            namespace N
+            {
+                public class C
+                {
+                    public C(string a) { }
+                    public FileAttributes Attributes { get; set; }
+                }
+
+                public class D
+                {
+                    public void M()
+                    {
+                        var d = new DirectoryInfo("aa");
+                        var x = directoryInfo.Attributes;
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -400,29 +464,33 @@ namespace N
     {
         // As distinct from the above, this test validates a real world scenario of inserting a using directive
         // and changing code that utilizes the new directive to some effect.
-        var src1 = @"
-namespace N
-{
-    class Program
-    {
-        static void F()
-        {
-        }
-    }
-}";
-        var src2 = @"
-using System;
+        var src1 = """
 
-namespace N
-{
-    class Program
-    {
-        static void F()
-        {
-            Console.WriteLine(""Hello World!"");
-        }
-    }
-}";
+            namespace N
+            {
+                class Program
+                {
+                    static void F()
+                    {
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            namespace N
+            {
+                class Program
+                {
+                    static void F()
+                    {
+                        Console.WriteLine("Hello World!");
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -432,29 +500,33 @@ namespace N
     [Fact]
     public void Using_Delete_ForOldCode()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-namespace N
-{
-    class Program
-    {
-        static void F()
-        {
-            Console.WriteLine(""Hello World!"");
-        }
-    }
-}";
-        var src2 = @"
-namespace N
-{
-    class Program
-    {
-        static void F()
-        {
-        }
-    }
-}";
+            using System;
+
+            namespace N
+            {
+                class Program
+                {
+                    static void F()
+                    {
+                        Console.WriteLine("Hello World!");
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            namespace N
+            {
+                class Program
+                {
+                    static void F()
+                    {
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -466,41 +538,45 @@ namespace N
     {
         // This test validates that we still issue edits for changed valid code, even when unchanged
         // code has ambiguities after adding a using.
-        var src1 = @"
-using System.Threading;
+        var src1 = """
 
-namespace N
-{
-    class C
-    {
-        void M()
-        {
-            // Timer exists in System.Threading and System.Timers
-            var t = new Timer(s => System.Console.WriteLine(s));
-        }
-    }
-}";
-        var src2 = @"
-using System.Threading;
-using System.Timers;
+            using System.Threading;
 
-namespace N
-{
-    class C
-    {
-        void M()
-        {
-            // Timer exists in System.Threading and System.Timers
-            var t = new Timer(s => System.Console.WriteLine(s));
-        }
+            namespace N
+            {
+                class C
+                {
+                    void M()
+                    {
+                        // Timer exists in System.Threading and System.Timers
+                        var t = new Timer(s => System.Console.WriteLine(s));
+                    }
+                }
+            }
+            """;
+        var src2 = """
 
-        void M2()
-        {
-             // TimersDescriptionAttribute only exists in System.Timers
-            System.Console.WriteLine(new TimersDescriptionAttribute(""""));
-        }
-    }
-}";
+            using System.Threading;
+            using System.Timers;
+
+            namespace N
+            {
+                class C
+                {
+                    void M()
+                    {
+                        // Timer exists in System.Threading and System.Timers
+                        var t = new Timer(s => System.Console.WriteLine(s));
+                    }
+
+                    void M2()
+                    {
+                         // TimersDescriptionAttribute only exists in System.Timers
+                        System.Console.WriteLine(new TimersDescriptionAttribute(""));
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -715,12 +791,10 @@ namespace N
     public void Type_Modifiers_Accessibility_Partial(string accessibilityA, string accessibilityB)
     {
         var srcA1 = accessibilityA + " partial class C { }";
-        var srcB1 = "partial class C { }";
-        var srcA2 = "partial class C { }";
         var srcB2 = accessibilityB + " partial class C { }";
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, "partial class C { }"), GetTopEdits("partial class C { }", srcB2)],
             [
                 DocumentResults(),
                 DocumentResults(),
@@ -826,34 +900,38 @@ namespace N
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
     public void Type_Modifiers_Unsafe_Remove()
     {
-        var src1 = @"
-using System;
-unsafe delegate void D();
-class C
-{
-    unsafe class N { }
-    public unsafe event Action<int> A { add { } remove { } }
-    unsafe int F() => 0;
-    unsafe int X;
-    unsafe int Y { get; }
-    unsafe C() {}
-    unsafe ~C() {}
-}
-";
-        var src2 = @"
-using System;
-delegate void D();
-class C
-{
-    class N { }
-    public event Action<int> A { add { } remove { } }
-    int F() => 0;
-    int X;
-    int Y { get; }
-    C() {}
-    ~C() {}
-}
-";
+        var src1 = """
+
+            using System;
+            unsafe delegate void D();
+            class C
+            {
+                unsafe class N { }
+                public unsafe event Action<int> A { add { } remove { } }
+                unsafe int F() => 0;
+                unsafe int X;
+                unsafe int Y { get; }
+                unsafe C() {}
+                unsafe ~C() {}
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            delegate void D();
+            class C
+            {
+                class N { }
+                public event Action<int> A { add { } remove { } }
+                int F() => 0;
+                int X;
+                int Y { get; }
+                C() {}
+                ~C() {}
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -872,14 +950,8 @@ class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
     public void Type_Modifiers_Unsafe_DeleteInsert()
-    {
-        var srcA1 = "partial class C { unsafe void F() { } }";
-        var srcB1 = "partial class C { }";
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { void F() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { unsafe void F() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { void F() { } }")],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -887,7 +959,6 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"))
                 ]),
             ]);
-    }
 
     [Fact]
     public void Type_Modifiers_Ref_Add()
@@ -1137,10 +1208,12 @@ class C
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1831006")]
     public void Type_Attribute_Update_Null()
     {
-        var attribute = @"
-using System;
-public class A : Attribute { public A1(int[] array, Type type, Type[] types) {} }
-";
+        var attribute = """
+
+            using System;
+            public class A : Attribute { public A1(int[] array, Type type, Type[] types) {} }
+
+            """;
 
         var src1 = attribute + "[A(null, null, new Type[] { typeof(C) })]class C { }";
         var src2 = attribute + "[A(null, null, null)]class C { }";
@@ -1155,11 +1228,13 @@ public class A : Attribute { public A1(int[] array, Type type, Type[] types) {} 
     [Fact]
     public void Type_Attribute_Change_Reloadable()
     {
-        var attributeSrc = @"
-public class A1 : System.Attribute { }
-public class A2 : System.Attribute { }
-public class A3 : System.Attribute { }
-";
+        var attributeSrc = """
+
+            public class A1 : System.Attribute { }
+            public class A2 : System.Attribute { }
+            public class A3 : System.Attribute { }
+
+            """;
 
         var src1 = ReloadableAttributeSrc + attributeSrc + "[CreateNewOnMetadataUpdate, A1, A2]class C { }";
         var src2 = ReloadableAttributeSrc + attributeSrc + "[CreateNewOnMetadataUpdate, A2, A3]class C { }";
@@ -1247,13 +1322,9 @@ public class A3 : System.Attribute { }
             """;
 
         var srcA1 = attributes + "[CreateNewOnMetadataUpdate]partial class C { }";
-        var srcB1 = "partial class C { }";
-
         var srcA2 = attributes + "[CreateNewOnMetadataUpdate][A]partial class C { }";
-        var srcB2 = "[B]partial class C { }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { }", "[B]partial class C { }")],
             [
                 DocumentResults(semanticEdits:
                 [
@@ -1660,18 +1731,22 @@ public class A3 : System.Attribute { }
     [Fact]
     public void Type_BaseInterface_Delete_Inherited()
     {
-        var src1 = @"
-interface B {}
-interface A : B {}
+        var src1 = """
 
-class C : A, B {}
-";
-        var src2 = @"
-interface B {}
-interface A : B {}
+            interface B {}
+            interface A : B {}
 
-class C : A {}
-";
+            class C : A, B {}
+
+            """;
+        var src2 = """
+
+            interface B {}
+            interface A : B {}
+
+            class C : A {}
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -1726,18 +1801,15 @@ class C : A {}
     [Fact]
     public void Type_Base_Partial()
     {
-        var srcA1 = "partial class C : B, I { }";
-        var srcB1 = "partial class C : J { }";
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C : B, I, J { }";
+        var srcC = """
 
-        var srcC = @"
-class B {}
-interface I {}
-interface J {}";
+            class B {}
+            interface I {}
+            interface J {}
+            """;
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC)],
+            [GetTopEdits("partial class C : B, I { }", "partial class C { }"), GetTopEdits("partial class C : J { }", "partial class C : B, I, J { }"), GetTopEdits(srcC, srcC)],
             [
                 DocumentResults(),
                 DocumentResults(),
@@ -1747,17 +1819,8 @@ interface J {}";
 
     [Fact]
     public void Type_Base_Partial_InsertDeleteAndUpdate()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "";
-        var srcC1 = "partial class C { }";
-
-        var srcA2 = "";
-        var srcB2 = "partial class C : D { }";
-        var srcC2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", ""), GetTopEdits("", "partial class C : D { }"), GetTopEdits("partial class C { }", "partial class C { }")],
             [
                 DocumentResults(),
 
@@ -1766,23 +1829,19 @@ interface J {}";
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Type_Base_InsertDelete()
     {
-        var srcA1 = "";
-        var srcB1 = "class C : B, I { }";
-        var srcA2 = "class C : B, I { }";
-        var srcB2 = "";
+        var srcC = """
 
-        var srcC = @"
-class B {}
-interface I {}
-interface J {}";
+            class B {}
+            interface I {}
+            interface J {}
+            """;
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC)],
+            [GetTopEdits("", "class C : B, I { }"), GetTopEdits("class C : B, I { }", ""), GetTopEdits(srcC, srcC)],
             [
                 DocumentResults(),
                 DocumentResults(),
@@ -1793,18 +1852,22 @@ interface J {}";
     [Fact]
     public void Type_Reloadable_NotSupportedByRuntime()
     {
-        var src1 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-public class C
-{
-    void F() { System.Console.WriteLine(1); }
-}";
-        var src2 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-public class C
-{
-    void F() { System.Console.WriteLine(2); }
-}";
+        var src1 = ReloadableAttributeSrc + """
+
+            [CreateNewOnMetadataUpdate]
+            public class C
+            {
+                void F() { System.Console.WriteLine(1); }
+            }
+            """;
+        var src2 = ReloadableAttributeSrc + """
+
+            [CreateNewOnMetadataUpdate]
+            public class C
+            {
+                void F() { System.Console.WriteLine(2); }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
@@ -1816,13 +1879,15 @@ public class C
     public void Type_Insert_AbstractVirtualOverride()
     {
         var src1 = "";
-        var src2 = @"
-public abstract class C<T>
-{ 
-    public abstract void F(); 
-    public virtual void G() {}
-    public override string ToString() => null;
-}";
+        var src2 = """
+
+            public abstract class C<T>
+            { 
+                public abstract void F(); 
+                public virtual void G() {}
+                public override string ToString() => null;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
@@ -1832,27 +1897,31 @@ public abstract class C<T>
     [Fact]
     public void Type_Insert_NotSupportedByRuntime()
     {
-        var src1 = @"
-public class C
-{
-    void F()
-    {
-    }
-}";
-        var src2 = @"
-public class C
-{
-    void F()
-    {
-    }
-}
+        var src1 = """
 
-public class D
-{
-    void M()
-    {
-    }
-}";
+            public class C
+            {
+                void F()
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            public class C
+            {
+                void F()
+                {
+                }
+            }
+
+            public class D
+            {
+                void M()
+                {
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
@@ -1898,12 +1967,14 @@ public class D
     public void InterfaceInsert()
     {
         var src1 = "";
-        var src2 = @"
-public interface I 
-{ 
-    void F(); 
-    static void G() {}
-}";
+        var src2 = """
+
+            public interface I 
+            { 
+                void F(); 
+                static void G() {}
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
@@ -1976,12 +2047,10 @@ public interface I
     public void Struct_Modifiers_Partial_InsertDelete(string modifier)
     {
         var srcA1 = modifier + " partial struct S { }";
-        var srcB1 = "partial struct S { }";
-        var srcA2 = "partial struct S { }";
         var srcB2 = modifier + " partial struct S { }";
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, "partial struct S { }"), GetTopEdits("partial struct S { }", srcB2)],
             [
                 DocumentResults(),
                 DocumentResults()
@@ -2121,58 +2190,62 @@ public interface I
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37128")]
     public void Interface_InsertMembers()
     {
-        var src1 = @"
-using System;
-interface I
-{
-}
-";
-        var src2 = @"
-using System;
-interface I
-{
-    static int StaticField = 10;
+        var src1 = """
 
-    static void StaticMethod() { }
-    void VirtualMethod1() { }
-    virtual void VirtualMethod2() { }
-    abstract void AbstractMethod();
-    sealed void NonVirtualMethod() { }
+            using System;
+            interface I
+            {
+            }
 
-    public static int operator +(I a, I b) => 1;
+            """;
+        var src2 = """
 
-    static int StaticProperty1 { get => 1; set { } }
-    static int StaticProperty2 => 1;
-    virtual int VirtualProperty1 { get => 1; set { } }
-    virtual int VirtualProperty2 { get => 1; }
-    int VirtualProperty3 { get => 1; set { } }
-    int VirtualProperty4 { get => 1; }
-    abstract int AbstractProperty1 { get; set; }
-    abstract int AbstractProperty2 { get; }
-    sealed int NonVirtualProperty => 1;
+            using System;
+            interface I
+            {
+                static int StaticField = 10;
 
-    int this[byte virtualIndexer] => 1;
-    int this[sbyte virtualIndexer] { get => 1; }
-    virtual int this[ushort virtualIndexer] { get => 1; set {} }
-    virtual int this[short virtualIndexer] { get => 1; set {} }
-    abstract int this[uint abstractIndexer] { get; set; }
-    abstract int this[int abstractIndexer] { get; }
-    sealed int this[ulong nonVirtualIndexer] { get => 1; set {} }
-    sealed int this[long nonVirtualIndexer] { get => 1; set {} }
-    
-    static event Action StaticEvent;
-    static event Action StaticEvent2 { add { } remove { } }
+                static void StaticMethod() { }
+                void VirtualMethod1() { }
+                virtual void VirtualMethod2() { }
+                abstract void AbstractMethod();
+                sealed void NonVirtualMethod() { }
 
-    event Action VirtualEvent { add { } remove { } }
-    abstract event Action AbstractEvent;
-    sealed event Action NonVirtualEvent { add { } remove { } }
+                public static int operator +(I a, I b) => 1;
 
-    abstract class C { }
-    interface J { }
-    enum E { }
-    delegate void D();
-}
-";
+                static int StaticProperty1 { get => 1; set { } }
+                static int StaticProperty2 => 1;
+                virtual int VirtualProperty1 { get => 1; set { } }
+                virtual int VirtualProperty2 { get => 1; }
+                int VirtualProperty3 { get => 1; set { } }
+                int VirtualProperty4 { get => 1; }
+                abstract int AbstractProperty1 { get; set; }
+                abstract int AbstractProperty2 { get; }
+                sealed int NonVirtualProperty => 1;
+
+                int this[byte virtualIndexer] => 1;
+                int this[sbyte virtualIndexer] { get => 1; }
+                virtual int this[ushort virtualIndexer] { get => 1; set {} }
+                virtual int this[short virtualIndexer] { get => 1; set {} }
+                abstract int this[uint abstractIndexer] { get; set; }
+                abstract int this[int abstractIndexer] { get; }
+                sealed int this[ulong nonVirtualIndexer] { get => 1; set {} }
+                sealed int this[long nonVirtualIndexer] { get => 1; set {} }
+                
+                static event Action StaticEvent;
+                static event Action StaticEvent2 { add { } remove { } }
+
+                event Action VirtualEvent { add { } remove { } }
+                abstract event Action AbstractEvent;
+                sealed event Action NonVirtualEvent { add { } remove { } }
+
+                abstract class C { }
+                interface J { }
+                enum E { }
+                delegate void D();
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // TODO: InsertIntoInterface errors are reported due to https://github.com/dotnet/roslyn/issues/37128.
@@ -2210,26 +2283,28 @@ interface I
 
     [Fact]
     public void Interface_InsertDelete()
-    {
-        var srcA1 = @"
-interface I
-{
-    static void M() { }
-}
-";
-        var srcB1 = @"
-";
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-        var srcA2 = @"
-";
-        var srcB2 = @"
-interface I
-{
-    static void M() { }
-}
-";
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                interface I
+                {
+                    static void M() { }
+                }
+
+                """, """
+
+
+                """), GetTopEdits("""
+
+
+                         """, """
+
+                         interface I
+                         {
+                             static void M() { }
+                         }
+
+                         """)],
             [
                 DocumentResults(),
 
@@ -2239,42 +2314,45 @@ interface I
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("M"))
                     ]),
             ]);
-    }
 
     [Fact]
     public void Type_Generic_Insert_StatelessMembers()
     {
-        var src1 = @"
-using System;
-class C<T>
-{
-    int P1 { get => 1; }
-    int this[string s] { set {} }
-}
-";
-        var src2 = @"
-using System;
-class C<T>
-{
-    C(int x) {}
+        var src1 = """
 
-    void M() {}
-    void G<S>() {}
-    int P1 { get => 1; set {} }
-    int P2 { get => 1; set {} }
-    int this[int i] { set {} get => 1; }
-    int this[string s] { set {} get => 1; }
-    event Action E { add {} remove {} }
+            using System;
+            class C<T>
+            {
+                int P1 { get => 1; }
+                int this[string s] { set {} }
+            }
 
-    enum E {}
-    interface I {} 
-    interface I<S> {} 
-    class D {}
-    class D<S> {}
-    delegate void Del();
-    delegate void Del<S>();
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+            class C<T>
+            {
+                C(int x) {}
+
+                void M() {}
+                void G<S>() {}
+                int P1 { get => 1; set {} }
+                int P2 { get => 1; set {} }
+                int this[int i] { set {} get => 1; }
+                int this[string s] { set {} get => 1; }
+                event Action E { add {} remove {} }
+
+                enum E {}
+                interface I {} 
+                interface I<S> {} 
+                class D {}
+                class D<S> {}
+                delegate void Del();
+                delegate void Del<S>();
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         var diagnostics = new[]
@@ -2299,22 +2377,26 @@ class C<T>
     [Fact]
     public void Type_Generic_Insert_DataMembers()
     {
-        var src1 = @"
-using System;
-class C<T>
-{
-}
-";
-        var src2 = @"
-using System;
-class C<T>
-{
-    int P { get; set; }
-    event Action EF;
-    int F1, F2;
-    static int SF;
-}
-";
+        var src1 = """
+
+            using System;
+            class C<T>
+            {
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            class C<T>
+            {
+                int P { get; set; }
+                event Action EF;
+                int F1, F2;
+                static int SF;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         var nonGenericCapabilities =
@@ -2352,25 +2434,29 @@ class C<T>
     [Fact]
     public void Type_Generic_Insert_IntoNestedType()
     {
-        var src1 = @"
-class C<T>
-{
-    class D
-    {
-    }
-}
-";
-        var src2 = @"
-class C<T>
-{
-    class D
-    {
-        void F() {}
-        int X;
-        static int Y;
-    }
-}
-";
+        var src1 = """
+
+            class C<T>
+            {
+                class D
+                {
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+                class D
+                {
+                    void F() {}
+                    int X;
+                    static int Y;
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         var nonGenericCapabilities =
@@ -2394,42 +2480,46 @@ class C<T>
     [Fact]
     public void Type_Generic_InsertMembers_Reloadable()
     {
-        var src1 = ReloadableAttributeSrc + @"
-interface IExplicit
-{
-    void F() {}
-}
+        var src1 = ReloadableAttributeSrc + """
 
-[CreateNewOnMetadataUpdate]
-class C<T> : IExplicit
-{
-    void IExplicit.F() {}
-}
-";
-        var src2 = ReloadableAttributeSrc + @"
-interface IExplicit
-{
-    void F() {}
-}
+            interface IExplicit
+            {
+                void F() {}
+            }
 
-[CreateNewOnMetadataUpdate]
-class C<T> : IExplicit
-{
-    void IExplicit.F() {}
+            [CreateNewOnMetadataUpdate]
+            class C<T> : IExplicit
+            {
+                void IExplicit.F() {}
+            }
 
-    void M() {}
-    int P1 { get; set; }
-    int P2 { get => 1; set {} }
-    int this[int i] { get => 1; set {} }
-    event System.Action E { add {} remove {} }
-    event System.Action EF;
-    int F1, F2;
+            """;
+        var src2 = ReloadableAttributeSrc + """
 
-    enum E {}
-    interface I {} 
-    class D {}
-}
-";
+            interface IExplicit
+            {
+                void F() {}
+            }
+
+            [CreateNewOnMetadataUpdate]
+            class C<T> : IExplicit
+            {
+                void IExplicit.F() {}
+
+                void M() {}
+                int P1 { get; set; }
+                int P2 { get => 1; set {} }
+                int this[int i] { get => 1; set {} }
+                event System.Action E { add {} remove {} }
+                event System.Action EF;
+                int F1, F2;
+
+                enum E {}
+                interface I {} 
+                class D {}
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
@@ -2443,11 +2533,13 @@ class C<T> : IExplicit
     [Fact]
     public void Type_Generic_DeleteInsert()
     {
-        var srcA1 = @"
-class C<T> { void F() {} }
-struct S<T> { void F() {} }
-interface I<T> { void F() {} }
-";
+        var srcA1 = """
+
+            class C<T> { void F() {} }
+            struct S<T> { void F() {} }
+            interface I<T> { void F() {} }
+
+            """;
         var srcB1 = "";
 
         var srcA2 = srcB1;
@@ -2502,19 +2594,16 @@ interface I<T> { void F() {} }
 
     [Fact]
     public void Type_Delete()
-    {
-        var src1 = @"
-class C { void F() {} }
-struct S { void F() {} }
-interface I { void F() {} }
-";
-        var src2 = "";
+        => GetTopEdits("""
 
-        GetTopEdits(src1, src2).VerifySemanticDiagnostics(
+            class C { void F() {} }
+            struct S { void F() {} }
+            interface I { void F() {} }
+
+            """, "").VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "C")),
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.struct_, "S")),
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.interface_, "I")));
-    }
 
     [Fact]
     public void Type_Delete_Reloadable()
@@ -2528,14 +2617,8 @@ interface I { void F() {} }
 
     [Fact]
     public void Type_Partial_DeleteDeclaration()
-    {
-        var srcA1 = "partial class C { void F() {} void M() { } }";
-        var srcB1 = "partial class C { void G() {} }";
-        var srcA2 = "";
-        var srcB2 = "partial class C { void G() {} void M() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { void F() {} void M() { } }", ""), GetTopEdits("partial class C { void G() {} }", "partial class C { void G() {} void M() { } }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -2549,29 +2632,17 @@ interface I { void F() {} }
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("M")),
                     ])
             ]);
-    }
 
     [Fact]
     public void Type_Partial_InsertFirstDeclaration()
-    {
-        var src1 = "";
-        var src2 = "partial class C { void F() {}  }";
-
-        GetTopEdits(src1, src2).VerifySemantics(
+        => GetTopEdits("", "partial class C { void F() {}  }").VerifySemantics(
             [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C"), preserveLocalVariables: false)],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Type_Partial_InsertSecondDeclaration()
-    {
-        var srcA1 = "partial class C { void F() {} }";
-        var srcB1 = "";
-        var srcA2 = "partial class C { void F() {} }";
-        var srcB2 = "partial class C { void G() {} }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { void F() {} }", "partial class C { void F() {} }"), GetTopEdits("", "partial class C { void G() {} }")],
             [
                 DocumentResults(),
 
@@ -2582,18 +2653,14 @@ interface I { void F() {} }
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Type_Partial_Reloadable()
     {
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { void F() {} }";
-        var srcB1 = "";
         var srcA2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { void F() {} }";
-        var srcB2 = "partial class C { void G() {} }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("", "partial class C { void G() {} }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -2608,11 +2675,13 @@ interface I { void F() {} }
     [Fact]
     public void Type_DeleteInsert()
     {
-        var srcA1 = @"
-class C { void F() {} }
-struct S { void F() {} }
-interface I { void F() {} }
-";
+        var srcA1 = """
+
+            class C { void F() {} }
+            struct S { void F() {} }
+            interface I { void F() {} }
+
+            """;
         var srcB1 = "";
 
         var srcA2 = srcB1;
@@ -2637,13 +2706,9 @@ interface I { void F() {} }
     public void Type_DeleteInsert_Reloadable()
     {
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { void F() {} }";
-        var srcB1 = "";
-
         var srcA2 = ReloadableAttributeSrc;
-        var srcB2 = "[CreateNewOnMetadataUpdate]class C { void F() {} }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("", "[CreateNewOnMetadataUpdate]class C { void F() {} }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -2658,21 +2723,23 @@ interface I { void F() {} }
     [Fact]
     public void Type_NonInsertableMembers_DeleteInsert()
     {
-        var srcA1 = @"
-abstract class C
-{
-    public abstract void AbstractMethod();
-    public virtual void VirtualMethod() {}
-    public override string ToString() => null;
-    public void I.G() {}
-}
+        var srcA1 = """
 
-interface I
-{
-    void G();
-    void F() {}
-}
-";
+            abstract class C
+            {
+                public abstract void AbstractMethod();
+                public virtual void VirtualMethod() {}
+                public override string ToString() => null;
+                public void I.G() {}
+            }
+
+            interface I
+            {
+                void G();
+                void F() {}
+            }
+
+            """;
         var srcB1 = "";
 
         var srcA2 = srcB1;
@@ -2699,42 +2766,39 @@ interface I
 
     [Fact]
     public void Type_Attribute_NonInsertableMembers_DeleteInsert()
-    {
-        var srcA1 = @"
-abstract class C
-{
-    public abstract void AbstractMethod();
-    public virtual void VirtualMethod() {}
-    public override string ToString() => null;
-    public void I.G() {}
-}
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-interface I
-{
-    void G();
-    void F() {}
-}
-";
-        var srcB1 = "";
+                abstract class C
+                {
+                    public abstract void AbstractMethod();
+                    public virtual void VirtualMethod() {}
+                    public override string ToString() => null;
+                    public void I.G() {}
+                }
 
-        var srcA2 = "";
-        var srcB2 = @"
-abstract class C
-{
-    [System.Obsolete]public abstract void AbstractMethod();
-    public virtual void VirtualMethod() {}
-    public override string ToString() => null;
-    public void I.G() {}
-}
+                interface I
+                {
+                    void G();
+                    void F() {}
+                }
 
-interface I
-{
-    [System.Obsolete]void G();
-    void F() {}
-}";
+                """, ""), GetTopEdits("", """
 
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                abstract class C
+                {
+                    [System.Obsolete]public abstract void AbstractMethod();
+                    public virtual void VirtualMethod() {}
+                    public override string ToString() => null;
+                    public void I.G() {}
+                }
+
+                interface I
+                {
+                    [System.Obsolete]void G();
+                    void F() {}
+                }
+                """)],
             [
                 DocumentResults(),
 
@@ -2750,34 +2814,31 @@ interface I
                     ])
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Type_DeleteInsert_DataMembers()
-    {
-        var srcA1 = @"
-class C
-{
-    public int x = 1;
-    public int y = 2;
-    public int P { get; set; } = 3;
-    public event System.Action E = new System.Action(null);
-}
-";
-        var srcB1 = "";
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-        var srcA2 = "";
-        var srcB2 = @"
-class C
-{
-    public int x = 1;
-    public int y = 2;
-    public int P { get; set; } = 3;
-    public event System.Action E = new System.Action(null);
-}
-";
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                class C
+                {
+                    public int x = 1;
+                    public int y = 2;
+                    public int P { get; set; } = 3;
+                    public event System.Action E = new System.Action(null);
+                }
+
+                """, ""), GetTopEdits("", """
+
+                class C
+                {
+                    public int x = 1;
+                    public int y = 2;
+                    public int P { get; set; } = 3;
+                    public event System.Action E = new System.Action(null);
+                }
+
+                """)],
             [
                 DocumentResults(),
 
@@ -2789,36 +2850,35 @@ class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true),
                     ])
             ]);
-    }
 
     [Fact]
     public void Type_DeleteInsert_DataMembers_PartialSplit()
-    {
-        var srcA1 = @"
-class C
-{
-    public int x = 1;
-    public int y = 2;
-    public int P { get; set; } = 3;
-}
-";
-        var srcB1 = "";
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-        var srcA2 = @"
-partial class C
-{
-    public int x = 1;
-    public int y = 2;
-}
-";
-        var srcB2 = @"
-partial class C
-{
-    public int P { get; set; } = 3;
-}
-";
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                class C
+                {
+                    public int x = 1;
+                    public int y = 2;
+                    public int P { get; set; } = 3;
+                }
+
+                """, """
+
+                partial class C
+                {
+                    public int x = 1;
+                    public int y = 2;
+                }
+
+                """), GetTopEdits("", """
+
+                partial class C
+                {
+                    public int P { get; set; } = 3;
+                }
+
+                """)],
             [
                 DocumentResults(),
 
@@ -2830,38 +2890,39 @@ partial class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ])
             ]);
-    }
 
     [Fact]
     public void Type_DeleteInsert_DataMembers_PartialMerge()
     {
-        var srcA1 = @"
-partial class C
-{
-    public int x = 1;
-    public int y = 2;
-}
-";
-        var srcB1 = @"
-partial class C
-{
-    public int P { get; set; } = 3;
-}";
-
-        var srcA2 = @"
-class C
-{
-    public int x = 1;
-    public int y = 2;
-    public int P { get; set; } = 3;
-}
-";
-
-        var srcB2 = @"
-";
         // note that accessors are not updated since they do not have bodies
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("""
+
+                partial class C
+                {
+                    public int x = 1;
+                    public int y = 2;
+                }
+
+                """, """
+
+                class C
+                {
+                    public int x = 1;
+                    public int y = 2;
+                    public int P { get; set; } = 3;
+                }
+
+                """), GetTopEdits("""
+
+                         partial class C
+                         {
+                             public int P { get; set; } = 3;
+                         }
+                         """, """
+
+
+                         """)],
             [
                 DocumentResults(
                     semanticEdits:
@@ -3027,15 +3088,19 @@ class C
     [Fact]
     public void RecordStruct_AddField()
     {
-        var src1 = @"
-record struct C(int X)
-{
-}";
-        var src2 = @"
-record struct C(int X)
-{
-    private int _y = 0;
-}";
+        var src1 = """
+
+            record struct C(int X)
+            {
+            }
+            """;
+        var src2 = """
+
+            record struct C(int X)
+            {
+                private int _y = 0;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -3046,15 +3111,19 @@ record struct C(int X)
     [Fact]
     public void RecordStruct_AddProperty()
     {
-        var src1 = @"
-record struct C(int X)
-{
-}";
-        var src2 = @"
-record struct C(int X)
-{
-    public int Y { get; set; } = 0;
-}";
+        var src1 = """
+
+            record struct C(int X)
+            {
+            }
+            """;
+        var src2 = """
+
+            record struct C(int X)
+            {
+                public int Y { get; set; } = 0;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -3177,13 +3246,15 @@ record struct C(int X)
     public void Record_Method_Insert_AbstractVirtualOverride()
     {
         var src1 = "";
-        var src2 = @"
-public abstract record C<T>
-{ 
-    public abstract void F(); 
-    public virtual void G() {}
-    public override void H() {}
-}";
+        var src2 = """
+
+            public abstract record C<T>
+            { 
+                public abstract void F(); 
+                public virtual void G() {}
+                public override void H() {}
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
@@ -3219,11 +3290,13 @@ public abstract record C<T>
     public void Record_Method_Insert_ReplacingSynthesizedWithCustom_SemanticError()
     {
         var src1 = "record C { }";
-        var src2 = @"record C
-{
-    protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
-    protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
-}";
+        var src2 = """
+            record C
+            {
+                protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
+                protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -3348,22 +3421,26 @@ public abstract record C<T>
     [Fact]
     public void Record_Field_Insert_WithExplicitMembers()
     {
-        var src1 = @"
-record C(int X)
-{
-    public C(C other)
-    {
-    }
-}";
-        var src2 = @"
-record C(int X)
-{
-    private int _y;
-    
-    public C(C other)
-    {
-    }
-}";
+        var src1 = """
+
+            record C(int X)
+            {
+                public C(C other)
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            record C(int X)
+            {
+                private int _y;
+                
+                public C(C other)
+                {
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -3625,18 +3702,22 @@ record C(int X)
     [Fact]
     public void Record_Property_Delete_WithInitializer()
     {
-        var src1 = @"
-record C(int X)
-{
-    public int Y { get; set; } = 1;
+        var src1 = """
 
-    public C(bool b) : this(1) { }
-}";
-        var src2 = @"
-record C(int X)
-{
-    public C(bool b) : this(1) { }
-}";
+            record C(int X)
+            {
+                public int Y { get; set; } = 1;
+
+                public C(bool b) : this(1) { }
+            }
+            """;
+        var src2 = """
+
+            record C(int X)
+            {
+                public C(bool b) : this(1) { }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -3712,14 +3793,9 @@ record C(int X)
     [InlineData(" = X;")]
     public void Record_Property_Delete_ReplacingCustomWithSynthesized_Auto_Partial(string initializer)
     {
-        var srcA1 = "partial record C(int X);";
         var srcB1 = "partial record C { public int X { get; init; }" + initializer + " }";
-
-        var srcA2 = "partial record C(int X);";
-        var srcB2 = "partial record C;";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("partial record C(int X);", "partial record C(int X);"), GetTopEdits(srcB1, "partial record C;")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -3809,17 +3885,13 @@ record C(int X)
     [InlineData("get { return 4; } init { }")]
     public void Record_Property_Delete_ReplacingCustomWithSynthesized_WithBody_Partial(string body)
     {
-        var srcA1 = "partial record C(int X);";
         var srcB1 = "partial record C { public int X { " + body + " } }";
-
-        var srcA2 = "partial record C(int X);";
-        var srcB2 = "partial record C;";
 
         // The property changes from custom property to field-backed auto-prop.
         // Methods using backing field must be updated, unless they are explicitly declared.
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("partial record C(int X);", "partial record C(int X);"), GetTopEdits(srcB1, "partial record C;")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -3959,18 +4031,22 @@ record C(int X)
     [Fact]
     public void Record_Property_Insert_WithInitializer()
     {
-        var src1 = @"
-record C(int X)
-{
-    public C(bool b) : this(1) { }
-}";
-        var src2 = @"
-record C(int X)
-{
-    public int Y { get; set; } = 1;
+        var src1 = """
 
-    public C(bool b) : this(1) { }
-}";
+            record C(int X)
+            {
+                public C(bool b) : this(1) { }
+            }
+            """;
+        var src2 = """
+
+            record C(int X)
+            {
+                public int Y { get; set; } = 1;
+
+                public C(bool b) : this(1) { }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -4065,52 +4141,56 @@ record C(int X)
     [Fact]
     public void Record_Property_Insert_NotPrimary_WithExplicitMembers()
     {
-        var src1 = @"
-record C(int X)
-{
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
-    {
-        return false;
-    }
+        var src1 = """
 
-    public override int GetHashCode()
-    {
-        return 0;
-    }
+            record C(int X)
+            {
+                protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+                {
+                    return false;
+                }
 
-    public virtual bool Equals(C other)
-    {
-        return false;
-    }
+                public override int GetHashCode()
+                {
+                    return 0;
+                }
 
-    public C(C original)
-    {
-    }
-}";
-        var src2 = @"
-record C(int X)
-{
-    public int Y { get; set; }
+                public virtual bool Equals(C other)
+                {
+                    return false;
+                }
 
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
-    {
-        return false;
-    }
+                public C(C original)
+                {
+                }
+            }
+            """;
+        var src2 = """
 
-    public override int GetHashCode()
-    {
-        return 0;
-    }
+            record C(int X)
+            {
+                public int Y { get; set; }
 
-    public virtual bool Equals(C other)
-    {
-        return false;
-    }
+                protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+                {
+                    return false;
+                }
 
-    public C(C original)
-    {
-    }
-}";
+                public override int GetHashCode()
+                {
+                    return 0;
+                }
+
+                public virtual bool Equals(C other)
+                {
+                    return false;
+                }
+
+                public C(C original)
+                {
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -4150,14 +4230,10 @@ record C(int X)
     [InlineData(" = X;")]
     public void Record_Property_Insert_ReplacingSynthesizedWithCustom_Auto_Partial(string initializer)
     {
-        var srcA1 = "partial record C(int X);";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C(int X);";
         var srcB2 = "partial record C { public int X { get; init; }" + initializer + " }";
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("partial record C(int X);", "partial record C(int X);"), GetTopEdits("partial record C;", srcB2)],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -4201,14 +4277,10 @@ record C(int X)
     [InlineData("get { return 4; } init { }")]
     public void Record_Property_Insert_ReplacingSynthesizedWithCustom_WithBody_Partial(string body)
     {
-        var srcA1 = "partial record C(int X);";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C(int X);";
         var srcB2 = "partial record C { public int X { " + body + " } }";
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("partial record C(int X);", "partial record C(int X);"), GetTopEdits("partial record C;", srcB2)],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -4280,15 +4352,8 @@ record C(int X)
 
     [Fact]
     public void Record_Property_DeleteInsert()
-    {
-        var srcA1 = "partial record C(int X) { public int Y { get; init; } }";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C(int X);";
-        var srcB2 = "partial record C { public int Y { get; init; } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C(int X) { public int Y { get; init; } }", "partial record C(int X);"), GetTopEdits("partial record C;", "partial record C { public int Y { get; init; } }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -4298,7 +4363,6 @@ record C(int X)
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.Y").SetMethod)
                     ]),
             ]);
-    }
 
     #endregion
 
@@ -4414,14 +4478,8 @@ record C(int X)
 
     [Fact]
     public void Enum_Member_Attribute_InsertDeleteAndUpdate()
-    {
-        var srcA1 = "";
-        var srcB1 = "enum N { A = 1 }";
-        var srcA2 = "enum N { [System.Obsolete]A = 1 }";
-        var srcB2 = "";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("", "enum N { [System.Obsolete]A = 1 }"), GetTopEdits("enum N { A = 1 }", "")],
             [
                 DocumentResults(semanticEdits:
                 [
@@ -4430,7 +4488,6 @@ record C(int X)
                 DocumentResults()
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Enum_Rename()
@@ -5654,18 +5711,22 @@ record C(int X)
     [Fact]
     public void NestedType_InsertMemberWithInitializer1()
     {
-        var src1 = @"
-class C
-{
-}";
-        var src2 = @"
-class C
-{
-    private class D
-    {
-        public int P = 1;
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                private class D
+                {
+                    public int P = 1;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -5677,36 +5738,40 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
     public void NestedType_Insert_PInvoke()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-class C
-{
-}";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-class C
-{
-    abstract class D 
-    {
-        public extern D();
+            class C
+            {
+            }
+            """;
+        var src2 = """
 
-        public static extern int P { [DllImport(""msvcrt.dll"")]get; [DllImport(""msvcrt.dll"")]set; }
+            using System;
+            using System.Runtime.InteropServices;
 
-        [DllImport(""msvcrt.dll"")]
-        public static extern int puts(string c);
+            class C
+            {
+                abstract class D 
+                {
+                    public extern D();
 
-        [DllImport(""msvcrt.dll"")]
-        public static extern int operator +(D d, D g);
+                    public static extern int P { [DllImport("msvcrt.dll")]get; [DllImport("msvcrt.dll")]set; }
 
-        [DllImport(""msvcrt.dll"")]
-        public static extern explicit operator int (D d);
-    }
-}
-";
+                    [DllImport("msvcrt.dll")]
+                    public static extern int puts(string c);
+
+                    [DllImport("msvcrt.dll")]
+                    public static extern int operator +(D d, D g);
+
+                    [DllImport("msvcrt.dll")]
+                    public static extern explicit operator int (D d);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Adding P/Invoke is not supported by the CLR.
@@ -5721,32 +5786,36 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
     public void NestedType_Insert_VirtualAbstract()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-class C
-{
-}";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-class C
-{
-    abstract class D 
-    {
-        public abstract int P { get; }
-        public abstract int this[int i] { get; }
-        public abstract int puts(string c);
+            class C
+            {
+            }
+            """;
+        var src2 = """
 
-        public virtual event Action E { add { } remove { } }
-        public virtual int Q { get { return 1; } }
-        public virtual int this[string i] { get { return 1; } }
-        public virtual int M(string c) { return 1; }
-    }
-}
-";
+            using System;
+            using System.Runtime.InteropServices;
+
+            class C
+            {
+                abstract class D 
+                {
+                    public abstract int P { get; }
+                    public abstract int this[int i] { get; }
+                    public abstract int puts(string c);
+
+                    public virtual event Action E { add { } remove { } }
+                    public virtual int Q { get { return 1; } }
+                    public virtual int this[string i] { get { return 1; } }
+                    public virtual int M(string c) { return 1; }
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics();
@@ -5812,28 +5881,32 @@ class C
     [Fact]
     public void NestedClassGeneric_Insert()
     {
-        var src1 = @"
-using System;
-class C<T>
-{
-}
-";
-        var src2 = @"
-using System;
-class C<T>
-{
-    class D {}
-    struct S {}
-    enum N {}
-    interface I {}
-    delegate void D();
-}
+        var src1 = """
 
-class D<T>
-{
-    
-}
-";
+            using System;
+            class C<T>
+            {
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            class C<T>
+            {
+                class D {}
+                struct S {}
+                enum N {}
+                interface I {}
+                delegate void D();
+            }
+
+            class D<T>
+            {
+                
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
@@ -5856,30 +5929,17 @@ class D<T>
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDelete()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { enum N { A = 1 } }";
-        var srcA2 = "partial struct S { enum N { A = 1 } }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { enum N { A = 1 } }"), GetTopEdits("partial struct S { enum N { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(),
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDeleteAndUpdateMember()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { enum N { A = 1 } }";
-        var srcA2 = "partial struct S { enum N { A = 2 } }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { enum N { A = 2 } }"), GetTopEdits("partial struct S { enum N { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(
                     diagnostics:
@@ -5889,18 +5949,11 @@ class D<T>
 
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDeleteAndUpdateBase()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { enum N : uint { A = 1 } }";
-        var srcA2 = "partial struct S { enum N : int { A = 1 } }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { enum N : int { A = 1 } }"), GetTopEdits("partial struct S { enum N : uint { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(
                     diagnostics:
@@ -5910,36 +5963,22 @@ class D<T>
 
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDeleteAndInsertMember()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { enum N { A = 1 } }";
-        var srcA2 = "partial struct S { enum N { A = 1, B = 2 } }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { enum N { A = 1, B = 2 } }"), GetTopEdits("partial struct S { enum N { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value)]),
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDelete()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { delegate void D(); }";
-        var srcA2 = "partial struct S { delegate void D(); }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { delegate void D(); }"), GetTopEdits("partial struct S { delegate void D(); }", "partial struct S { }")],
             [
                 DocumentResults(
                     // delegate does not have any user-defined method body and this does not need a PDB update
@@ -5947,36 +5986,22 @@ class D<T>
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDeleteAndChangeParameters()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { delegate void D(); }";
-        var srcA2 = "partial struct S { delegate void D(int x); }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { delegate void D(int x); }"), GetTopEdits("partial struct S { delegate void D(); }", "partial struct S { }")],
             [
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.TypeUpdate, "delegate void D(int x)", GetResource("delegate"))]),
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDeleteAndChangeReturnType()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { delegate ref int D(); }";
-        var srcA2 = "partial struct S { delegate ref readonly int D(); }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { delegate ref readonly int D(); }"), GetTopEdits("partial struct S { delegate ref int D(); }", "partial struct S { }")],
             [
                 DocumentResults(
                     diagnostics:
@@ -5986,18 +6011,11 @@ class D<T>
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDeleteAndChangeOptionalParameterValue()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { delegate void D(int x = 1); }";
-        var srcA2 = "partial struct S { delegate void D(int x = 2); }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { delegate void D(int x = 2); }"), GetTopEdits("partial struct S { delegate void D(int x = 1); }", "partial struct S { }")],
             [
                 DocumentResults(
                     diagnostics:
@@ -6007,21 +6025,11 @@ class D<T>
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedPartialTypeInPartialType_InsertDeleteAndChange()
-    {
-        var srcA1 = "partial struct S { partial class C { void F1() {} } }";
-        var srcB1 = "partial struct S { partial class C { void F2(byte x) {} } }";
-        var srcC1 = "partial struct S { }";
-
-        var srcA2 = "partial struct S { partial class C { void F1() {} } }";
-        var srcB2 = "partial struct S { }";
-        var srcC2 = "partial struct S { partial class C { void F2(int x) {} } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { partial class C { void F1() {} } }", "partial struct S { partial class C { void F1() {} } }"), GetTopEdits("partial struct S { partial class C { void F2(byte x) {} } }", "partial struct S { }"), GetTopEdits("partial struct S { }", "partial struct S { partial class C { void F2(int x) {} } }")],
             [
                 DocumentResults(),
 
@@ -6035,19 +6043,11 @@ class D<T>
                     semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.C.F2").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol)])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Type_Insert_Partial_Multiple()
-    {
-        var srcA1 = "";
-        var srcB1 = "";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("", "partial class C { }"), GetTopEdits("", "partial class C { }")],
             [
                 DocumentResults(semanticEdits:
                 [
@@ -6059,39 +6059,21 @@ class D<T>
                 ]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Type_Delete_Partial_Multiple()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "";
-        var srcB2 = "";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", ""), GetTopEdits("partial class C { }", "")],
             [
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.Delete, null, GetResource("class", "C"))]),
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.Delete, null, GetResource("class", "C"))]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteAndChange_Attribute()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "";
-        var srcC1 = "partial class C { }";
-
-        var srcA2 = "";
-        var srcB2 = "[A]partial class C { }";
-        var srcC2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", ""), GetTopEdits("", "[A]partial class C { }"), GetTopEdits("partial class C { }", "partial class C { }")],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -6101,7 +6083,6 @@ class D<T>
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteAndChange_TypeParameterAttribute()
@@ -6147,17 +6128,8 @@ class D<T>
 
     [Fact]
     public void Type_Partial_InsertDeleteAndChange_Constraint()
-    {
-        var srcA1 = "partial class C<T> { }";
-        var srcB1 = "";
-        var srcC1 = "partial class C<T> { }";
-
-        var srcA2 = "";
-        var srcB2 = "partial class C<T> where T : new() { }";
-        var srcC2 = "partial class C<T> { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C<T> { }", ""), GetTopEdits("", "partial class C<T> where T : new() { }"), GetTopEdits("partial class C<T> { }", "partial class C<T> { }")],
             [
                 DocumentResults(),
 
@@ -6169,25 +6141,14 @@ class D<T>
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteRefactor()
     {
-        var srcA1 = "partial class C : I { void F() { } }";
-        var srcB1 = "[A][B]partial class C : J { void G() { } }";
-        var srcC1 = "";
-        var srcD1 = "";
-
-        var srcA2 = "";
-        var srcB2 = "";
-        var srcC2 = "[A]partial class C : I, J { void F() { } }";
-        var srcD2 = "[B]partial class C { void G() { } }";
-
         var srcE = "interface I {} interface J {}";
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE, srcE)],
+            [GetTopEdits("partial class C : I { void F() { } }", ""), GetTopEdits("[A][B]partial class C : J { void G() { } }", ""), GetTopEdits("", "[A]partial class C : I, J { void F() { } }"), GetTopEdits("", "[B]partial class C { void G() { } }"), GetTopEdits(srcE, srcE)],
             [
                 DocumentResults(),
                 DocumentResults(),
@@ -6205,19 +6166,17 @@ class D<T>
     [Fact]
     public void Type_Partial_Attribute_AddMultiple()
     {
-        var attributes = @"
-class A : System.Attribute {}
-class B : System.Attribute {}
-";
+        var attributes = """
+
+            class A : System.Attribute {}
+            class B : System.Attribute {}
+
+            """;
 
         var srcA1 = "partial class C { }" + attributes;
-        var srcB1 = "partial class C { }";
-
         var srcA2 = "[A]partial class C { }" + attributes;
-        var srcB2 = "[B]partial class C { }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { }", "[B]partial class C { }")],
             [
                 DocumentResults(semanticEdits:
                 [
@@ -6233,19 +6192,8 @@ class B : System.Attribute {}
 
     [Fact]
     public void Type_Partial_InsertDeleteRefactor_AttributeListSplitting()
-    {
-        var srcA1 = "partial class C { void F() { } }";
-        var srcB1 = "[A,B]partial class C { void G() { } }";
-        var srcC1 = "";
-        var srcD1 = "";
-
-        var srcA2 = "";
-        var srcB2 = "";
-        var srcC2 = "[A]partial class C { void F() { } }";
-        var srcD2 = "[B]partial class C { void G() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { void F() { } }", ""), GetTopEdits("[A,B]partial class C { void G() { } }", ""), GetTopEdits("", "[A]partial class C { void F() { } }"), GetTopEdits("", "[B]partial class C { void G() { } }")],
             [
                 DocumentResults(),
                 DocumentResults(),
@@ -6258,47 +6206,21 @@ class B : System.Attribute {}
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.G"))
                 ]),
             ]);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteChangeMember()
-    {
-        var srcA1 = "partial class C { void F(int y = 1) { } }";
-        var srcB1 = "partial class C { void G(int x = 1) { } }";
-        var srcC1 = "";
-
-        var srcA2 = "";
-        var srcB2 = "partial class C { void G(int x = 2) { } }";
-        var srcC2 = "partial class C { void F(int y = 2) { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { void F(int y = 1) { } }", ""), GetTopEdits("partial class C { void G(int x = 1) { } }", "partial class C { void G(int x = 2) { } }"), GetTopEdits("", "partial class C { void F(int y = 2) { } }")],
             [
                 DocumentResults(),
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.InitializerUpdate, "int x = 2", FeaturesResources.parameter)]),
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.InitializerUpdate, "int y = 2", FeaturesResources.parameter)]),
             ]);
-    }
 
     [Fact]
     public void NestedPartialTypeInPartialType_InsertDeleteAndInsertVirtual()
-    {
-        var srcA1 = "partial interface I { partial class C { virtual void F1() {} } }";
-        var srcB1 = "partial interface I { partial class C { virtual void F2() {} } }";
-        var srcC1 = "partial interface I { partial class C { } }";
-        var srcD1 = "partial interface I { partial class C { } }";
-        var srcE1 = "partial interface I { }";
-        var srcF1 = "partial interface I { }";
-
-        var srcA2 = "partial interface I { partial class C { } }";
-        var srcB2 = "";
-        var srcC2 = "partial interface I { partial class C { virtual void F1() {} } }"; // move existing virtual into existing partial decl
-        var srcD2 = "partial interface I { partial class C { virtual void N1() {} } }"; // insert new virtual into existing partial decl
-        var srcE2 = "partial interface I { partial class C { virtual void F2() {} } }"; // move existing virtual into a new partial decl
-        var srcF2 = "partial interface I { partial class C { virtual void N2() {} } }"; // insert new virtual into new partial decl
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE1, srcE2), GetTopEdits(srcF1, srcF2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial interface I { partial class C { virtual void F1() {} } }", "partial interface I { partial class C { } }"), GetTopEdits("partial interface I { partial class C { virtual void F2() {} } }", ""), GetTopEdits("partial interface I { partial class C { } }", "partial interface I { partial class C { virtual void F1() {} } }"), GetTopEdits("partial interface I { partial class C { } }", "partial interface I { partial class C { virtual void N1() {} } }"), GetTopEdits("partial interface I { }", "partial interface I { partial class C { virtual void F2() {} } }"), GetTopEdits("partial interface I { }", "partial interface I { partial class C { virtual void N2() {} } }")],
             [
                 // A
                 DocumentResults(),
@@ -6322,7 +6244,6 @@ class B : System.Attribute {}
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.InsertVirtual, "virtual void N2()", FeaturesResources.method)]),
             ]);
-    }
 
     #endregion
 
@@ -6739,14 +6660,8 @@ class B : System.Attribute {}
 
     [Fact]
     public void Namespace_Update_MultiplePartials1()
-    {
-        var srcA1 = @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }";
-        var srcB1 = @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
-        var srcA2 = @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }";
-        var srcB2 = @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -6760,18 +6675,11 @@ class B : System.Attribute {}
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Namespace_Update_MultiplePartials2()
-    {
-        var srcA1 = @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }";
-        var srcB1 = @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
-        var srcA2 = @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }";
-        var srcB2 = @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }")],
             [
                 DocumentResults(diagnostics:
                 [
@@ -6783,7 +6691,6 @@ class B : System.Attribute {}
                 ]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Namespace_Update_MultiplePartials_MergeInNewNamspace()
@@ -6873,45 +6780,49 @@ class B : System.Attribute {}
     [Fact]
     public void PartialMember_DeleteInsert_SingleDocument()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    void M() {}
-    int P1 { get; set; }
-    int P2 { get => 1; set {} }
-    int this[int i] { get => 1; set {} }
-    int this[byte i] { get => 1; set {} }
-    event Action E { add {} remove {} }
-    event Action EF;
-    int F1;
-    int F2;
-}
+            using System;
 
-partial class C
-{
-}
-";
-        var src2 = @"
-using System;
+            partial class C
+            {
+                void M() {}
+                int P1 { get; set; }
+                int P2 { get => 1; set {} }
+                int this[int i] { get => 1; set {} }
+                int this[byte i] { get => 1; set {} }
+                event Action E { add {} remove {} }
+                event Action EF;
+                int F1;
+                int F2;
+            }
 
-partial class C
-{
-}
+            partial class C
+            {
+            }
 
-partial class C
-{
-    void M() {}
-    int P1 { get; set; }
-    int P2 { get => 1; set {} }
-    int this[int i] { get => 1; set {} }
-    int this[byte i] { get => 1; set {} }
-    event Action E { add {} remove {} }
-    event Action EF;
-    int F1, F2;
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            partial class C
+            {
+            }
+
+            partial class C
+            {
+                void M() {}
+                int P1 { get; set; }
+                int P2 { get => 1; set {} }
+                int this[int i] { get => 1; set {} }
+                int this[byte i] { get => 1; set {} }
+                event Action E { add {} remove {} }
+                event Action EF;
+                int F1, F2;
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -7010,14 +6921,8 @@ partial class C
 
     [Fact]
     public void PartialMember_InsertDelete_MultipleDocuments()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { void F() {} }";
-        var srcA2 = "partial class C { void F() {} }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { void F() {} }"), GetTopEdits("partial class C { void F() {} }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -7027,18 +6932,11 @@ partial class C
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_MultipleDocuments()
-    {
-        var srcA1 = "partial class C { void F() {} }";
-        var srcB1 = "partial class C { }";
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { void F() {} }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { void F() {} }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { void F() {} }")],
             [
                 DocumentResults(),
 
@@ -7048,7 +6946,6 @@ partial class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
                     ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_GenericMethod()
@@ -7114,14 +7011,8 @@ partial class C
 
     [Fact]
     public void PartialMember_DeleteInsert_Destructor()
-    {
-        var srcA1 = "partial class C { ~C() {} }";
-        var srcB1 = "partial class C { }";
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { ~C() {} }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { ~C() {} }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { ~C() {} }")],
             [
                 DocumentResults(),
 
@@ -7131,19 +7022,11 @@ partial class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("Finalize"), preserveLocalVariables: false),
                     ])
             ]);
-    }
 
     [Fact]
     public void PartialNestedType_InsertDeleteAndChange()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { class D { void M() {} } interface I { } }";
-
-        var srcA2 = "partial class C { class D : I { void M() {} } interface I { } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { class D : I { void M() {} } interface I { } }"), GetTopEdits("partial class C { class D { void M() {} } interface I { } }", "partial class C { }")],
             [
                 DocumentResults(
                     diagnostics:
@@ -7153,18 +7036,11 @@ partial class C
 
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_RenameInsertDelete()
-    {
-        var srcA1 = "partial class C { void F1() {} }";
-        var srcB1 = "partial class C { void F2() {} }";
-        var srcA2 = "partial class C { void F2() {} }";
-        var srcB2 = "partial class C { void F1() {} }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { void F1() {} }", "partial class C { void F2() {} }"), GetTopEdits("partial class C { void F2() {} }", "partial class C { void F1() {} }")],
             [
                 DocumentResults(semanticEdits:
                     [
@@ -7178,7 +7054,6 @@ partial class C
                     ])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_RenameInsertDelete_SameFile()
@@ -7216,14 +7091,8 @@ partial class C
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_SignatureChangeInsertDelete()
-    {
-        var srcA1 = "partial class C { void F(byte x) {} }";
-        var srcB1 = "partial class C { void F(char x) {} }";
-        var srcA2 = "partial class C { void F(char x) {} }";
-        var srcB2 = "partial class C { void F(byte x) {} }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { void F(byte x) {} }", "partial class C { void F(char x) {} }"), GetTopEdits("partial class C { void F(char x) {} }", "partial class C { void F(byte x) {} }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.F").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Char }]))]),
@@ -7231,18 +7100,11 @@ partial class C
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.F").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Byte }]))]),
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_SignatureChangeInsertDelete_Indexer()
-    {
-        var srcA1 = "partial class C { int this[byte x] { get => 1; set {} } }";
-        var srcB1 = "partial class C { int this[char x] { get => 1; set {} } }";
-        var srcA2 = "partial class C { int this[char x] { get => 1; set {} } }";
-        var srcB2 = "partial class C { int this[byte y] { get => 1; set {} } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int this[byte x] { get => 1; set {} } }", "partial class C { int this[char x] { get => 1; set {} } }"), GetTopEdits("partial class C { int this[char x] { get => 1; set {} } }", "partial class C { int this[byte y] { get => 1; set {} } }")],
             [
                 DocumentResults(semanticEdits:
                     [
@@ -7259,45 +7121,45 @@ partial class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("C.this[]").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Byte }]).SetMethod),
                     ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdateMethodBodyError()
-    {
-        var srcA1 = @"
-using System.Collections.Generic;
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-partial class C
-{
-    IEnumerable<int> F() { yield return 1; }
-}
-";
-        var srcB1 = @"
-using System.Collections.Generic;
+                using System.Collections.Generic;
 
-partial class C
-{
-}
-";
+                partial class C
+                {
+                    IEnumerable<int> F() { yield return 1; }
+                }
 
-        var srcA2 = @"
-using System.Collections.Generic;
+                """, """
 
-partial class C
-{
-}
-";
-        var srcB2 = @"
-using System.Collections.Generic;
+                using System.Collections.Generic;
 
-partial class C
-{
-    IEnumerable<int> F() { yield return 1; yield return 2; }
-}
-";
+                partial class C
+                {
+                }
 
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                """), GetTopEdits("""
+
+                         using System.Collections.Generic;
+
+                         partial class C
+                         {
+                         }
+
+                         """, """
+
+                         using System.Collections.Generic;
+
+                         partial class C
+                         {
+                             IEnumerable<int> F() { yield return 1; yield return 2; }
+                         }
+
+                         """)],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -7306,19 +7168,11 @@ partial class C
                 ])
             ],
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdatePropertyAccessors()
-    {
-        var srcA1 = "partial class C { int P { get => 1; set { Console.WriteLine(1); } } }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { int P { get => 2; set { Console.WriteLine(2); } } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int P { get => 1; set { Console.WriteLine(1); } } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int P { get => 2; set { Console.WriteLine(2); } } }")],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -7327,19 +7181,11 @@ partial class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdateAutoProperty()
-    {
-        var srcA1 = "partial class C { int P => 1; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { int P => 2; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int P => 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int P => 2; }")],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -7347,19 +7193,11 @@ partial class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_AddFieldInitializer()
-    {
-        var srcA1 = "partial class C { int f; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { int f = 1; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int f; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int f = 1; }")],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -7367,19 +7205,11 @@ partial class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_RemoveFieldInitializer()
-    {
-        var srcA1 = "partial class C { int f = 1; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { int f; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int f = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int f; }")],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -7387,19 +7217,11 @@ partial class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_ConstructorWithInitializers()
-    {
-        var srcA1 = "partial class C { int f = 1; C(int x) { f = x; } }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { int f = 1; }";
-        var srcB2 = "partial class C { C(int x) { f = x + 1; } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int f = 1; C(int x) { f = x; } }", "partial class C { int f = 1; }"), GetTopEdits("partial class C { }", "partial class C { C(int x) { f = x + 1; } }")],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -7407,18 +7229,11 @@ partial class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), partialType: "C", preserveLocalVariables: true)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_MethodAddParameter()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { void F() {} }";
-        var srcA2 = "partial struct S { void F(int x) {} }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { void F(int x) {} }"), GetTopEdits("partial struct S { void F() {} }", "partial struct S { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -7433,18 +7248,11 @@ partial class C
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdateMethodParameterType()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { void F(int x); }";
-        var srcA2 = "partial struct S { void F(byte x); }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { void F(byte x); }"), GetTopEdits("partial struct S { void F(int x); }", "partial struct S { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -7459,18 +7267,11 @@ partial class C
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_MethodAddTypeParameter()
-    {
-        var srcA1 = "partial struct S { }";
-        var srcB1 = "partial struct S { void F(); }";
-        var srcA2 = "partial struct S { void F<T>(); }";
-        var srcB2 = "partial struct S { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial struct S { }", "partial struct S { void F<T>(); }"), GetTopEdits("partial struct S { void F(); }", "partial struct S { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -7485,7 +7286,6 @@ partial class C
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.GenericAddMethodToExistingType);
-    }
 
     #endregion
 
@@ -7553,16 +7353,20 @@ partial class C
     [Fact]
     public void Method_ReadOnlyModifier_Add_InMutableStruct()
     {
-        var src1 = @"
-struct S
-{
-    public int M() => 1;
-}";
-        var src2 = @"
-struct S
-{
-    public readonly int M() => 1;
-}";
+        var src1 = """
+
+            struct S
+            {
+                public int M() => 1;
+            }
+            """;
+        var src2 = """
+
+            struct S
+            {
+                public readonly int M() => 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("S.M")));
@@ -7571,18 +7375,22 @@ struct S
     [Fact]
     public void Method_ReadOnlyModifier_Add_InReadOnlyStruct1()
     {
-        var src1 = @"
-readonly struct S
-{
-    public int M()
-        => 1;
-}";
-        var src2 = @"
-readonly struct S
-{
-    public readonly int M()
-        => 1;
-}";
+        var src1 = """
+
+            readonly struct S
+            {
+                public int M()
+                    => 1;
+            }
+            """;
+        var src2 = """
+
+            readonly struct S
+            {
+                public readonly int M()
+                    => 1;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -7594,16 +7402,20 @@ readonly struct S
     [Fact]
     public void Method_ReadOnlyModifier_Add_InReadOnlyStruct2()
     {
-        var src1 = @"
-readonly struct S
-{
-    public int M() => 1;
-}";
-        var src2 = @"
-struct S
-{
-    public readonly int M() => 1;
-}";
+        var src1 = """
+
+            readonly struct S
+            {
+                public int M() => 1;
+            }
+            """;
+        var src2 = """
+
+            struct S
+            {
+                public readonly int M() => 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.ModifiersUpdate, "struct S", "struct"));
@@ -7612,22 +7424,26 @@ struct S
     [Fact]
     public void Method_AsyncModifier_Remove()
     {
-        var src1 = @"
-class Test
-{
-    public async Task<int> WaitAsync()
-    {
-        return 1;
-    }
-}";
-        var src2 = @"
-class Test
-{
-    public Task<int> WaitAsync()
-    {
-        return Task.FromResult(1);
-    }
-}";
+        var src1 = """
+
+            class Test
+            {
+                public async Task<int> WaitAsync()
+                {
+                    return 1;
+                }
+            }
+            """;
+        var src2 = """
+
+            class Test
+            {
+                public Task<int> WaitAsync()
+                {
+                    return Task.FromResult(1);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "public Task<int> WaitAsync()", FeaturesResources.method));
@@ -7636,23 +7452,27 @@ class Test
     [Fact]
     public void Method_AsyncModifier_Add()
     {
-        var src1 = @"
-class Test
-{
-    public Task<int> WaitAsync()
-    {
-        return 1;
-    }
-}";
-        var src2 = @"
-class Test
-{
-    public async Task<int> WaitAsync()
-    {
-        await Task.Delay(1000);
-        return 1;
-    }
-}";
+        var src1 = """
+
+            class Test
+            {
+                public Task<int> WaitAsync()
+                {
+                    return 1;
+                }
+            }
+            """;
+        var src2 = """
+
+            class Test
+            {
+                public async Task<int> WaitAsync()
+                {
+                    await Task.Delay(1000);
+                    return 1;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
@@ -7663,23 +7483,27 @@ class Test
     [Fact]
     public void Method_AsyncModifier_Add_NotSupported()
     {
-        var src1 = @"
-class Test
-{
-    public Task<int> WaitAsync()
-    {
-        return 1;
-    }
-}";
-        var src2 = @"
-class Test
-{
-    public async Task<int> WaitAsync()
-    {
-        await Task.Delay(1000);
-        return 1;
-    }
-}";
+        var src1 = """
+
+            class Test
+            {
+                public Task<int> WaitAsync()
+                {
+                    return 1;
+                }
+            }
+            """;
+        var src2 = """
+
+            class Test
+            {
+                public async Task<int> WaitAsync()
+                {
+                    await Task.Delay(1000);
+                    return 1;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, "public async Task<int> WaitAsync()")],
@@ -7816,41 +7640,47 @@ class Test
     [Fact]
     public void Method_Update()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        int a = 1;
-        int b = 2;
-        System.Console.WriteLine(a + b);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        int b = 2;
-        int a = 1;
-        System.Console.WriteLine(a + b);
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F()
+                {
+                    int a = 1;
+                    int b = 2;
+                    System.Console.WriteLine(a + b);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F()
+                {
+                    int b = 2;
+                    int a = 1;
+                    System.Console.WriteLine(a + b);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            @"Update [static void F()
-    {
-        int a = 1;
-        int b = 2;
-        System.Console.WriteLine(a + b);
-    }]@18 -> [static void F()
-    {
-        int b = 2;
-        int a = 1;
-        System.Console.WriteLine(a + b);
-    }]@18");
+            """
+            Update [static void F()
+                {
+                    int a = 1;
+                    int b = 2;
+                    System.Console.WriteLine(a + b);
+                }]@18 -> [static void F()
+                {
+                    int b = 2;
+                    int a = 1;
+                    System.Console.WriteLine(a + b);
+                }]@18
+            """);
 
         edits.VerifySemanticDiagnostics();
 
@@ -7862,19 +7692,23 @@ class C
     [Fact]
     public void MethodWithExpressionBody_Update()
     {
-        var src1 = @"
-class C
-{
-    static int M() => F(1);
-    static int F(int a) => 1;
-}
-";
-        var src2 = @"
-class C
-{
-    static int M() => F(2);
-    static int F(int a) => 1;
-}";
+        var src1 = """
+
+            class C
+            {
+                static int M() => F(1);
+                static int F(int a) => 1;
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static int M() => F(2);
+                static int F(int a) => 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -7922,31 +7756,35 @@ class C
     [Fact]
     public void MethodWithLambda_Update()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F()
-    {
-        Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-        Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
-    }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    static void F()
-    {
-        Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-        Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+            class C
+            {
+                static void F()
+                {
+                    Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+                    Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+                }
+            }
 
-        Console.WriteLine(1);
-    }
-}";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static void F()
+                {
+                    Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+                    Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+                    Console.WriteLine(1);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -7958,52 +7796,62 @@ class C
     [Fact]
     public void MethodUpdate_LocalVariableDeclaration()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        int x = 1;
-        Console.WriteLine(x);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        int x = 2;
-        Console.WriteLine(x);
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F()
+                {
+                    int x = 1;
+                    Console.WriteLine(x);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F()
+                {
+                    int x = 2;
+                    Console.WriteLine(x);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-@"Update [static void F()
-    {
-        int x = 1;
-        Console.WriteLine(x);
-    }]@18 -> [static void F()
-    {
-        int x = 2;
-        Console.WriteLine(x);
-    }]@18");
+            """
+            Update [static void F()
+                {
+                    int x = 1;
+                    Console.WriteLine(x);
+                }]@18 -> [static void F()
+                {
+                    int x = 2;
+                    Console.WriteLine(x);
+                }]@18
+            """);
     }
 
     [Fact]
     public void Method_Delete()
     {
-        var src1 = @"
-class C
-{
-    void goo() { }
-}
-";
-        var src2 = @"
-class C
-{
-}";
+        var src1 = """
+
+            class C
+            {
+                void goo() { }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8056,16 +7904,20 @@ class C
     [Fact]
     public void MethodWithExpressionBody_Delete()
     {
-        var src1 = @"
-class C
-{
-    int goo() => 1;
-}
-";
-        var src2 = @"
-class C
-{
-}";
+        var src1 = """
+
+            class C
+            {
+                int goo() => 1;
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8080,22 +7932,28 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
     public void MethodDelete_WithParameterAndAttribute()
     {
-        var src1 = @"
-class C
-{
-    [Obsolete]
-    void goo(int a) { }
-}
-";
-        var src2 = @"
-class C
-{
-}";
+        var src1 = """
+
+            class C
+            {
+                [Obsolete]
+                void goo(int a) { }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            @"Delete [[Obsolete]
-    void goo(int a) { }]@18",
+            """
+            Delete [[Obsolete]
+                void goo(int a) { }]@18
+            """,
             "Delete [(int a)]@42",
             "Delete [int a]@43");
 
@@ -8107,31 +7965,37 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
     public void MethodDelete_PInvoke()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-class C
-{
-    [DllImport(""msvcrt.dll"")]
-    public static extern int puts(string c);
-}
-";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-class C
-{
-}";
+            class C
+            {
+                [DllImport("msvcrt.dll")]
+                public static extern int puts(string c);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Runtime.InteropServices;
+
+            class C
+            {
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            @"Delete [[DllImport(""msvcrt.dll"")]
-    public static extern int puts(string c);]@74",
-             "Delete [(string c)]@134",
-             "Delete [string c]@135");
+            """
+            Delete [[DllImport("msvcrt.dll")]
+                public static extern int puts(string c);]@74
+            """,
+            "Delete [(string c)]@134",
+            "Delete [string c]@135");
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "puts(string c)")));
@@ -8153,25 +8017,29 @@ class C
     [Fact]
     public void PrivateMethodInsert()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        Console.ReadLine();
-    }
-}";
-        var src2 = @"
-class C
-{
-    void goo() { }
+        var src1 = """
 
-    static void F()
-    {
-        Console.ReadLine();
-    }
-}
-";
+            class C
+            {
+                static void F()
+                {
+                    Console.ReadLine();
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                void goo() { }
+
+                static void F()
+                {
+                    Console.ReadLine();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8185,29 +8053,33 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
     public void PrivateMethodInsert_WithParameters()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static void F()
-    {
-        Console.ReadLine();
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    void goo(int a) { }
+            class C
+            {
+                static void F()
+                {
+                    Console.ReadLine();
+                }
+            }
+            """;
+        var src2 = """
 
-    static void F()
-    {
-        Console.ReadLine();
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                void goo(int a) { }
+
+                static void F()
+                {
+                    Console.ReadLine();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8223,31 +8095,37 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
     public void PrivateMethodInsert_WithAttribute()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        Console.ReadLine();
-    }
-}";
-        var src2 = @"
-class C
-{
-    [System.Obsolete]
-    void goo(int a) { }
+        var src1 = """
 
-    static void F()
-    {
-        Console.ReadLine();
-    }
-}
-";
+            class C
+            {
+                static void F()
+                {
+                    Console.ReadLine();
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                [System.Obsolete]
+                void goo(int a) { }
+
+                static void F()
+                {
+                    Console.ReadLine();
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            @"Insert [[System.Obsolete]
-    void goo(int a) { }]@18",
+            """
+            Insert [[System.Obsolete]
+                void goo(int a) { }]@18
+            """,
             "Insert [(int a)]@49",
             "Insert [int a]@50");
 
@@ -8258,16 +8136,20 @@ class C
     [Fact]
     public void MethodInsert_Virtual()
     {
-        var src1 = @"
-class C
-{
-}";
-        var src2 = @"
-class C
-{
-    public virtual void F() {}
-}
-";
+        var src1 = """
+
+            class C
+            {
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public virtual void F() {}
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -8277,16 +8159,20 @@ class C
     [Fact]
     public void MethodInsert_Abstract()
     {
-        var src1 = @"
-abstract class C
-{
-}";
-        var src2 = @"
-abstract class C
-{
-    public abstract void F();
-}
-";
+        var src1 = """
+
+            abstract class C
+            {
+            }
+            """;
+        var src2 = """
+
+            abstract class C
+            {
+                public abstract void F();
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -8296,16 +8182,20 @@ abstract class C
     [Fact]
     public void MethodInsert_Override()
     {
-        var src1 = @"
-class C
-{
-}";
-        var src2 = @"
-class C
-{
-    public override void F() { }
-}
-";
+        var src1 = """
+
+            class C
+            {
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public override void F() { }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -8315,28 +8205,34 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
     public void ExternMethod_Insert()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-class C
-{
-}";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-class C
-{
-    [DllImport(""msvcrt.dll"")]
-    private static extern int puts(string c);
-}
-";
+            class C
+            {
+            }
+            """;
+        var src2 = """
+
+            using System;
+            using System.Runtime.InteropServices;
+
+            class C
+            {
+                [DllImport("msvcrt.dll")]
+                private static extern int puts(string c);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            @"Insert [[DllImport(""msvcrt.dll"")]
-    private static extern int puts(string c);]@74",
+            """
+            Insert [[DllImport("msvcrt.dll")]
+                private static extern int puts(string c);]@74
+            """,
             "Insert [(string c)]@135",
             "Insert [string c]@136");
 
@@ -8348,37 +8244,40 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
     public void ExternMethod_DeleteInsert()
     {
-        var srcA1 = @"
-using System;
-using System.Runtime.InteropServices;
-
-class C
-{
-    [DllImport(""msvcrt.dll"")]
-    private static extern int puts(string c);
-}";
-        var srcA2 = @"
-using System;
-using System.Runtime.InteropServices;
-";
-
-        var srcB1 = @"
-using System;
-using System.Runtime.InteropServices;
-";
-        var srcB2 = @"
-using System;
-using System.Runtime.InteropServices;
-
-class C
-{
-    [DllImport(""msvcrt.dll"")]
-    private static extern int puts(string c);
-}
-";
         // TODO: The method does not need to be updated since there are no sequence points generated for it.
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("""
+
+                using System;
+                using System.Runtime.InteropServices;
+
+                class C
+                {
+                    [DllImport("msvcrt.dll")]
+                    private static extern int puts(string c);
+                }
+                """, """
+
+                using System;
+                using System.Runtime.InteropServices;
+
+                """), GetTopEdits("""
+
+                         using System;
+                         using System.Runtime.InteropServices;
+
+                         """, """
+
+                         using System;
+                         using System.Runtime.InteropServices;
+
+                         class C
+                         {
+                             [DllImport("msvcrt.dll")]
+                             private static extern int puts(string c);
+                         }
+
+                         """)],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -8390,38 +8289,40 @@ class C
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
     public void ExternMethod_Attribute_DeleteInsert()
-    {
-        var srcA1 = @"
-using System;
-using System.Runtime.InteropServices;
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-class C
-{
-    [DllImport(""msvcrt.dll"")]
-    private static extern int puts(string c);
-}";
-        var srcA2 = @"
-using System;
-using System.Runtime.InteropServices;
-";
+                using System;
+                using System.Runtime.InteropServices;
 
-        var srcB1 = @"
-using System;
-using System.Runtime.InteropServices;
-";
-        var srcB2 = @"
-using System;
-using System.Runtime.InteropServices;
+                class C
+                {
+                    [DllImport("msvcrt.dll")]
+                    private static extern int puts(string c);
+                }
+                """, """
 
-class C
-{
-    [DllImport(""msvcrt.dll"")]
-    [Obsolete]
-    private static extern int puts(string c);
-}
-";
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                using System;
+                using System.Runtime.InteropServices;
+
+                """), GetTopEdits("""
+
+                         using System;
+                         using System.Runtime.InteropServices;
+
+                         """, """
+
+                         using System;
+                         using System.Runtime.InteropServices;
+
+                         class C
+                         {
+                             [DllImport("msvcrt.dll")]
+                             [Obsolete]
+                             private static extern int puts(string c);
+                         }
+
+                         """)],
             [
                 DocumentResults(),
                 DocumentResults(semanticEdits:
@@ -8430,7 +8331,6 @@ class C
                 ])
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Method_Reorder()
@@ -8607,22 +8507,26 @@ class C
     [Fact]
     public void Method_Update_Parameter_Insert()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F(int a)
-    {
-        
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F()
+                {
+                    
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F(int a)
+                {
+                    
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8643,20 +8547,24 @@ class C
     [Fact]
     public void Method_Update_Parameter_Insert_Multiple()
     {
-        var src1 = @"
-class C
-{
-    void M(int a)
-    {
-    }
-}";
-        var src2 = @"
-class C
-{
-    void M(int a, int b, int c)
-    {
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                void M(int a)
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                void M(int a, int b, int c)
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -8674,24 +8582,28 @@ class C
     [Fact]
     public void Method_Update_Parameter_Insert_Partial()
     {
-        var src1 = @"
-class C
-{
-    partial void M(int a);
+        var src1 = """
 
-    partial void M(int a)
-    {
-    }
-}";
-        var src2 = @"
-class C
-{
-    partial void M(int a, int/*1*/b, int c);
+            class C
+            {
+                partial void M(int a);
 
-    partial void M(int a, int/*2*/b, int c)
-    {
-    }
-}";
+                partial void M(int a)
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                partial void M(int a, int/*1*/b, int c);
+
+                partial void M(int a, int/*2*/b, int c)
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -8712,22 +8624,26 @@ class C
     [Fact]
     public void Method_Update_Type()
     {
-        var src1 = @"
-class C
-{
-    static void Main(bool x)
-    {
-        
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void Main(int x)
-    {
-        
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void Main(bool x)
+                {
+                    
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void Main(int x)
+                {
+                    
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8748,22 +8664,26 @@ class C
     [Fact]
     public void Method_Update_Parameter_Type_WithRename()
     {
-        var src1 = @"
-class C
-{
-    static void Main(bool someBool)
-    {
-        
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void Main(int someInt)
-    {
-        
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void Main(bool someBool)
+                {
+                    
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void Main(int someInt)
+                {
+                    
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8780,22 +8700,26 @@ class C
     [Fact]
     public void Method_Update_Parameter_Delete()
     {
-        var src1 = @"
-class C
-{
-    static void F(int a)
-    {
-        
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F(int a)
+                {
+                    
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F()
+                {
+                    
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8816,20 +8740,24 @@ class C
     [Fact]
     public void Method_Update_Parameter_Delete_Multiple()
     {
-        var src1 = @"
-class C
-{
-    void M(int a, int b, int c)
-    {
-    }
-}";
-        var src2 = @"
-class C
-{
-    void M(int a)
-    {
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                void M(int a, int b, int c)
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                void M(int a)
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -8849,22 +8777,26 @@ class C
     [Fact]
     public void Method_Update_Parameter_Rename()
     {
-        var src1 = @"
-class C
-{
-    static void F(int a)
-    {
-        
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F(int b)
-    {
-        
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F(int a)
+                {
+                    
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F(int b)
+                {
+                    
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -8884,22 +8816,26 @@ class C
     [Fact]
     public void Method_Update_Parameter_Rename_WithBodyUpdate()
     {
-        var src1 = @"
-class C
-{
-    static void F(int a)
-    {
-        
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F(int b)
-    {
-        System.Console.Write(1);
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F(int a)
+                {
+                    
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F(int b)
+                {
+                    System.Console.Write(1);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -8975,33 +8911,36 @@ class C
     [Fact]
     public void Method_Rename()
     {
-        var src1 = @"
-class C
-{
-    static void F(int a)
-    {
-        
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void G(int a)
-    {
-        
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F(int a)
+                {
+                    
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void G(int a)
+                {
+                    
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
-
-        var expectedEdit = @"Update [static void F(int a)
-    {
-        
-    }]@18 -> [static void G(int a)
-    {
-        
-    }]@18";
-
-        edits.VerifyEdits(expectedEdit);
+        edits.VerifyEdits("""
+            Update [static void F(int a)
+                {
+                    
+                }]@18 -> [static void G(int a)
+                {
+                    
+                }]@18
+            """);
 
         edits.VerifySemantics(
             [
@@ -9018,20 +8957,24 @@ class C
     [Fact]
     public void Method_Rename_GenericType()
     {
-        var src1 = @"
-class C<T>
-{
-    static void F()
-    {
-    }
-}";
-        var src2 = @"
-class C<T>
-{
-    static void G()
-    {
-    }
-}";
+        var src1 = """
+
+            class C<T>
+            {
+                static void F()
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+                static void G()
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9062,20 +9005,24 @@ class C<T>
     [Fact]
     public void Method_Rename_GenericMethod()
     {
-        var src1 = @"
-class C
-{
-    static void F<T>()
-    {
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void G<T>()
-    {
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F<T>()
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void G<T>()
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9146,22 +9093,26 @@ class C
     [Fact]
     public void MethodUpdate_AsyncMethod0()
     {
-        var src1 = @"
-class C
-{
-    public async Task F()
-    {
-        await Task.Delay(1000);
-    }
-}";
-        var src2 = @"
-class C
-{
-    public async Task F()
-    {
-        await Task.Delay(500);
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                public async Task F()
+                {
+                    await Task.Delay(1000);
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public async Task F()
+                {
+                    await Task.Delay(500);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -9213,7 +9164,7 @@ class C
         """;
 
         var edits = GetTopEdits(src1, src2);
-        var expectedEdit = """
+        edits.VerifyEdits("""
         Update [public async Task<string> WaitAsync()
             {
                 await Task.Delay(1000);
@@ -9223,9 +9174,7 @@ class C
                 await Task.Delay(1000);
                 return "Not Done";
             }]@133
-        """;
-
-        edits.VerifyEdits(expectedEdit);
+        """);
 
         edits.VerifySemanticDiagnostics(
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
@@ -9234,22 +9183,26 @@ class C
     [Fact]
     public void MethodUpdate_AsyncMethod_Generic()
     {
-        var src1 = @"
-class C
-{
-    public async Task F<T>()
-    {
-        await Task.FromResult(1);
-    }
-}";
-        var src2 = @"
-class C
-{
-    public async Task F<T>()
-    {
-        await Task.FromResult(2);
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                public async Task F<T>()
+                {
+                    await Task.FromResult(1);
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public async Task F<T>()
+                {
+                    await Task.FromResult(2);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9270,37 +9223,43 @@ class C
     [Fact]
     public void MethodUpdate_AddReturnTypeAttribute()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [return: Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [return: Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(@"Update [static void F()
-    {
-        System.Console.Write(5);
-    }]@38 -> [[return: Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }]@38");
+        edits.VerifyEdits("""
+            Update [static void F()
+                {
+                    System.Console.Write(5);
+                }]@38 -> [[return: Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }]@38
+            """);
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void F()", FeaturesResources.method)],
@@ -9310,37 +9269,43 @@ class Test
     [Fact]
     public void MethodUpdate_AddAttribute()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(@"Update [static void F()
-    {
-        System.Console.Write(5);
-    }]@38 -> [[Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }]@38");
+        edits.VerifyEdits("""
+            Update [static void F()
+                {
+                    System.Console.Write(5);
+                }]@38 -> [[Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }]@38
+            """);
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void F()", FeaturesResources.method)],
@@ -9422,32 +9387,36 @@ class Test
     [Fact]
     public void MethodUpdate_Attribute_ArrayParameter()
     {
-        var src1 = @"
-class AAttribute : System.Attribute
-{
-    public AAttribute(int[] nums) { }
-}
+        var src1 = """
 
-class C
-{
-    [A(new int[] { 1, 2, 3})]
-    void M()
-    {
-    }
-}";
-        var src2 = @"
-class AAttribute : System.Attribute
-{
-    public AAttribute(int[] nums) { }
-}
+            class AAttribute : System.Attribute
+            {
+                public AAttribute(int[] nums) { }
+            }
 
-class C
-{
-    [A(new int[] { 4, 5, 6})]
-    void M()
-    {
-    }
-}";
+            class C
+            {
+                [A(new int[] { 1, 2, 3})]
+                void M()
+                {
+                }
+            }
+            """;
+        var src2 = """
+
+            class AAttribute : System.Attribute
+            {
+                public AAttribute(int[] nums) { }
+            }
+
+            class C
+            {
+                [A(new int[] { 4, 5, 6})]
+                void M()
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -9459,34 +9428,38 @@ class C
     [Fact]
     public void MethodUpdate_Attribute_ArrayParameter_NoChange()
     {
-        var src1 = @"
-class AAttribute : System.Attribute
-{
-    public AAttribute(int[] nums) { }
-}
+        var src1 = """
 
-class C
-{
-    [A(new int[] { 1, 2, 3})]
-    void M()
-    {
-        var x = 1;
-    }
-}";
-        var src2 = @"
-class AAttribute : System.Attribute
-{
-    public AAttribute(int[] nums) { }
-}
+            class AAttribute : System.Attribute
+            {
+                public AAttribute(int[] nums) { }
+            }
 
-class C
-{
-    [A(new int[] { 1, 2, 3})]
-    void M()
-    {
-        var x = 2;
-    }
-}";
+            class C
+            {
+                [A(new int[] { 1, 2, 3})]
+                void M()
+                {
+                    var x = 1;
+                }
+            }
+            """;
+        var src2 = """
+
+            class AAttribute : System.Attribute
+            {
+                public AAttribute(int[] nums) { }
+            }
+
+            class C
+            {
+                [A(new int[] { 1, 2, 3})]
+                void M()
+                {
+                    var x = 2;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -9499,28 +9472,32 @@ class C
     [Fact]
     public void MethodUpdate_AddAttribute2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    [Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [Obsolete, STAThread]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                [Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [Obsolete, STAThread]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9531,29 +9508,33 @@ class Test
     [Fact]
     public void MethodUpdate_AddAttribute3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    [Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [Obsolete]
-    [STAThread]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                [Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [Obsolete]
+                [STAThread]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9564,27 +9545,31 @@ class Test
     [Fact]
     public void MethodUpdate_AddAttribute4()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [Obsolete, STAThread]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [Obsolete, STAThread]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9595,28 +9580,32 @@ class Test
     [Fact]
     public void MethodUpdate_UpdateAttribute()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    [Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [Obsolete("""")]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                [Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [Obsolete("")]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9627,27 +9616,31 @@ class Test
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
     public void MethodUpdate_DeleteAttribute()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    [Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                [Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9658,28 +9651,32 @@ class Test
     [Fact]
     public void MethodUpdate_DeleteAttribute2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    [Obsolete, STAThread]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                [Obsolete, STAThread]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9690,29 +9687,33 @@ class Test
     [Fact]
     public void MethodUpdate_DeleteAttribute3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class Test
-{
-    [Obsolete]
-    [STAThread]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
-        var src2 = @"
-using System;
+            using System;
 
-class Test
-{
-    [Obsolete]
-    static void F()
-    {
-        System.Console.Write(5);
-    }
-}";
+            class Test
+            {
+                [Obsolete]
+                [STAThread]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
+        var src2 = """
+
+            using System;
+
+            class Test
+            {
+                [Obsolete]
+                static void F()
+                {
+                    System.Console.Write(5);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9723,18 +9724,22 @@ class Test
     [Fact]
     public void MethodUpdate_ExplicitlyImplemented1()
     {
-        var src1 = @"
-class C : I, J
-{
-    void I.Goo() { Console.WriteLine(2); }
-    void J.Goo() { Console.WriteLine(1); }
-}";
-        var src2 = @"
-class C : I, J
-{
-    void I.Goo() { Console.WriteLine(1); }
-    void J.Goo() { Console.WriteLine(2); }
-}";
+        var src1 = """
+
+            class C : I, J
+            {
+                void I.Goo() { Console.WriteLine(2); }
+                void J.Goo() { Console.WriteLine(1); }
+            }
+            """;
+        var src2 = """
+
+            class C : I, J
+            {
+                void I.Goo() { Console.WriteLine(1); }
+                void J.Goo() { Console.WriteLine(2); }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -9747,26 +9752,32 @@ class C : I, J
     [Fact]
     public void MethodUpdate_ExplicitlyImplemented2()
     {
-        var interfaces = @"
-interface I { void Goo(); }
-interface J { void Goo(); }
-";
+        var interfaces = """
 
-        var src1 = @"
-class C : I, J
-{
-    void I.Goo() { Console.WriteLine(1); }
-    void J.Goo() { Console.WriteLine(2); }
-}
-" + interfaces;
+            interface I { void Goo(); }
+            interface J { void Goo(); }
 
-        var src2 = @"
-class C : I, J
-{
-    void Goo() { Console.WriteLine(1); }
-    void J.Goo() { Console.WriteLine(2); }
-}
-" + interfaces;
+            """;
+
+        var src1 = """
+
+            class C : I, J
+            {
+                void I.Goo() { Console.WriteLine(1); }
+                void J.Goo() { Console.WriteLine(2); }
+            }
+
+            """ + interfaces;
+
+        var src2 = """
+
+            class C : I, J
+            {
+                void Goo() { Console.WriteLine(1); }
+                void J.Goo() { Console.WriteLine(2); }
+            }
+
+            """ + interfaces;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -9780,32 +9791,36 @@ class C : I, J
     [Fact]
     public void MethodUpdate_StackAlloc_Update()
     {
-        var src1 = @"
-class C
-{
-    static void Main() 
-    { 
-        int i = 1;
-        unsafe
-        {
-            char* buffer = stackalloc char[16];
-            int* px2 = &i;
-        }
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void Main() 
-    { 
-        int i = 2;
-        unsafe
-        {
-            char* buffer = stackalloc char[16];
-            int* px2 = &i;
-        }
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void Main() 
+                { 
+                    int i = 1;
+                    unsafe
+                    {
+                        char* buffer = stackalloc char[16];
+                        int* px2 = &i;
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void Main() 
+                { 
+                    int i = 2;
+                    unsafe
+                    {
+                        char* buffer = stackalloc char[16];
+                        int* px2 = &i;
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9818,31 +9833,35 @@ class C
     [Fact]
     public void MethodUpdate_StackAlloc_Insert()
     {
-        var src1 = @"
-class C
-{
-    static void F() 
-    { 
-        int i = 10;
-        unsafe
-        {
-            int* px2 = &i;
-        }
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F() 
-    { 
-        int i = 10;
-        unsafe
-        {
-            char* buffer = stackalloc char[16];
-            int* px2 = &i;
-        }
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F() 
+                { 
+                    int i = 10;
+                    unsafe
+                    {
+                        int* px2 = &i;
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F() 
+                { 
+                    int i = 10;
+                    unsafe
+                    {
+                        char* buffer = stackalloc char[16];
+                        int* px2 = &i;
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -9852,31 +9871,35 @@ class C
     [Fact]
     public void MethodUpdate_StackAlloc_Delete()
     {
-        var src1 = @"
-class C
-{
-    static void F() 
-    { 
-        int i = 10;
-        unsafe
-        {
-            char* buffer = stackalloc char[16];
-            int* px2 = &i;
-        }
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F() 
-    { 
-        int i = 10;
-        unsafe
-        {
-            int* px2 = &i;
-        }
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F() 
+                { 
+                    int i = 10;
+                    unsafe
+                    {
+                        char* buffer = stackalloc char[16];
+                        int* px2 = &i;
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F() 
+                { 
+                    int i = 10;
+                    unsafe
+                    {
+                        int* px2 = &i;
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -10040,32 +10063,36 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087305")]
     public void MethodUpdate_LabeledStatement()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        goto Label1;
- 
-    Label1:
-        {
-            Console.WriteLine(1);
-        }
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        goto Label1;
- 
-    Label1:
-        {
-            Console.WriteLine(2);
-        }
-    }
-}";
+        var src1 = """
+
+            class C
+            {
+                static void F()
+                {
+                    goto Label1;
+             
+                Label1:
+                    {
+                        Console.WriteLine(1);
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F()
+                {
+                    goto Label1;
+             
+                Label1:
+                    {
+                        Console.WriteLine(2);
+                    }
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -10195,54 +10222,58 @@ class C
     [Fact]
     public void Method_ImplementingInterface_Add()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-public interface ISample
-{
-    string Get();
-}
+            using System;
 
-public interface IConflict
-{
-    string Get();
-}
+            public interface ISample
+            {
+                string Get();
+            }
 
-public class BaseClass : ISample
-{
-    public virtual string Get() => string.Empty;
-}
+            public interface IConflict
+            {
+                string Get();
+            }
 
-public class SubClass : BaseClass, IConflict
-{
-    public override string Get() => string.Empty;
-}
-";
-        var src2 = @"
-using System;
+            public class BaseClass : ISample
+            {
+                public virtual string Get() => string.Empty;
+            }
 
-public interface ISample
-{
-    string Get();
-}
+            public class SubClass : BaseClass, IConflict
+            {
+                public override string Get() => string.Empty;
+            }
 
-public interface IConflict
-{
-    string Get();
-}
+            """;
+        var src2 = """
 
-public class BaseClass : ISample
-{
-    public virtual string Get() => string.Empty;
-}
+            using System;
 
-public class SubClass : BaseClass, IConflict
-{
-    public override string Get() => string.Empty;
+            public interface ISample
+            {
+                string Get();
+            }
 
-    string IConflict.Get() => String.Empty;
-}
-";
+            public interface IConflict
+            {
+                string Get();
+            }
+
+            public class BaseClass : ISample
+            {
+                public virtual string Get() => string.Empty;
+            }
+
+            public class SubClass : BaseClass, IConflict
+            {
+                public override string Get() => string.Empty;
+
+                string IConflict.Get() => String.Empty;
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -10256,76 +10287,41 @@ public class SubClass : BaseClass, IConflict
 
     [Fact]
     public void Method_Partial_DeleteInsert_DefinitionPart()
-    {
-        var srcA1 = "partial class C { partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-        var srcC1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { partial void F() { } }";
-        var srcC2 = "partial class C { partial void F(); }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial void F(); }", "partial class C { }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { partial void F() { } }"), GetTopEdits("partial class C { }", "partial class C { partial void F(); }")],
             [
                 DocumentResults(),
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteInsert_ImplementationPart()
-    {
-        var srcA1 = "partial class C { partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-        var srcC1 = "partial class C { }";
-
-        var srcA2 = "partial class C { partial void F(); }";
-        var srcB2 = "partial class C { }";
-        var srcC2 = "partial class C { partial void F() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial void F(); }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(),
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void Method_Partial_Swap_ImplementationAndDefinitionParts()
-    {
-        var srcA1 = "partial class C { partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-
-        var srcA2 = "partial class C { partial void F() { } }";
-        var srcB2 = "partial class C { partial void F(); }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial void F(); }", "partial class C { partial void F() { } }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { partial void F(); }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteImplementation()
-    {
-        var srcA1 = "partial class C { partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-
-        var srcA2 = "partial class C { partial void F(); }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial void F(); }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }")],
             [
                 DocumentResults(),
 
@@ -10335,7 +10331,6 @@ public class SubClass : BaseClass, IConflict
                         SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
                     ]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteDefinition()
@@ -10350,37 +10345,18 @@ public class SubClass : BaseClass, IConflict
 
     [Fact]
     public void Method_Partial_DeleteBoth()
-    {
-        var srcA1 = "partial class C { partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial void F(); }", "partial class C { }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }")],
             [
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteInsertBoth()
-    {
-        var srcA1 = "partial class C { partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-        var srcC1 = "partial class C { }";
-        var srcD1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { }";
-        var srcC2 = "partial class C { partial void F(); }";
-        var srcD2 = "partial class C { partial void F() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial void F(); }", "partial class C { }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(),
                 DocumentResults(),
@@ -10389,38 +10365,25 @@ public class SubClass : BaseClass, IConflict
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")])
             ]);
-    }
 
     [Fact]
     public void Method_Partial_Insert()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { partial void F(); }";
-        var srcB2 = "partial class C { partial void F() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart)]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Method_Partial_Insert_Reloadable()
     {
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { }";
-        var srcB1 = "partial class C { }";
-
         var srcA2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { partial void F(); }";
-        var srcB2 = "partial class C { partial void F() { } }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")]),
@@ -10439,14 +10402,10 @@ public class SubClass : BaseClass, IConflict
 
         var srcA1 = attribute +
                     "partial class C { [A(1)]partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-
         var srcA2 = attribute +
                     "partial class C { [A(2)]partial void F(); }";
-        var srcB2 = "partial class C { partial void F() { } }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { partial void F() { } }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
@@ -10464,14 +10423,10 @@ public class SubClass : BaseClass, IConflict
 
         var srcA1 = attribute +
                     "partial class C { partial void F(); }";
-        var srcB1 = "partial class C { [A(1)]partial void F() { } }";
-
         var srcA2 = attribute +
                     "partial class C { partial void F(); }";
-        var srcB2 = "partial class C { [A(2)]partial void F() { } }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { [A(1)]partial void F() { } }", "partial class C { [A(2)]partial void F() { } }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -10489,14 +10444,10 @@ public class SubClass : BaseClass, IConflict
 
         var srcA1 = attribute +
                     "partial class C { [A(1)]partial void F(); }";
-        var srcB1 = "partial class C { [A(1)]partial void F() { } }";
-
         var srcA2 = attribute +
                     "partial class C { [A(2)]partial void F(); }";
-        var srcB2 = "partial class C { [A(2)]partial void F() { } }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { [A(1)]partial void F() { } }", "partial class C { [A(2)]partial void F() { } }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
@@ -10515,14 +10466,10 @@ public class SubClass : BaseClass, IConflict
 
         var srcA1 = attribute +
                     "partial class C { [A]partial void F(); }";
-        var srcB1 = "partial class C { partial void F() { } }";
-
         var srcA2 = attribute +
                     "partial class C { }";
-        var srcB2 = "partial class C { partial void F() { } partial void F(); }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { partial void F() { } }", "partial class C { partial void F() { } partial void F(); }")],
             [
                 DocumentResults(),
 
@@ -10633,24 +10580,28 @@ public class SubClass : BaseClass, IConflict
     [Fact]
     public void OperatorInsert()
     {
-        var src1 = @"
-class C
-{
-}
-";
-        var src2 = @"
-class C
-{
-    public static implicit operator bool (C c) 
-    {
-        return false;
-    }
+        var src1 = """
 
-    public static C operator +(C c, C d) 
-    {
-        return c;
-    }
-}";
+            class C
+            {
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                public static implicit operator bool (C c) 
+                {
+                    return false;
+                }
+
+                public static C operator +(C c, C d) 
+                {
+                    return c;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -10661,24 +10612,28 @@ class C
     [Fact]
     public void OperatorDelete()
     {
-        var src1 = @"
-class C
-{
-    public static implicit operator bool (C c) 
-    {
-        return false;
-    }
+        var src1 = """
 
-    public static C operator +(C c, C d) 
-    {
-        return c;
-    }
-}
-";
-        var src2 = @"
-class C
-{
-}";
+            class C
+            {
+                public static implicit operator bool (C c) 
+                {
+                    return false;
+                }
+
+                public static C operator +(C c, C d) 
+                {
+                    return c;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -10692,18 +10647,22 @@ class C
     [Fact]
     public void OperatorInsertDelete()
     {
-        var srcA1 = @"
-partial class C
-{
-    public static implicit operator bool (C c)  => false;
-}
-";
-        var srcB1 = @"
-partial class C
-{
-    public static C operator +(C c, C d) => c;
-}
-";
+        var srcA1 = """
+
+            partial class C
+            {
+                public static implicit operator bool (C c)  => false;
+            }
+
+            """;
+        var srcB1 = """
+
+            partial class C
+            {
+                public static C operator +(C c, C d) => c;
+            }
+
+            """;
 
         var srcA2 = srcB1;
         var srcB2 = srcA1;
@@ -10728,33 +10687,37 @@ partial class C
     [Fact]
     public void OperatorUpdate()
     {
-        var src1 = @"
-class C
-{
-    public static implicit operator bool (C c) 
-    {
-        return false;
-    }
+        var src1 = """
 
-    public static C operator +(C c, C d) 
-    {
-        return c;
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    public static implicit operator bool (C c) 
-    {
-        return true;
-    }
+            class C
+            {
+                public static implicit operator bool (C c) 
+                {
+                    return false;
+                }
 
-    public static C operator +(C c, C d) 
-    {
-        return d;
-    }
-}";
+                public static C operator +(C c, C d) 
+                {
+                    return c;
+                }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                public static implicit operator bool (C c) 
+                {
+                    return true;
+                }
+
+                public static C operator +(C c, C d) 
+                {
+                    return d;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -10767,19 +10730,23 @@ class C
     [Fact]
     public void OperatorWithExpressionBody_Update()
     {
-        var src1 = @"
-class C
-{
-    public static implicit operator bool (C c) => false;
-    public static C operator +(C c, C d) => c;
-}
-";
-        var src2 = @"
-class C
-{
-    public static implicit operator bool (C c) => true;
-    public static C operator +(C c, C d) => d;
-}";
+        var src1 = """
+
+            class C
+            {
+                public static implicit operator bool (C c) => false;
+                public static C operator +(C c, C d) => c;
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                public static implicit operator bool (C c) => true;
+                public static C operator +(C c, C d) => d;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -10824,17 +10791,21 @@ class C
     [Fact]
     public void Operator_Rename()
     {
-        var src1 = @"
-class C
-{
-    public static C operator +(C c, C d) { return c; }
-}
-";
-        var src2 = @"
-class C
-{
-    public static C operator -(C c, C d) { return d; }
-}";
+        var src1 = """
+
+            class C
+            {
+                public static C operator +(C c, C d) { return c; }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                public static C operator -(C c, C d) { return d; }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -10848,19 +10819,23 @@ class C
     [Fact]
     public void OperatorReorder1()
     {
-        var src1 = @"
-class C
-{
-    public static implicit operator bool (C c) { return false; }
-    public static implicit operator int (C c) { return 1; }
-}
-";
-        var src2 = @"
-class C
-{
-    public static implicit operator int (C c) { return 1; }
-    public static implicit operator bool (C c) { return false; }
-}";
+        var src1 = """
+
+            class C
+            {
+                public static implicit operator bool (C c) { return false; }
+                public static implicit operator int (C c) { return 1; }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                public static implicit operator int (C c) { return 1; }
+                public static implicit operator bool (C c) { return false; }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -10872,19 +10847,23 @@ class C
     [Fact]
     public void OperatorReorder2()
     {
-        var src1 = @"
-class C
-{
-    public static C operator +(C c, C d) { return c; }
-    public static C operator -(C c, C d) { return d; }
-}
-";
-        var src2 = @"
-class C
-{
-    public static C operator -(C c, C d) { return d; }
-    public static C operator +(C c, C d) { return c; }
-}";
+        var src1 = """
+
+            class C
+            {
+                public static C operator +(C c, C d) { return c; }
+                public static C operator -(C c, C d) { return d; }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                public static C operator -(C c, C d) { return d; }
+                public static C operator +(C c, C d) { return c; }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -11125,15 +11104,8 @@ class C
 
     [Fact]
     public void Constructor_Parameter_Update_Type_Primary_PartialMove()
-    {
-        var srcA1 = "partial class C(bool a);";
-        var srcB1 = "partial class C;";
-
-        var srcA2 = "partial class C;";
-        var srcB2 = "partial class C(int a);";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C(bool a);", "partial class C;"), GetTopEdits("partial class C;", "partial class C(int a);")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -11148,7 +11120,6 @@ class C
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Constructor_Parameter_Update_Type_Record()
@@ -11273,16 +11244,20 @@ class C
     [Fact]
     public void Constructor_Parameter_Delete_Primary_Record_LayoutClass()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
-[StructLayoutAttribute(LayoutKind.Sequential)]
-record C(int X, int Y);
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
-[StructLayoutAttribute(LayoutKind.Sequential)]
-record C(int X);
-";
+        var src1 = """
+
+            using System.Runtime.InteropServices;
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            record C(int X, int Y);
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            record C(int X);
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Note: We do not report rude edits when deleting auto-properties of a type with a sequential or explicit layout.
@@ -11555,22 +11530,26 @@ record C(int X);
     [Fact]
     public void Constructor_Parameter_Delete_Primary_LayoutClass_NotCaptured()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y) 
-{ 
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x)
-{ 
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y) 
+            { 
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x)
+            { 
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11585,24 +11564,28 @@ class C(int x)
     [Fact]
     public void Constructor_Parameter_Delete_Primary_LayoutClass_Captured()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y) 
-{
-    public int M() => x + y;
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x)
-{
-    public int M() => x;
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y) 
+            {
+                public int M() => x + y;
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x)
+            {
+                public int M() => x;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11720,19 +11703,23 @@ class C(int x)
     [Fact]
     public void Constructor_Parameter_Insert_Primary_Record_ClassWithLayout()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-record C(int X) { }
-";
+            using System.Runtime.InteropServices;
 
-        var src2 = @"
-using System.Runtime.InteropServices;
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            record C(int X) { }
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-record C(int X, int Y) { }
-";
+            """;
+
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            record C(int X, int Y) { }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -11743,16 +11730,20 @@ record C(int X, int Y) { }
     [Fact]
     public void Constructor_Parameter_Insert_Primary_Record_Struct()
     {
-        var src1 = @"
-record struct C(int x) 
-{
-}
-";
-        var src2 = @"
-record struct C(int x, int y)
-{
-}
-";
+        var src1 = """
+
+            record struct C(int x) 
+            {
+            }
+
+            """;
+        var src2 = """
+
+            record struct C(int x, int y)
+            {
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11897,15 +11888,8 @@ record struct C(int x, int y)
 
     [Fact]
     public void Constructor_Parameter_Insert_Primary_Record_WithCustomDeconstructor_Delete_Partial()
-    {
-        var srcA1 = "partial record C(int X       ) { public partial void Deconstruct(out int X) => X = 1; }";
-        var srcB1 = "partial record C               { public partial void Deconstruct(out int X); }";
-
-        var srcA2 = "partial record C(int X, int Y);";
-        var srcB2 = "partial record C;";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C(int X       ) { public partial void Deconstruct(out int X) => X = 1; }", "partial record C(int X, int Y);"), GetTopEdits("partial record C               { public partial void Deconstruct(out int X); }", "partial record C;")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -11923,27 +11907,30 @@ record struct C(int x, int y)
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
-    }
 
     [Fact]
     public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_NotLifted()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x) 
-{ 
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y)
-{ 
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x) 
+            { 
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y)
+            { 
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -11958,24 +11945,28 @@ class C(int x, int y)
     [Fact]
     public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_Lifted()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x) 
-{
-    public int M() => x;
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y)
-{
-    public int M() => x + y;
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x) 
+            {
+                public int M() => x;
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y)
+            {
+                public int M() => x + y;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -11988,26 +11979,30 @@ class C(int x, int y)
     [Fact]
     public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_LiftedInLambda()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x) 
-{
-    public Func<int> M() => () => x;
-}
-";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y)
-{
-    public Func<int> M() => () => x + y;
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x) 
+            {
+                public Func<int> M() => () => x;
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y)
+            {
+                public Func<int> M() => () => x + y;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -12105,18 +12100,22 @@ class C(int x, int y)
     [Fact]
     public void Constructor_Parameter_Capture_Primary_Class()
     {
-        var src1 = @"
-class C(int x) 
-{
-    public int M() => 1;
-}
-";
-        var src2 = @"
-class C(int x)
-{
-    public int M() => x;
-}
-";
+        var src1 = """
+
+            class C(int x) 
+            {
+                public int M() => 1;
+            }
+
+            """;
+        var src2 = """
+
+            class C(int x)
+            {
+                public int M() => x;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -12126,20 +12125,24 @@ class C(int x)
     [Fact]
     public void Constructor_Parameter_Capture_Primary_Struct()
     {
-        var src1 = @"
-struct C(int x, int y) 
-{
-    public int M1() => 1;
-    public int M2() => y;
-}
-";
-        var src2 = @"
-struct C(int x, int y)
-{
-    public int M1() => y;
-    public int M2() => x;
-}
-";
+        var src1 = """
+
+            struct C(int x, int y) 
+            {
+                public int M1() => 1;
+                public int M2() => y;
+            }
+
+            """;
+        var src2 = """
+
+            struct C(int x, int y)
+            {
+                public int M1() => y;
+                public int M2() => x;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // note: 'y' is not reported since it is still captured
@@ -12150,26 +12153,30 @@ struct C(int x, int y)
     [Fact]
     public void Constructor_Parameter_Capture_Primary_ClassWithLayout()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y) 
-{
-    public int M1() => 1;
-    public int M2() => y;
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y)
-{
-    public int M1() => y;
-    public int M2() => x;
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y) 
+            {
+                public int M1() => 1;
+                public int M2() => y;
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y)
+            {
+                public int M1() => y;
+                public int M2() => x;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // note: 'y' is not reported since it is still captured
@@ -12180,22 +12187,26 @@ class C(int x, int y)
     [Fact]
     public void Constructor_Parameter_CeaseCapturing_Primary_Struct()
     {
-        var src1 = @"
-struct C(int x, int y) 
-{
-    public int M1() => 1;
-    public int M2() => x;
-    public int M3() => y;
-}
-";
-        var src2 = @"
-struct C(int x, int y)
-{
-    public int M1() => y;
-    public int M2() => 1;
-    public int M3() => 2;
-}
-";
+        var src1 = """
+
+            struct C(int x, int y) 
+            {
+                public int M1() => 1;
+                public int M2() => x;
+                public int M3() => y;
+            }
+
+            """;
+        var src2 = """
+
+            struct C(int x, int y)
+            {
+                public int M1() => y;
+                public int M2() => 1;
+                public int M3() => 2;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // note: 'y' is not reported since it is still captured
@@ -12206,28 +12217,32 @@ struct C(int x, int y)
     [Fact]
     public void Constructor_Parameter_CeaseCapturing_Primary_ClassWithLayout()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y) 
-{
-    public int M1() => 1;
-    public int M2() => x;
-    public int M3() => y;
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C(int x, int y)
-{
-    public int M1() => y;
-    public int M2() => 1;
-    public int M3() => 2;
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y) 
+            {
+                public int M1() => 1;
+                public int M2() => x;
+                public int M3() => y;
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C(int x, int y)
+            {
+                public int M1() => y;
+                public int M2() => 1;
+                public int M3() => 2;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // note: 'y' is not reported since it is still captured
@@ -12311,15 +12326,8 @@ class C(int x, int y)
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingPrimaryWithNonPrimary_Record()
-    {
-        var srcA1 = "partial record C(int P);";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C;";
-        var srcB2 = "partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C(int P);", "partial record C;"), GetTopEdits("partial record C;", "partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }")],
             [
                 DocumentResults(),
 
@@ -12336,19 +12344,11 @@ class C(int x, int y)
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "P"}]), partialType: "C", preserveLocalVariables: true),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingNonPrimaryWithPrimary_Record()
-    {
-        var srcA1 = "partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C;";
-        var srcB2 = "partial record C(int P);";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P);")],
             [
                 DocumentResults(),
 
@@ -12365,19 +12365,11 @@ class C(int x, int y)
                         SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingNonPrimaryWithPrimary_WithExplicitPropertyAdded_Record()
-    {
-        var srcA1 = "partial record C        { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C;";
-        var srcB2 = "partial record C(int P) { public int P { get; init; } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C        { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P) { public int P { get; init; } }")],
             [
                 DocumentResults(),
 
@@ -12394,19 +12386,11 @@ class C(int x, int y)
                         SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingNonPrimaryWithPrimary_WithExplicitFieldAdded_Record()
-    {
-        var srcA1 = "partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C;";
-        var srcB2 = "partial record C(int P) { public int P; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P) { public int P; }")],
             [
                 DocumentResults(semanticEdits:
                     [
@@ -12428,19 +12412,11 @@ class C(int x, int y)
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_SwappingNonPrimaryWithPrimary_Record()
-    {
-        var srcA1 = "partial record C(int P) { public C() : this(1) { } }";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C;";
-        var srcB2 = "partial record C() { public C(int P) : this() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C(int P) { public C() : this(1) { } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C() { public C(int P) : this() { } }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -12462,19 +12438,11 @@ class C(int x, int y)
                         SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingPropertyWithField_Record()
-    {
-        var srcA1 = "partial record C(int P) { public int P { get; init; } }";
-        var srcB1 = "partial record C;";
-
-        var srcA2 = "partial record C;";
-        var srcB2 = "partial record C(int P) { public int P; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial record C(int P) { public int P { get; init; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P) { public int P; }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -12495,7 +12463,6 @@ class C(int x, int y)
                         SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ]),
             ], capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68458")]
     [CombinatorialData]
@@ -12515,16 +12482,20 @@ class C(int x, int y)
     [Fact]
     public void Constructor_Instance_Update_Initializer_Update()
     {
-        var src1 = @"
-class C
-{
-    public C(int a) : base(a) { }
-}";
-        var src2 = @"
-class C
-{
-    public C(int a) : base(a + 1) { }
-}";
+        var src1 = """
+
+            class C
+            {
+                public C(int a) : base(a) { }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public C(int a) : base(a + 1) { }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12537,16 +12508,20 @@ class C
     [Fact]
     public void Constructor_Instance_Update_Initializer_Update_Generic()
     {
-        var src1 = @"
-class C<T>
-{
-    public C(int a) : base(a) { }
-}";
-        var src2 = @"
-class C<T>
-{
-    public C(int a) : base(a + 1) { }
-}";
+        var src1 = """
+
+            class C<T>
+            {
+                public C(int a) : base(a) { }
+            }
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+                public C(int a) : base(a + 1) { }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12594,16 +12569,20 @@ class C<T>
     [Fact]
     public void Constructor_Instance_Update_Initializer_Delete()
     {
-        var src1 = @"
-class C<T>
-{
-    public C(int a) : base(a) { }
-}";
-        var src2 = @"
-class C<T>
-{
-    public C(int a) { }
-}";
+        var src1 = """
+
+            class C<T>
+            {
+                public C(int a) : base(a) { }
+            }
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+                public C(int a) { }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12642,16 +12621,20 @@ class C<T>
     [Fact]
     public void Constructor_Instance_Update_Initializer_Insert()
     {
-        var src1 = @"
-class C
-{
-    public C(int a) { }
-}";
-        var src2 = @"
-class C
-{
-    public C(int a) : base(a) { }
-}";
+        var src1 = """
+
+            class C
+            {
+                public C(int a) { }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public C(int a) : base(a) { }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -12742,22 +12725,26 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Constructor_Instance_Update_BlockBodyToExpressionBody()
     {
-        var src1 = @"
-public class C
-{
-    private int _value;
+        var src1 = """
 
-    public C(int value) { _value = value; }
-}
-";
-        var src2 = @"
-public class C
-{
-    private int _value;
+            public class C
+            {
+                private int _value;
 
-    public C(int value) => _value = value;
-}
-";
+                public C(int value) { _value = value; }
+            }
+
+            """;
+        var src2 = """
+
+            public class C
+            {
+                private int _value;
+
+                public C(int value) => _value = value;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [public C(int value) { _value = value; }]@52 -> [public C(int value) => _value = value;]@52");
@@ -12772,22 +12759,26 @@ public class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Constructor_Instance_Update_BlockBodyToExpressionBody_WithInitializer()
     {
-        var src1 = @"
-public class B { B(int value) {} }
-public class C : B
-{
-    private int _value;
-    public C(int value) : base(value) { _value = value; }
-}
-";
-        var src2 = @"
-public class B { B(int value) {} }
-public class C : B
-{
-    private int _value;
-    public C(int value) : base(value) => _value = value;
-}
-";
+        var src1 = """
+
+            public class B { B(int value) {} }
+            public class C : B
+            {
+                private int _value;
+                public C(int value) : base(value) { _value = value; }
+            }
+
+            """;
+        var src2 = """
+
+            public class B { B(int value) {} }
+            public class C : B
+            {
+                private int _value;
+                public C(int value) : base(value) => _value = value;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [public C(int value) : base(value) { _value = value; }]@90 -> [public C(int value) : base(value) => _value = value;]@90");
@@ -12802,22 +12793,26 @@ public class C : B
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Constructor_Instance_Update_ExpressionBodyToBlockBody()
     {
-        var src1 = @"
-public class C
-{
-    private int _value;
+        var src1 = """
 
-    public C(int value) => _value = value;
-}
-";
-        var src2 = @"
-public class C
-{
-    private int _value;
+            public class C
+            {
+                private int _value;
 
-    public C(int value) { _value = value; }
-}
-";
+                public C(int value) => _value = value;
+            }
+
+            """;
+        var src2 = """
+
+            public class C
+            {
+                private int _value;
+
+                public C(int value) { _value = value; }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(@"Update [public C(int value) => _value = value;]@52 -> [public C(int value) { _value = value; }]@52");
@@ -12832,22 +12827,26 @@ public class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Constructor_Instance_Update_ExpressionBodyToBlockBody_WithInitializer()
     {
-        var src1 = @"
-public class B { B(int value) {} }
-public class C : B
-{
-    private int _value;
-    public C(int value) : base(value) => _value = value;
-}
-";
-        var src2 = @"
-public class B { B(int value) {} }
-public class C : B
-{
-    private int _value;
-    public C(int value) : base(value) { _value = value; }
-}
-";
+        var src1 = """
+
+            public class B { B(int value) {} }
+            public class C : B
+            {
+                private int _value;
+                public C(int value) : base(value) => _value = value;
+            }
+
+            """;
+        var src2 = """
+
+            public class B { B(int value) {} }
+            public class C : B
+            {
+                private int _value;
+                public C(int value) : base(value) { _value = value; }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(@"Update [public C(int value) : base(value) => _value = value;]@90 -> [public C(int value) : base(value) { _value = value; }]@90");
@@ -12862,34 +12861,38 @@ public class C : B
     [Fact]
     public void Constructor_Instance_Update_SemanticError_Partial()
     {
-        var src1 = @"
-partial class C
-{
-    partial void C(int x);
-}
+        var src1 = """
 
-partial class C
-{
-    partial void C(int x)
-    {
-        System.Console.WriteLine(1);
-    }
-}
-";
-        var src2 = @"
-partial class C
-{
-    partial void C(int x);
-}
+            partial class C
+            {
+                partial void C(int x);
+            }
 
-partial class C
-{
-    partial void C(int x)
-    {
-        System.Console.WriteLine(2);
-    }
-}
-";
+            partial class C
+            {
+                partial void C(int x)
+                {
+                    System.Console.WriteLine(1);
+                }
+            }
+
+            """;
+        var src2 = """
+
+            partial class C
+            {
+                partial void C(int x);
+            }
+
+            partial class C
+            {
+                partial void C(int x)
+                {
+                    System.Console.WriteLine(2);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -13053,22 +13056,30 @@ partial class C
     [InlineData("struct")]
     public void Constructor_Instance_Insert_ReplacingDefault_Class_WithMemberInitializers(string typeKind)
     {
-        var src1 = @"
-" + typeKind + @" C
-{
-    private int a = 10;
-    private int b;
-}
-";
-        var src2 = @"
-" + typeKind + @" C
-{
-    private int a = 10;
-    private int b;
+        var src1 = """
 
-    public C() { b = 3; }
-}
-";
+
+            """ + typeKind + """
+             C
+            {
+                private int a = 10;
+                private int b;
+            }
+
+            """;
+        var src2 = """
+
+
+            """ + typeKind + """
+             C
+            {
+                private int a = 10;
+                private int b;
+
+                public C() { b = 3; }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Insert [public C() { b = 3; }]@66", "Insert [()]@74");
@@ -13105,15 +13116,8 @@ partial class C
 
     [Fact]
     public void Constructor_Instance_Insert_ReplacingDefault_WithStackAllocInMemberInitializer_Partial()
-    {
-        var srcA1 = "partial class C { int a = G(stackalloc int[10]); }";
-        var srcB1 = "partial class C { static int G(System.Span<int> span) => 1; }";
-
-        var srcA2 = "partial class C { int a = G(stackalloc int[10]); }";
-        var srcB2 = "partial class C { static int G(System.Span<int> span) => 1; public C() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int a = G(stackalloc int[10]); }", "partial class C { int a = G(stackalloc int[10]); }"), GetTopEdits("partial class C { static int G(System.Span<int> span) => 1; }", "partial class C { static int G(System.Span<int> span) => 1; public C() { } }")],
             [
                 DocumentResults(),
 
@@ -13123,19 +13127,11 @@ partial class C
                         Diagnostic(RudeEditKind.StackAllocUpdate, "public C()", GetResource("constructor"))
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Delete_ReplacingDefault_Partial()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { public C(int a) { } }";
-        var srcB2 = "partial class C { public C(int a, int b) { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { public C(int a) { } }"), GetTopEdits("partial class C { }", "partial class C { public C(int a, int b) { } }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -13152,19 +13148,11 @@ partial class C
                     ])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Constructor_Instance_Insert_ReplacingExplicitWithDefault_WithStackAllocInMemberInitializer_Partial()
-    {
-        var srcA1 = "partial class C { int a = G(stackalloc int[10]); }";
-        var srcB1 = "partial class C { static int G(System.Span<int> span) => 1; public C() { } }";
-
-        var srcA2 = "partial class C { int a = G(stackalloc int[10]); }";
-        var srcB2 = "partial class C { static int G(System.Span<int> span) => 1; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int a = G(stackalloc int[10]); }", "partial class C { int a = G(stackalloc int[10]); }"), GetTopEdits("partial class C { static int G(System.Span<int> span) => 1; public C() { } }", "partial class C { static int G(System.Span<int> span) => 1; }")],
             [
                 DocumentResults(),
 
@@ -13174,7 +13162,6 @@ partial class C
                         Diagnostic(RudeEditKind.StackAllocUpdate, "partial class C", GetResource("constructor", "C()"))
                     ]),
             ]);
-    }
 
     [Theory, CombinatorialData]
     public void Constructor_Instance_Insert_UpdatingImplicit(
@@ -13515,22 +13502,26 @@ partial class C
     [Fact]
     public void Constructor_Instance_Delete_Parameterless()
     {
-        var src1 = @"
-class C
-{
-    private int a = 10;
-    private int b;
+        var src1 = """
 
-    public C() { b = 3; }
-}
-";
-        var src2 = @"
-class C
-{
-    private int a = 10;
-    private int b;
-}
-";
+            class C
+            {
+                private int a = 10;
+                private int b;
+
+                public C() { b = 3; }
+            }
+
+            """;
+        var src2 = """
+
+            class C
+            {
+                private int a = 10;
+                private int b;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -13619,15 +13610,8 @@ class C
 
     [Fact]
     public void Constructor_Instance_Delete_Public_PartialWithInitializerUpdate()
-    {
-        var srcA1 = "partial class C { public C() { } }";
-        var srcB1 = "partial class C { int x = 1; }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { int x = 2; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { public C() { } }", "partial class C { }"), GetTopEdits("partial class C { int x = 1; }", "partial class C { int x = 2; }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
@@ -13635,7 +13619,6 @@ class C
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)])
             ]);
-    }
 
     [Theory, CombinatorialData]
     public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized(
@@ -13699,15 +13682,8 @@ class C
 
     [Fact]
     public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_Partial()
-    {
-        var srcA1 = "partial class C { public C(int a) { } }";
-        var srcB1 = "partial class C { public C(int a, int b) { } }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { public C(int a) { } }", "partial class C { }"), GetTopEdits("partial class C { public C(int a, int b) { } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters.Length == 1), deletedSymbolContainerProvider: c => c.GetMember("C"))]),
@@ -13715,7 +13691,6 @@ class C
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters.Length == 2), deletedSymbolContainerProvider: c => c.GetMember("C"))])
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Delete_Primary_ReplacingWithSynthesized()
@@ -13782,14 +13757,18 @@ class C
     [Fact]
     public void Constructor_Instance_InsertDelete_Primary_Partial_Class()
     {
-        var src1 = @"
-partial class C { }
-partial class C(int P);
-";
-        var src2 = @"
-partial class C(int P) { }
-partial class C;
-";
+        var src1 = """
+
+            partial class C { }
+            partial class C(int P);
+
+            """;
+        var src2 = """
+
+            partial class C(int P) { }
+            partial class C;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -13800,14 +13779,18 @@ partial class C;
     [Fact]
     public void Constructor_Instance_InsertDelete_Primary_Partial_Record()
     {
-        var src1 = @"
-partial record C { }
-partial record C(int P);
-";
-        var src2 = @"
-partial record C(int P) { }
-partial record C;
-";
+        var src1 = """
+
+            partial record C { }
+            partial record C(int P);
+
+            """;
+        var src2 = """
+
+            partial record C(int P) { }
+            partial record C;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -13819,15 +13802,8 @@ partial record C;
 
     [Fact]
     public void Constructor_Instance_Partial_DeletePrivateInsertPrivate()
-    {
-        var srcA1 = "partial class C { C() { } }";
-        var srcB1 = "partial class C {  }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { C() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { C() { } }", "partial class C { }"), GetTopEdits("partial class C {  }", "partial class C { C() { } }")],
             [
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
@@ -13838,19 +13814,11 @@ partial record C;
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_DeletePublicInsertPublic()
-    {
-        var srcA1 = "partial class C { public C() { } }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { public C() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { public C() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { public C() { } }")],
             [
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
@@ -13861,19 +13829,11 @@ partial record C;
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_DeletePrivateInsertPublic()
-    {
-        var srcA1 = "partial class C { C() { } }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { public C() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { C() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { public C() { } }")],
             [
                 // delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed accessibility
                 DocumentResults(
@@ -13882,19 +13842,11 @@ partial record C;
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.ChangingAccessibility, "public C()", FeaturesResources.constructor)]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertPublicDeletePublic()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { public C() { } }";
-
-        var srcA2 = "partial class C { public C() { } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { public C() { } }"), GetTopEdits("partial class C { public C() { } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -13905,19 +13857,11 @@ partial record C;
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertPrivateDeletePrivate()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { private C() { } }";
-
-        var srcA2 = "partial class C { private C() { } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { private C() { } }"), GetTopEdits("partial class C { private C() { } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -13928,19 +13872,11 @@ partial record C;
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_DeleteInternalInsertInternal()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { internal C() { } }";
-
-        var srcA2 = "partial class C { internal C() { } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { internal C() { } }"), GetTopEdits("partial class C { internal C() { } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -13951,19 +13887,11 @@ partial record C;
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertInternalDeleteInternal_WithBody()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { internal C() { } }";
-
-        var srcA2 = "partial class C { internal C() { Console.WriteLine(1); } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { internal C() { Console.WriteLine(1); } }"), GetTopEdits("partial class C { internal C() { } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -13974,19 +13902,11 @@ partial record C;
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertPublicDeletePrivate()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { private C() { } }";
-
-        var srcA2 = "partial class C { public C() { } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { public C() { } }"), GetTopEdits("partial class C { private C() { } }", "partial class C { }")],
             [
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.ChangingAccessibility, "public C()", FeaturesResources.constructor)]),
@@ -13994,70 +13914,65 @@ partial record C;
                 // delete of the constructor in partial part will be reported as rude in the the other document where it was inserted with changed accessibility
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertInternalDeletePrivate()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { private C() { } }";
-
-        var srcA2 = "partial class C { internal C() { } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { internal C() { } }"), GetTopEdits("partial class C { private C() { } }", "partial class C { }")],
             [
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.ChangingAccessibility, "internal C()", FeaturesResources.constructor)]),
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_Update_LambdaInInitializer1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-    <N:0.3>public C()
-    {
-        F(<N:0.2>c => c + 1</N:0.2>);
-    }</N:0.3>
-}
-";
-        var src2 = @"
-using System;
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+                <N:0.3>public C()
+                {
+                    F(<N:0.2>c => c + 1</N:0.2>);
+                }</N:0.3>
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            """;
+        var src2 = """
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+            using System;
 
-    <N:0.3>public C()
-    {
-        F(<N:0.2>c => c + 2</N:0.2>);
-    }</N:0.3>
-}
-";
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+
+                <N:0.3>public C()
+                {
+                    F(<N:0.2>c => c + 2</N:0.2>);
+                }</N:0.3>
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -14069,40 +13984,44 @@ partial class C
     [Fact]
     public void Constructor_Instance_Partial_Update_LambdaInInitializer_Trivia1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-    public C() { F(<N:0.2>c => c + 1</N:0.2>); }
-}
-";
-        var src2 = @"
-using System;
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C() { F(<N:0.2>c => c + 1</N:0.2>); }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            """;
+        var src2 = """
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+            using System;
 
-    /*new trivia*/public C() { F(<N:0.2>c => c + 1</N:0.2>); }
-}
-";
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+
+                /*new trivia*/public C() { F(<N:0.2>c => c + 1</N:0.2>); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -14114,54 +14033,58 @@ partial class C
     [Fact]
     public void Constructor_Instance_Partial_Update_LambdaInInitializer_ExplicitInterfaceImpl1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-public interface I { int B { get; } }
-public interface J { int B { get; } }
+            using System;
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            public interface I { int B { get; } }
+            public interface J { int B { get; } }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-partial class C : I, J
-{
-    int I.B { get; } = F(<N:0.1>ib => ib + 1</N:0.1>);
-    int J.B { get; } = F(<N:0.2>jb => jb + 1</N:0.2>);
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-    public C()
-    {
-        F(<N:0.3>c => c + 1</N:0.3>);
-    }
-}
-";
-        var src2 = @"
-using System;
+            partial class C : I, J
+            {
+                int I.B { get; } = F(<N:0.1>ib => ib + 1</N:0.1>);
+                int J.B { get; } = F(<N:0.2>jb => jb + 1</N:0.2>);
 
-public interface I { int B { get; } }
-public interface J { int B { get; } }
+                public C()
+                {
+                    F(<N:0.3>c => c + 1</N:0.3>);
+                }
+            }
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            """;
+        var src2 = """
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            using System;
 
-partial class C : I, J
-{
-    int I.B { get; } = F(<N:0.1>ib => ib + 1</N:0.1>);
-    int J.B { get; } = F(<N:0.2>jb => jb + 1</N:0.2>);
+            public interface I { int B { get; } }
+            public interface J { int B { get; } }
 
-    public C()
-    {
-        F(<N:0.3>c => c + 2</N:0.3>);
-    }
-}
-";
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            partial class C : I, J
+            {
+                int I.B { get; } = F(<N:0.1>ib => ib + 1</N:0.1>);
+                int J.B { get; } = F(<N:0.2>jb => jb + 1</N:0.2>);
+
+                public C()
+                {
+                    F(<N:0.3>c => c + 2</N:0.3>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -14173,41 +14096,45 @@ partial class C : I, J
     [Fact]
     public void Constructor_Instance_Partial_Insert_Parameterless_LambdaInInitializer1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            """;
+        var src2 = """
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+            using System;
 
-    public C()   // new ctor
-    {
-        F(c => c + 1);
-    }
-}
-";
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+
+                public C()   // new ctor
+                {
+                    F(c => c + 1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -14224,41 +14151,45 @@ partial class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
     public void Constructor_Instance_Partial_Insert_WithParameters_LambdaInInitializer1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-partial class C
-{
-    static int F(Func<int, int> x) => 1;
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            """;
+        var src2 = """
 
-partial class C
-{
-    int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+            using System;
 
-    public C(int x)                                 // new ctor
-    {
-        F(c => c + 1);
-    }
-}
-";
+            partial class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            partial class C
+            {
+                int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
+
+                public C(int x)                                 // new ctor
+                {
+                    F(c => c + 1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         _ = GetSyntaxMap(src1, src2);
 
@@ -14274,50 +14205,55 @@ partial class C
     [Fact]
     public void Constructor_Instance_Partial_Explicit_Update()
     {
-        var srcA1 = @"
-using System;
+        var srcB1 = """
 
-partial class C
-{
-    C(int arg) => Console.WriteLine(0);
-    C(bool arg) => Console.WriteLine(1);
-}
-";
-        var srcB1 = @"
-using System;
+            using System;
 
-partial class C
-{
-    int a <N:0.0>= 1</N:0.0>;
+            partial class C
+            {
+                int a <N:0.0>= 1</N:0.0>;
 
-    C(uint arg) => Console.WriteLine(2);
-}
-";
+                C(uint arg) => Console.WriteLine(2);
+            }
 
-        var srcA2 = @"
-using System;
+            """;
+        var srcB2 = """
 
-partial class C
-{
-    C(int arg) => Console.WriteLine(0);
-    C(bool arg) => Console.WriteLine(1);
-}
-";
-        var srcB2 = @"
-using System;
+            using System;
 
-partial class C
-{
-    int a <N:0.0>= 2</N:0.0>;             // updated field initializer
+            partial class C
+            {
+                int a <N:0.0>= 2</N:0.0>;             // updated field initializer
 
-    C(uint arg) => Console.WriteLine(2);
-    C(byte arg) => Console.WriteLine(3);  // new ctor
-}
-";
+                C(uint arg) => Console.WriteLine(2);
+                C(byte arg) => Console.WriteLine(3);  // new ctor
+            }
+
+            """;
         var syntaxMapB = GetSyntaxMap(srcB1, srcB2)[0];
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("""
+
+                using System;
+
+                partial class C
+                {
+                    C(int arg) => Console.WriteLine(0);
+                    C(bool arg) => Console.WriteLine(1);
+                }
+
+                """, """
+
+                using System;
+
+                partial class C
+                {
+                    C(int arg) => Console.WriteLine(0);
+                    C(bool arg) => Console.WriteLine(1);
+                }
+
+                """), GetTopEdits(srcB1, srcB2)],
             [
                 // No changes in document A
                 DocumentResults(),
@@ -14336,47 +14272,48 @@ partial class C
 
     [Fact]
     public void Constructor_Instance_Partial_Explicit_Update_SemanticError()
-    {
-        var srcA1 = @"
-using System;
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-partial class C
-{
-    C(int arg) => Console.WriteLine(0);
-    C(int arg) => Console.WriteLine(1);
-}
-";
-        var srcB1 = @"
-using System;
+                using System;
 
-partial class C
-{
-    int a = 1;
-}
-";
+                partial class C
+                {
+                    C(int arg) => Console.WriteLine(0);
+                    C(int arg) => Console.WriteLine(1);
+                }
 
-        var srcA2 = @"
-using System;
+                """, """
 
-partial class C
-{
-    C(int arg) => Console.WriteLine(0);
-    C(int arg) => Console.WriteLine(1);
-}
-";
-        var srcB2 = @"
-using System;
+                using System;
 
-partial class C
-{
-    int a = 2;
+                partial class C
+                {
+                    C(int arg) => Console.WriteLine(0);
+                    C(int arg) => Console.WriteLine(1);
+                }
 
-    C(int arg) => Console.WriteLine(2);
-}
-";
+                """), GetTopEdits("""
 
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                         using System;
+
+                         partial class C
+                         {
+                             int a = 1;
+                         }
+
+                         """, """
+
+                         using System;
+
+                         partial class C
+                         {
+                             int a = 2;
+
+                             C(int arg) => Console.WriteLine(2);
+                         }
+
+                         """)],
             [
                 // No changes in document A
                 DocumentResults(),
@@ -14385,19 +14322,11 @@ partial class C
                 // We just should not crash.
                 DocumentResults(diagnostics: [])
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_Implicit_Update()
-    {
-        var srcA1 = "partial class C { int F = 1; }";
-        var srcB1 = "partial class C { int G = 1; }";
-
-        var srcA2 = "partial class C { int F = 2; }";
-        var srcB2 = "partial class C { int G = 2; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int F = 1; }", "partial class C { int F = 2; }"), GetTopEdits("partial class C { int G = 1; }", "partial class C { int G = 2; }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -14410,19 +14339,11 @@ partial class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void PartialDeclaration_Delete()
-    {
-        var srcA1 = "partial class C { public C() { } void F() { } }";
-        var srcB1 = "partial class C { int x = 1; }";
-
-        var srcA2 = "";
-        var srcB2 = "partial class C { int x = 2; void F() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { public C() { } void F() { } }", ""), GetTopEdits("partial class C { int x = 1; }", "partial class C { int x = 2; void F() { } }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
@@ -14434,19 +14355,11 @@ partial class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void PartialDeclaration_Insert()
-    {
-        var srcA1 = "";
-        var srcB1 = "partial class C { int x = 1; void F() { } }";
-
-        var srcA2 = "partial class C { public C() { } void F() { } }";
-        var srcB2 = "partial class C { int x = 2; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("", "partial class C { public C() { } void F() { } }"), GetTopEdits("partial class C { int x = 1; void F() { } }", "partial class C { int x = 2; }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -14458,19 +14371,15 @@ partial class C
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
             ]);
-    }
 
     [Fact]
     public void PartialDeclaration_Insert_Reloadable()
     {
-        var srcA1 = "";
         var srcB1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int x = 1; void F() { } }";
-
-        var srcA2 = "partial class C { public C() { } void F() { } }";
         var srcB2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int x = 2; }";
 
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("", "partial class C { public C() { } void F() { } }"), GetTopEdits(srcB1, srcB2)],
             [
                 DocumentResults(
                     semanticEdits:
@@ -14539,15 +14448,8 @@ partial class C
 
     [Fact]
     public void Constructor_Static_Partial_DeleteInsert()
-    {
-        var srcA1 = "partial class C { static C() { } }";
-        var srcB1 = "partial class C {  }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { static C() { } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { static C() { } }", "partial class C { }"), GetTopEdits("partial class C {  }", "partial class C { static C() { } }")],
             [
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
@@ -14558,19 +14460,11 @@ partial class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Static_Partial_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { static C() { } }";
-
-        var srcA2 = "partial class C { static C() { } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { static C() { } }"), GetTopEdits("partial class C { static C() { } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -14581,7 +14475,6 @@ partial class C
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Static_Update()
@@ -14625,12 +14518,9 @@ partial class C
     {
         var src1 = @"class B { ~B() { } }";
         var src2 = @"class B { }";
-
-        var expectedEdit1 = @"Delete [~B() { }]@10";
-
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(expectedEdit1);
+        edits.VerifyEdits(@"Delete [~B() { }]@10");
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "class B", DeletedSymbolDisplay(CSharpFeaturesResources.destructor, "~B()")));
@@ -14657,18 +14547,22 @@ partial class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Destructor_BlockBodyToExpressionBody()
     {
-        var src1 = @"
-public class C
-{
-    ~C() { Console.WriteLine(0); }
-}
-";
-        var src2 = @"
-public class C
-{
-    ~C() => Console.WriteLine(0);
-}
-";
+        var src1 = """
+
+            public class C
+            {
+                ~C() { Console.WriteLine(0); }
+            }
+
+            """;
+        var src2 = """
+
+            public class C
+            {
+                ~C() => Console.WriteLine(0);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [~C() { Console.WriteLine(0); }]@25 -> [~C() => Console.WriteLine(0);]@25");
@@ -14683,18 +14577,22 @@ public class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Destructor_ExpressionBodyToBlockBody()
     {
-        var src1 = @"
-public class C
-{
-    ~C() => Console.WriteLine(0);
-}
-";
-        var src2 = @"
-public class C
-{
-    ~C() { Console.WriteLine(0); }
-}
-";
+        var src1 = """
+
+            public class C
+            {
+                ~C() => Console.WriteLine(0);
+            }
+
+            """;
+        var src2 = """
+
+            public class C
+            {
+                ~C() { Console.WriteLine(0); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [~C() => Console.WriteLine(0);]@25 -> [~C() { Console.WriteLine(0); }]@25");
@@ -14771,15 +14669,8 @@ public class C
 
     [Fact]
     public void MemberInitializer_Update_Remove_Partial_Field()
-    {
-        var srcA1 = "partial class C { int F = 1; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C {  }";
-        var srcB2 = "partial class C { int F ; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int F = 1; }", "partial class C {  }"), GetTopEdits("partial class C { }", "partial class C { int F ; }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -14788,19 +14679,11 @@ public class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Update_Remove_Partial_Property()
-    {
-        var srcA1 = "partial class C { int F { get; } = 1; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C {  }";
-        var srcB2 = "partial class C { int F { get; } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int F { get; } = 1; }", "partial class C {  }"), GetTopEdits("partial class C { }", "partial class C { int F { get; } }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -14810,19 +14693,11 @@ public class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_F"))
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Update_DeleteInsert_Field()
-    {
-        var srcA1 = "partial class C { int F = 1; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { int F = 2; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int F = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int F = 2; }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -14831,19 +14706,11 @@ public class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Update_DeleteInsert_Property()
-    {
-        var srcA1 = "partial class C { int F { get; } = 1; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { int F { get; } = 2; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int F { get; } = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int F { get; } = 2; }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -14853,7 +14720,6 @@ public class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_PropertyUpdate2()
@@ -14874,15 +14740,8 @@ public class C
 
     [Fact]
     public void MemberInitializer_PropertyInsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int a { get; } = 1; }";
-
-        var srcA2 = "partial class C { int a { get { return 1; } } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { int a { get { return 1; } } }"), GetTopEdits("partial class C { int a { get; } = 1; }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -14892,7 +14751,6 @@ public class C
                     ]),
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Field_Update3()
@@ -15814,28 +15672,32 @@ public class C
     [Fact]
     public void MemberInitializer_Update_Lambda_ImplicitCtor_EditInitializerWithLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 2</N:0.1>);
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 2</N:0.1>);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -15847,28 +15709,32 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_ImplicitCtor_EditInitializerWithoutLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = 1;
-    int B = F(<N:0.0>b => b + 1</N:0.0>);
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                int A = 1;
+                int B = F(<N:0.0>b => b + 1</N:0.0>);
+            }
 
-    int A = 2;
-    int B = F(<N:0.0>b => b + 1</N:0.0>);
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = 2;
+                int B = F(<N:0.0>b => b + 1</N:0.0>);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -15880,32 +15746,36 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_CtorIncludingInitializers_EditInitializerWithLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    <N:0.2>public C() {}</N:0.2>
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                <N:0.2>public C() {}</N:0.2>
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 2</N:0.1>);
+            """;
+        var src2 = """
 
-    <N:0.2>public C() {}</N:0.2>
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 2</N:0.1>);
+
+                <N:0.2>public C() {}</N:0.2>
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -15917,32 +15787,36 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_CtorIncludingInitializers_EditInitializerWithoutLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = 1;
-    int B = F(<N:0.0>b => b + 1</N:0.0>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C() {}
-}
-";
-        var src2 = @"
-using System;
+                int A = 1;
+                int B = F(<N:0.0>b => b + 1</N:0.0>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C() {}
+            }
 
-    int A = 2;
-    int B = F(<N:0.0>b => b + 1</N:0.0>);
+            """;
+        var src2 = """
 
-    public C() {}
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = 2;
+                int B = F(<N:0.0>b => b + 1</N:0.0>);
+
+                public C() {}
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -15954,34 +15828,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializers_EditInitializerWithLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) {}
-    public C(bool b) {}
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) {}
+                public C(bool b) {}
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 2</N:0.1>);
+            """;
+        var src2 = """
 
-    public C(int a) {}
-    public C(bool b) {}
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 2</N:0.1>);
+
+                public C(int a) {}
+                public C(bool b) {}
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -15996,34 +15874,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
-    public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
+                public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 2</N:0.1>);
+            """;
+        var src2 = """
 
-    public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
-    public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 2</N:0.1>);
+
+                public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
+                public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16038,34 +15920,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda_Trivia1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
-    public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
+                public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B =   F(<N:0.1>b => b + 1</N:0.1>);
+            """;
+        var src2 = """
 
-    public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
-    public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B =   F(<N:0.1>b => b + 1</N:0.1>);
+
+                public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
+                public C(bool b) { F(<N:0.3>d => d + 1</N:0.3>); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16080,34 +15966,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
-    public C(bool b) { F(d => d + 1); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
+                public C(bool b) { F(d => d + 1); }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            """;
+        var src2 = """
 
-    public C(int a) { F(<N:0.2>c => c + 2</N:0.2>); }
-    public C(bool b) { F(d => d + 1); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
+
+                public C(int a) { F(<N:0.2>c => c + 2</N:0.2>); }
+                public C(bool b) { F(d => d + 1); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16121,34 +16011,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda_Trivia1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
-    public C(bool b) { F(d => d + 1); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
+                public C(bool b) { F(d => d + 1); }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            """;
+        var src2 = """
 
-        public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
-    public C(bool b) { F(d => d + 1); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
+
+                    public C(int a) { F(<N:0.2>c => c + 1</N:0.2>); }
+                public C(bool b) { F(d => d + 1); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16162,34 +16056,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithoutLambda1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) { F(c => c + 1); }
-    public C(bool b) { Console.WriteLine(1); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) { F(c => c + 1); }
+                public C(bool b) { Console.WriteLine(1); }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            """;
+        var src2 = """
 
-    public C(int a) { F(c => c + 1); }
-    public C(bool b) { Console.WriteLine(2); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
+
+                public C(int a) { F(c => c + 1); }
+                public C(bool b) { Console.WriteLine(2); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16203,34 +16101,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_EditConstructorNotIncludingInitializers()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(a => a + 1);
-    int B = F(b => b + 1);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) { F(c => c + 1); }
-    public C(bool b) : this(1) { Console.WriteLine(1); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(a => a + 1);
+                int B = F(b => b + 1);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) { F(c => c + 1); }
+                public C(bool b) : this(1) { Console.WriteLine(1); }
+            }
 
-    int A = F(a => a + 1);
-    int B = F(b => b + 1);
+            """;
+        var src2 = """
 
-    public C(int a) { F(c => c + 1); }
-    public C(bool b) : this(1) { Console.WriteLine(2); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(a => a + 1);
+                int B = F(b => b + 1);
+
+                public C(int a) { F(c => c + 1); }
+                public C(bool b) : this(1) { Console.WriteLine(2); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16244,34 +16146,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_RemoveCtorInitializer1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    unsafe public C(int a) { char* buffer = stackalloc char[16]; F(c => c + 1); }
-    public C(bool b) : this(1) { Console.WriteLine(1); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                unsafe public C(int a) { char* buffer = stackalloc char[16]; F(c => c + 1); }
+                public C(bool b) : this(1) { Console.WriteLine(1); }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            """;
+        var src2 = """
 
-    unsafe public C(int a) { char* buffer = stackalloc char[16]; F(c => c + 1); }
-    public C(bool b) { Console.WriteLine(1); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
+
+                unsafe public C(int a) { char* buffer = stackalloc char[16]; F(c => c + 1); }
+                public C(bool b) { Console.WriteLine(1); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16285,34 +16191,38 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_AddCtorInitializer1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(a => a + 1);
-    int B = F(b => b + 1);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int a) { F(c => c + 1); }
-    public C(bool b) { Console.WriteLine(1); }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(a => a + 1);
+                int B = F(b => b + 1);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int a) { F(c => c + 1); }
+                public C(bool b) { Console.WriteLine(1); }
+            }
 
-    int A = F(a => a + 1);
-    int B = F(b => b + 1);
+            """;
+        var src2 = """
 
-    public C(int a) { F(c => c + 1); }
-    public C(bool b) : this(1) { Console.WriteLine(1); }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(a => a + 1);
+                int B = F(b => b + 1);
+
+                public C(int a) { F(c => c + 1); }
+                public C(bool b) : this(1) { Console.WriteLine(1); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -16325,50 +16235,54 @@ class C
     [Fact]
     public void MemberInitializer_Update_Lambda_UpdateBaseCtorInitializerWithLambdas1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class B
-{
-    public B(int a) { }
-}
+            using System;
 
-class C : B
-{
-    static int F(Func<int, int> x) => 1;
+            class B
+            {
+                public B(int a) { }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            class C : B
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(bool b)
-      : base(F(<N:0.2>c => c + 1</N:0.2>))
-    { 
-        F(<N:0.3>d => d + 1</N:0.3>);
-    }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-class B
-{
-    public B(int a) { }
-}
+                public C(bool b)
+                  : base(F(<N:0.2>c => c + 1</N:0.2>))
+                { 
+                    F(<N:0.3>d => d + 1</N:0.3>);
+                }
+            }
 
-class C : B
-{
-    static int F(Func<int, int> x) => 1;
+            """;
+        var src2 = """
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(<N:0.1>b => b + 1</N:0.1>);
+            using System;
 
-    public C(bool b)
-      : base(F(<N:0.2>c => c + 2</N:0.2>))
-    {
-        F(<N:0.3>d => d + 1</N:0.3>);
-    }
-}
-";
+            class B
+            {
+                public B(int a) { }
+            }
+
+            class C : B
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(<N:0.1>b => b + 1</N:0.1>);
+
+                public C(bool b)
+                  : base(F(<N:0.2>c => c + 2</N:0.2>))
+                {
+                    F(<N:0.3>d => d + 1</N:0.3>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16398,16 +16312,18 @@ class C : B
     }
 }
 """;
-        var src2 = @"
-using System;
+        var src2 = """
 
-class C : B
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
-";
+            class C : B
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -16432,16 +16348,18 @@ class C() : B{{initializer}}
     int A = F(<N:0.0>a => a + 1</N:0.0>);
 }
 """;
-        var src2 = @"
-using System;
+        var src2 = """
 
-class C : B
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
-";
+            class C : B
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            """;
         if (isInsert)
         {
             (src1, src2) = (src2, src1);
@@ -16460,37 +16378,41 @@ class C : B
     [Fact]
     public void MemberInitializer_Update_Lambda_PartialDeclarationDelete_SingleDocument()
     {
-        var src1 = @"
-partial class C
-{
-    int x = F(<N:0.0>a => a + 1</N:0.0>);
-}
+        var src1 = """
 
-partial class C
-{
-    int y = F(<N:0.1>a => a + 10</N:0.1>);
-}
+            partial class C
+            {
+                int x = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-partial class C
-{
-    public C() { }
-    static int F(Func<int, int> x) => 1;
-}
-";
+            partial class C
+            {
+                int y = F(<N:0.1>a => a + 10</N:0.1>);
+            }
 
-        var src2 = @"
-partial class C
-{
-    int x = F(<N:0.0>a => a + 1</N:0.0>);
-}
+            partial class C
+            {
+                public C() { }
+                static int F(Func<int, int> x) => 1;
+            }
 
-partial class C
-{
-    int y = F(<N:0.1>a => a + 10</N:0.1>);
+            """;
 
-    static int F(Func<int, int> x) => 1;
-}
-";
+        var src2 = """
+
+            partial class C
+            {
+                int x = F(<N:0.0>a => a + 1</N:0.0>);
+            }
+
+            partial class C
+            {
+                int y = F(<N:0.1>a => a + 10</N:0.1>);
+
+                static int F(Func<int, int> x) => 1;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         var syntaxMap = GetSyntaxMap(src1, src2);
@@ -16522,30 +16444,34 @@ partial class C
     [Fact]
     public void MemberInitializer_Update_ActiveStatements1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    <AS:0>int A = <N:0.0>1</N:0.0>;</AS:0>
-    int B = 1;
+            using System;
 
-    public C(int a) { Console.WriteLine(1); }
-    public C(bool b) { Console.WriteLine(1); }
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                <AS:0>int A = <N:0.0>1</N:0.0>;</AS:0>
+                int B = 1;
 
-class C
-{
-    <AS:0>int A = <N:0.0>1</N:0.0>;</AS:0>
-    int B = 2;
+                public C(int a) { Console.WriteLine(1); }
+                public C(bool b) { Console.WriteLine(1); }
+            }
 
-    public C(int a) { Console.WriteLine(1); }
-    public C(bool b) { Console.WriteLine(1); }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                <AS:0>int A = <N:0.0>1</N:0.0>;</AS:0>
+                int B = 2;
+
+                public C(int a) { Console.WriteLine(1); }
+                public C(bool b) { Console.WriteLine(1); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
         var activeStatements = GetActiveStatements(src1, src2);
@@ -16561,30 +16487,34 @@ class C
     [Fact]
     public void MemberInitializer_Update_Partial_SemanticError()
     {
-        var src1 = @"
-partial class C
-{
-    partial int P => 1;
-}
+        var src1 = """
 
-partial class C
-{
-    partial int P => 1;
-}
-";
-        var src2 = @"
-partial class C
-{
-    partial int P => 1;
-}
+            partial class C
+            {
+                partial int P => 1;
+            }
 
-partial class C
-{
-    partial int P => 2;
+            partial class C
+            {
+                partial int P => 1;
+            }
 
-    public C() { }
-}
-";
+            """;
+        var src2 = """
+
+            partial class C
+            {
+                partial int P => 1;
+            }
+
+            partial class C
+            {
+                partial int P => 2;
+
+                public C() { }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -16616,13 +16546,9 @@ partial class C
     public void MemberInitializer_Update_Reloadable_Partial()
     {
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int x = 1; }";
-        var srcB1 = "partial class C { int y = 1; }";
-
         var srcA2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int x = 2; }";
-        var srcB2 = "partial class C { int y = 2; }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { int y = 1; }", "partial class C { int y = 2; }")],
             [
                 DocumentResults(semanticEdits:
                 [
@@ -16732,15 +16658,8 @@ partial class C
 
     [Fact]
     public void Field_Modifier_Add_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int F; }";
-
-        var srcA2 = "partial class C { static int F; }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { static int F; }"), GetTopEdits("partial class C { int F; }", "partial class C { }")],
             [
                 DocumentResults(
                     diagnostics:
@@ -16750,19 +16669,11 @@ partial class C
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Field_Attribute_Add_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int F; }";
-
-        var srcA2 = "partial class C { [System.Obsolete]int F; }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { [System.Obsolete]int F; }"), GetTopEdits("partial class C { int F; }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -16773,7 +16684,6 @@ partial class C
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Field_FixedSize_Update()
@@ -17057,27 +16967,31 @@ partial class C
     [Fact]
     public void Field_Insert_IntoStruct()
     {
-        var src1 = @"
-struct S 
-{ 
-    public int a; 
+        var src1 = """
 
-    public S(int z) { this = default(S); a = z; }
-}
-";
-        var src2 = @"
-struct S 
-{ 
-    public int a; 
+            struct S 
+            { 
+                public int a; 
 
-    private int b; 
-    private static int c; 
-    private static int f = 1;
-    private event System.Action d; 
+                public S(int z) { this = default(S); a = z; }
+            }
 
-    public S(int z) { this = default(S); a = z; }
-}
-";
+            """;
+        var src2 = """
+
+            struct S 
+            { 
+                public int a; 
+
+                private int b; 
+                private static int c; 
+                private static int f = 1;
+                private event System.Action d; 
+
+                public S(int z) { this = default(S); a = z; }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -17090,27 +17004,31 @@ struct S
     [Fact]
     public void Field_Insert_IntoLayoutClass_Auto()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Auto)]
-class C 
-{ 
-    private int a; 
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Auto)]
-class C 
-{ 
-    private int a; 
-    private int b; 
-    private int c; 
-    private static int d; 
-}
-";
+            [StructLayoutAttribute(LayoutKind.Auto)]
+            class C 
+            { 
+                private int a; 
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Auto)]
+            class C 
+            { 
+                private int a; 
+                private int b; 
+                private int c; 
+                private static int d; 
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -17126,34 +17044,38 @@ class C
     [Fact]
     public void Field_Insert_IntoLayoutClass_Explicit()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Explicit)]
-class C 
-{ 
-    [FieldOffset(0)]
-    private int a; 
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Explicit)]
-class C 
-{ 
-    [FieldOffset(0)]
-    private int a; 
+            [StructLayoutAttribute(LayoutKind.Explicit)]
+            class C 
+            { 
+                [FieldOffset(0)]
+                private int a; 
+            }
 
-    [FieldOffset(0)]
-    private int b; 
+            """;
+        var src2 = """
 
-    [FieldOffset(4)]
-    private int c; 
+            using System.Runtime.InteropServices;
 
-    private static int d; 
-}
-";
+            [StructLayoutAttribute(LayoutKind.Explicit)]
+            class C 
+            { 
+                [FieldOffset(0)]
+                private int a; 
+
+                [FieldOffset(0)]
+                private int b; 
+
+                [FieldOffset(4)]
+                private int c; 
+
+                private static int d; 
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -17165,27 +17087,31 @@ class C
     [Fact]
     public void Field_Insert_IntoLayoutClass_Sequential()
     {
-        var src1 = @"
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-    private int a; 
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-    private int a; 
-    private int b; 
-    private int c; 
-    private static int d; 
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C 
+            { 
+                private int a; 
+            }
+
+            """;
+        var src2 = """
+
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C 
+            { 
+                private int a; 
+                private int b; 
+                private int c; 
+                private static int d; 
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -17198,37 +17124,41 @@ class C
     [Fact]
     public void Field_Insert_WithInitializersAndLambdas1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C()
-    {
-        F(<N:0.1>c => c + 1</N:0.1>);
-    }
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C()
+                {
+                    F(<N:0.1>c => c + 1</N:0.1>);
+                }
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(b => b + 1);                    // new field
+            """;
+        var src2 = """
 
-    public C()
-    {
-        F(<N:0.1>c => c + 1</N:0.1>);
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(b => b + 1);                    // new field
+
+                public C()
+                {
+                    F(<N:0.1>c => c + 1</N:0.1>);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -17243,32 +17173,36 @@ class C
     [Fact]
     public void Field_Insert_ConstructorReplacingImplicitConstructor_WithInitializersAndLambdas()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(b => b + 1);                    // new field
+            """;
+        var src2 = """
 
-    public C()                                // new ctor replacing existing implicit constructor
-    {
-        F(c => c + 1);
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(b => b + 1);                    // new field
+
+                public C()                                // new ctor replacing existing implicit constructor
+                {
+                    F(c => c + 1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -17294,35 +17228,39 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
     public void Field_Insert_ParameterlessConstructorInsert_WithInitializersAndLambdas()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-    public C(int x) {}
-}
-";
-        var src2 = @"
-using System;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                public C(int x) {}
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
+            """;
+        var src2 = """
 
-    public C(int x) {}
+            using System;
 
-    public C()                                // new ctor
-    {
-        F(c => c + 1);
-    }
-}
-";
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+
+                public C(int x) {}
+
+                public C()                                // new ctor
+                {
+                    F(c => c + 1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -17341,32 +17279,36 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
     public void Field_Insert_ConstructorInsert_WithInitializersAndLambdas1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+            }
 
-    int A = F(<N:0.0>a => a + 1</N:0.0>);
-    int B = F(b => b + 1);                    // new field
+            """;
+        var src2 = """
 
-    public C(int x)                           // new ctor
-    {
-        F(c => c + 1);
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(<N:0.0>a => a + 1</N:0.0>);
+                int B = F(b => b + 1);                    // new field
+
+                public C(int x)                           // new ctor
+                {
+                    F(c => c + 1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         _ = GetSyntaxMap(src1, src2);
 
@@ -17386,32 +17328,36 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
     public void Field_Insert_ConstructorInsert_WithInitializersButNoExistingLambdas1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+            using System;
 
-    int A = F(null);
-}
-";
-        var src2 = @"
-using System;
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
 
-class C
-{
-    static int F(Func<int, int> x) => 1;
+                int A = F(null);
+            }
 
-    int A = F(null);
-    int B = F(b => b + 1);                    // new field
+            """;
+        var src2 = """
 
-    public C(int x)                           // new ctor
-    {
-        F(c => c + 1);
-    }
-}
-";
+            using System;
+
+            class C
+            {
+                static int F(Func<int, int> x) => 1;
+
+                int A = F(null);
+                int B = F(b => b + 1);                    // new field
+
+                public C(int x)                           // new ctor
+                {
+                    F(c => c + 1);
+                }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -17453,16 +17399,20 @@ class C
     [Fact]
     public void Field_Attribute_Add_NotSupportedByRuntime()
     {
-        var src1 = @"
-class C
-{
-    public int a = 1, x = 1;
-}";
-        var src2 = @"
-class C
-{
-    [System.Obsolete]public int a = 1, x = 1;
-}";
+        var src1 = """
+
+            class C
+            {
+                public int a = 1, x = 1;
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                [System.Obsolete]public int a = 1, x = 1;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -17480,16 +17430,20 @@ class C
     [Fact]
     public void Field_Attribute_Add()
     {
-        var src1 = @"
-class C
-{
-    public int a, b;
-}";
-        var src2 = @"
-class C
-{
-    [System.Obsolete]public int a, b;
-}";
+        var src1 = """
+
+            class C
+            {
+                public int a, b;
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                [System.Obsolete]public int a, b;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -17505,16 +17459,20 @@ class C
     [Fact]
     public void Field_Attribute_Add_WithInitializer()
     {
-        var src1 = @"
-class C
-{
-    int a;
-}";
-        var src2 = @"
-class C
-{
-    [System.Obsolete]int a = 0;
-}";
+        var src1 = """
+
+            class C
+            {
+                int a;
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                [System.Obsolete]int a = 0;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -17529,15 +17487,8 @@ class C
 
     [Fact]
     public void Field_Attribute_DeleteInsertUpdate_WithInitializer()
-    {
-        var srcA1 = "partial class C { int a = 1; }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { [System.Obsolete]int a = 2; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { int a = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { [System.Obsolete]int a = 2; }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -17548,7 +17499,6 @@ class C
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Field_Delete1()
@@ -18715,24 +18665,28 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
     public void Property_Insert_PInvoke()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-class C
-{
-}";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-class C
-{
-    private static extern int P1 { [DllImport(""x.dll"")]get; }
-    private static extern int P2 { [DllImport(""x.dll"")]set; }
-    private static extern int P3 { [DllImport(""x.dll"")]get; [DllImport(""x.dll"")]set; }
-}
-";
+            class C
+            {
+            }
+            """;
+        var src2 = """
+
+            using System;
+            using System.Runtime.InteropServices;
+
+            class C
+            {
+                private static extern int P1 { [DllImport("x.dll")]get; }
+                private static extern int P2 { [DllImport("x.dll")]set; }
+                private static extern int P3 { [DllImport("x.dll")]get; [DllImport("x.dll")]set; }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // CLR doesn't support methods without a body
@@ -18781,29 +18735,33 @@ class C
     [Fact]
     public void Property_Insert_IntoStruct_Static()
     {
-        var src1 = @"
-struct S 
-{ 
-    public int a; 
-    
-    public S(int z) { a = z; } 
-}
-";
-        var src2 = @"
-struct S 
-{ 
-    public int a; 
-    static int c { get; set; } 
-    static int d { get => field; set; } 
-    static int e { get { return 0; } set { } } 
-    static int g { get; } = 1;
-    static int i { get; set; } = 1;
-    static int k => 1;
-    static int l { get => 1; set {} }
-    static int m { get => 1; set => k; }
-    public S(int z) { a = z; }
-}
-";
+        var src1 = """
+
+            struct S 
+            { 
+                public int a; 
+                
+                public S(int z) { a = z; } 
+            }
+
+            """;
+        var src2 = """
+
+            struct S 
+            { 
+                public int a; 
+                static int c { get; set; } 
+                static int d { get => field; set; } 
+                static int e { get { return 0; } set { } } 
+                static int g { get; } = 1;
+                static int i { get; set; } = 1;
+                static int k => 1;
+                static int l { get => 1; set {} }
+                static int m { get => 1; set => k; }
+                public S(int z) { a = z; }
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -19399,15 +19357,8 @@ struct S
 
     [Fact]
     public void Property_Partial_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int P { get => 1; set { } } }";
-
-        var srcA2 = "partial class C { int P { get => 1; set { } } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { int P { get => 1; set { } } }"), GetTopEdits("partial class C { int P { get => 1; set { } } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -19418,19 +19369,11 @@ struct S
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void PropertyInit_Partial_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int Q { get => 1; init { } }}";
-
-        var srcA2 = "partial class C { int Q { get => 1; init { } }}";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { int Q { get => 1; init { } }}"), GetTopEdits("partial class C { int Q { get => 1; init { } }}", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -19441,21 +19384,15 @@ struct S
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Property_Auto_Partial_InsertDelete()
     {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int P { get; set; } int Q { get; init; } }";
-
-        var srcA2 = "partial class C { int P { get; set; } int Q { get; init; } }";
-        var srcB2 = "partial class C { }";
 
         // Accessors need to be updated even though they do not have an explicit body. 
         // There is still a sequence point generated for them whose location needs to be updated.
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("partial class C { }", "partial class C { int P { get; set; } int Q { get; init; } }"), GetTopEdits("partial class C { int P { get; set; } int Q { get; init; } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -19472,16 +19409,11 @@ struct S
     [Fact]
     public void Property_AutoWithInitializer_Partial_InsertDelete()
     {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int P { get; set; } = 1; }";
-
-        var srcA2 = "partial class C { int P { get; set; } = 1; }";
-        var srcB2 = "partial class C { }";
 
         // Accessors need to be updated even though they do not have an explicit body. 
         // There is still a sequence point generated for them whose location needs to be updated.
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("partial class C { }", "partial class C { int P { get; set; } = 1; }"), GetTopEdits("partial class C { int P { get; set; } = 1; }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -19497,36 +19429,32 @@ struct S
 
     [Fact]
     public void Property_WithExpressionBody_Partial_InsertDeleteUpdate()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int P => 1; }";
-
-        var srcA2 = "partial class C { int P => 2; }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { int P => 2; }"), GetTopEdits("partial class C { int P => 1; }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod)]),
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Property_Auto_ReadOnly_Add()
     {
-        var src1 = @"
-struct S
-{
-    int P { get; }
-}";
-        var src2 = @"
-struct S
-{
-    readonly int P { get; }
-}";
+        var src1 = """
+
+            struct S
+            {
+                int P { get; }
+            }
+            """;
+        var src2 = """
+
+            struct S
+            {
+                readonly int P { get; }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemanticDiagnostics();
     }
@@ -19534,22 +19462,26 @@ struct S
     [Fact]
     public void Property_InMutableStruct_ReadOnly_Add()
     {
-        var src1 = @"
-struct S
-{
-     int P1 { get => 1; }
-     int P2 { get => 1; set {}}
-     int P3 { get => 1; set {}}
-     int P4 { get => 1; set {}}
-}";
-        var src2 = @"
-struct S
-{
-     readonly int P1 { get => 1; }
-     int P2 { readonly get => 1; set {}}
-     int P3 { get => 1; readonly set {}}
-     readonly int P4 { get => 1; set {}}
-}";
+        var src1 = """
+
+            struct S
+            {
+                 int P1 { get => 1; }
+                 int P2 { get => 1; set {}}
+                 int P3 { get => 1; set {}}
+                 int P4 { get => 1; set {}}
+            }
+            """;
+        var src2 = """
+
+            struct S
+            {
+                 readonly int P1 { get => 1; }
+                 int P2 { readonly get => 1; set {}}
+                 int P3 { get => 1; readonly set {}}
+                 readonly int P4 { get => 1; set {}}
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [
@@ -19567,22 +19499,26 @@ struct S
     {
         // indent to align accessor bodies and avoid updates caused by sequence point location changes
 
-        var src1 = @"
-readonly struct S
-{
-              int P1 { get => 1; }
-     int P2 {          get => 1; set {}}
-     int P3 { get => 1;          set {}}
-              int P4 { get => 1; set {}}
-}";
-        var src2 = @"
-readonly struct S
-{
-     readonly int P1 { get => 1; }
-     int P2 { readonly get => 1; set {}}
-     int P3 { get => 1; readonly set {}}
-     readonly int P4 { get => 1; set {}}
-}";
+        var src1 = """
+
+            readonly struct S
+            {
+                          int P1 { get => 1; }
+                 int P2 {          get => 1; set {}}
+                 int P3 { get => 1;          set {}}
+                          int P4 { get => 1; set {}}
+            }
+            """;
+        var src2 = """
+
+            readonly struct S
+            {
+                 readonly int P1 { get => 1; }
+                 int P2 { readonly get => 1; set {}}
+                 int P3 { get => 1; readonly set {}}
+                 readonly int P4 { get => 1; set {}}
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // updates only for accessors whose modifiers were explicitly updated
@@ -19596,22 +19532,26 @@ readonly struct S
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
     public void Property_Rename_ShadowingPrimaryParameter()
     {
-        var src1 = @"
-class C(int A, int B)
-{
-    public int B { get; init; }
+        var src1 = """
 
-    public int F() => B;
-}
-";
-        var src2 = @"
-class C(int A, int B)
-{
-    public int D { get; init; }
+            class C(int A, int B)
+            {
+                public int B { get; init; }
 
-    public int F() => B;
-}
-";
+                public int F() => B;
+            }
+
+            """;
+        var src2 = """
+
+            class C(int A, int B)
+            {
+                public int D { get; init; }
+
+                public int F() => B;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // TODO: https://github.com/dotnet/roslyn/issues/69317
@@ -19633,22 +19573,26 @@ class C(int A, int B)
     [WorkItem("https://github.com/dotnet/roslyn/issues/69216")]
     public void Property_Rename_ShadowingPrimaryParameter_WithInitializer()
     {
-        var src1 = @"
-class C(int A, int B)
-{
-    public int B { get; init; } = B;
+        var src1 = """
 
-    public int F() => B;
-}
-";
-        var src2 = @"
-class C(int A, int B)
-{
-    public int D { get; init; } = B;
+            class C(int A, int B)
+            {
+                public int B { get; init; } = B;
 
-    public int F() => B;
-}
-";
+                public int F() => B;
+            }
+
+            """;
+        var src2 = """
+
+            class C(int A, int B)
+            {
+                public int D { get; init; } = B;
+
+                public int F() => B;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // TODO: https://github.com/dotnet/roslyn/issues/69317
@@ -19669,75 +19613,40 @@ class C(int A, int B)
 
     [Fact]
     public void Property_Partial_DeleteInsert_DefinitionPart()
-    {
-        var srcA1 = "partial class C { partial int P { get; } }";
-        var srcB1 = "partial class C { partial int P => 1; }";
-        var srcC1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { partial int P => 1; }";
-        var srcC2 = "partial class C { partial int P { get; } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { partial int P => 1; }"), GetTopEdits("partial class C { }", "partial class C { partial int P { get; } }")],
             [
                 DocumentResults(),
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_DeleteInsert_ImplementationPart()
-    {
-        var srcA1 = "partial class C { partial int P { get; } }";
-        var srcB1 = "partial class C { partial int P => 1; }";
-        var srcC1 = "partial class C { }";
-
-        var srcA2 = "partial class C { partial int P { get; } }";
-        var srcB2 = "partial class C { }";
-        var srcC2 = "partial class C { partial int P => 1; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { partial int P { get; } }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial int P => 1; }")],
             [
                 DocumentResults(),
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_Swap_ImplementationAndDefinitionParts()
-    {
-        var srcA1 = "partial class C { partial int P { get; } }";
-        var srcB1 = "partial class C { partial int P => 1; }";
-
-        var srcA2 = "partial class C { partial int P => 1; }";
-        var srcB2 = "partial class C { partial int P { get; } }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { partial int P => 1; }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { partial int P { get; } }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_DeleteBoth()
-    {
-        var srcA1 = "partial class C { partial int P { get; } }";
-        var srcB1 = "partial class C { partial int P => 1; }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -19747,23 +19656,11 @@ class C(int A, int B)
                         SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
                     ]),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_DeleteInsertBoth()
-    {
-        var srcA1 = "partial class C { partial int P { get; } }";
-        var srcB1 = "partial class C { partial int P => 1; }";
-        var srcC1 = "partial class C { }";
-        var srcD1 = "partial class C { }";
-
-        var srcA2 = "partial class C { }";
-        var srcB2 = "partial class C { }";
-        var srcC2 = "partial class C { partial int P { get; } }";
-        var srcD2 = "partial class C { partial int P => 1; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial int P { get; } }"), GetTopEdits("partial class C { }", "partial class C { partial int P => 1; }")],
             [
                 DocumentResults(),
                 DocumentResults(),
@@ -19772,38 +19669,25 @@ class C(int A, int B)
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")])
             ]);
-    }
 
     [Fact]
     public void Property_Partial_Insert()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { }";
-
-        var srcA2 = "partial class C { partial int P { get; } }";
-        var srcB2 = "partial class C { partial int P => 1; }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { partial int P { get; } }"), GetTopEdits("partial class C { }", "partial class C { partial int P => 1; }")],
             [
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart)]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Property_Partial_Insert_Reloadable()
     {
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { }";
-        var srcB1 = "partial class C { }";
-
         var srcA2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { partial int P { get; } }";
-        var srcB2 = "partial class C { partial int P { get => 1; } }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { }", "partial class C { partial int P { get => 1; } }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")]),
@@ -19822,14 +19706,10 @@ class C(int A, int B)
 
         var srcA1 = attribute +
                     "partial class C { [A(1)]partial int P { get; } }";
-        var srcB1 = "partial class C { partial int P => 1; }";
-
         var srcA2 = attribute +
                     "partial class C { [A(2)]partial int P { get; } }";
-        var srcB2 = "partial class C { partial int P => 1; }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { partial int P => 1; }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C")]),
@@ -19847,14 +19727,10 @@ class C(int A, int B)
 
         var srcA1 = attribute +
                     "partial class C { partial int P { get; } }";
-        var srcB1 = "partial class C { [A(1)]partial int P => 1; }";
-
         var srcA2 = attribute +
                     "partial class C { partial int P { get; } }";
-        var srcB2 = "partial class C { [A(2)]partial int P => 1; }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { [A(1)]partial int P => 1; }", "partial class C { [A(2)]partial int P => 1; }")],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -19879,14 +19755,10 @@ class C(int A, int B)
 
         var srcA1 = attribute +
                     "partial class C { [A(1)]partial int P { get; } }";
-        var srcB1 = "partial class C { [A(1)]partial int P => 1; }";
-
         var srcA2 = attribute +
                     "partial class C { [A(2)]partial int P { get; } }";
-        var srcB2 = "partial class C { [A(2)]partial int P => 1; }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { [A(1)]partial int P => 1; }", "partial class C { [A(2)]partial int P => 1; }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C")]),
@@ -19909,14 +19781,10 @@ class C(int A, int B)
 
         var srcA1 = attribute +
                     "partial class C { [A]partial int P { get; } }";
-        var srcB1 = "partial class C { partial int P => 1; }";
-
         var srcA2 = attribute +
                     "partial class C { }";
-        var srcB2 = "partial class C { partial int P => 1; partial int P { get; } }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { partial int P => 1; partial int P { get; } }")],
             [
                 DocumentResults(),
 
@@ -20718,22 +20586,26 @@ class C(int A, int B)
     [Fact]
     public void Indexer_Parameter_Reorder_Stackalloc()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a, byte b] { get { return stackalloc int[1].Length; } }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[byte b, int a] { get { return stackalloc int[1].Length; } }
-}
-";
+            class C
+            {
+                int this[int a, byte b] { get { return stackalloc int[1].Length; } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[byte b, int a] { get { return stackalloc int[1].Length; } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -20744,22 +20616,26 @@ class C
     [Fact]
     public void Indexer_Parameter_Reorder_Stackalloc_WithGetter_WithExpressionBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a, byte b] { get => stackalloc int[1].Length; }
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[byte b, int a] { get => stackalloc int[1].Length; }
-}
-";
+            class C
+            {
+                int this[int a, byte b] { get => stackalloc int[1].Length; }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[byte b, int a] { get => stackalloc int[1].Length; }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -20770,22 +20646,26 @@ class C
     [Fact]
     public void Indexer_Parameter_Reorder_Stackalloc_WithExpressionBody()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-class C
-{
-    int this[int a, byte b] => stackalloc int[1].Length;
-}
-";
-        var src2 = @"
-using System;
+            using System;
 
-class C
-{
-    int this[byte b, int a] => stackalloc int[1].Length;
-}
-";
+            class C
+            {
+                int this[int a, byte b] => stackalloc int[1].Length;
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+
+            class C
+            {
+                int this[byte b, int a] => stackalloc int[1].Length;
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
@@ -20796,16 +20676,20 @@ class C
     [Fact]
     public void Indexer_AddSetAccessor()
     {
-        var src1 = @"
-class C
-{
-    public int this[int i] { get { return default; } }
-}";
-        var src2 = @"
-class C
-{
-    public int this[int i] { get { return default; } set { } }
-}";
+        var src1 = """
+
+            class C
+            {
+                public int this[int i] { get { return default; } }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public int this[int i] { get { return default; } set { } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Insert [set { }]@67");
@@ -20818,19 +20702,23 @@ class C
     [Fact]
     public void Indexer_Delete()
     {
-        var src1 = @"
-class C<T>
-{
-    public T this[int i]
-    {
-        get { return arr[i]; }
-        set { arr[i] = value; }
-    }
-}";
-        var src2 = @"
-class C<T>
-{
-}";
+        var src1 = """
+
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get { return arr[i]; }
+                    set { arr[i] = value; }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -20845,23 +20733,27 @@ class C<T>
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750109")]
     public void Indexer_DeleteGetAccessor()
     {
-        var src1 = @"
-class C<T>
-{
-    public T this[int i]
-    {
-        get { return arr[i]; }
-        set { arr[i] = value; }
-    }
-}";
-        var src2 = @"
-class C<T>
-{
-    public T this[int i]
-    {
-        set { arr[i] = value; }
-    }
-}";
+        var src1 = """
+
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    get { return arr[i]; }
+                    set { arr[i] = value; }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C<T>
+            {
+                public T this[int i]
+                {
+                    set { arr[i] = value; }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -20874,16 +20766,20 @@ class C<T>
     [Fact]
     public void Indexer_DeleteSetAccessor()
     {
-        var src1 = @"
-class C
-{
-    public int this[int i] { get { return 0; } set { } }
-}";
-        var src2 = @"
-class C
-{
-    public int this[int i] { get { return 0; } }
-}";
+        var src1 = """
+
+            class C
+            {
+                public int this[int i] { get { return 0; } set { } }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                public int this[int i] { get { return 0; } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics(
@@ -20988,15 +20884,8 @@ class C
 
     [Fact]
     public void Indexer_Partial_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int this[int x] { get => 1; set { } } }";
-
-        var srcA2 = "partial class C { int this[int x] { get => 1; set { } } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { int this[int x] { get => 1; set { } } }"), GetTopEdits("partial class C { int this[int x] { get => 1; set { } } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -21008,19 +20897,11 @@ class C
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void IndexerInit_Partial_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int this[int x] { get => 1; init { } }}";
-
-        var srcA2 = "partial class C { int this[int x] { get => 1; init { } }}";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { int this[int x] { get => 1; init { } }}"), GetTopEdits("partial class C { int this[int x] { get => 1; init { } }}", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -21032,21 +20913,15 @@ class C
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void AutoIndexer_Partial_InsertDelete()
     {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { int this[int x] { get; set; } }";
-
-        var srcA2 = "partial class C { int this[int x] { get; set; } }";
-        var srcB2 = "partial class C { }";
 
         // Accessors need to be updated even though they do not have an explicit body. 
         // There is still a sequence point generated for them whose location needs to be updated.
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits("partial class C { }", "partial class C { int this[int x] { get; set; } }"), GetTopEdits("partial class C { int this[int x] { get; set; } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -21062,16 +20937,20 @@ class C
     [Fact]
     public void AutoIndexer_ReadOnly_Add()
     {
-        var src1 = @"
-struct S
-{
-    int this[int x] { get; }
-}";
-        var src2 = @"
-struct S
-{
-    readonly int this[int x] { get; }
-}";
+        var src1 = """
+
+            struct S
+            {
+                int this[int x] { get; }
+            }
+            """;
+        var src2 = """
+
+            struct S
+            {
+                readonly int this[int x] { get; }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Compiler generated attribute changed, we do not require runtime capability for custom attribute changes.
@@ -21086,22 +20965,26 @@ struct S
     [Fact]
     public void Indexer_InMutableStruct_ReadOnly_Add()
     {
-        var src1 = @"
-struct S
-{
-     int this[int x] { get => 1; }
-     int this[uint x] { get => 1; set {}}
-     int this[byte x] { get => 1; set {}}
-     int this[sbyte x] { get => 1; set {}}
-}";
-        var src2 = @"
-struct S
-{
-     readonly int this[int x] { get => 1; }
-     int this[uint x] { readonly get => 1; set {}}
-     int this[byte x] { get => 1; readonly set {}}
-     readonly int this[sbyte x] { get => 1; set {}}
-}";
+        var src1 = """
+
+            struct S
+            {
+                 int this[int x] { get => 1; }
+                 int this[uint x] { get => 1; set {}}
+                 int this[byte x] { get => 1; set {}}
+                 int this[sbyte x] { get => 1; set {}}
+            }
+            """;
+        var src2 = """
+
+            struct S
+            {
+                 readonly int this[int x] { get => 1; }
+                 int this[uint x] { readonly get => 1; set {}}
+                 int this[byte x] { get => 1; readonly set {}}
+                 readonly int this[sbyte x] { get => 1; set {}}
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("S.this[]").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32 }])),
@@ -21117,22 +21000,26 @@ struct S
     [Fact]
     public void Indexer_InReadOnlyStruct_ReadOnly_Add()
     {
-        var src1 = @"
-readonly struct S
-{
-              int this[int x] { get => 1; }
-     int this[uint x] {          get => 1; set {}}
-     int this[byte x] { get => 1;          set {}}
-              int this[sbyte x] { get => 1; set {}}
-}";
-        var src2 = @"
-readonly struct S
-{
-     readonly int this[int x] { get => 1; }
-     int this[uint x] { readonly get => 1; set {}}
-     int this[byte x] { get => 1; readonly set {}}
-     readonly int this[sbyte x] { get => 1; set {}}
-}";
+        var src1 = """
+
+            readonly struct S
+            {
+                          int this[int x] { get => 1; }
+                 int this[uint x] {          get => 1; set {}}
+                 int this[byte x] { get => 1;          set {}}
+                          int this[sbyte x] { get => 1; set {}}
+            }
+            """;
+        var src2 = """
+
+            readonly struct S
+            {
+                 readonly int this[int x] { get => 1; }
+                 int this[uint x] { readonly get => 1; set {}}
+                 int this[byte x] { get => 1; readonly set {}}
+                 readonly int this[sbyte x] { get => 1; set {}}
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Updates only for accessors whose modifiers were explicitly updated.
@@ -21270,25 +21157,29 @@ readonly struct S
     [Fact]
     public void Event_Insert_TypeLayout()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-}
-";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-    private event Action c { add { } remove { } } 
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C 
+            { 
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C 
+            { 
+                private event Action c { add { } remove { } } 
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21298,25 +21189,29 @@ class C
     [Fact]
     public void EventField_Insert_TypeLayout()
     {
-        var src1 = @"
-using System;
-using System.Runtime.InteropServices;
+        var src1 = """
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-}
-";
-        var src2 = @"
-using System;
-using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.InteropServices;
 
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-    private event Action c;
-}
-";
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C 
+            { 
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Runtime.InteropServices;
+
+            [StructLayoutAttribute(LayoutKind.Sequential)]
+            class C 
+            { 
+                private event Action c;
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21328,20 +21223,24 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Event_ExpressionBodyToBlockBody()
     {
-        var src1 = @"
-using System;
-public class C
-{
-    event Action E { add => F(); remove => F(); }
-}
-";
-        var src2 = @"
-using System;
-public class C
-{
-   event Action E { add { F(); } remove { } }
-}
-";
+        var src1 = """
+
+            using System;
+            public class C
+            {
+                event Action E { add => F(); remove => F(); }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            public class C
+            {
+               event Action E { add { F(); } remove { } }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -21355,20 +21254,24 @@ public class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
     public void Event_BlockBodyToExpressionBody()
     {
-        var src1 = @"
-using System;
-public class C
-{
-   event Action E { add { F(); } remove { } }
-}
-";
-        var src2 = @"
-using System;
-public class C
-{
-    event Action E { add => F(); remove => F(); }
-}
-";
+        var src1 = """
+
+            using System;
+            public class C
+            {
+               event Action E { add { F(); } remove { } }
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            public class C
+            {
+                event Action E { add => F(); remove => F(); }
+            }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -21381,15 +21284,8 @@ public class C
 
     [Fact]
     public void Event_Partial_InsertDelete()
-    {
-        var srcA1 = "partial class C { }";
-        var srcB1 = "partial class C { event int E { add { } remove { } } }";
-
-        var srcA2 = "partial class C { event int E { add { } remove { } } }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { }", "partial class C { event int E { add { } remove { } } }"), GetTopEdits("partial class C { event int E { add { } remove { } } }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -21400,27 +21296,30 @@ public class C
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Event_InMutableStruct_ReadOnly_Add()
     {
-        var src1 = @"
-struct S
-{
-    public event Action E
-    {
-        add {} remove {}
-    }
-}";
-        var src2 = @"
-struct S
-{
-    public readonly event Action E
-    {
-        add {} remove {}
-    }
-}";
+        var src1 = """
+
+            struct S
+            {
+                public event Action E
+                {
+                    add {} remove {}
+                }
+            }
+            """;
+        var src2 = """
+
+            struct S
+            {
+                public readonly event Action E
+                {
+                    add {} remove {}
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("S.E")),
@@ -21431,22 +21330,26 @@ struct S
     [Fact]
     public void Event_InReadOnlyStruct_ReadOnly_Add1()
     {
-        var src1 = @"
-readonly struct S
-{
-    public event Action E
-    {
-        add {} remove {}
-    }
-}";
-        var src2 = @"
-readonly struct S
-{
-    public readonly event Action E
-    {
-        add {} remove {}
-    }
-}";
+        var src1 = """
+
+            readonly struct S
+            {
+                public event Action E
+                {
+                    add {} remove {}
+                }
+            }
+            """;
+        var src2 = """
+
+            readonly struct S
+            {
+                public readonly event Action E
+                {
+                    add {} remove {}
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics();
@@ -21455,16 +21358,20 @@ readonly struct S
     [Fact]
     public void EventField_Attribute_Add()
     {
-        var src1 = @"
-class C
-{
-    event Action F;
-}";
-        var src2 = @"
-class C
-{
-    [System.Obsolete]event Action F;
-}";
+        var src1 = """
+
+            class C
+            {
+                event Action F;
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                [System.Obsolete]event Action F;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21485,16 +21392,20 @@ class C
     [Fact]
     public void Event_Attribute_Add_CustomAccessors()
     {
-        var src1 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
-        var src2 = @"
-class C
-{
-    [System.Obsolete]event Action F { add {} remove {} }
-}";
+        var src1 = """
+
+            class C
+            {
+                event Action F { add {} remove {} }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                [System.Obsolete]event Action F { add {} remove {} }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21517,16 +21428,20 @@ class C
     [Fact]
     public void Event_Accessor_Attribute_Add()
     {
-        var src1 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
-        var src2 = @"
-class C
-{
-    event Action F { add {} [System.Obsolete]remove {} }
-}";
+        var src1 = """
+
+            class C
+            {
+                event Action F { add {} remove {} }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                event Action F { add {} [System.Obsolete]remove {} }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21545,16 +21460,20 @@ class C
     [Fact]
     public void EventField_Attribute_Delete()
     {
-        var src1 = @"
-class C
-{
-    [System.Obsolete]event Action F;
-}";
-        var src2 = @"
-class C
-{
-    event Action F;
-}";
+        var src1 = """
+
+            class C
+            {
+                [System.Obsolete]event Action F;
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                event Action F;
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21573,16 +21492,20 @@ class C
     [Fact]
     public void Event_Attribute_Delete()
     {
-        var src1 = @"
-class C
-{
-    [System.Obsolete]event Action F { add {} remove {} }
-}";
-        var src2 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
+        var src1 = """
+
+            class C
+            {
+                [System.Obsolete]event Action F { add {} remove {} }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                event Action F { add {} remove {} }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21605,16 +21528,20 @@ class C
     [Fact]
     public void Event_Accessor_Attribute_Delete()
     {
-        var src1 = @"
-class C
-{
-    event Action F { add {} [System.Obsolete]remove {} }
-}";
-        var src2 = @"
-class C
-{
-    event Action F { add {} remove {} }
-}";
+        var src1 = """
+
+            class C
+            {
+                event Action F { add {} [System.Obsolete]remove {} }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                event Action F { add {} remove {} }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -21892,15 +21819,8 @@ class C
 
     [Fact]
     public void EventField_Partial_InsertDelete()
-    {
-        var srcA1 = "partial class C { static void F() {} }";
-        var srcB1 = "partial class C { event System.Action E = F; }";
-
-        var srcA2 = "partial class C { static void F() {} event System.Action E = F; }";
-        var srcB2 = "partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("partial class C { static void F() {} }", "partial class C { static void F() {} event System.Action E = F; }"), GetTopEdits("partial class C { event System.Action E = F; }", "partial class C { }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -21910,7 +21830,6 @@ class C
 
                 DocumentResults(),
             ]);
-    }
 
     #endregion
 
@@ -22275,14 +22194,18 @@ class C
     [Fact]
     public void Parameter_Update_Type_Nullable()
     {
-        var src1 = @"
-#nullable enable
-class C { static void M(string a) { } }
-";
-        var src2 = @"
-#nullable disable
-class C { static void M(string a) { } }
-";
+        var src1 = """
+
+            #nullable enable
+            class C { static void M(string a) { } }
+
+            """;
+        var src2 = """
+
+            #nullable disable
+            class C { static void M(string a) { } }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -22337,15 +22260,8 @@ class C { static void M(string a) { } }
 
     [Fact]
     public void Parameter_Initializer_InsertDeleteUpdate()
-    {
-        var srcA1 = @"partial class C { }";
-        var srcB1 = @"partial class C { public static void F(int x = 1) {} }";
-
-        var srcA2 = @"partial class C { public static void F(int x = 2) {} }";
-        var srcB2 = @"partial class C { }";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(@"partial class C { }", @"partial class C { public static void F(int x = 2) {} }"), GetTopEdits(@"partial class C { public static void F(int x = 1) {} }", @"partial class C { }")],
             [
                 DocumentResults(
                     diagnostics:
@@ -22354,7 +22270,6 @@ class C { static void M(string a) { } }
                     ]),
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Parameter_Attribute_Insert()
@@ -22995,19 +22910,17 @@ class C { static void M(string a) { } }
     [Fact]
     public void TypeTypeParameter_Partial_Attribute_AddMultiple()
     {
-        var attributes = @"
-class A : System.Attribute {}
-class B : System.Attribute {}
-";
+        var attributes = """
+
+            class A : System.Attribute {}
+            class B : System.Attribute {}
+
+            """;
 
         var srcA1 = "partial class C<T> { }" + attributes;
-        var srcB1 = "partial class C<T> { }";
-
         var srcA2 = "partial class C<[A]T> { }" + attributes;
-        var srcB2 = "partial class C<[B]T> { }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C<T> { }", "partial class C<[B]T> { }")],
             [
                 DocumentResults(diagnostics:
                 [
@@ -23024,19 +22937,17 @@ class B : System.Attribute {}
     [Fact]
     public void TypeTypeParameter_Partial_Attribute_AddMultiple_Reloadable()
     {
-        var attributes = @"
-class A : System.Attribute {}
-class B : System.Attribute {}
-";
+        var attributes = """
+
+            class A : System.Attribute {}
+            class B : System.Attribute {}
+
+            """;
 
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C<T> { }" + attributes;
-        var srcB1 = "partial class C<T> { }";
-
         var srcA2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C<[A]T> { }" + attributes;
-        var srcB2 = "partial class C<[B]T> { }";
-
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits("partial class C<T> { }", "partial class C<[B]T> { }")],
             [
                 DocumentResults(semanticEdits:
                 [
@@ -23216,40 +23127,50 @@ class B : System.Attribute {}
     [Fact]
     public void TopLevelStatements_Update()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(""Hello"");
-";
-        var src2 = @"
-using System;
+            using System;
 
-Console.WriteLine(""Hello World"");
-";
+            Console.WriteLine("Hello");
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.WriteLine("Hello World");
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Update [Console.WriteLine(\"Hello\");]@19 -> [Console.WriteLine(\"Hello World\");]@19");
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, @"""Hello World""", GetResource("top-level code"))]);
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, """
+            "Hello World"
+            """, GetResource("top-level code"))]);
     }
 
     [Fact]
     public void TopLevelStatements_InsertAndUpdate()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(""Hello"");
-";
-        var src2 = @"
-using System;
+            using System;
 
-Console.WriteLine(""Hello World"");
-Console.WriteLine(""What is your name?"");
-var name = Console.ReadLine();
-";
+            Console.WriteLine("Hello");
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.WriteLine("Hello World");
+            Console.WriteLine("What is your name?");
+            var name = Console.ReadLine();
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
@@ -23259,20 +23180,26 @@ var name = Console.ReadLine();
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, @"""Hello World""", GetResource("top-level code"))]);
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, """
+            "Hello World"
+            """, GetResource("top-level code"))]);
     }
 
     [Fact]
     public void TopLevelStatements_Insert_NoImplicitMain()
     {
-        var src1 = @"
-using System;
-";
-        var src2 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(""Hello World"");
-";
+            using System;
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.WriteLine("Hello World");
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
@@ -23285,17 +23212,21 @@ Console.WriteLine(""Hello World"");
     [Fact]
     public void TopLevelStatements_Insert_ImplicitMain()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(""Hello"");
-";
-        var src2 = @"
-using System;
+            using System;
 
-Console.WriteLine(""Hello"");
-Console.WriteLine(""World"");
-";
+            Console.WriteLine("Hello");
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.WriteLine("Hello");
+            Console.WriteLine("World");
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Insert [Console.WriteLine(\"World\");]@48");
@@ -23308,15 +23239,19 @@ Console.WriteLine(""World"");
     [Fact]
     public void TopLevelStatements_Delete_NoImplicitMain()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(""Hello World"");
-";
-        var src2 = @"
-using System;
+            using System;
 
-";
+            Console.WriteLine("Hello World");
+
+            """;
+        var src2 = """
+
+            using System;
+
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Delete [Console.WriteLine(\"Hello World\");]@19");
@@ -23328,17 +23263,21 @@ using System;
     [Fact]
     public void TopLevelStatements_Delete_ImplicitMain()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(""Hello"");
-Console.WriteLine(""World"");
-";
-        var src2 = @"
-using System;
+            using System;
 
-Console.WriteLine(""Hello"");
-";
+            Console.WriteLine("Hello");
+            Console.WriteLine("World");
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.WriteLine("Hello");
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Delete [Console.WriteLine(\"World\");]@48");
@@ -23396,17 +23335,21 @@ Console.WriteLine(""Hello"");
     [Fact]
     public void TopLevelStatements_VoidToInt1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.Write(1);
-";
-        var src2 = @"
-using System;
+            using System;
 
-Console.Write(1);
-return 1;
-";
+            Console.Write(1);
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.Write(1);
+            return 1;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23418,19 +23361,23 @@ return 1;
     [Fact]
     public void TopLevelStatements_VoidToInt2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.Write(1);
+            using System;
 
-return;
-";
-        var src2 = @"
-using System;
+            Console.Write(1);
 
-Console.Write(1);
-return 1;
-";
+            return;
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.Write(1);
+            return 1;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23442,27 +23389,31 @@ return 1;
     [Fact]
     public void TopLevelStatements_VoidToInt3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.Write(1);
+            using System;
 
-int Goo()
-{
-    return 1;
-}
-";
-        var src2 = @"
-using System;
+            Console.Write(1);
 
-Console.Write(1);
-return 1;
+            int Goo()
+            {
+                return 1;
+            }
 
-int Goo()
-{
-    return 1;
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.Write(1);
+            return 1;
+
+            int Goo()
+            {
+                return 1;
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23474,17 +23425,21 @@ int Goo()
     [Fact]
     public void TopLevelStatements_Await_Insert_First()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-return 1;
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-await Task.Delay(200);
-return 1;
-";
+            return 1;
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            await Task.Delay(200);
+            return 1;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23498,17 +23453,21 @@ return 1;
     [Fact]
     public void TopLevelStatements_Await_Insert_Second()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-await Task.Delay(100);
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-await Task.Delay(100);
-await Task.Delay(200);
-";
+            await Task.Delay(100);
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            await Task.Delay(100);
+            await Task.Delay(200);
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23528,17 +23487,21 @@ await Task.Delay(200);
     [Fact]
     public void TopLevelStatements_Await_Delete_Last()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-await Task.Delay(100);
-return 1;
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-return 1;
-";
+            await Task.Delay(100);
+            return 1;
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            return 1;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23554,17 +23517,21 @@ return 1;
     [Fact]
     public void TopLevelStatements_Await_Delete_Second()
     {
-        var src1 = @"
-using System.Threading.Tasks;
+        var src1 = """
 
-await Task.Delay(100);
-await Task.Delay(200);
-";
-        var src2 = @"
-using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-await Task.Delay(100);
-";
+            await Task.Delay(100);
+            await Task.Delay(200);
+
+            """;
+        var src2 = """
+
+            using System.Threading.Tasks;
+
+            await Task.Delay(100);
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23584,19 +23551,23 @@ await Task.Delay(100);
     [Fact]
     public void TopLevelStatements_VoidToTask()
     {
-        var src1 = @"
-using System;
-using System.Threading.Tasks;
+        var src1 = """
 
-Console.Write(1);
-";
-        var src2 = @"
-using System;
-using System.Threading.Tasks;
+            using System;
+            using System.Threading.Tasks;
 
-await Task.Delay(100);
-Console.Write(1);
-";
+            Console.Write(1);
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Threading.Tasks;
+
+            await Task.Delay(100);
+            Console.Write(1);
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23608,21 +23579,25 @@ Console.Write(1);
     [Fact]
     public void TopLevelStatements_TaskToTaskInt()
     {
-        var src1 = @"
-using System;
-using System.Threading.Tasks;
+        var src1 = """
 
-await Task.Delay(100);
-Console.Write(1);
-";
-        var src2 = @"
-using System;
-using System.Threading.Tasks;
+            using System;
+            using System.Threading.Tasks;
 
-await Task.Delay(100);
-Console.Write(1);
-return 1;
-";
+            await Task.Delay(100);
+            Console.Write(1);
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Threading.Tasks;
+
+            await Task.Delay(100);
+            Console.Write(1);
+            return 1;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23634,24 +23609,28 @@ return 1;
     [Fact]
     public void TopLevelStatements_VoidToTaskInt()
     {
-        var src1 = @"
-using System;
-using System.Threading.Tasks;
+        var src1 = """
 
-Console.Write(1);
-";
-        var src2 = @"
-using System;
-using System.Threading.Tasks;
+            using System;
+            using System.Threading.Tasks;
 
-Console.Write(1);
-return await GetInt();
+            Console.Write(1);
 
-Task<int> GetInt()
-{
-    return Task.FromResult(1);
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+            using System.Threading.Tasks;
+
+            Console.Write(1);
+            return await GetInt();
+
+            Task<int> GetInt()
+            {
+                return Task.FromResult(1);
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23663,18 +23642,22 @@ Task<int> GetInt()
     [Fact]
     public void TopLevelStatements_IntToVoid1()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.Write(1);
+            using System;
 
-return 1;
-";
-        var src2 = @"
-using System;
+            Console.Write(1);
 
-Console.Write(1);
-";
+            return 1;
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.Write(1);
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23686,19 +23669,23 @@ Console.Write(1);
     [Fact]
     public void TopLevelStatements_IntToVoid2()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.Write(1);
+            using System;
 
-return 1;
-";
-        var src2 = @"
-using System;
+            Console.Write(1);
 
-Console.Write(1);
-return;
-";
+            return 1;
+
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.Write(1);
+            return;
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23710,27 +23697,31 @@ return;
     [Fact]
     public void TopLevelStatements_IntToVoid3()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.Write(1);
-return 1;
+            using System;
 
-int Goo()
-{
-    return 1;
-}
-";
-        var src2 = @"
-using System;
+            Console.Write(1);
+            return 1;
 
-Console.Write(1);
+            int Goo()
+            {
+                return 1;
+            }
 
-int Goo()
-{
-    return 1;
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.Write(1);
+
+            int Goo()
+            {
+                return 1;
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23742,33 +23733,37 @@ int Goo()
     [Fact]
     public void TopLevelStatements_IntToVoid4()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.Write(1);
-return 1;
+            using System;
 
-public class C
-{
-    public int Goo()
-    {
-        return 1;
-    }
-}
-";
-        var src2 = @"
-using System;
+            Console.Write(1);
+            return 1;
 
-Console.Write(1);
+            public class C
+            {
+                public int Goo()
+                {
+                    return 1;
+                }
+            }
 
-public class C
-{
-    public int Goo()
-    {
-        return 1;
-    }
-}
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.Write(1);
+
+            public class C
+            {
+                public int Goo()
+                {
+                    return 1;
+                }
+            }
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23780,19 +23775,23 @@ public class C
     [Fact]
     public void TopLevelStatements_TaskToVoid()
     {
-        var src1 = @"
-using System;
-using System.Threading.Tasks;
+        var src1 = """
 
-await Task.Delay(100);
-Console.Write(1);
-";
-        var src2 = @"
-using System;
-using System.Threading.Tasks;
+            using System;
+            using System.Threading.Tasks;
 
-Console.Write(1);
-";
+            await Task.Delay(100);
+            Console.Write(1);
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Threading.Tasks;
+
+            Console.Write(1);
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23805,21 +23804,25 @@ Console.Write(1);
     [Fact]
     public void TopLevelStatements_TaskIntToTask()
     {
-        var src1 = @"
-using System;
-using System.Threading.Tasks;
+        var src1 = """
 
-await Task.Delay(100);
-Console.Write(1);
-return 1;
-";
-        var src2 = @"
-using System;
-using System.Threading.Tasks;
+            using System;
+            using System.Threading.Tasks;
 
-await Task.Delay(100);
-Console.Write(1);
-";
+            await Task.Delay(100);
+            Console.Write(1);
+            return 1;
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Threading.Tasks;
+
+            await Task.Delay(100);
+            Console.Write(1);
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23831,24 +23834,28 @@ Console.Write(1);
     [Fact]
     public void TopLevelStatements_TaskIntToVoid()
     {
-        var src1 = @"
-using System;
-using System.Threading.Tasks;
+        var src1 = """
 
-Console.Write(1);
-return await GetInt();
+            using System;
+            using System.Threading.Tasks;
 
-Task<int> GetInt()
-{
-    return Task.FromResult(1);
-}
-";
-        var src2 = @"
-using System;
-using System.Threading.Tasks;
+            Console.Write(1);
+            return await GetInt();
 
-Console.Write(1);
-";
+            Task<int> GetInt()
+            {
+                return Task.FromResult(1);
+            }
+
+            """;
+        var src2 = """
+
+            using System;
+            using System.Threading.Tasks;
+
+            Console.Write(1);
+
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -23861,20 +23868,24 @@ Console.Write(1);
     [Fact]
     public void TopLevelStatements_WithLambda_Insert()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
-";
-        var src2 = @"
-using System;
+            using System;
 
-Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+            Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+            Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
-Console.WriteLine(1);
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+            Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+            Console.WriteLine(1);
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -23886,26 +23897,30 @@ Console.WriteLine(1);
     [Fact]
     public void TopLevelStatements_WithLambda_Update()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+            using System;
 
-Console.WriteLine(1);
+            Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+            Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
-public class C { }
-";
-        var src2 = @"
-using System;
+            Console.WriteLine(1);
 
-Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+            public class C { }
 
-Console.WriteLine(2);
+            """;
+        var src2 = """
 
-public class C { }
-";
+            using System;
+
+            Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+            Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+            Console.WriteLine(2);
+
+            public class C { }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -23917,24 +23932,28 @@ public class C { }
     [Fact]
     public void TopLevelStatements_WithLambda_Delete()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+            using System;
 
-Console.WriteLine(1);
+            Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+            Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
-public class C { }
-";
-        var src2 = @"
-using System;
+            Console.WriteLine(1);
 
-Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
-Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+            public class C { }
 
-public class C { }
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+            Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+            public class C { }
+
+            """;
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = GetSyntaxMap(src1, src2);
 
@@ -23946,22 +23965,26 @@ public class C { }
     [Fact]
     public void TopLevelStatements_UpdateMultiple()
     {
-        var src1 = @"
-using System;
+        var src1 = """
 
-Console.WriteLine(1);
-Console.WriteLine(2);
+            using System;
 
-public class C { }
-";
-        var src2 = @"
-using System;
+            Console.WriteLine(1);
+            Console.WriteLine(2);
 
-Console.WriteLine(3);
-Console.WriteLine(4);
+            public class C { }
 
-public class C { }
-";
+            """;
+        var src2 = """
+
+            using System;
+
+            Console.WriteLine(3);
+            Console.WriteLine(4);
+
+            public class C { }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Since each individual statement is a separate update to a separate node, this just validates we correctly
@@ -23973,58 +23996,62 @@ public class C { }
 
     [Fact]
     public void TopLevelStatements_MoveToOtherFile()
-    {
-        var srcA1 = @"
-using System;
+        => EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits("""
 
-Console.WriteLine(1);
+                using System;
 
-public class A
-{
-}";
-        var srcB1 = @"
-using System;
+                Console.WriteLine(1);
 
-public class B
-{
-}";
+                public class A
+                {
+                }
+                """, """
 
-        var srcA2 = @"
-using System;
+                using System;
 
-public class A
-{
-}";
-        var srcB2 = @"
-using System;
+                public class A
+                {
+                }
+                """), GetTopEdits("""
 
-Console.WriteLine(2);
+                         using System;
 
-public class B
-{
-}";
+                         public class B
+                         {
+                         }
+                         """, """
 
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                         using System;
+
+                         Console.WriteLine(2);
+
+                         public class B
+                         {
+                         }
+                         """)],
             [
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))],
                     diagnostics: [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console", GetResource("top-level code"))]),
             ]);
-    }
 
     [Fact]
     public void TopLevelStatements_BlockReorder()
     {
-        var src1 = @"
-{ int a; }
-{ int b; }
-";
-        var src2 = @"
-{ int b; }
-{ int a; }
-";
+        var src1 = """
+
+            { int a; }
+            { int b; }
+
+            """;
+        var src2 = """
+
+            { int b; }
+            { int a; }
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Reorder [{ int b; }]@14 -> @2");
@@ -24037,14 +24064,18 @@ public class B
     [Fact]
     public void TopLevelStatements_Reorder()
     {
-        var src1 = @"
-System.Console.Write(1);
-System.Console.Write(2);
-";
-        var src2 = @"
-System.Console.Write(2);
-System.Console.Write(1);
-";
+        var src1 = """
+
+            System.Console.Write(1);
+            System.Console.Write(2);
+
+            """;
+        var src2 = """
+
+            System.Console.Write(2);
+            System.Console.Write(1);
+
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits("Reorder [System.Console.Write(2);]@28 -> @2");

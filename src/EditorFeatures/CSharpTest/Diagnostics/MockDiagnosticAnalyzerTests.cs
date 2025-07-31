@@ -54,14 +54,11 @@ public sealed partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnost
          params DiagnosticDescription[] expectedDiagnostics)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: GetComposition());
-        var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
+        var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, TestParameters.Default);
         actualDiagnostics.Verify(expectedDiagnostics);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
-    public async Task Bug906919()
-    {
-        var source = "[|class C { }|]";
-        await VerifyDiagnosticsAsync(source);
-    }
+    public Task Bug906919()
+        => VerifyDiagnosticsAsync("[|class C { }|]");
 }

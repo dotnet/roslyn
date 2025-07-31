@@ -137,7 +137,8 @@ internal sealed partial class SymbolicRenameLocations
 
             locations.AddAll(
                 await referencedSymbol.Locations.SelectManyInParallelAsync(
-                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(referencedSymbol.Definition, symbol, l, solution, c),
+                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(
+                        referencedSymbol.Definition, symbol, l, solution, c),
                     cancellationToken).ConfigureAwait(false));
         }
 

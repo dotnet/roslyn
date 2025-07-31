@@ -48,6 +48,13 @@ internal readonly record struct SourceGeneratorExecutionVersion(
         => $"{MajorVersion}.{MinorVersion}";
 
     public Checksum Checksum => new(MajorVersion, MinorVersion);
+
+    public static bool operator >(SourceGeneratorExecutionVersion left, SourceGeneratorExecutionVersion right)
+        => left.MajorVersion > right.MajorVersion ||
+           (left.MajorVersion == right.MajorVersion && left.MinorVersion > right.MinorVersion);
+
+    public static bool operator <(SourceGeneratorExecutionVersion left, SourceGeneratorExecutionVersion right)
+        => !(left == right || left > right);
 }
 
 /// <summary>

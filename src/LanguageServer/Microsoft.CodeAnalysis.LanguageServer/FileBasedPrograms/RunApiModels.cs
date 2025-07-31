@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
@@ -48,7 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
             public required ImmutableArray<SimpleDiagnostic> Diagnostics { get; init; }
         }
     }
-    internal sealed class SimpleDiagnostic
+
+    internal sealed record SimpleDiagnostic
     {
         public required Position Location { get; init; }
         public required string Message { get; init; }
@@ -56,20 +52,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
         /// <summary>
         /// An adapter of <see cref="FileLinePositionSpan"/> that ensures we JSON-serialize only the necessary fields.
         /// </summary>
-        public readonly struct Position
+        public readonly record struct Position
         {
             public string Path { get; init; }
-            public LinePositionSpan Span { get; init; }
+            public LinePositionSpanInternal Span { get; init; }
+        }
+    }
 
-            public static implicit operator Position(FileLinePositionSpan fileLinePositionSpan) => new()
-            {
-                Path = fileLinePositionSpan.Path,
-                Span = fileLinePositionSpan.Span,
-            };
+    internal record struct LinePositionInternal
+    {
+        public int Line { get; init; }
+        public int Character { get; init; }
+    }
+
+    /// <summary>
+    /// Workaround for inability to deserialize directly to <see cref="LinePositionSpan"/>.
+    /// </summary>
+    internal record struct LinePositionSpanInternal
+    {
+        public LinePositionInternal Start { get; init; }
+        public LinePositionInternal End { get; init; }
+
+        public LinePositionSpan ToLinePositionSpan()
+        {
+            return new LinePositionSpan(
+                start: new LinePosition(Start.Line, Start.Character),
+                end: new LinePosition(End.Line, End.Character));
         }
     }
 
     [JsonSerializable(typeof(RunApiInput))]
     [JsonSerializable(typeof(RunApiOutput))]
+    [JsonSerializable(typeof(LinePositionSpanInternal))]
     internal partial class RunFileApiJsonSerializerContext : JsonSerializerContext;
 }

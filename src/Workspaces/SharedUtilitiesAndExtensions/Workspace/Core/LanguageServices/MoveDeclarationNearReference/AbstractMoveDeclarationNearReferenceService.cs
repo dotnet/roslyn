@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -176,9 +177,9 @@ internal abstract partial class AbstractMoveDeclarationNearReferenceService<
     private static ImmutableArray<SyntaxTrivia> GetMergedTrivia(
         IFileBannerFactsService bannerService, TStatementSyntax statement1, TStatementSyntax statement2)
     {
-        return bannerService.GetLeadingBlankLines(statement2).Concat(
-               bannerService.GetTriviaAfterLeadingBlankLines(statement1)).Concat(
-               bannerService.GetTriviaAfterLeadingBlankLines(statement2));
+        return [.. bannerService.GetLeadingBlankLines(statement2),
+                .. bannerService.GetTriviaAfterLeadingBlankLines(statement1),
+                .. bannerService.GetTriviaAfterLeadingBlankLines(statement2)];
     }
 
     private bool CrossesMeaningfulBlock(State state)

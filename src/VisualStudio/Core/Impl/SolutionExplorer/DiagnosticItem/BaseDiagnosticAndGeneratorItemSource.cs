@@ -38,12 +38,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
-    /// <summary>
-    /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
-    /// <see langword="null"/> again.
-    /// </summary>
-    private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
-
     public BaseDiagnosticAndGeneratorItemSource(
         IThreadingContext threadingContext,
         Workspace workspace,
@@ -63,16 +57,20 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             _cancellationTokenSource.Token);
     }
 
+    /// <summary>
+    /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
+    /// <see langword="null"/> again.
+    /// </summary>
     protected AnalyzerReference? AnalyzerReference
     {
-        get => _analyzerReference_DoNotAccessDirectly;
+        get;
         set
         {
-            Contract.ThrowIfTrue(_analyzerReference_DoNotAccessDirectly != null);
+            Contract.ThrowIfTrue(field != null);
             if (value is null)
                 return;
 
-            _analyzerReference_DoNotAccessDirectly = value;
+            field = value;
 
             // Listen for changes that would affect the set of analyzers/generators in this reference, and kick off work
             // to now get the items for this source.

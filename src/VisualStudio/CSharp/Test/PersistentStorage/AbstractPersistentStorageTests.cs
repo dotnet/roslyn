@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -331,11 +332,8 @@ public abstract class AbstractPersistentStorageTests : IDisposable
     {
         _ = iteration;
         var solution = CreateOrOpenSolution();
-
-        var streamName1 = "TestReadChecksumReturnsNullWhenNeverWritten";
-
         var storage = await GetStorageAsync(solution);
-        Assert.False(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
+        Assert.False(await storage.ChecksumMatchesAsync("TestReadChecksumReturnsNullWhenNeverWritten", s_checksum1));
     }
 
     [Theory, CombinatorialData]

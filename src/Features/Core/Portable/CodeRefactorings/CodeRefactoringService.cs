@@ -35,7 +35,7 @@ internal sealed class CodeRefactoringService(
             ImmutableDictionary.CreateRange(
                 DistributeLanguagesAndDocuments(providers)
                     .GroupBy(lz => new ProviderKey(lz.Metadata.Language, lz.Metadata.DocumentKind, lz.Metadata.DocumentExtension))
-                    .Select(grp => KeyValuePairUtil.Create(grp.Key,
+                    .Select(grp => KeyValuePair.Create(grp.Key,
                         new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => [.. ExtensionOrderer.Order(grp).Select(lz => lz.Value)])))));
 
     private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
@@ -163,7 +163,7 @@ internal sealed class CodeRefactoringService(
             {
                 // Try to consume from the results that produceItems is sending us.  The moment we get a single result,
                 // we know we're done and we have at least one refactoring.
-                await foreach (var unused in items)
+                await foreach (var unused in items.ConfigureAwait(false))
                 {
                     // Cancel all the other items that are still running (or are asked to run in the future).
                     args.linkedTokenSource.Cancel();

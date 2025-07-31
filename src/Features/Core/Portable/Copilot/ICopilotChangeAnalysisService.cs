@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -293,7 +294,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 // order to have a good experience in such a case.
                 var intervalTree = new SimpleMutableIntervalTree<CodeFixCollection, CodeFixCollectionIntervalIntrospector>(new CodeFixCollectionIntervalIntrospector());
 
-                await foreach (var (codeFixCollection, success, applicationTime) in values)
+                await foreach (var (codeFixCollection, success, applicationTime) in values.ConfigureAwait(false))
                 {
                     var diagnosticId = codeFixCollection.FirstDiagnostic.Id;
                     var providerName = GetProviderName(codeFixCollection);

@@ -63,8 +63,10 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private static async Task<Solution> RemoveOptSuffixOnVariableAsync(Document document, ISymbol variableSymbol, string newName, CancellationToken cancellationToken)
-            => await Renamer.RenameSymbolAsync(document.Project.Solution, variableSymbol, newName, document.Project.Solution.Options, cancellationToken)
-                .ConfigureAwait(false);
+            => await Renamer.RenameSymbolAsync(
+                document.Project.Solution, variableSymbol, newName, document.Project.Solution.Options, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

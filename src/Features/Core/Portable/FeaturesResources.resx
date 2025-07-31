@@ -369,6 +369,18 @@
   <data name="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding or moving {0} of a COM interface requires restarting the application.</value>
   </data>
+  <data name="Changing_project_setting_0_from_1_to_2_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</value>
+  </data>
+  <data name="Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</value>
+  </data>
+  <data name="Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application" xml:space="preserve">
+    <value>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</value>
+  </data>
+  <data name="default" xml:space="preserve">
+    <value>default></value>
+  </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>
   </data>
@@ -2513,6 +2525,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="_0_may_be_null_here" xml:space="preserve">
     <value>'{0}' may be null here.</value>
   </data>
+  <data name="_0_is_not_nullable_aware" xml:space="preserve">
+    <value>'{0}' is not nullable aware.</value>
+  </data>
   <data name="ChangeSignature_NewParameterInferValue" xml:space="preserve">
     <value>&lt;infer&gt;</value>
   </data>
@@ -3129,39 +3144,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="SemanticSearch" xml:space="preserve">
     <value>Semantic Search</value>
   </data>
-  <data name="Query" xml:space="preserve">
-    <value>Query</value>
-  </data>
-  <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
-    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</value>
-  </data>
-  <data name="Semantic_search_query_terminated_with_exception" xml:space="preserve">
-    <value>Semantic search query terminated with exception</value>
-  </data>
-  <data name="Semantic_search_query_failed_to_compile" xml:space="preserve">
-    <value>Semantic search query failed to compile</value>
-  </data>
-  <data name="The_query_does_not_specify_0_top_level_function" xml:space="preserve">
-    <value>The query does not specify '{0}' top-level function</value>
-  </data>
-  <data name="Method_0_must_be_static_and_non_generic" xml:space="preserve">
-    <value>Method '{0}' must be static and non-generic</value>
-  </data>
-  <data name="The_query_specifies_multiple_top_level_functions_1" xml:space="preserve">
-    <value>The query specifies multiple top-level functions '{1}'</value>
-  </data>
-  <data name="Top_level_function_0_must_have_a_single_parameter" xml:space="preserve">
-    <value>Top-level function '{0}' must have a single parameter</value>
-  </data>
-  <data name="Parameter_type_0_is_not_among_supported_types_1" xml:space="preserve">
-    <value>Parameter type '{0}' is not among supported types: {1}</value>
-  </data>
-  <data name="Return_type_0_is_not_among_supported_types_1" xml:space="preserve">
-    <value>Return type '{0}' is not among supported types: {1}</value>
-  </data>
-  <data name="Unable_to_load_type_0_1" xml:space="preserve">
-    <value>Unable to load type '{0}': '{1}'</value>
-  </data>
   <data name="NET_Code_Actions" xml:space="preserve">
     <value>.NET Code Actions</value>
   </data>
@@ -3237,5 +3219,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="_0_cannot_be_negative_or_zero" xml:space="preserve">
     <value>'{0}' cannot be negative or zero</value>
+  </data>
+  <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
+    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</value>
   </data>
 </root>

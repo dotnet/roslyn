@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 

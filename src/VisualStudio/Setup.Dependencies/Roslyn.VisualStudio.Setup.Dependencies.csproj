@@ -15,6 +15,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\VBCSharp\Dependencies</ExtensionInstallationFolder>
+    <DeployExtension>true</DeployExtension>
   </PropertyGroup>
   <ItemGroup>
     <!--
@@ -55,6 +56,7 @@
     <PackageReference Include="System.IO.Hashing" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.IO.Pipelines" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Memory" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.Numerics.Vectors" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Reflection.Metadata" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Resources.Extensions" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SemanticSearch;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Extensibility.VSSdkCompatibility;
@@ -54,6 +55,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     IVsEditorAdaptersFactoryService vsEditorAdaptersFactoryService,
     IAsynchronousOperationListenerProvider listenerProvider,
     IGlobalOptionService globalOptions,
+    Lazy<ISemanticSearchSolutionService> semanticSearchService,
     VisualStudioWorkspace workspace,
     IStreamingFindUsagesPresenter resultsPresenter,
     ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -70,7 +72,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     private readonly Lazy<SemanticSearchEditorWorkspace> _semanticSearchWorkspace
         = new(() => new SemanticSearchEditorWorkspace(
             hostWorkspaceProvider.Workspace.Services.HostServices,
-            CSharpSemanticSearchUtilities.Configuration,
+            semanticSearchService.Value,
             threadingContext,
             listenerProvider));
 
@@ -89,6 +91,9 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     {
         _lazyContent?.Dispose();
     }
+
+    public ISemanticSearchSolutionService SemanticSearchService
+        => semanticSearchService.Value;
 
     public async Task<IRemoteUserControl> InitializeAsync(CancellationToken cancellationToken)
     {
@@ -123,7 +128,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
         // enable LSP:
         Contract.ThrowIfFalse(textDocumentFactory.TryGetTextDocument(_textBuffer, out var textDocument));
-        textDocument.Rename(SemanticSearchUtilities.GetDocumentFilePath(LanguageNames.CSharp));
+        textDocument.Rename(SemanticSearchService.GetQueryDocumentFilePath());
 
         var toolWindowGrid = new Grid();
         toolWindowGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -385,7 +390,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
         presenterCancellationToken.Register(() => cancellationSource?.Cancel());
 
         var querySolution = _semanticSearchWorkspace.Value.CurrentSolution;
-        var queryDocument = SemanticSearchUtilities.GetQueryDocument(querySolution);
+        var queryDocument = querySolution.GetRequiredDocument(SemanticSearchService.GetQueryDocumentId(querySolution));
 
         var completionToken = _asyncListener.BeginAsyncOperation(nameof(SemanticSearchToolWindow) + ".Execute");
         _ = ExecuteAsync(cancellationSource.Token).ReportNonFatalErrorAsync().CompletesAsyncOperation(completionToken);

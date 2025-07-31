@@ -117,7 +117,7 @@ internal sealed partial class Controller
                 //
                 // Or it can trigger a new list. Ask the computation to compute again.
                 sessionOpt.ComputeModel(
-                    textuallyTriggeredProviders.Concat(untriggeredProviders), triggerInfo);
+                    [.. textuallyTriggeredProviders, .. untriggeredProviders], triggerInfo);
                 computed = true;
             }
 

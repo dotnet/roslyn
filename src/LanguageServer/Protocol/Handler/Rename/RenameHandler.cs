@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -54,9 +53,7 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
             cancellationToken).ConfigureAwait(false);
 
         var renameReplacementInfo = await renameLocationSet.ResolveConflictsAsync(
-            symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(newName),
-            nonConflictSymbolKeys: default,
-            cancellationToken).ConfigureAwait(false);
+            symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(newName), cancellationToken).ConfigureAwait(false);
 
         if (!renameReplacementInfo.IsSuccessful ||
             !renameReplacementInfo.ReplacementTextValid)
@@ -71,14 +68,16 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
         // Then we can just take the text changes from the first document to avoid returning duplicate edits.
         renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
         solutionChanges = renamedSolution.GetChanges(oldSolution);
+
         var changedDocuments = solutionChanges
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
-            .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
+            .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First())
+            .Concat(solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments());
 
         var textDiffService = renamedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
-        var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
+        var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution, oldSolution,
             textDiffService, cancellationToken).ConfigureAwait(false);
 
         return new WorkspaceEdit { DocumentChanges = documentEdits };
