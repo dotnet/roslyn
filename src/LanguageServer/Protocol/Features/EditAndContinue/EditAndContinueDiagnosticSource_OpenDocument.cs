@@ -18,9 +18,6 @@ internal static partial class EditAndContinueDiagnosticSource
 {
     private sealed class OpenDocumentSource(Document document) : AbstractDocumentDiagnosticSource<Document>(document)
     {
-        public override bool IsLiveSource()
-            => true;
-
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
             var designTimeDocument = Document;
