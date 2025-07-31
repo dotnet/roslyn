@@ -169,7 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetCorrespondingMarkerType(extension).UnderlyingExtensions;
         }
 
-        // Returns all the extension blocks but grouped/merged by equivalency (ie. same marker name)
+        /// <summary>
+        /// Returns all the extension blocks but grouped/merged by equivalency (ie. same marker name)
+        /// </summary>
         internal IEnumerable<ImmutableArray<SourceNamedTypeSymbol>> EnumerateMergedExtensionBlocks()
         {
             GetGroupingTypes();
@@ -421,8 +423,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    Debug.Assert(ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType is not null);
-                    return ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType!.GetCciAdapter();
+                    NamedTypeSymbol? containingType = ExtensionMarkerTypes[0].UnderlyingExtensions[0].ContainingType;
+                    Debug.Assert(containingType is not null);
+                    return containingType.GetCciAdapter();
                 }
             }
 
