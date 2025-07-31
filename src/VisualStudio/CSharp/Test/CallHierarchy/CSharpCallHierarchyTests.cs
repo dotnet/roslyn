@@ -553,6 +553,38 @@ public sealed class CSharpCallHierarchyTests
     }
 
     [WpfFact]
+    public async Task Method_ExcludeNameofReferencesWithoutMemberAccess()
+    {
+        var text = """
+            namespace N
+            {
+                class G
+                {
+                    void B$$oo()
+                    {
+                    }
+
+                    void Main()
+                    {
+                        var g = new G();
+                        g.Boo(); // This should appear in call hierarchy
+                    }
+
+                    void TestNameof()
+                    {
+                        var methodName = nameof(Boo); // This should NOT appear
+                    }
+                }
+            }
+            """;
+        using var testState = CallHierarchyTestState.Create(text);
+        var root = await testState.GetRootAsync();
+        testState.VerifyRoot(root, "N.G.Boo()", [string.Format(EditorFeaturesResources.Calls_To_0, "Boo")]);
+        // Only the actual method call should appear, not the nameof reference
+        testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Boo"), ["N.G.Main()"]);
+    }
+
+    [WpfFact]
     public async Task Method_ExcludeNameofReferences()
     {
         var text = """
@@ -587,110 +619,5 @@ public sealed class CSharpCallHierarchyTests
         testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), ["N.G.Main()"]);
     }
 
-    //[WpfFact]
-    //public async Task Method_ExcludeTypeofReferences()
-    //{
-    //    var text = """
-    //        namespace N
-    //        {
-    //            class C
-    //            {
-    //                static void G$$oo()
-    //                {
-    //                }
-    //            }
-
-    //            class G
-    //            {
-    //                void Main()
-    //                {
-    //                    C.Goo(); // This should appear in call hierarchy
-    //                }
-
-    //                void TestTypeof()
-    //                {
-    //                    var type = typeof(C); // This should NOT appear for C
-    //                }
-    //            }
-    //        }
-    //        """;
-    //    using var testState = CallHierarchyTestState.Create(text);
-    //    var root = await testState.GetRootAsync();
-    //    testState.VerifyRoot(root, "N.C.Goo()", [string.Format(EditorFeaturesResources.Calls_To_0, "Goo")]);
-    //    // Only the actual method call should appear, not the typeof reference
-    //    testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), ["N.G.Main()"]);
-    //}
-
-    //[WpfFact]
-    //public async Task Method_ExcludeSizeofReferences()
-    //{
-    //    var text = """
-    //        namespace N
-    //        {
-    //            struct MyStruct
-    //            {
-    //                public int Field;
-                    
-    //                void G$$oo()
-    //                {
-    //                }
-    //            }
-
-    //            class G
-    //            {
-    //                unsafe void Main()
-    //                {
-    //                    var s = new MyStruct();
-    //                    s.Goo(); // This should appear in call hierarchy
-    //                }
-
-    //                unsafe void TestSizeof()
-    //                {
-    //                    int size = sizeof(MyStruct); // This should NOT appear for MyStruct
-    //                }
-    //            }
-    //        }
-    //        """;
-    //    using var testState = CallHierarchyTestState.Create(text);
-    //    var root = await testState.GetRootAsync();
-    //    testState.VerifyRoot(root, "N.MyStruct.Goo()", [string.Format(EditorFeaturesResources.Calls_To_0, "Goo")]);
-    //    // Only the actual method call should appear, not the sizeof reference
-    //    testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), ["N.G.Main()"]);
-    //}
-
-    //[WpfFact]
-    //public async Task Method_ExcludeMultipleNameOnlyReferences()
-    //{
-    //    var text = """
-    //        namespace N
-    //        {
-    //            class C
-    //            {
-    //                void G$$oo()
-    //                {
-    //                }
-    //            }
-
-    //            class G
-    //            {
-    //                void Main()
-    //                {
-    //                    var c = new C();
-    //                    c.Goo(); // This should appear in call hierarchy
-    //                }
-                    
-    //                void TestNameOnlyReferences()
-    //                {
-    //                    var methodName = nameof(C.Goo); // Should NOT appear
-    //                    var type = typeof(C); // Should NOT appear
-    //                }
-    //            }
-    //        }
-    //        """;
-    //    using var testState = CallHierarchyTestState.Create(text);
-    //    var root = await testState.GetRootAsync();
-    //    testState.VerifyRoot(root, "N.C.Goo()", [string.Format(EditorFeaturesResources.Calls_To_0, "Goo")]);
-    //    // Only the actual method call should appear, not the name-only references
-    //    testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), ["N.G.Main()"]);
-    //}
+  
 }

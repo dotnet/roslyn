@@ -683,7 +683,13 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             }
             else
             {
-                var operation = semanticModel.GetOperation(node, cancellationToken);
+                // Walk up out of the member access expression. This way if we have something like
+                // nameof(C.Goo()), we ensure that operation.Parent is the INameOfOperation. 
+                var operationNode = node;
+                while (syntaxFacts.IsMemberAccessExpression(operationNode.Parent))
+                    operationNode = operationNode.Parent;
+
+                var operation = semanticModel.GetOperation(operationNode, cancellationToken);
                 if (operation is IObjectCreationOperation)
                     return SymbolUsageInfo.Create(TypeOrNamespaceUsageInfo.ObjectCreation);
 
