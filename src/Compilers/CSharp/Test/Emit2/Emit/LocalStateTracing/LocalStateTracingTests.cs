@@ -3919,11 +3919,11 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: @"
 Main: Entered
 G: Entered
-G: P'a' = 1
+G: P'a'[0] = 1
 F: Entered
 F: P'f'[0] = System.Func`2[System.Int32,System.Int32]
 G: Entered lambda '<G>b__0'
-<G>b__0: P'b' = 2
+<G>b__0: P'b'[0] = 2
 <G>b__0: P'a' = 2
 F: Entered
 F: P'f'[0] = System.Func`2[System.Int32,System.Int32]
@@ -3940,7 +3940,7 @@ Main: Returned
 
             verifier.VerifyMethodBody("C.G", @"
 {
-  // Code size       73 (0x49)
+  // Code size       69 (0x45)
   .maxstack  3
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
                 C.<>c__DisplayClass1_0 V_1) //CS$<>8__locals0
@@ -3960,33 +3960,33 @@ Main: Returned
     IL_0018:  ldloca.s   V_0
     IL_001a:  ldloc.1
     IL_001b:  ldfld      ""int C.<>c__DisplayClass1_0.a""
-    IL_0020:  ldtoken    ""int C.<>c__DisplayClass1_0.a""
-    IL_0025:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
-    IL_002a:  nop
+    IL_0020:  ldc.i4.0
+    IL_0021:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
+    IL_0026:  nop
     // sequence point: F(b =>  ...         });
-    IL_002b:  ldloc.1
-    IL_002c:  ldftn      ""int C.<>c__DisplayClass1_0.<G>b__0(int)""
-    IL_0032:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-    IL_0037:  call       ""int C.F(System.Func<int, int>)""
-    IL_003c:  pop
+    IL_0027:  ldloc.1
+    IL_0028:  ldftn      ""int C.<>c__DisplayClass1_0.<G>b__0(int)""
+    IL_002e:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+    IL_0033:  call       ""int C.F(System.Func<int, int>)""
+    IL_0038:  pop
     // sequence point: }
-    IL_003d:  leave.s    IL_0048
+    IL_0039:  leave.s    IL_0044
   }
   finally
   {
     // sequence point: <hidden>
-    IL_003f:  ldloca.s   V_0
-    IL_0041:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
-    IL_0046:  nop
-    IL_0047:  endfinally
+    IL_003b:  ldloca.s   V_0
+    IL_003d:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_0042:  nop
+    IL_0043:  endfinally
   }
   // sequence point: }
-  IL_0048:  ret
+  IL_0044:  ret
 }
 ");
             verifier.VerifyMethodBody("C.<>c__DisplayClass1_0.<G>b__0", @"
 {
-  // Code size      114 (0x72)
+  // Code size      110 (0x6e)
   .maxstack  4
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
                 C.<>c__DisplayClass1_1 V_1, //CS$<>8__locals0
@@ -4009,43 +4009,43 @@ Main: Returned
     IL_001d:  ldloca.s   V_0
     IL_001f:  ldloc.1
     IL_0020:  ldfld      ""int C.<>c__DisplayClass1_1.b""
-    IL_0025:  ldtoken    ""int C.<>c__DisplayClass1_1.b""
-    IL_002a:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
-    IL_002f:  nop
+    IL_0025:  ldc.i4.0
+    IL_0026:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
+    IL_002b:  nop
     // sequence point: a = b;
-    IL_0030:  ldloca.s   V_0
-    IL_0032:  ldarg.0
-    IL_0033:  ldloc.1
-    IL_0034:  ldfld      ""int C.<>c__DisplayClass1_1.b""
-    IL_0039:  dup
-    IL_003a:  stloc.2
-    IL_003b:  stfld      ""int C.<>c__DisplayClass1_0.a""
-    IL_0040:  ldloc.2
-    IL_0041:  ldtoken    ""int C.<>c__DisplayClass1_0.a""
-    IL_0046:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
-    IL_004b:  nop
-    IL_004c:  ldarg.0
-    IL_004d:  ldfld      ""int C.<>c__DisplayClass1_0.a""
-    IL_0052:  pop
+    IL_002c:  ldloca.s   V_0
+    IL_002e:  ldarg.0
+    IL_002f:  ldloc.1
+    IL_0030:  ldfld      ""int C.<>c__DisplayClass1_1.b""
+    IL_0035:  dup
+    IL_0036:  stloc.2
+    IL_0037:  stfld      ""int C.<>c__DisplayClass1_0.a""
+    IL_003c:  ldloc.2
+    IL_003d:  ldtoken    ""int C.<>c__DisplayClass1_0.a""
+    IL_0042:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
+    IL_0047:  nop
+    IL_0048:  ldarg.0
+    IL_0049:  ldfld      ""int C.<>c__DisplayClass1_0.a""
+    IL_004e:  pop
     // sequence point: return F(c => ++b);
-    IL_0053:  ldloc.1
-    IL_0054:  ldftn      ""int C.<>c__DisplayClass1_1.<G>b__1(int)""
-    IL_005a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-    IL_005f:  call       ""int C.F(System.Func<int, int>)""
-    IL_0064:  stloc.3
-    IL_0065:  leave.s    IL_0070
+    IL_004f:  ldloc.1
+    IL_0050:  ldftn      ""int C.<>c__DisplayClass1_1.<G>b__1(int)""
+    IL_0056:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+    IL_005b:  call       ""int C.F(System.Func<int, int>)""
+    IL_0060:  stloc.3
+    IL_0061:  leave.s    IL_006c
   }
   finally
   {
     // sequence point: <hidden>
-    IL_0067:  ldloca.s   V_0
-    IL_0069:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
-    IL_006e:  nop
-    IL_006f:  endfinally
+    IL_0063:  ldloca.s   V_0
+    IL_0065:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_006a:  nop
+    IL_006b:  endfinally
   }
   // sequence point: }
-  IL_0070:  ldloc.3
-  IL_0071:  ret
+  IL_006c:  ldloc.3
+  IL_006d:  ret
 }");
             verifier.VerifyMethodBody("C.<>c__DisplayClass1_1.<G>b__1", @"
 {
@@ -4129,7 +4129,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: @"
 Main: Entered state machine #1
 M: Entered state machine #2
-M: P'p' = 2
+M: P'p'[0] = 2
 M: L'a' = 2
 F: Entered
 F: P'a'[0] = 1
@@ -4187,7 +4187,7 @@ Main: Returned
 
             verifier.VerifyMethodBody("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      308 (0x134)
+  // Code size      304 (0x130)
   .maxstack  4
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
                 int V_1,
@@ -4213,134 +4213,134 @@ Main: Returned
       IL_0018:  ldloc.1
       IL_0019:  brfalse.s  IL_001d
       IL_001b:  br.s       IL_0022
-      IL_001d:  br         IL_00b1
+      IL_001d:  br         IL_00ad
       // sequence point: {
       IL_0022:  ldloca.s   V_0
       IL_0024:  ldarg.0
       IL_0025:  ldfld      ""int C.<M>d__0.p""
-      IL_002a:  ldtoken    ""int C.<M>d__0.p""
-      IL_002f:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
-      IL_0034:  nop
+      IL_002a:  ldc.i4.0
+      IL_002b:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
+      IL_0030:  nop
       // sequence point: int a = p;
-      IL_0035:  ldloca.s   V_0
-      IL_0037:  ldarg.0
-      IL_0038:  ldarg.0
-      IL_0039:  ldfld      ""int C.<M>d__0.p""
-      IL_003e:  dup
-      IL_003f:  stloc.2
-      IL_0040:  stfld      ""int C.<M>d__0.<a>5__1""
-      IL_0045:  ldloc.2
-      IL_0046:  ldtoken    ""int C.<M>d__0.<a>5__1""
-      IL_004b:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-      IL_0050:  nop
-      IL_0051:  ldarg.0
-      IL_0052:  ldfld      ""int C.<M>d__0.<a>5__1""
-      IL_0057:  pop
+      IL_0031:  ldloca.s   V_0
+      IL_0033:  ldarg.0
+      IL_0034:  ldarg.0
+      IL_0035:  ldfld      ""int C.<M>d__0.p""
+      IL_003a:  dup
+      IL_003b:  stloc.2
+      IL_003c:  stfld      ""int C.<M>d__0.<a>5__1""
+      IL_0041:  ldloc.2
+      IL_0042:  ldtoken    ""int C.<M>d__0.<a>5__1""
+      IL_0047:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_004c:  nop
+      IL_004d:  ldarg.0
+      IL_004e:  ldfld      ""int C.<M>d__0.<a>5__1""
+      IL_0053:  pop
       // sequence point: F(out var b);
-      IL_0058:  ldarg.0
-      IL_0059:  ldflda     ""int C.<M>d__0.<b>5__2""
-      IL_005e:  call       ""int C.F(out int)""
-      IL_0063:  pop
-      IL_0064:  ldloca.s   V_0
-      IL_0066:  ldarg.0
-      IL_0067:  ldfld      ""int C.<M>d__0.<b>5__2""
-      IL_006c:  ldtoken    ""int C.<M>d__0.<b>5__2""
-      IL_0071:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-      IL_0076:  nop
+      IL_0054:  ldarg.0
+      IL_0055:  ldflda     ""int C.<M>d__0.<b>5__2""
+      IL_005a:  call       ""int C.F(out int)""
+      IL_005f:  pop
+      IL_0060:  ldloca.s   V_0
+      IL_0062:  ldarg.0
+      IL_0063:  ldfld      ""int C.<M>d__0.<b>5__2""
+      IL_0068:  ldtoken    ""int C.<M>d__0.<b>5__2""
+      IL_006d:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_0072:  nop
       // sequence point: await Task.FromResult(1);
-      IL_0077:  ldc.i4.1
-      IL_0078:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
-      IL_007d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-      IL_0082:  stloc.3
+      IL_0073:  ldc.i4.1
+      IL_0074:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+      IL_0079:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+      IL_007e:  stloc.3
       // sequence point: <hidden>
-      IL_0083:  ldloca.s   V_3
-      IL_0085:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-      IL_008a:  brtrue.s   IL_00cd
-      IL_008c:  ldarg.0
-      IL_008d:  ldc.i4.0
-      IL_008e:  dup
-      IL_008f:  stloc.1
-      IL_0090:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_007f:  ldloca.s   V_3
+      IL_0081:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+      IL_0086:  brtrue.s   IL_00c9
+      IL_0088:  ldarg.0
+      IL_0089:  ldc.i4.0
+      IL_008a:  dup
+      IL_008b:  stloc.1
+      IL_008c:  stfld      ""int C.<M>d__0.<>1__state""
       // async: yield
-      IL_0095:  ldarg.0
-      IL_0096:  ldloc.3
-      IL_0097:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
-      IL_009c:  ldarg.0
-      IL_009d:  stloc.s    V_4
-      IL_009f:  ldarg.0
-      IL_00a0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
-      IL_00a5:  ldloca.s   V_3
-      IL_00a7:  ldloca.s   V_4
-      IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__0)""
-      IL_00ae:  nop
-      IL_00af:  leave.s    IL_0128
+      IL_0091:  ldarg.0
+      IL_0092:  ldloc.3
+      IL_0093:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
+      IL_0098:  ldarg.0
+      IL_0099:  stloc.s    V_4
+      IL_009b:  ldarg.0
+      IL_009c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+      IL_00a1:  ldloca.s   V_3
+      IL_00a3:  ldloca.s   V_4
+      IL_00a5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__0)""
+      IL_00aa:  nop
+      IL_00ab:  leave.s    IL_0124
       // async: resume
-      IL_00b1:  ldarg.0
-      IL_00b2:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
-      IL_00b7:  stloc.3
-      IL_00b8:  ldarg.0
-      IL_00b9:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
-      IL_00be:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-      IL_00c4:  ldarg.0
-      IL_00c5:  ldc.i4.m1
-      IL_00c6:  dup
-      IL_00c7:  stloc.1
-      IL_00c8:  stfld      ""int C.<M>d__0.<>1__state""
-      IL_00cd:  ldloca.s   V_3
-      IL_00cf:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-      IL_00d4:  pop
+      IL_00ad:  ldarg.0
+      IL_00ae:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
+      IL_00b3:  stloc.3
+      IL_00b4:  ldarg.0
+      IL_00b5:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
+      IL_00ba:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+      IL_00c0:  ldarg.0
+      IL_00c1:  ldc.i4.m1
+      IL_00c2:  dup
+      IL_00c3:  stloc.1
+      IL_00c4:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_00c9:  ldloca.s   V_3
+      IL_00cb:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+      IL_00d0:  pop
       // sequence point: int c = b;
-      IL_00d5:  ldloca.s   V_0
-      IL_00d7:  ldarg.0
-      IL_00d8:  ldarg.0
-      IL_00d9:  ldfld      ""int C.<M>d__0.<b>5__2""
-      IL_00de:  dup
-      IL_00df:  stloc.2
-      IL_00e0:  stfld      ""int C.<M>d__0.<c>5__3""
-      IL_00e5:  ldloc.2
-      IL_00e6:  ldtoken    ""int C.<M>d__0.<c>5__3""
-      IL_00eb:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-      IL_00f0:  nop
-      IL_00f1:  ldarg.0
-      IL_00f2:  ldfld      ""int C.<M>d__0.<c>5__3""
-      IL_00f7:  pop
-      IL_00f8:  leave.s    IL_0114
+      IL_00d1:  ldloca.s   V_0
+      IL_00d3:  ldarg.0
+      IL_00d4:  ldarg.0
+      IL_00d5:  ldfld      ""int C.<M>d__0.<b>5__2""
+      IL_00da:  dup
+      IL_00db:  stloc.2
+      IL_00dc:  stfld      ""int C.<M>d__0.<c>5__3""
+      IL_00e1:  ldloc.2
+      IL_00e2:  ldtoken    ""int C.<M>d__0.<c>5__3""
+      IL_00e7:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_00ec:  nop
+      IL_00ed:  ldarg.0
+      IL_00ee:  ldfld      ""int C.<M>d__0.<c>5__3""
+      IL_00f3:  pop
+      IL_00f4:  leave.s    IL_0110
     }
     catch System.Exception
     {
       // sequence point: <hidden>
-      IL_00fa:  stloc.s    V_5
-      IL_00fc:  ldarg.0
-      IL_00fd:  ldc.i4.s   -2
-      IL_00ff:  stfld      ""int C.<M>d__0.<>1__state""
-      IL_0104:  ldarg.0
-      IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
-      IL_010a:  ldloc.s    V_5
-      IL_010c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-      IL_0111:  nop
-      IL_0112:  leave.s    IL_0128
+      IL_00f6:  stloc.s    V_5
+      IL_00f8:  ldarg.0
+      IL_00f9:  ldc.i4.s   -2
+      IL_00fb:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_0100:  ldarg.0
+      IL_0101:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+      IL_0106:  ldloc.s    V_5
+      IL_0108:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+      IL_010d:  nop
+      IL_010e:  leave.s    IL_0124
     }
     // sequence point: }
-    IL_0114:  ldarg.0
-    IL_0115:  ldc.i4.s   -2
-    IL_0117:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0110:  ldarg.0
+    IL_0111:  ldc.i4.s   -2
+    IL_0113:  stfld      ""int C.<M>d__0.<>1__state""
     // sequence point: <hidden>
-    IL_011c:  ldarg.0
-    IL_011d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
-    IL_0122:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-    IL_0127:  nop
-    IL_0128:  leave.s    IL_0133
+    IL_0118:  ldarg.0
+    IL_0119:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+    IL_011e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+    IL_0123:  nop
+    IL_0124:  leave.s    IL_012f
   }
   finally
   {
     // sequence point: <hidden>
-    IL_012a:  ldloca.s   V_0
-    IL_012c:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
-    IL_0131:  nop
-    IL_0132:  endfinally
+    IL_0126:  ldloca.s   V_0
+    IL_0128:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_012d:  nop
+    IL_012e:  endfinally
   }
   // sequence point: <hidden>
-  IL_0133:  ret
+  IL_012f:  ret
 }
 ");
         }
@@ -4371,7 +4371,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: @"
 Main: Entered
 M: Entered state machine #1
-M: P'p' = 2
+M: P'p'[0] = 2
 M: L'a' = 2
 F: Entered
 F: P'a'[0] = 1
@@ -4423,7 +4423,7 @@ Main: Returned
 
             verifier.VerifyMethodBody("C.<M>d__0.System.Collections.IEnumerator.MoveNext()", @"
 {
-  // Code size      213 (0xd5)
+  // Code size      209 (0xd1)
   .maxstack  4
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
                 int V_1,
@@ -4449,10 +4449,10 @@ Main: Returned
     IL_001f:  beq.s      IL_0025
     IL_0021:  br.s       IL_0027
     IL_0023:  br.s       IL_002e
-    IL_0025:  br.s       IL_009c
+    IL_0025:  br.s       IL_0098
     IL_0027:  ldc.i4.0
     IL_0028:  stloc.2
-    IL_0029:  leave      IL_00d3
+    IL_0029:  leave      IL_00cf
     IL_002e:  ldarg.0
     IL_002f:  ldc.i4.m1
     IL_0030:  stfld      ""int C.<M>d__0.<>1__state""
@@ -4460,80 +4460,80 @@ Main: Returned
     IL_0035:  ldloca.s   V_0
     IL_0037:  ldarg.0
     IL_0038:  ldfld      ""int C.<M>d__0.p""
-    IL_003d:  ldtoken    ""int C.<M>d__0.p""
-    IL_0042:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
-    IL_0047:  nop
+    IL_003d:  ldc.i4.0
+    IL_003e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
+    IL_0043:  nop
     // sequence point: int a = p;
-    IL_0048:  ldloca.s   V_0
-    IL_004a:  ldarg.0
-    IL_004b:  ldarg.0
-    IL_004c:  ldfld      ""int C.<M>d__0.p""
-    IL_0051:  dup
-    IL_0052:  stloc.3
-    IL_0053:  stfld      ""int C.<M>d__0.<a>5__1""
-    IL_0058:  ldloc.3
-    IL_0059:  ldtoken    ""int C.<M>d__0.<a>5__1""
-    IL_005e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_0063:  nop
-    IL_0064:  ldarg.0
-    IL_0065:  ldfld      ""int C.<M>d__0.<a>5__1""
-    IL_006a:  pop
+    IL_0044:  ldloca.s   V_0
+    IL_0046:  ldarg.0
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      ""int C.<M>d__0.p""
+    IL_004d:  dup
+    IL_004e:  stloc.3
+    IL_004f:  stfld      ""int C.<M>d__0.<a>5__1""
+    IL_0054:  ldloc.3
+    IL_0055:  ldtoken    ""int C.<M>d__0.<a>5__1""
+    IL_005a:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_005f:  nop
+    IL_0060:  ldarg.0
+    IL_0061:  ldfld      ""int C.<M>d__0.<a>5__1""
+    IL_0066:  pop
     // sequence point: F(out var b);
-    IL_006b:  ldarg.0
-    IL_006c:  ldflda     ""int C.<M>d__0.<b>5__2""
-    IL_0071:  call       ""int C.F(out int)""
-    IL_0076:  pop
-    IL_0077:  ldloca.s   V_0
-    IL_0079:  ldarg.0
-    IL_007a:  ldfld      ""int C.<M>d__0.<b>5__2""
-    IL_007f:  ldtoken    ""int C.<M>d__0.<b>5__2""
-    IL_0084:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_0089:  nop
+    IL_0067:  ldarg.0
+    IL_0068:  ldflda     ""int C.<M>d__0.<b>5__2""
+    IL_006d:  call       ""int C.F(out int)""
+    IL_0072:  pop
+    IL_0073:  ldloca.s   V_0
+    IL_0075:  ldarg.0
+    IL_0076:  ldfld      ""int C.<M>d__0.<b>5__2""
+    IL_007b:  ldtoken    ""int C.<M>d__0.<b>5__2""
+    IL_0080:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0085:  nop
     // sequence point: yield return 1;
-    IL_008a:  ldarg.0
-    IL_008b:  ldc.i4.1
-    IL_008c:  stfld      ""int C.<M>d__0.<>2__current""
-    IL_0091:  ldarg.0
-    IL_0092:  ldc.i4.1
-    IL_0093:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_0098:  ldc.i4.1
-    IL_0099:  stloc.2
-    IL_009a:  leave.s    IL_00d3
+    IL_0086:  ldarg.0
+    IL_0087:  ldc.i4.1
+    IL_0088:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_008d:  ldarg.0
+    IL_008e:  ldc.i4.1
+    IL_008f:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0094:  ldc.i4.1
+    IL_0095:  stloc.2
+    IL_0096:  leave.s    IL_00cf
     // sequence point: <hidden>
-    IL_009c:  ldarg.0
-    IL_009d:  ldc.i4.m1
-    IL_009e:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0098:  ldarg.0
+    IL_0099:  ldc.i4.m1
+    IL_009a:  stfld      ""int C.<M>d__0.<>1__state""
     // sequence point: int c = b;
-    IL_00a3:  ldloca.s   V_0
-    IL_00a5:  ldarg.0
-    IL_00a6:  ldarg.0
-    IL_00a7:  ldfld      ""int C.<M>d__0.<b>5__2""
-    IL_00ac:  dup
-    IL_00ad:  stloc.3
-    IL_00ae:  stfld      ""int C.<M>d__0.<c>5__3""
-    IL_00b3:  ldloc.3
-    IL_00b4:  ldtoken    ""int C.<M>d__0.<c>5__3""
-    IL_00b9:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_00be:  nop
-    IL_00bf:  ldarg.0
-    IL_00c0:  ldfld      ""int C.<M>d__0.<c>5__3""
-    IL_00c5:  pop
+    IL_009f:  ldloca.s   V_0
+    IL_00a1:  ldarg.0
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldfld      ""int C.<M>d__0.<b>5__2""
+    IL_00a8:  dup
+    IL_00a9:  stloc.3
+    IL_00aa:  stfld      ""int C.<M>d__0.<c>5__3""
+    IL_00af:  ldloc.3
+    IL_00b0:  ldtoken    ""int C.<M>d__0.<c>5__3""
+    IL_00b5:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_00ba:  nop
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      ""int C.<M>d__0.<c>5__3""
+    IL_00c1:  pop
     // sequence point: }
-    IL_00c6:  ldc.i4.0
-    IL_00c7:  stloc.2
-    IL_00c8:  leave.s    IL_00d3
+    IL_00c2:  ldc.i4.0
+    IL_00c3:  stloc.2
+    IL_00c4:  leave.s    IL_00cf
   }
   finally
   {
     // sequence point: <hidden>
-    IL_00ca:  ldloca.s   V_0
-    IL_00cc:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
-    IL_00d1:  nop
-    IL_00d2:  endfinally
+    IL_00c6:  ldloca.s   V_0
+    IL_00c8:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_00cd:  nop
+    IL_00ce:  endfinally
   }
   // sequence point: <hidden>
-  IL_00d3:  ldloc.2
-  IL_00d4:  ret
+  IL_00cf:  ldloc.2
+  IL_00d0:  ret
 }");
         }
 
@@ -4567,7 +4567,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: @"
 Main: Entered state machine #1
 M: Entered state machine #2
-M: P'p' = 2
+M: P'p'[0] = 2
 M: L'a' = 2
 F: Entered
 F: P'a'[0] = 1
@@ -4601,7 +4601,7 @@ Main: Returned
 
             verifier.VerifyMethodBody("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      461 (0x1cd)
+  // Code size      457 (0x1c9)
   .maxstack  4
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
                 int V_1,
@@ -4634,13 +4634,13 @@ Main: Returned
         IL_0040,
         IL_003e)
       IL_0035:  br.s       IL_0040
-      IL_0037:  br         IL_0123
+      IL_0037:  br         IL_011f
       IL_003c:  br.s       IL_0040
-      IL_003e:  br.s       IL_00a5
+      IL_003e:  br.s       IL_00a1
       IL_0040:  ldarg.0
       IL_0041:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
       IL_0046:  brfalse.s  IL_004d
-      IL_0048:  leave      IL_018a
+      IL_0048:  leave      IL_0186
       IL_004d:  ldarg.0
       IL_004e:  ldc.i4.m1
       IL_004f:  dup
@@ -4650,170 +4650,170 @@ Main: Returned
       IL_0056:  ldloca.s   V_0
       IL_0058:  ldarg.0
       IL_0059:  ldfld      ""int C.<M>d__0.p""
-      IL_005e:  ldtoken    ""int C.<M>d__0.p""
-      IL_0063:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
-      IL_0068:  nop
+      IL_005e:  ldc.i4.0
+      IL_005f:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
+      IL_0064:  nop
       // sequence point: await Task.FromResult(1);
-      IL_0069:  ldc.i4.1
-      IL_006a:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
-      IL_006f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-      IL_0074:  stloc.2
+      IL_0065:  ldc.i4.1
+      IL_0066:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+      IL_006b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+      IL_0070:  stloc.2
       // sequence point: <hidden>
-      IL_0075:  ldloca.s   V_2
-      IL_0077:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-      IL_007c:  brtrue.s   IL_00c1
-      IL_007e:  ldarg.0
-      IL_007f:  ldc.i4.0
-      IL_0080:  dup
-      IL_0081:  stloc.1
-      IL_0082:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_0071:  ldloca.s   V_2
+      IL_0073:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+      IL_0078:  brtrue.s   IL_00bd
+      IL_007a:  ldarg.0
+      IL_007b:  ldc.i4.0
+      IL_007c:  dup
+      IL_007d:  stloc.1
+      IL_007e:  stfld      ""int C.<M>d__0.<>1__state""
       // async: yield
-      IL_0087:  ldarg.0
-      IL_0088:  ldloc.2
-      IL_0089:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
-      IL_008e:  ldarg.0
-      IL_008f:  stloc.3
-      IL_0090:  ldarg.0
-      IL_0091:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-      IL_0096:  ldloca.s   V_2
-      IL_0098:  ldloca.s   V_3
-      IL_009a:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__0)""
-      IL_009f:  nop
-      IL_00a0:  leave      IL_01c1
+      IL_0083:  ldarg.0
+      IL_0084:  ldloc.2
+      IL_0085:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
+      IL_008a:  ldarg.0
+      IL_008b:  stloc.3
+      IL_008c:  ldarg.0
+      IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+      IL_0092:  ldloca.s   V_2
+      IL_0094:  ldloca.s   V_3
+      IL_0096:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__0)""
+      IL_009b:  nop
+      IL_009c:  leave      IL_01bd
       // async: resume
-      IL_00a5:  ldarg.0
-      IL_00a6:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
-      IL_00ab:  stloc.2
-      IL_00ac:  ldarg.0
-      IL_00ad:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
-      IL_00b2:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-      IL_00b8:  ldarg.0
-      IL_00b9:  ldc.i4.m1
-      IL_00ba:  dup
-      IL_00bb:  stloc.1
-      IL_00bc:  stfld      ""int C.<M>d__0.<>1__state""
-      IL_00c1:  ldloca.s   V_2
-      IL_00c3:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-      IL_00c8:  pop
+      IL_00a1:  ldarg.0
+      IL_00a2:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
+      IL_00a7:  stloc.2
+      IL_00a8:  ldarg.0
+      IL_00a9:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__0.<>u__1""
+      IL_00ae:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+      IL_00b4:  ldarg.0
+      IL_00b5:  ldc.i4.m1
+      IL_00b6:  dup
+      IL_00b7:  stloc.1
+      IL_00b8:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_00bd:  ldloca.s   V_2
+      IL_00bf:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+      IL_00c4:  pop
       // sequence point: int a = p;
-      IL_00c9:  ldloca.s   V_0
-      IL_00cb:  ldarg.0
-      IL_00cc:  ldarg.0
-      IL_00cd:  ldfld      ""int C.<M>d__0.p""
-      IL_00d2:  dup
-      IL_00d3:  stloc.s    V_4
-      IL_00d5:  stfld      ""int C.<M>d__0.<a>5__1""
-      IL_00da:  ldloc.s    V_4
-      IL_00dc:  ldtoken    ""int C.<M>d__0.<a>5__1""
-      IL_00e1:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-      IL_00e6:  nop
-      IL_00e7:  ldarg.0
-      IL_00e8:  ldfld      ""int C.<M>d__0.<a>5__1""
-      IL_00ed:  pop
+      IL_00c5:  ldloca.s   V_0
+      IL_00c7:  ldarg.0
+      IL_00c8:  ldarg.0
+      IL_00c9:  ldfld      ""int C.<M>d__0.p""
+      IL_00ce:  dup
+      IL_00cf:  stloc.s    V_4
+      IL_00d1:  stfld      ""int C.<M>d__0.<a>5__1""
+      IL_00d6:  ldloc.s    V_4
+      IL_00d8:  ldtoken    ""int C.<M>d__0.<a>5__1""
+      IL_00dd:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_00e2:  nop
+      IL_00e3:  ldarg.0
+      IL_00e4:  ldfld      ""int C.<M>d__0.<a>5__1""
+      IL_00e9:  pop
       // sequence point: F(out var b);
-      IL_00ee:  ldarg.0
-      IL_00ef:  ldflda     ""int C.<M>d__0.<b>5__2""
-      IL_00f4:  call       ""int C.F(out int)""
-      IL_00f9:  pop
-      IL_00fa:  ldloca.s   V_0
-      IL_00fc:  ldarg.0
-      IL_00fd:  ldfld      ""int C.<M>d__0.<b>5__2""
-      IL_0102:  ldtoken    ""int C.<M>d__0.<b>5__2""
-      IL_0107:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-      IL_010c:  nop
+      IL_00ea:  ldarg.0
+      IL_00eb:  ldflda     ""int C.<M>d__0.<b>5__2""
+      IL_00f0:  call       ""int C.F(out int)""
+      IL_00f5:  pop
+      IL_00f6:  ldloca.s   V_0
+      IL_00f8:  ldarg.0
+      IL_00f9:  ldfld      ""int C.<M>d__0.<b>5__2""
+      IL_00fe:  ldtoken    ""int C.<M>d__0.<b>5__2""
+      IL_0103:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_0108:  nop
       // sequence point: yield return 1;
-      IL_010d:  ldarg.0
-      IL_010e:  ldc.i4.1
-      IL_010f:  stfld      ""int C.<M>d__0.<>2__current""
-      IL_0114:  ldarg.0
-      IL_0115:  ldc.i4.s   -4
-      IL_0117:  dup
-      IL_0118:  stloc.1
-      IL_0119:  stfld      ""int C.<M>d__0.<>1__state""
-      IL_011e:  leave      IL_01b4
+      IL_0109:  ldarg.0
+      IL_010a:  ldc.i4.1
+      IL_010b:  stfld      ""int C.<M>d__0.<>2__current""
+      IL_0110:  ldarg.0
+      IL_0111:  ldc.i4.s   -4
+      IL_0113:  dup
+      IL_0114:  stloc.1
+      IL_0115:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_011a:  leave      IL_01b0
       // sequence point: <hidden>
-      IL_0123:  ldarg.0
-      IL_0124:  ldc.i4.m1
-      IL_0125:  dup
-      IL_0126:  stloc.1
-      IL_0127:  stfld      ""int C.<M>d__0.<>1__state""
-      IL_012c:  ldarg.0
-      IL_012d:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
-      IL_0132:  brfalse.s  IL_0136
-      IL_0134:  leave.s    IL_018a
+      IL_011f:  ldarg.0
+      IL_0120:  ldc.i4.m1
+      IL_0121:  dup
+      IL_0122:  stloc.1
+      IL_0123:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_0128:  ldarg.0
+      IL_0129:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
+      IL_012e:  brfalse.s  IL_0132
+      IL_0130:  leave.s    IL_0186
       // sequence point: int c = b;
-      IL_0136:  ldloca.s   V_0
-      IL_0138:  ldarg.0
-      IL_0139:  ldarg.0
-      IL_013a:  ldfld      ""int C.<M>d__0.<b>5__2""
-      IL_013f:  dup
-      IL_0140:  stloc.s    V_4
-      IL_0142:  stfld      ""int C.<M>d__0.<c>5__3""
-      IL_0147:  ldloc.s    V_4
-      IL_0149:  ldtoken    ""int C.<M>d__0.<c>5__3""
-      IL_014e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-      IL_0153:  nop
-      IL_0154:  ldarg.0
-      IL_0155:  ldfld      ""int C.<M>d__0.<c>5__3""
-      IL_015a:  pop
-      IL_015b:  leave.s    IL_018a
+      IL_0132:  ldloca.s   V_0
+      IL_0134:  ldarg.0
+      IL_0135:  ldarg.0
+      IL_0136:  ldfld      ""int C.<M>d__0.<b>5__2""
+      IL_013b:  dup
+      IL_013c:  stloc.s    V_4
+      IL_013e:  stfld      ""int C.<M>d__0.<c>5__3""
+      IL_0143:  ldloc.s    V_4
+      IL_0145:  ldtoken    ""int C.<M>d__0.<c>5__3""
+      IL_014a:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_014f:  nop
+      IL_0150:  ldarg.0
+      IL_0151:  ldfld      ""int C.<M>d__0.<c>5__3""
+      IL_0156:  pop
+      IL_0157:  leave.s    IL_0186
     }
     catch System.Exception
     {
       // sequence point: <hidden>
-      IL_015d:  stloc.s    V_5
-      IL_015f:  ldarg.0
-      IL_0160:  ldc.i4.s   -2
-      IL_0162:  stfld      ""int C.<M>d__0.<>1__state""
-      IL_0167:  ldarg.0
-      IL_0168:  ldc.i4.0
-      IL_0169:  stfld      ""int C.<M>d__0.<>2__current""
-      IL_016e:  ldarg.0
-      IL_016f:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-      IL_0174:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-      IL_0179:  nop
-      IL_017a:  ldarg.0
-      IL_017b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-      IL_0180:  ldloc.s    V_5
-      IL_0182:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-      IL_0187:  nop
-      IL_0188:  leave.s    IL_01c1
+      IL_0159:  stloc.s    V_5
+      IL_015b:  ldarg.0
+      IL_015c:  ldc.i4.s   -2
+      IL_015e:  stfld      ""int C.<M>d__0.<>1__state""
+      IL_0163:  ldarg.0
+      IL_0164:  ldc.i4.0
+      IL_0165:  stfld      ""int C.<M>d__0.<>2__current""
+      IL_016a:  ldarg.0
+      IL_016b:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+      IL_0170:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+      IL_0175:  nop
+      IL_0176:  ldarg.0
+      IL_0177:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+      IL_017c:  ldloc.s    V_5
+      IL_017e:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+      IL_0183:  nop
+      IL_0184:  leave.s    IL_01bd
     }
     // sequence point: }
-    IL_018a:  ldarg.0
-    IL_018b:  ldc.i4.s   -2
-    IL_018d:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0186:  ldarg.0
+    IL_0187:  ldc.i4.s   -2
+    IL_0189:  stfld      ""int C.<M>d__0.<>1__state""
     // sequence point: <hidden>
-    IL_0192:  ldarg.0
-    IL_0193:  ldc.i4.0
-    IL_0194:  stfld      ""int C.<M>d__0.<>2__current""
-    IL_0199:  ldarg.0
-    IL_019a:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-    IL_019f:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
-    IL_01a4:  nop
-    IL_01a5:  ldarg.0
-    IL_01a6:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_01ab:  ldc.i4.0
-    IL_01ac:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-    IL_01b1:  nop
-    IL_01b2:  leave.s    IL_01cc
-    IL_01b4:  ldarg.0
-    IL_01b5:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_01ba:  ldc.i4.1
-    IL_01bb:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-    IL_01c0:  nop
-    IL_01c1:  leave.s    IL_01cc
+    IL_018e:  ldarg.0
+    IL_018f:  ldc.i4.0
+    IL_0190:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_0195:  ldarg.0
+    IL_0196:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_019b:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_01a0:  nop
+    IL_01a1:  ldarg.0
+    IL_01a2:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_01a7:  ldc.i4.0
+    IL_01a8:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+    IL_01ad:  nop
+    IL_01ae:  leave.s    IL_01c8
+    IL_01b0:  ldarg.0
+    IL_01b1:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_01b6:  ldc.i4.1
+    IL_01b7:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+    IL_01bc:  nop
+    IL_01bd:  leave.s    IL_01c8
   }
   finally
   {
     // sequence point: <hidden>
-    IL_01c3:  ldloca.s   V_0
-    IL_01c5:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
-    IL_01ca:  nop
-    IL_01cb:  endfinally
+    IL_01bf:  ldloca.s   V_0
+    IL_01c1:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_01c6:  nop
+    IL_01c7:  endfinally
   }
   // sequence point: <hidden>
-  IL_01cc:  ret
+  IL_01c8:  ret
 }");
         }
 
@@ -4841,7 +4841,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: @"
 Main: Entered state machine #1
 F: Entered state machine #2
-F: P't' = System.Func`2[System.Int32,System.Threading.Tasks.Task`1[System.Int32]]
+F: P't'[0] = System.Func`2[System.Int32,System.Threading.Tasks.Task`1[System.Int32]]
 Main: Entered lambda '<Main>b__0_0' state machine #3
 <Main>b__0_0: P'p'[0] = 2
 <Main>b__0_0: L'a' = 2
@@ -7104,7 +7104,7 @@ static class E
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
 E.M: Entered state machine #1
-E.M: P'i' = 42
+E.M: P'i'[0] = 42
 E.M: Returned
 Program.<Main>$: L2 = 42
 E.M: Entered state machine #1
@@ -7145,7 +7145,7 @@ static class E
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
 E.M: Entered
-E.M: P'i' = 42
+E.M: P'i'[0] = 42
 E.M: Entered lambda 'E+<>c__DisplayClass1_0.<M>g__local|0' state machine #1
 E+<>c__DisplayClass1_0.<M>g__local|0: Returned
 E.M: L3 = 42
@@ -7183,9 +7183,9 @@ static class E
 
             CompileAndVerify(source, expectedOutput: """
 Program.<Main>$: Entered state machine #1
-Program.<Main>$: P'args' = System.String[]
+Program.<Main>$: P'args'[0] = System.String[]
 E.M: Entered state machine #2
-E.M: P'i' = 42
+E.M: P'i'[0] = 42
 E.M: L'f' = System.Func`1[System.Threading.Tasks.Task]
 E.M: Entered lambda 'E+<>c.<M>b__1_0' state machine #3
 E+<>c.<M>b__1_0: Returned
@@ -7292,8 +7292,8 @@ static class E
 Program.<Main>$: Entered
 Program.<Main>$: P'args'[0] = System.String[]
 E.M: Entered
-E.M: P'i1' = 42
-E.M: P'i2' = 43
+E.M: P'i1'[0] = 42
+E.M: P'i2'[1] = 43
 E.M: L2 = System.Action
 E.M: Entered lambda 'E+<>c__DisplayClass1_0.<M>b__0'
 <M>b__0: L1 -> P'i1'

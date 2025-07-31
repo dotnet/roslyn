@@ -3959,6 +3959,156 @@ public static class E
             verifier.VerifyDiagnostics();
         }
 
+        [Theory, CombinatorialData, CompilerTrait(CompilerFeature.Extensions)]
+        public void Extensions_07(bool classic)
+        {
+            // instrumentation of local function in extension method, using the extension parameter
+            string classicSource = """
+42.M();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    public static void M(this int i)
+    {
+        local();
+
+        void local()
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            string newSource = """
+42.M();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            local();
+
+            void local()
+            {
+                System.Console.WriteLine(i);
+            }
+        }
+    }
+}
+""" + InstrumentationHelperSource;
+
+            var source = classic ? classicSource : newSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(3, 1, snippet: "", expectBodySpan: false)
+                .True("42.M();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(5, 1, snippet: classic ? "public static void M(this int i)" : "public void M()")
+                .True("local();")
+                .True("""System.Console.WriteLine(i);""");
+            checker.Method(8, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"42
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            string index = classic ? "0" : "1";
+            verifier.VerifyMethodBody("E.M(this int)", $$"""
+{
+  // Code size      105 (0x69)
+  .maxstack  6
+  .locals init (E.<>c__DisplayClass{{index}}_0 V_0) //CS$<>8__locals0
+  // sequence point: <hidden>
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  stfld      "int E.<>c__DisplayClass{{index}}_0.i"
+  // sequence point: {
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_000f:  ldtoken    "void E.M(int)"
+  IL_0014:  ldelem.ref
+  IL_0015:  stfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_001a:  ldloc.0
+  IL_001b:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_0020:  brtrue.s   IL_004d
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_0029:  ldtoken    "void E.M(int)"
+  IL_002e:  ldtoken    Source Document 0
+  IL_0033:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0038:  ldtoken    "void E.M(int)"
+  IL_003d:  ldelema    "bool[]"
+  IL_0042:  ldc.i4.3
+  IL_0043:  call       "bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)"
+  IL_0048:  stfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_004d:  ldloc.0
+  IL_004e:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_0053:  ldc.i4.0
+  IL_0054:  ldc.i4.1
+  IL_0055:  stelem.i1
+  // sequence point: local();
+  IL_0056:  ldloc.0
+  IL_0057:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_005c:  ldc.i4.1
+  IL_005d:  ldc.i4.1
+  IL_005e:  stelem.i1
+  IL_005f:  ldloca.s   V_0
+  IL_0061:  call       "void E.<M>g__local|{{index}}_0(ref E.<>c__DisplayClass{{index}}_0)"
+  IL_0066:  nop
+  IL_0067:  nop
+  // sequence point: }
+  IL_0068:  ret
+}
+""");
+            verifier.VerifyMethodBody($$"""E.<M>g__local|{{index}}_0(ref E.<>c__DisplayClass{{index}}_0)""", $$"""
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: System.Console.WriteLine(i);
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "bool[] E.<>c__DisplayClass{{index}}_0.CS$InstrumentationPayload1"
+  IL_0007:  ldc.i4.2
+  IL_0008:  ldc.i4.1
+  IL_0009:  stelem.i1
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      "int E.<>c__DisplayClass{{index}}_0.i"
+  IL_0010:  call       "void System.Console.WriteLine(int)"
+  IL_0015:  nop
+  // sequence point: }
+  IL_0016:  ret
+}
+""");
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 

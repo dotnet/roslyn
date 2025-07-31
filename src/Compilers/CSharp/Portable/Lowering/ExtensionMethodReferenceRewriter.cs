@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [return: NotNullIfNotNull(nameof(method))]
-        internal static MethodSymbol? VisitMethodSymbolWithExtensionRewrite(BoundTreeRewriter rewriter, MethodSymbol? method)
+        private static MethodSymbol? VisitMethodSymbolWithExtensionRewrite(BoundTreeRewriter rewriter, MethodSymbol? method)
         {
             if (method?.GetIsNewExtensionMember() == true &&
                 method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
@@ -194,8 +194,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
-            MethodSymbol method = VisitMethodSymbolWithExtensionRewrite(this, node.Method);
-            TypeSymbol? type = this.VisitType(node.Type);
+            return VisitMethodDefIndex(this, node);
+        }
+
+        public static BoundNode VisitMethodDefIndex(BoundTreeRewriter rewriter, BoundMethodDefIndex node)
+        {
+            MethodSymbol method = VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method);
+            TypeSymbol? type = rewriter.VisitType(node.Type);
             return node.Update(method, type);
         }
 

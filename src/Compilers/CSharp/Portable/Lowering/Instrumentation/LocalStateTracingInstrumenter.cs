@@ -312,8 +312,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterLogger = GetLocalOrParameterStoreLogger(parameter.Type, parameter, refAssignmentSourceIsLocal: null, _factory.Syntax);
                 if (parameterLogger != null)
                 {
+                    int ordinal = parameter.ContainingSymbol.GetIsNewExtensionMember()
+                        ? SourceExtensionImplementationMethodSymbol.GetImplementationParameterOrdinal(parameter)
+                        : parameter.Ordinal;
+
                     prologueBuilder.Add(_factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), parameterLogger,
-                        MakeStoreLoggerArguments(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null, _factory.ParameterId(parameter)))));
+                        MakeStoreLoggerArguments(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null, _factory.Literal((ushort)ordinal)))));
                 }
             }
 
@@ -440,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? refAssignmentSourceIndex,
             BoundExpression index)
         {
-            Debug.Assert(index is BoundParameterId or BoundLocalId);
+            Debug.Assert(index is BoundParameterId or BoundLocalId or BoundLiteral);
             if (refAssignmentSourceIndex != null)
             {
                 return ImmutableArray.Create(_factory.Sequence(new[] { value }, refAssignmentSourceIndex), index);

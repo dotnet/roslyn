@@ -55,15 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(symbol.Parameters.Length == rewrittenParameters.Length);
 
-            if (symbol.MethodKind is MethodKind.LambdaMethod || !rewrittenParameters.IsEmpty)
+            if (!rewrittenParameters.IsEmpty)
             {
                 var builder = _symbolMap.ToBuilder();
-                if (symbol.MethodKind is MethodKind.LambdaMethod)
-                {
-                    // BoundMethodDefIndex in instrumentation will refer to the lambda method symbol, so we need to map it.
-                    builder.Add(symbol, rewritten);
-                }
-
                 foreach (var parameter in symbol.Parameters)
                 {
                     builder.Add(parameter, rewrittenParameters[parameter.Ordinal]);
@@ -99,6 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             var rewritten = new RewrittenLambdaOrLocalFunctionSymbol(node.Symbol, _rewrittenContainingMethod);
+
+            // BoundMethodDefIndex in instrumentation will refer to the lambda method symbol, so we need to map it.
+            _symbolMap = _symbolMap.Add(node.Symbol, rewritten);
 
             var savedState = EnterMethod(node.Symbol, rewritten);
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
@@ -215,9 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
-            MethodSymbol method = ExtensionMethodReferenceRewriter.VisitMethodSymbolWithExtensionRewrite(this, node.Method);
-            TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(method, type);
+            return ExtensionMethodReferenceRewriter.VisitMethodDefIndex(this, node);
         }
     }
 }
