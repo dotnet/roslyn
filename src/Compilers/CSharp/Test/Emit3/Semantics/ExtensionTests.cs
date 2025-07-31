@@ -48208,12 +48208,8 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "test");
-        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : missing warning
-        DiagnosticDescription[] expectedDiagnostics = [
-            //// (13,20): warning CS1710: XML comment has a duplicate typeparam tag for 'T'
-            ////     /// <typeparam name="T">Second description for T</typeparam>
-            //Diagnostic(ErrorCode.WRN_DuplicateTypeParamTag, @"name=""T""").WithArguments("T").WithLocation(13, 20)
-            ];
+        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : missing WRN_DuplicateTypeParamTag and WRN_DuplicateParamTag warnings
+        DiagnosticDescription[] expectedDiagnostics = [];
 
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
