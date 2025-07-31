@@ -1482,17 +1482,11 @@ internal sealed partial class SolutionCompilationState
             frozenSourceGeneratedDocumentStates: new TextDocumentStates<SourceGeneratedDocumentState>(documentStates.Values));
     }
 
-    public SolutionCompilationState WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
-    {
-        return this.Branch(
-            this.SolutionState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
-    }
+    public SolutionCompilationState WithNewWorkspaceFrom(Solution oldSolution)
+        => this.Branch(this.SolutionState.WithNewWorkspaceFrom(oldSolution));
 
     public SolutionCompilationState WithOptions(SolutionOptionSet options)
-    {
-        return this.Branch(
-            this.SolutionState.WithOptions(options));
-    }
+        => this.Branch(this.SolutionState.WithOptions(options));
 
     /// <summary>
     /// Updates entries in our <see cref="SourceGeneratorExecutionVersionMap"/> to the corresponding values in the

@@ -1249,7 +1249,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task WithTextWorksOnUnrealisedGeneratedDocument(TestHost testHost)
+    public async Task WithTextWorksOnUnrealizedGeneratedDocument(TestHost testHost)
     {
         using var workspace = CreateWorkspace(testHost: testHost);
 
@@ -1284,7 +1284,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task WithSyntaxRootWorksOnUnrealisedGeneratedDocument(TestHost testHost)
+    public async Task WithSyntaxRootWorksOnUnrealizedGeneratedDocument(TestHost testHost)
     {
         using var workspace = CreateWorkspace(testHost: testHost);
 
@@ -1492,6 +1492,84 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             var contents = await helloWorldDoc.GetTextAsync();
             Assert.True(contents.ToString().Contains("Hello, World 2!"));
         }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79587")]
+    internal async Task TestChangeToExecutionVersionBeforeTryApplyChanges(
+        SourceGeneratorExecutionPreference executionPreference,
+        bool majorVersionUpdate)
+    {
+        using var workspace = TestWorkspace.CreateCSharp(
+            "// First file",
+            composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(typeof(TestWorkspaceConfigurationService)));
+
+        var configService = (TestWorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        configService.Options = configService.Options with { SourceGeneratorExecution = executionPreference };
+
+        // want to access the true workspace solution (which will be a fork of the solution we're producing here).
+        var initialSolution = workspace.CurrentSolution;
+        var initialExecutionMap = initialSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
+
+        var projectId1 = initialSolution.Projects.Single().Id;
+        Assert.True(initialExecutionMap.ContainsKey(projectId1));
+
+        // Simulate the host making a change to the sg execution version, to force generators to rerun.
+        var forceRegeneration = majorVersionUpdate;
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        var solutionWithChangedExecutionVersion = workspace.CurrentSolution;
+
+        // Now, fork the *original* solution and try to apply it back.  This should succeed
+        // as the change to execution version should not impact the solution content version.
+        var solutionWithDocumentAdded = initialSolution.AddDocument(
+            DocumentId.CreateNewId(projectId1), "Y.cs", "// Contents");
+
+        var expectVersionChange = executionPreference is SourceGeneratorExecutionPreference.Balanced || forceRegeneration;
+
+        // The content forked solution should have an SG execution version *less than* the one we just changed.
+        // Note: this will be patched up once we call TryApplyChanges.
+        if (expectVersionChange)
+        {
+            Assert.True(
+                solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]
+                > solutionWithDocumentAdded.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+        }
+        else
+        {
+            Assert.Equal(
+                solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1],
+                solutionWithDocumentAdded.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+        }
+
+        Assert.True(workspace.TryApplyChanges(solutionWithDocumentAdded));
+
+        var finalSolution = workspace.CurrentSolution;
+        Assert.Equal(2, finalSolution.Projects.Single().Documents.Count());
+
+        if (expectVersionChange)
+        {
+            // In balanced (or if we forced regen) mode, the execution version should have been updated to the new value.
+            Assert.NotEqual(initialExecutionMap[projectId1], solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+            Assert.NotEqual(initialExecutionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+        }
+        else
+        {
+            // In automatic mode, nothing should change wrt to execution versions (unless we specified force-regenerate).
+            Assert.Equal(initialExecutionMap[projectId1], solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+            Assert.Equal(initialExecutionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+        }
+
+        // The final execution version for the project should match the changed execution version, no matter what.
+        // Proving that the content change happened, but didn't drop the execution version change.
+        Assert.Equal(solutionWithChangedExecutionVersion.CompilationState.SourceGeneratorExecutionVersionMap[projectId1], finalSolution.CompilationState.SourceGeneratorExecutionVersionMap[projectId1]);
+    }
+
+    private static async Task WaitForSourceGeneratorsAsync(TestWorkspace workspace)
+    {
+        var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
     }
 
 #endif

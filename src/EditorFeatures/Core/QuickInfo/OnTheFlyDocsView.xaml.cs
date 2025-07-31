@@ -70,9 +70,14 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService,
-        IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession,
-        IThreadingContext threadingContext, QuickInfoOnTheFlyDocsElement onTheFlyDocsElement, IServiceProvider serviceProvider)
+    public OnTheFlyDocsView(
+        ITextView textView,
+        IViewElementFactoryService viewElementFactoryService,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IAsyncQuickInfoSession asyncQuickInfoSession,
+        IThreadingContext threadingContext,
+        QuickInfoOnTheFlyDocsElement onTheFlyDocsElement,
+        IServiceProvider serviceProvider)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
@@ -135,8 +140,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
             // The text wasn't localized correctly. Assert and fallback to showing it verbatim.
             Debug.Fail("Copilot Hover quota exceeded message was not correctly localized.");
             quotaExceededContent = [new ClassifiedTextRun(
-                    ClassifiedTextElement.TextClassificationTypeName,
-                    EditorFeaturesResources.Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset)];
+                ClassifiedTextElement.TextClassificationTypeName,
+                EditorFeaturesResources.Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset)];
         }
         else
         {
@@ -150,8 +155,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                         () => this.PlanUpgradeRequested?.Invoke(this, EventArgs.Empty)),
                     new ClassifiedTextRun(
                         ClassifiedTextElement.TextClassificationTypeName,
-                        quotaExceededMatch.Groups[3].Value),
-                ];
+                        quotaExceededMatch.Groups[3].Value)];
         }
 
         ResultsRequested += (_, _) => PopulateAIDocumentationElements(_cancellationTokenSource.Token);
@@ -164,11 +168,17 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     /// </summary>
     private void PopulateAIDocumentationElements(CancellationToken cancellationToken)
     {
-        var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
-        var copilotService = _document.GetLanguageService<ICopilotCodeAnalysisService>();
-        if (copilotService is not null)
+        try
         {
-            _ = SetResultTextAsync(copilotService, cancellationToken).CompletesAsyncOperation(token);
+            var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
+            var copilotService = _document.GetLanguageService<ICopilotCodeAnalysisService>();
+            if (copilotService is not null)
+            {
+                _ = SetResultTextAsync(copilotService, cancellationToken).CompletesAsyncOperation(token);
+            }
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
         }
     }
 
@@ -248,6 +258,18 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         catch (Exception e) when (FatalError.ReportAndCatch(e))
         {
         }
+
+        void ShowQuotaExceededResult()
+        {
+            _responseControl.Content = ToUIElement(new ContainerElement(ContainerElementStyle.Stacked,
+                [new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(this.quotaExceededContent))]));
+        }
+
+        void SetResultText(string text)
+        {
+            _responseControl.Content = ToUIElement(
+                new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, text)])));
+        }
     }
 
     private void OnQuickInfoSessionChanged()
@@ -270,40 +292,27 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
     public UIElement ResultsContent { get; }
 
-    public void RequestResults()
+    private void RequestResults()
     {
-        CurrentState = OnTheFlyDocsState.Loading;
-        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(static (m, _onTheFlyDocsInfo) =>
+        try
         {
-            m["HasDocumentationComments"] = _onTheFlyDocsInfo.HasComments;
-        }, _onTheFlyDocsInfo, LogLevel.Information));
+            CurrentState = OnTheFlyDocsState.Loading;
+            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(static (m, _onTheFlyDocsInfo) =>
+            {
+                m["HasDocumentationComments"] = _onTheFlyDocsInfo.HasComments;
+            }, _onTheFlyDocsInfo, LogLevel.Information));
 
-        OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
-        if (_onTheFlyDocsInfo.HasComments)
-        {
-            OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
+            OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
+            if (_onTheFlyDocsInfo.HasComments)
+            {
+                OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
+            }
+
+            ResultsRequested?.Invoke(this, EventArgs.Empty);
         }
-
-        ResultsRequested?.Invoke(this, EventArgs.Empty);
-    }
-
-    /// <summary>
-    /// Sets the text of the AI-generated response.
-    /// </summary>
-    /// <param name="text">Response text to display.</param>
-    public void SetResultText(string text)
-    {
-        _responseControl.Content = ToUIElement(
-            new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, text)])));
-    }
-
-    /// <summary>
-    /// Shows a result message for exceeding the quota of the Copilot Free plan.
-    /// </summary>
-    public void ShowQuotaExceededResult()
-    {
-        _responseControl.Content = ToUIElement(new ContainerElement(ContainerElementStyle.Stacked,
-            [new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(this.quotaExceededContent))]));
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
+        }
     }
 
     private void OnPropertyChanged<T>(ref T member, T value, [CallerMemberName] string? name = null)

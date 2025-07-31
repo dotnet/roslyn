@@ -154,7 +154,7 @@ internal sealed class LoadedProject : IDisposable
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
             document => _projectSystemProject.RemoveSourceFile(document.FilePath),
-            "Project {0} now has {1} source file(s).");
+            "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 
         var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
         var metadataReferences = commandLineArguments.MetadataReferences.Select(cr =>
@@ -175,7 +175,7 @@ internal sealed class LoadedProject : IDisposable
             EqualityComparer<CommandLineReference>.Default, // CommandLineReference already implements equality
             reference => _projectSystemProject.AddMetadataReference(reference.Reference, reference.Properties),
             reference => _projectSystemProject.RemoveMetadataReference(reference.Reference, reference.Properties),
-            "Project {0} now has {1} reference(s).");
+            "Project {0} now has {1} reference(s). ({2} added, {3} removed.)");
 
         // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
         _mostRecentMetadataReferences = metadataReferences;
@@ -193,7 +193,7 @@ internal sealed class LoadedProject : IDisposable
             EqualityComparer<CommandLineAnalyzerReference>.Default, // CommandLineAnalyzerReference already implements equality
             reference => _projectSystemProject.AddAnalyzerReference(reference.FilePath),
             reference => _projectSystemProject.RemoveAnalyzerReference(reference.FilePath),
-            "Project {0} now has {1} analyzer reference(s).");
+            "Project {0} now has {1} analyzer reference(s). ({2} added, {3} removed.)");
 
         _mostRecentAnalyzerReferences = analyzerReferences;
 
@@ -203,7 +203,7 @@ internal sealed class LoadedProject : IDisposable
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: document.Folders),
             document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
-            "Project {0} now has {1} additional file(s).");
+            "Project {0} now has {1} additional file(s). ({2} added, {3} removed.)");
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.AnalyzerConfigDocuments,
@@ -211,7 +211,7 @@ internal sealed class LoadedProject : IDisposable
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddAnalyzerConfigFile(document.FilePath),
             document => _projectSystemProject.RemoveAnalyzerConfigFile(document.FilePath),
-            "Project {0} now has {1} analyzer config file(s).");
+            "Project {0} now has {1} analyzer config file(s). ({2} added, {3} removed.)");
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile),
@@ -219,7 +219,7 @@ internal sealed class LoadedProject : IDisposable
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: []),
             document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath),
-            "Project {0} now has {1} dynamic file(s).");
+            "Project {0} now has {1} dynamic file(s). ({2} added, {3} removed.)");
 
         WatchProjectAssetsFile(newProjectInfo);
 
@@ -243,33 +243,32 @@ internal sealed class LoadedProject : IDisposable
         var telemetryInfo = new ProjectLoadTelemetryReporter.TelemetryInfo { OutputKind = outputKind, MetadataReferences = metadataReferences };
         return (telemetryInfo, needsRestore);
 
-        // logMessage should be a string with two placeholders; the first is the project name, the second is the number of items.
+        // logMessage must have 4 placeholders: project name, number of items, added items count, and removed items count.
         void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)
         {
             var newItems = new HashSet<T>(loadedCollection, comparer);
-            var oldItems = new HashSet<T>(comparer);
-            var oldItemsCount = oldItems.Count;
+            var oldItems = new HashSet<T>(oldLoadedCollection ?? [], comparer);
 
-            if (oldLoadedCollection != null)
-            {
-                foreach (var item in oldLoadedCollection)
-                    oldItems.Add(item);
-            }
+            var addedCount = 0;
 
             foreach (var newItem in newItems)
             {
                 // If oldItems already has this, we don't need to add it again. We'll remove it, and what is left in oldItems is stuff to remove
                 if (!oldItems.Remove(newItem))
+                {
                     addItem(newItem);
+                    addedCount++;
+                }
             }
 
+            var removedCount = oldItems.Count;
             foreach (var oldItem in oldItems)
             {
                 removeItem(oldItem);
             }
 
-            if (newItems.Count != oldItemsCount)
-                logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count);
+            if (addedCount != 0 || removedCount != 0)
+                logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count, addedCount, removedCount);
         }
 
         void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo)

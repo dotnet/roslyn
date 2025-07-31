@@ -153,12 +153,14 @@ extends:
           displayName: Disable Real-time Monitoring
           
         - task: Powershell@2
+          name: SetOriginalBuildNumber
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
           inputs:
             targetType: inline
             script: |
               $originalBuildNumber = "$(Build.BuildNumber)".Split(' - ')[0]
+              Write-Host "##vso[task.setvariable variable=OutputOriginalBuildNumber;isoutput=true;isreadonly=true]$originalBuildNumber"
               Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$originalBuildNumber"
 
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
@@ -326,12 +328,20 @@ extends:
       - job: insert
         variables:
           FancyBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['FancyBuild.BuildNumber']]
+          OriginalBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['SetOriginalBuildNumber.OutputOriginalBuildNumber']]
         displayName: Insert to VS
         pool:
           name: VSEngSS-MicroBuild2022-1ES
         steps:
         - download: current
           artifact: VSSetup
+
+        # RIT looks at the build number and cannot handle the fancy build version.
+        # While in normal scenarios this is already set to the original number, we reset it again here in case this is a re-run.
+        - powershell: Write-Host "##vso[build.updatebuildnumber]$(OriginalBuildNumber)"
+          displayName: Reset BuildNumber
+          condition: succeeded()
+
         - powershell: |
             $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
             Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
