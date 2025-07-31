@@ -160,7 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
-        // Given an extension block, returns all the extensions that are grouped together with it
+        /// <summary>
+        /// Given an extension block, returns all the extensions that are grouped together with it
+        /// </summary>
         internal ImmutableArray<SourceNamedTypeSymbol> GetMergedExtensions(SourceNamedTypeSymbol extension)
         {
             Debug.Assert(extension.IsExtension);
