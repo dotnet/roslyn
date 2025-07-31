@@ -105,6 +105,7 @@ extends:
   parameters:
     featureFlags:
       autoBaseline: true
+      incrementalSDLBinaryAnalysis: false
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
