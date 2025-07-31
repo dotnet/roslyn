@@ -63,9 +63,9 @@ internal static class TaggedTextExtensions
                     // Documentation formatting may add an extra LineBreak after ContainerEnd to separate
                     // elements in LSP scenarios. During rendering, we consume this extra LineBreak to
                     // prevent double spacing, since each line is already rendered on its own line.
-                    if (taggedTexts is [var head, .. var tail] && head.Tag == TextTags.LineBreak)
+                    if (taggedTexts is [var head, ..] && head.Tag == TextTags.LineBreak)
                     {
-                        taggedTexts = tail;
+                        taggedTexts = taggedTexts[1..];
                     }
                     done = true;
                     break;
