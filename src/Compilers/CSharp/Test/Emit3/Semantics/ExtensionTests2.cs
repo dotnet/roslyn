@@ -25610,7 +25610,7 @@ class C3<[ExtensionMarkerName("type parameter")] T> { }
     [Fact]
     public void GroupingType_01()
     {
-        // tuple names don't go into grouping types
+        // extension blocks differing by tuple names are merged into a single grouping type
         var src = """
 public static class E
 {
@@ -25643,7 +25643,7 @@ public static class E
     [Fact]
     public void GroupingType_02()
     {
-        // nullability doesn't go into grouping types
+        // extension blocks differing by nullability are merged into a single grouping type
         var src = """
 #nullable enable
 
@@ -25684,7 +25684,7 @@ public static class E
     [Fact]
     public void GroupingType_03()
     {
-        // IL-level constraints go into grouping types
+        // extension blocks differing by IL-level constraints each have a grouping type
         var src = """
 public static class E
 {
@@ -25718,7 +25718,7 @@ public static class E
     [Fact]
     public void GroupingType_04()
     {
-        // C#-level constraints don't go into grouping types
+        // extension blocks differing by C#-level constraints are merged into a single grouping type
         var src = """
 #nullable enable
 public static class E
