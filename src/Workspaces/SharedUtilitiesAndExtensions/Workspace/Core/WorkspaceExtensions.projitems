@@ -183,6 +183,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\LineFormattingOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />

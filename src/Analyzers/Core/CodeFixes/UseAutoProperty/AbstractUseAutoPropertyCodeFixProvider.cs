@@ -58,6 +58,8 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
     public sealed override FixAllProvider GetFixAllProvider()
         => new UseAutoPropertyFixAllProvider((TProvider)this);
 
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
+
     protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
     protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
     protected abstract TPropertyDeclaration RewriteFieldReferencesInProperty(
@@ -422,24 +424,20 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         SyntaxNode finalPropertyDeclaration,
         CancellationToken cancellationToken)
     {
-#if false
-        return await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-#else
         // First see if we need to apply any specialized formatting rules.
         var formattingRules = GetFormattingRules(document, finalPropertyDeclaration);
         if (!formattingRules.IsDefault)
         {
-            var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-            document = await FormatterShared.FormatAsync(
+            var options = await document.GetSyntaxFormattingOptionsAsync(this.SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+            document = await this.SyntaxFormatting.FormatAsync(
                 document, SpecializedFormattingAnnotation, options, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
         var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var cleanedDocument = await CodeAction.CleanupSyntaxAsync(
-            document, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+        var cleanedDocument = await CodeCleanupHelpers.CleanupSyntaxAsync(
+            document, this.SyntaxFormatting, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
 
         return await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-#endif
     }
 #pragma warning restore CA1822 // Mark members as static
 
