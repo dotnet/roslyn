@@ -96,6 +96,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\CSharpUnsealClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateProjectToAllowUnsafe\CSharpUpdateProjectToAllowUnsafeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\CSharpUseAutoPropertyCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\SingleLinePropertyFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyRewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitArrayInExpressionTree\CSharpUseExplicitArrayInExpressionTreeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpCollectionExpressionRewriter.cs" />

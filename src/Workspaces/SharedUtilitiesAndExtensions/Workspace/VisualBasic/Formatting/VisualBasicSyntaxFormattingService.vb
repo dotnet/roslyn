@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     <ExportLanguageService(GetType(ISyntaxFormattingService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxFormattingService
+    Friend NotInheritable Class VisualBasicSyntaxFormattingService
         Inherits VisualBasicSyntaxFormatting
         Implements ISyntaxFormattingService
 

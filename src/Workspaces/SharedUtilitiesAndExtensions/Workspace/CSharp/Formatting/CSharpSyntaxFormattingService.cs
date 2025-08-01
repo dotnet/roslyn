@@ -280,12 +280,16 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
 
     private ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, int position, SyntaxToken tokenBeforeCaret)
     {
+#if CSHARP_WORKSPACE
         var formattingRuleFactory = _services.SolutionServices.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+#endif
         return
         [
+#if CSHARP_WORKSPACE
             formattingRuleFactory.CreateRule(document, position),
+#endif
             .. GetTypingRules(tokenBeforeCaret),
-            .. Formatter.GetDefaultFormattingRules(_services),
+            .. this.GetDefaultFormattingRules(),
         ];
     }
 
