@@ -31,6 +31,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     }
 
     public static async Task<ExportProvider> CreateExportProviderAsync(
+        string baseDirectory,
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader,
         string? devKitDependencyPath,
@@ -38,8 +39,6 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        var baseDirectory = AppContext.BaseDirectory;
-
         // Load any Roslyn assemblies from the extension directory
         using var _ = ArrayBuilder<string>.GetInstance(out var assemblyPathsBuilder);
 
