@@ -428,14 +428,14 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         var formattingRules = GetFormattingRules(document, finalPropertyDeclaration);
         if (!formattingRules.IsDefault)
         {
-            var options = await document.GetSyntaxFormattingOptionsAsync(this.SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
             document = await this.SyntaxFormatting.FormatAsync(
                 document, SpecializedFormattingAnnotation, options, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
         var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
         var cleanedDocument = await CodeCleanupHelpers.CleanupSyntaxAsync(
-            document, this.SyntaxFormatting, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+            document, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
 
         return await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
     }

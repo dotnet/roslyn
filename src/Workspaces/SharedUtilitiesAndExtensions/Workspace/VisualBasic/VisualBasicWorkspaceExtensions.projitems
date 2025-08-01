@@ -64,6 +64,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxListExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxGeneratorVisitor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicSyntaxFormattingService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\SpecialFormattingOperation.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.Indenter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.vb" />

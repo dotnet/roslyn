@@ -69,8 +69,7 @@ public abstract partial class CodeAction
     ];
 
     internal static Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
-        => CodeCleanupHelpers.CleanupSyntaxAsync(
-            document, document.GetRequiredLanguageService<ISyntaxFormattingService>(), options, cancellationToken);
+        => CodeCleanupHelpers.CleanupSyntaxAsync(document, options, cancellationToken);
 
     internal static ImmutableArray<DocumentId> GetAllChangedOrAddedDocumentIds(
         Solution originalSolution,
