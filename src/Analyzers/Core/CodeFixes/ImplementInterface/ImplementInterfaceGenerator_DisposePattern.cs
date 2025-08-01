@@ -44,7 +44,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var disposedValueField = await CreateDisposedValueFieldAsync(
-                document, this.Service.SyntaxFormatting, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
+                document, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
 
             var disposeMethod = TryGetIDisposableDispose(compilation)!;
             var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, disposeMethod, disposedValueField);
@@ -226,7 +226,6 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
 
         private static async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
             Document document,
-            ISyntaxFormatting syntaxFormatting,
             INamedTypeSymbol containingType,
             CancellationToken cancellationToken)
         {

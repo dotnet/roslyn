@@ -34,8 +34,6 @@ internal static class FormatterShared
             => syntaxFormatting.GetFormattingResult(node, spans, options, rules, cancellationToken).GetFormattedRoot(cancellationToken);
 
         public IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
-        {
-            return syntaxFormatting.GetFormattingResult(node, spans, options, rules, cancellationToken);
-        }
+            => syntaxFormatting.GetFormattingResult(node, spans, options, rules, cancellationToken);
     }
 }
