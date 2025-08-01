@@ -93,7 +93,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
-        var expectedErrorPartsSet = new HashSet<string>(["CSharpMapCodeService", "PythiaSignatureHelpProvider", "CopilotSemanticSearchQueryExecutor"]);
+        var expectedErrorPartsSet = new HashSet<string>(["CSharpMapCodeService", "CopilotSemanticSearchQueryExecutor"]);
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
         return hasUnexpectedErroredParts || !partDiscoveryExceptions.IsEmpty;
