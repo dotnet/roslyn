@@ -569,11 +569,21 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
 
-        public Workspace? GetLspMiscellaneousFilesWorkspace()
+        public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
         {
-            // For purposes of testing, we test against the implementation that is also a Workspace.
-            // TODO: once we also test the FileBasedPrograms implementation, we need to do something else here.
-            return _manager._lspMiscellaneousFilesWorkspaceProvider as Workspace;
+            return _manager._lspMiscellaneousFilesWorkspaceProvider!.IsMiscellaneousFilesDocumentAsync(document, CancellationToken.None);
+        }
+
+        public async IAsyncEnumerable<T> GetMiscellaneousDocumentsAsync<T>(Func<Project, IEnumerable<T>> documentSelector) where T : TextDocument
+        {
+            foreach (var workspace in _manager._lspWorkspaceRegistrationService.GetAllRegistrations())
+            {
+                foreach (var document in workspace.CurrentSolution.Projects.SelectMany(documentSelector))
+                {
+                    if (await IsMiscellaneousFilesDocumentAsync(document).ConfigureAwait(false))
+                        yield return document;
+                }
+            }
         }
 
         public bool IsWorkspaceRegistered(Workspace workspace)

@@ -13,19 +13,18 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 
-public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests
+public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests
 {
-    public LspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    public AbstractLspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 
     [Theory, CombinatorialData]
     public async Task TestLooseFile_Opened(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
@@ -45,14 +44,10 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
     [Theory, CombinatorialData]
     public async Task TestLooseFile_Changed(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-        var miscWorkspace = testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace();
-        testLspServer.TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(miscWorkspace);
-
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
 
@@ -61,7 +56,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
 
         // Assert that the misc workspace contains the initial document.
-        var miscWorkspaceText = await GetMiscellaneousDocument(testLspServer)!.GetTextAsync(CancellationToken.None);
+        var miscWorkspaceText = await (await GetMiscellaneousDocumentAsync(testLspServer))!.GetTextAsync(CancellationToken.None);
         Assert.Empty(miscWorkspaceText.ToString());
 
         // Make a text change to the loose file and verify requests appropriately reflect the changes.
@@ -79,17 +74,16 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
 
         // Assert that the misc workspace contains the updated document.
-        miscWorkspaceText = await GetMiscellaneousDocument(testLspServer)!.GetTextAsync(CancellationToken.None);
+        miscWorkspaceText = await (await GetMiscellaneousDocumentAsync(testLspServer))!.GetTextAsync(CancellationToken.None);
         Assert.Contains("class A", miscWorkspaceText.ToString());
     }
 
     [Theory, CombinatorialData]
     public async Task TestLooseFile_Closed(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
@@ -105,7 +99,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Verify the loose file is removed from the misc workspace on close.
         await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     [Theory, CombinatorialData]
@@ -123,12 +117,12 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open a file that is part of a registered workspace and verify it is not present in the misc workspace.
         var fileInWorkspaceUri = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
         await testLspServer.OpenDocumentAsync(fileInWorkspaceUri).ConfigureAwait(false);
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     [Theory, CombinatorialData]
@@ -146,7 +140,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         // Include some Unicode characters to test URL handling.
@@ -181,17 +175,16 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Make sure doc was removed from misc workspace.
         Assert.False(miscWorkspace.CurrentSolution.ContainsDocument(miscDocument.Id));
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     [Theory, CombinatorialData]
     public async Task TestLooseFile_RazorFile(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
-        Assert.Null(GetMiscellaneousAdditionalDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.razor");
@@ -199,25 +192,24 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Trigger a request and assert we got a file in the misc workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
-        Assert.NotNull(GetMiscellaneousAdditionalDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        Assert.NotNull(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
 
         // Trigger another request and assert we got a file in the misc workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
-        Assert.NotNull(GetMiscellaneousAdditionalDocument(testLspServer));
+        Assert.NotNull(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
 
         await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
-        Assert.Null(GetMiscellaneousAdditionalDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
     }
 
     [Theory, CombinatorialData]
     public async Task TestLooseFile_RequestedTwiceAndClosed(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
@@ -237,16 +229,15 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
 
         await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     [Theory, CombinatorialData]
     public async Task TestLooseFile_OpenedWithLanguageId(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file that hasn't been saved with a name.
 
@@ -263,7 +254,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Verify file is added to the misc file workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
-        var miscDoc = GetMiscellaneousDocument(testLspServer);
+        var miscDoc = await GetMiscellaneousDocumentAsync(testLspServer);
         AssertEx.NotNull(miscDoc);
         Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
     }
@@ -271,10 +262,9 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
     [Theory, CombinatorialData]
     public async Task TestLooseFile_OpenedWithLanguageIdWithSubsequentRequest(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Open an empty loose file that hasn't been saved with a name.
 
@@ -303,7 +293,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Verify file was added to the misc file workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
-        var miscDoc = GetMiscellaneousDocument(testLspServer);
+        var miscDoc = await GetMiscellaneousDocumentAsync(testLspServer);
         AssertEx.NotNull(miscDoc);
         Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
 
@@ -315,26 +305,29 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
         Assert.Equal(7, result.Single().Range.End.Character);
     }
 
+    private static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
+    {
+        var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None);
+        return documents.SingleOrDefault();
+    }
+
+    private static async ValueTask<TextDocument?> GetMiscellaneousAdditionalDocumentAsync(TestLspServer testLspServer)
+    {
+        var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.AdditionalDocuments).ToImmutableArrayAsync(CancellationToken.None);
+        return documents.SingleOrDefault();
+    }
+
     private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
     {
-        var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None);
-        Assert.Equal(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace(), lspWorkspace);
+        var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None);
+        Assert.NotNull(document);
+        Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(document));
     }
 
     private static async Task AssertFileInMainWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
     {
         var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal(testLspServer.TestWorkspace, lspWorkspace);
-    }
-
-    private static Document? GetMiscellaneousDocument(TestLspServer testLspServer)
-    {
-        return testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.SingleOrDefault();
-    }
-
-    private static TextDocument? GetMiscellaneousAdditionalDocument(TestLspServer testLspServer)
-    {
-        return testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.AdditionalDocuments.SingleOrDefault();
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(TestLspServer testLspServer, LSP.Location caret)
