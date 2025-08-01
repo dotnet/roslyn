@@ -249,9 +249,9 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await testLspServer.OpenDocumentAsync(newDocumentUri, "LSP text");
 
         // Verify it is in the lsp misc workspace.
-        var (miscWorkspace, miscDocument) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
-        AssertEx.NotNull(miscDocument);
-        Assert.Equal(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace(), miscWorkspace);
+        var (_, miscDocument) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
+        Assert.NotNull(miscDocument);
+        Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(miscDocument));
         Assert.Equal("LSP text", (await miscDocument.GetTextAsync(CancellationToken.None)).ToString());
 
         // Make a change and verify the misc document is updated.
@@ -580,7 +580,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             (await testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetTextAsync()).ToString());
 
         // The file should not be in the misc workspace.
-        Assert.Empty(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects);
+        Assert.Empty(await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None));
 
         // Now, if the project system removes the file, we will still see the lsp version of, but back to the misc workspace.
         await testLspServer.TestWorkspace.ChangeSolutionAsync(

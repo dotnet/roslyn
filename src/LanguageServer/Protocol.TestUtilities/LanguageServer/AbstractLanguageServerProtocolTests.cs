@@ -365,15 +365,18 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var workspace = new LspTestWorkspace(
             composition?.ExportProviderFactory.CreateExportProvider() ?? await CreateExportProviderAsync(),
             workspaceKind,
-            configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true),
             supportsLspMutation: mutatingLspWorkspace);
         options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
-        // By default, workspace event listeners are disabled in tests.  Explicitly enable the LSP workspace registration event listener
-        // to ensure that the lsp workspace registration service sees all workspaces.
-        var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
-        var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
-        listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
+        // By default in most MEF containers, workspace event listeners are disabled in tests.  Explicitly enable the LSP workspace registration event listener
+        // to ensure that the lsp workspace registration service sees all workspaces. If we're running tests against our full LSP server
+        // composition, we don't expect the mock to exist and the real thing is running.
+        var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
+        if (listenerProvider is not null)
+        {
+            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
+        }
 
         return workspace;
     }

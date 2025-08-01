@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -48,13 +47,13 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         await testLspServer.OpenDocumentAsync(definition.Single().DocumentUri, text: string.Empty).ConfigureAwait(false);
 
         Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri)).Kind);
-        AssertMiscFileWorkspaceEmpty(testLspServer);
+        await AssertMiscFileWorkspaceEmpty(testLspServer);
 
         // Close the metadata file - the file will still be present in MAS.
         await testLspServer.CloseDocumentAsync(definition.Single().DocumentUri).ConfigureAwait(false);
 
         Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri)).Kind);
-        AssertMiscFileWorkspaceEmpty(testLspServer);
+        await AssertMiscFileWorkspaceEmpty(testLspServer);
     }
 
     [Theory, CombinatorialData]
@@ -94,7 +93,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
             """).ConfigureAwait(false);
         var workspaceForDocument = await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri);
         Assert.Equal(WorkspaceKind.MetadataAsSource, workspaceForDocument.Kind);
-        AssertMiscFileWorkspaceEmpty(testLspServer);
+        await AssertMiscFileWorkspaceEmpty(testLspServer);
 
         // Manually register the workspace for followup requests - the workspace event listener that
         //  normally registers it on creation is not running in test code.
@@ -124,9 +123,9 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         return lspWorkspace!;
     }
 
-    private static void AssertMiscFileWorkspaceEmpty(TestLspServer testLspServer)
+    private static async Task AssertMiscFileWorkspaceEmpty(TestLspServer testLspServer)
     {
-        var doc = testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.SingleOrDefault();
-        Assert.Null(doc);
+        var docs = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None);
+        Assert.Empty(docs);
     }
 }

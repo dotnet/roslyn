@@ -43,7 +43,7 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
         // Shutting down is not cancellable.
         var cancellationToken = CancellationToken.None;
 
-        var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations().SingleOrDefault(w => w.Kind == WorkspaceKind.Host);
+        var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations().FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
         if (hostWorkspace is not null)
         {
             var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
