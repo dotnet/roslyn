@@ -4231,6 +4231,11 @@ int.M();
         }
 
         .field public static int32 'field'
+        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+            43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+            30 36 32 46 35 39 45 44 34 44 36 39 00 00
+        )
     }
 
     .method public hidebysig static void M () cil managed 
@@ -4348,13 +4353,13 @@ int.Method2();
         .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends System.Object
         {
-            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
                 IL_0000: ret
             }
 
-            .method public hidebysig specialname static int32 get_P1 () cil managed 
+            .method public hidebysig specialname static int32 get_P1 () cil managed
             {
                 IL_0000: ldc.i4.0
                 IL_0001: ret
@@ -4362,11 +4367,11 @@ int.Method2();
 
             .property int32 P1()
             {
-                .get int32 E::get_P1()
+                .get int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'/'<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P1()
             }
         }
 
-        .method public hidebysig static void M () cil managed 
+        .method public hidebysig static void M () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
@@ -4377,7 +4382,7 @@ int.Method2();
             IL_0001: throw
         }
 
-        .method public hidebysig specialname static int32 get_P2 () cil managed 
+        .method public hidebysig specialname static int32 get_P2 () cil managed
         {
             IL_0000: ldc.i4.0
             IL_0001: ret
@@ -4385,26 +4390,26 @@ int.Method2();
 
         .property int32 P2()
         {
-            .get int32 E::get_P2()
+            .get int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P2()
         }
     }
 
-    .method public hidebysig static void M () cil managed 
+    .method public hidebysig static void M () cil managed
     {
         IL_0000: ret
     }
 
-    .method public hidebysig static int32 get_P1 () cil managed 
+    .method public hidebysig static int32 get_P1 () cil managed
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
 
-    .method public hidebysig static int32 get_P2 () cil managed 
+    .method public hidebysig static int32 get_P2 () cil managed
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
-    } 
+    }
 }
 """ + ExtensionMarkerNameAttributeIL;
 
@@ -4443,80 +4448,80 @@ _ = int.P2;
         .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends System.Object
         {
-            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-                IL_0000: ret
+                ret
             }
 
-            .method public hidebysig specialname static void add_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+            .method public hidebysig specialname static void add_Event1 ( class [mscorlib]System.Action 'value' ) cil managed
             {
-                IL_0000: ret
+                ret
             }
 
-            .method public hidebysig specialname static void remove_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+            .method public hidebysig specialname static void remove_Event1 ( class [mscorlib]System.Action 'value' ) cil managed
             {
-                IL_0000: ret
+                ret
             }
 
             .event [mscorlib]System.Action Event1
             {
-                .addon void E::add_Event1(class [mscorlib]System.Action)
-                .removeon void E::remove_Event1(class [mscorlib]System.Action)
+                .addon void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'/'<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::add_Event1(class [mscorlib]System.Action)
+                .removeon void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'/'<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::remove_Event1(class [mscorlib]System.Action)
             }
         }
 
-        .method public hidebysig static void M () cil managed 
+        .method public hidebysig static void M () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
                 43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
                 30 36 32 46 35 39 45 44 34 44 36 39 00 00
             )
-            IL_0000: ldnull
-            IL_0001: throw
+            ldnull
+            throw
         }
 
-        .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+        .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
         {
-            IL_0000: ret
+            ret
         }
 
-        .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+        .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
         {
-            IL_0000: ret
+            ret
         }
 
         .event [mscorlib]System.Action Event2
         {
-            .addon void E::add_Event2(class [mscorlib]System.Action)
-            .removeon void E::remove_Event2(class [mscorlib]System.Action)
+            .addon void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::add_Event2(class [mscorlib]System.Action)
+            .removeon void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::remove_Event2(class [mscorlib]System.Action)
         }
     }
 
-    .method public hidebysig static void M () cil managed 
+    .method public hidebysig static void M () cil managed
     {
-        IL_0000: ret
+        ret
     }
 
-    .method public hidebysig specialname static void add_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+    .method public hidebysig specialname static void add_Event1 ( class [mscorlib]System.Action 'value' ) cil managed
     {
-        IL_0000: ret
+        ret
     }
 
-    .method public hidebysig specialname static void remove_Event1 ( class [mscorlib]System.Action 'value' ) cil managed 
+    .method public hidebysig specialname static void remove_Event1 ( class [mscorlib]System.Action 'value' ) cil managed
     {
-        IL_0000: ret
+        ret
     }
 
-    .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+    .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
     {
-        IL_0000: ret
+        ret
     }
 
-    .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed 
+    .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
     {
-        IL_0000: ret
+        ret
     }
 }
 """ + ExtensionMarkerNameAttributeIL;
@@ -4538,6 +4543,108 @@ int.Event2 += (System.Action)null;
         var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Assert.True(extension.IsExtension);
         AssertEx.Equal(["void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], extension.GetMembers().ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_34()
+    {
+        // event from grouping type not loaded, even with ExtensionMarkerNameAttribute
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+
+        .method public hidebysig static void M () cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            ldnull
+            throw
+        }
+
+        .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            ret
+        }
+
+        .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            ret
+        }
+
+        .event [mscorlib]System.Action Event2
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
+                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
+                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            )
+            .addon void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::add_Event2(class [mscorlib]System.Action)
+            .removeon void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::remove_Event2(class [mscorlib]System.Action)
+        }
+    }
+
+    .method public hidebysig static void M () cil managed
+    {
+        ret
+    }
+
+    .method public hidebysig specialname static void add_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
+    {
+        ret
+    }
+
+    .method public hidebysig specialname static void remove_Event2 ( class [mscorlib]System.Action 'value' ) cil managed
+    {
+        ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        var src = """
+int.M();
+int.Event2 += (System.Action)null;
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0117: 'int' does not contain a definition for 'Event2'
+            // int.Event2 += (System.Action)null;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Event2").WithArguments("int", "Event2").WithLocation(2, 5));
+
+        var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        AssertEx.Equal([
+            "void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()",
+            "void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.add_Event2(System.Action value)",
+            "void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.remove_Event2(System.Action value)"
+            ], extension.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
