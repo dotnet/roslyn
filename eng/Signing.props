@@ -66,4 +66,13 @@
     -->
     <FileSignInfo Include="Microsoft.CodeAnalysis.Compiler.Test.Resources.dll" CertificateName="None" />
   </ItemGroup>
+
+  <!--
+    VS cloudbuild fails to restore when using test signed nuget packages due to certificate errors.
+    To avoid this issue, we sign the package contents, but skip signing the actual package file.
+  -->
+  <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(DotNetSignType)' == 'test'">
+    <FileExtensionSignInfo Update=".nupkg" CertificateName="None" />
+  </ItemGroup>
+
 </Project>
