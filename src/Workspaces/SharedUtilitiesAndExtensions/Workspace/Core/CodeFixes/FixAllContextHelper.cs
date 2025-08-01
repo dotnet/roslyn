@@ -46,6 +46,7 @@ internal static partial class FixAllContextHelper
                 // Note: We avoid fixing diagnostics in generated code.
                 if (document != null && !await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
                 {
+#if WORKSPACE
                     var diagnosticSpan = fixAllContext.State.DiagnosticSpan;
                     if (diagnosticSpan.HasValue &&
                         document.GetLanguageService<IFixAllSpanMappingService>() is { } spanMappingService)
@@ -54,6 +55,7 @@ internal static partial class FixAllContextHelper
                             diagnosticSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
                         return await GetSpanDiagnosticsAsync(fixAllContext, documentsAndSpans).ConfigureAwait(false);
                     }
+#endif
                 }
 
                 break;
@@ -105,6 +107,7 @@ internal static partial class FixAllContextHelper
         return await GetDocumentDiagnosticsToFixAsync(
             fixAllContext.Solution, allDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
 
+#if WORKSPACE
         static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetSpanDiagnosticsAsync(
             FixAllContext fixAllContext,
             IEnumerable<KeyValuePair<Document, ImmutableArray<TextSpan>>> documentsAndSpans)
@@ -121,6 +124,7 @@ internal static partial class FixAllContextHelper
 
             return builder.ToImmutableMultiDictionaryAndFree();
         }
+#endif
     }
 
     private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
