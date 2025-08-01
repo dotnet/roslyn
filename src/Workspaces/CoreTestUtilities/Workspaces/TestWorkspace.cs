@@ -32,6 +32,22 @@ public partial class TestWorkspace : TestWorkspace<TestHostDocument, TestHostPro
     {
     }
 
+    internal TestWorkspace(
+        ExportProvider exportProvider,
+        string? workspaceKind = WorkspaceKind.Host,
+        Guid solutionTelemetryId = default,
+        bool disablePartialSolutions = true,
+        bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+        WorkspaceConfigurationOptions? configurationOptions = null)
+        : base(exportProvider,
+               workspaceKind,
+               solutionTelemetryId,
+               disablePartialSolutions,
+               ignoreUnchangeableDocumentsWhenApplyingChanges,
+               configurationOptions)
+    {
+    }
+
     private protected override TestHostDocument CreateDocument(
         string text = "",
         string displayName = "",
