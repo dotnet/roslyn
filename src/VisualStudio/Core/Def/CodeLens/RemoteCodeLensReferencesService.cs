@@ -142,11 +142,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
         foreach (var descriptor in descriptors)
         {
             var referencedDocumentId = DocumentId.CreateFromSerialized(
-                ProjectId.CreateFromSerialized(descriptor.ProjectGuid),
-                descriptor.DocumentGuid,
-                // HACK: work around https://github.com/dotnet/roslyn/issues/79699
-                isSourceGenerated: !File.Exists(descriptor.FilePath),
-                debugName: null);
+                ProjectId.CreateFromSerialized(descriptor.ProjectGuid), descriptor.DocumentGuid);
 
             var document = await solution.GetDocumentAsync(referencedDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document == null)
@@ -182,7 +178,9 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
             {
                 if (document.IsRazorSourceGeneratedDocument())
                 {
-                    // HACK: Until Razor has a workspace level excerpt service, we'll just display the result as best we can
+                    // HACK: Razor doesn't have has a workspace level excerpt service, but if we just return a simple descriptor here,
+                    // the user at least sees something, can navigate, and Razor can improve this later if necessary. Until
+                    // https://github.com/dotnet/roslyn/issues/79699 is fixed this won't get hit anyway.
                     list.Add(new ReferenceLocationDescriptor(
                         descriptor.LongDescription,
                         descriptor.Language,
