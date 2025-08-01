@@ -42,11 +42,11 @@ internal sealed class CopilotSemanticSearchQueryService(
                 cancellationToken);
     }
 
-    public CompileQueryResult CompileQuery(SolutionServices services, string query, string referenceAssembliesDir, TraceSource traceSource, CancellationToken cancellationToken)
+    public CompileQueryResult CompileQuery(SolutionServices services, string query, string? targetLanguage, string referenceAssembliesDir, TraceSource traceSource, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(impl);
 
-        var result = impl.CompileQuery(services, query, referenceAssembliesDir, traceSource, cancellationToken);
+        var result = impl.CompileQuery(services, query, targetLanguage, referenceAssembliesDir, traceSource, cancellationToken);
         return new(
             new(result.QueryId.Id),
             result.CompilationErrors.SelectAsArray(static e => new QueryCompilationError(e.Id, e.Message, e.Span)),
@@ -59,7 +59,7 @@ internal sealed class CopilotSemanticSearchQueryService(
         impl.DiscardQuery(new(queryId.Id));
     }
 
-    public async Task<ExecuteQueryResult> ExecuteQueryAsync(Solution solution, CompiledQueryId queryId, ISemanticSearchResultsObserver observer, TraceSource traceSource, CancellationToken cancellationToken)
+    public async Task<ExecuteQueryResult> ExecuteQueryAsync(Solution solution, CompiledQueryId queryId, ISemanticSearchResultsObserver observer, QueryExecutionOptions options, TraceSource traceSource, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(impl);
 
@@ -67,6 +67,7 @@ internal sealed class CopilotSemanticSearchQueryService(
             solution,
             new(queryId.Id),
             new CopilotObserver(observer),
+            new(options.ResultCountLimit, options.KeepCompiledQuery),
             traceSource,
             cancellationToken).ConfigureAwait(false);
 
