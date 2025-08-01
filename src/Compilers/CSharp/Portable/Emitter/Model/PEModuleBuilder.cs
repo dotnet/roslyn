@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 switch (member.Kind)
                                 {
                                     case SymbolKind.NamedType:
-                                        if (!((NamedTypeSymbol)member).IsExtension) // PROTOTYPE: Figure out what to do about extensions, if anything
+                                        if (!((NamedTypeSymbol)member).IsExtension) // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Figure out what to do about extensions, if anything
                                         {
                                             namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
                                         }

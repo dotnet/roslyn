@@ -1170,7 +1170,8 @@ next:;
                 | ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerNameAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)

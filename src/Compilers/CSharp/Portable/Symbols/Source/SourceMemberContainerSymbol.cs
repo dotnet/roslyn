@@ -5839,7 +5839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsExtension)
             {
-                // PROTOTYPE: Figure out how to calculate and emit this for extensions. 
+                // Tracked by https://github.com/dotnet/roslyn/issues/78828 : nullability, figure out how to calculate and emit this for extensions. 
                 //            We probably should do that per grouping type. Leaving as is should be fine too, I think.
                 //            Otherwise, marker method should be processed explicitly because it is not among members.
                 return null;

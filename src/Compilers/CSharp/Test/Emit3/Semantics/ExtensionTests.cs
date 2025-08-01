@@ -8944,13 +8944,13 @@ public static class Extensions
             AssertEx.Equal("<Marker>$3D34838CB2C73A4E406AE3905787D97D", extensions[0].MetadataName);
             Symbol m1 = extensions[0].GetMembers().Single();
             AssertEx.Equal("Extensions.extension(object).M(object, string)", m1.ToDisplayString());
-            AssertEx.Equal(@"System.Runtime.CompilerServices.ExtensionMarkerNameAttribute(""<Marker>$3D34838CB2C73A4E406AE3905787D97D"")", m1.GetAttributes().Single().ToString());
+            AssertEx.Equal([], m1.GetAttributes());
 
             AssertEx.Equal("System.Object value", extensions[1].ExtensionParameter.ToTestDisplayString());
             AssertEx.Equal("<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280", extensions[1].MetadataName);
             Symbol m2 = extensions[1].GetMembers().Single();
             AssertEx.Equal("Extensions.extension(object).M(object, string, int)", m2.ToDisplayString());
-            AssertEx.Equal(@"System.Runtime.CompilerServices.ExtensionMarkerNameAttribute(""<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280"")", m2.GetAttributes().Single().ToString());
+            AssertEx.Equal([], m2.GetAttributes());
         }).VerifyDiagnostics().
            VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -23709,17 +23709,16 @@ static class E
         Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
     }
 
-    [Theory(Skip = "IL should be fixed up"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")] // PROTOTYPE: follow up
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     [InlineData("01 00 01 69 00 00")] // "i"
     [InlineData("01 00 00 00 00")] // ""
     [InlineData("01 00 0b 6e 6f 6e 65 78 69 73 74 65 6e 74 00 00")] // "nonexistent"
     public void InterpolationHandler_ParameterErrors_MappedCorrectly_02_FromMetadata(string attributeValue)
     {
-        // Equvalent to:
+        // Equivalent to:
         // [System.Runtime.CompilerServices.InterpolatedStringHandler]
         // public struct InterpolationHandler
         // {
-
         //     public InterpolationHandler(int literalLength, int formattedCount, InterpolationHandler i)
         //     {
         //         System.Console.WriteLine(i);
@@ -23767,40 +23766,47 @@ static class E
 
             } // end of class InterpolationHandler
 
-            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
+            .class public auto ansi abstract sealed beforefieldinit E
+                extends System.Object
             {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
-                // Nested Types
-                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-                    extends [mscorlib]System.Object
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                .class nested public auto ansi sealed specialname '<Extension>$E159F66A155642BDC88178F886EFBCA4'
+                    extends System.Object
                 {
-                    .method private hidebysig specialname static void '<Extension>$' (valuetype InterpolationHandler i) cil managed
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                    .class nested public auto ansi abstract sealed specialname '<Marker>$4325EE76DDCC76651231F283DA59D9E9'
+                        extends System.Object
                     {
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
-                        .param [1]
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = ({{attributeValue}})
-                        ret
-                    } // end of method '<>E__0'::'<Extension>$'
+                        .method public hidebysig specialname static void '<Extension>$' ( valuetype InterpolationHandler i ) cil managed 
+                        {
+                            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                            .param [1]
+                            .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = ({{attributeValue}})
+                            IL_0000: ret
+                        }
+                    }
 
                     .method public hidebysig instance void M () cil managed 
                     {
-                        ldnull
-                        throw
-                    } // end of method '<>E__0'::M
-                } // end of class <>E__0
+                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                            01 00 29 3c 4d 61 72 6b 65 72 3e 24 34 33 32 35
+                            45 45 37 36 44 44 43 43 37 36 36 35 31 32 33 31
+                            46 32 38 33 44 41 35 39 44 39 45 39 00 00
+                        )
+                        IL_0000: ldnull
+                        IL_0001: throw
+                    }
+                }
 
-                .method public hidebysig static void M (valuetype InterpolationHandler i) cil managed 
+                .method public hidebysig static void M ( valuetype InterpolationHandler i ) cil managed 
                 {
-                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                        01 00 00 00
-                    )
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
                     .param [1]
                     .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = ({{attributeValue}})
-                    nop
-                    ret
-                } // end of method E::M
-            } // end of class E
-            """;
+                    IL_0000: ret
+                }
+            }
+            """ + ExtensionMarkerNameAttributeIL;
 
         var src = """
             $"".M();
@@ -24103,7 +24109,7 @@ static class E
         );
     }
 
-    [Theory(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     [InlineData("01 00 01 69 00 00")] // "i"
     [InlineData("01 00 00 00 00")] // ""
@@ -24162,37 +24168,46 @@ static class E
 
             } // end of class InterpolationHandler
 
-            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
+            .class public auto ansi abstract sealed beforefieldinit E
+                extends System.Object
             {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
-                // Nested Types
-                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-                    extends [mscorlib]System.Object
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+                    extends System.Object
                 {
-                    .method private hidebysig specialname static void '<Extension>$'(int32 i) cil managed 
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                    .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+                        extends System.Object
                     {
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
-                        ret
-                    } // end of method '<>E__0'::'<Extension>$'
+                        .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+                        {
+                            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                            ret
+                        }
+                    }
 
-                    .method public hidebysig static void StaticMethod (valuetype InterpolationHandler h) cil managed 
+                    .method public hidebysig static void StaticMethod ( valuetype InterpolationHandler h ) cil managed 
                     {
+                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                            01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                            46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                            46 33 39 30 43 46 36 45 42 33 37 32 00 00
+                        )
                         .param [1]
                             .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = ({{argument}})
                         ldnull
                         throw
-                    } // end of method '<>E__0'::StaticMethod
-                } // end of class <>E__0
+                    }
+                }
 
-                // Methods
-                .method public hidebysig static void StaticMethod (valuetype InterpolationHandler h) cil managed 
+                .method public hidebysig static void StaticMethod ( valuetype InterpolationHandler h ) cil managed 
                 {
                     .param [1]
                     .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = ({{argument}})
                     ret
-                } // end of method E::StaticMethod
-            } // end of class E
-            """;
+                }
+            }
+            """ + ExtensionMarkerNameAttributeIL;
 
         var src = """
             int.StaticMethod($"");
@@ -24221,7 +24236,7 @@ static class E
         );
     }
 
-    [Fact(Skip = "IL needs an adjustment"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")] // PROTOTYPE: Follow up
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     public void InterpolationHandler_InstanceExtensionMethod_ReferencesInstanceParameter_FromMetadata()
     {
         // Equivalent to:
@@ -24277,37 +24292,47 @@ static class E
 
             } // end of class InterpolationHandler
 
-            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
+            .class public auto ansi abstract sealed beforefieldinit E
+                extends System.Object
             {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
-                // Nested Types
-                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-                    extends [mscorlib]System.Object
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+                    extends System.Object
                 {
-                    .method private hidebysig specialname static void '<Extension>$'(int32 i) cil managed 
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                    .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+                        extends System.Object
                     {
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
-                        ret
-                    } // end of method '<>E__0'::'<Extension>$'
+                        .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+                        {
+                            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                            ret
+                        }
+                    }
 
-                    .method public hidebysig void InstanceMethod(valuetype InterpolationHandler h) cil managed 
+                    .method public hidebysig instance void InstanceMethod ( valuetype InterpolationHandler h ) cil managed 
                     {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                            01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                            46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                            46 33 39 30 43 46 36 45 42 33 37 32 00 00
+                        )
                         .param [1]
                         .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
                         ldnull
                         throw
-                    } // end of method '<>E__0'::StaticMethod
-                } // end of class <>E__0
+                    }
+                }
 
-                // Methods
-                .method public hidebysig static void InstanceMethod(int32 i, valuetype InterpolationHandler h) cil managed 
+                .method public hidebysig static void InstanceMethod ( int32 i, valuetype InterpolationHandler h ) cil managed 
                 {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
                     .param [2]
                     .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
                     ret
-                } // end of method E::StaticMethod
-            } // end of class E
-            """;
+                }
+            }
+            """ + ExtensionMarkerNameAttributeIL;
 
         var src = """
             1.InstanceMethod($"");
@@ -29430,10 +29455,10 @@ public static partial class C
 
             var methods = extension.GetMembers();
             AssertEx.Equal("C.extension(object).M()", methods[0].ToDisplayString());
-            AssertEx.Equal(@"System.Runtime.CompilerServices.ExtensionMarkerNameAttribute(""<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280"")", methods[0].GetAttributes().Single().ToString());
+            AssertEx.Equal([], methods[0].GetAttributes());
 
             AssertEx.Equal("C.extension(object).M2()", methods[1].ToDisplayString());
-            AssertEx.Equal(@"System.Runtime.CompilerServices.ExtensionMarkerNameAttribute(""<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280"")", methods[1].GetAttributes().Single().ToString());
+            AssertEx.Equal([], methods[1].GetAttributes());
         }).
         VerifyDiagnostics().
         VerifyTypeIL("C", """
@@ -36617,7 +36642,7 @@ static class E
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Const").WithLocation(7, 26));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void ParamsReceiver_01()
     {
         // extension(params int[] i)
@@ -36628,28 +36653,41 @@ static class E
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$C598AEF9A11D80BC24BD328BD05F52D9'
         extends System.Object
     {
-        // Methods
-        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed
-        {
-            .param [1]
-            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 
-            IL_0000: ret
-        }
-        .method public hidebysig instance void M () cil managed
+        .class nested public auto ansi abstract sealed specialname '<Marker>$1C2558E27345F208D185AA996666DFDA'
+            extends System.Object
         {
+            .method public hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+            {
+                .param [1]
+                .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
+
+                IL_0000: ret
+            }
+        }
+
+        .method public hidebysig instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 43 32 35
+                35 38 45 32 37 33 34 35 46 32 30 38 44 31 38 35
+                41 41 39 39 36 36 36 36 44 46 44 41 00 00
+            )
+
             IL_0000: ldnull
             IL_0001: throw
         }
     }
-    .method public hidebysig static void 'M' ( int32[] i ) cil managed
+
+    .method public hidebysig static void M ( int32[] i ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
+            01 00 00 00 
+            )
         .param [1]
         .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
 
@@ -36658,7 +36696,8 @@ static class E
         IL_000a: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int[] i = null;
 i.M();
@@ -36688,7 +36727,7 @@ i.M(2);
             Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(2, 3));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void ParamsReceiver_02()
     {
         // extension(params int[] i)
@@ -36699,27 +36738,49 @@ i.M(2);
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$C598AEF9A11D80BC24BD328BD05F52D9'
         extends System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$1C2558E27345F208D185AA996666DFDA'
+            extends System.Object
         {
-            .param [1]
-            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
+            .method public hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+            {
+                .param [1]
+                .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
 
-            IL_0000: ret
+                IL_0000: ret
+            }
         }
-        .method public hidebysig specialname instance int32 get_P () cil managed
+
+        .method public hidebysig specialname instance int32 get_P () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 43 32 35
+                35 38 45 32 37 33 34 35 46 32 30 38 44 31 38 35
+                41 41 39 39 36 36 36 36 44 46 44 41 00 00
+            )
+
             IL_0000: ldnull
             IL_0001: throw
         }
+
         .property instance int32 P()
         {
-            .get instance int32 E/'<>E__0'::get_P()
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 43 32 35
+                35 38 45 32 37 33 34 35 46 32 30 38 44 31 38 35
+                41 41 39 39 36 36 36 36 44 46 44 41 00 00
+            )
+
+            .get instance int32 E/'<Extension>$C598AEF9A11D80BC24BD328BD05F52D9'::get_P()
         }
     }
-    .method public hidebysig static int32 'get_P' ( int32[] i ) cil managed
+
+    .method public hidebysig static int32 get_P ( int32[] i ) cil managed 
     {
         .param [1]
         .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
@@ -36730,14 +36791,14 @@ i.M(2);
         IL_000b: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         var src = """
 int[] i = null;
 _ = i.P;
 """;
         var comp = CreateCompilationWithIL(src, ilSrc);
-        comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran");
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         src = """
 int i = 0;
@@ -41336,7 +41397,7 @@ ref struct RS { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 15));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void ReceiverParameterValidation_UnnamedReceiverParameter_FromMetadata()
     {
         // extension(int)
@@ -41350,66 +41411,111 @@ ref struct RS { }
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
-        .method public hidebysig instance void M3 () cil managed
+
+        .method public hidebysig instance void M3 () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig static void M4 () cil managed
+        .method public hidebysig static void M4 () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance int32 get_P3 () cil managed
+
+        .method public hidebysig specialname instance int32 get_P3 () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname static int32 get_P4 () cil managed
+
+        .method public hidebysig specialname static int32 get_P4 () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+
             IL_0000: ldnull
             IL_0001: throw
         }
+
         .property instance int32 P3()
         {
-            .get instance int32 E/'<>E__0'::get_P3()
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+            .get instance int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P3()
         }
         .property int32 P4()
         {
-            .get int32 E/'<>E__0'::get_P4()
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+            .get int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P4()
         }
     }
-    .method public hidebysig static void M3 ( int32 '' ) cil managed
+
+    .method public hidebysig static void M3 ( int32 '' ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static void M4 () cil managed
+    .method public hidebysig static void M4 () cil managed 
     {
         IL_0000: ret
     }
-    .method public hidebysig static int32 get_P3 ( int32 '' ) cil managed
+    .method public hidebysig static int32 get_P3 ( int32 '' ) cil managed 
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
-    .method public hidebysig static int32 get_P4 () cil managed
+    .method public hidebysig static int32 get_P4 () cil managed 
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
         string source = """
 42.M3();
 int.M4();
@@ -46549,13 +46655,13 @@ public static class E
             AssertEx.Equal("<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB", extensions[0].MetadataName);
             Symbol m1 = extensions[0].GetMembers().Single();
             AssertEx.Equal("E.extension(bool).AssertTrue()", m1.ToDisplayString());
-            AssertEx.Equal(@"System.Runtime.CompilerServices.ExtensionMarkerNameAttribute(""<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB"")", m1.GetAttributes().Single().ToString());
+            AssertEx.Equal([], m1.GetAttributes());
 
             AssertEx.Equal("System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute(true)", extensions[1].ExtensionParameter.GetAttributes().Single().ToString());
             AssertEx.Equal("<Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7", extensions[1].MetadataName);
             Symbol m2 = extensions[1].GetMembers().Single();
             AssertEx.Equal("E.extension(bool).AssertFalse()", m2.ToDisplayString());
-            AssertEx.Equal(@"System.Runtime.CompilerServices.ExtensionMarkerNameAttribute(""<Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7"")", m2.GetAttributes().Single().ToString());
+            AssertEx.Equal([], m2.GetAttributes());
         }, verify: Verification.FailsPEVerify).
         VerifyDiagnostics(
             // (4,34): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.M(object o)'.
@@ -47533,10 +47639,10 @@ static class E
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(2, 10));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void SpecialName_01()
     {
-        // extension(int)
+        // extension(int i)
         // {
         //    public void M() { }
         //    public int P { get; }
@@ -47544,45 +47650,66 @@ static class E
         // but with specialname missing from marker method
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+    extends System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
     {
-        .method private hidebysig static void '<Extension>$' ( int32 '' ) cil managed
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig static void '<Extension>$' ( int32 i ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
-        .method public hidebysig instance void M () cil managed
+        .method public hidebysig instance void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance int32 get_P () cil managed
+        .method public hidebysig specialname instance int32 get_P () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
         .property instance int32 P()
         {
-            .get instance int32 E/'<>E__0'::get_P()
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+            .get instance int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
         }
     }
-    .method public hidebysig static void M ( int32 '' ) cil managed
+
+    .method public hidebysig static void M ( int32 i ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static int32 get_P ( int32 '' ) cil managed
+    .method public hidebysig static int32 get_P ( int32 i ) cil managed 
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         string source = """
 42.M();
 _ = 42.P;
@@ -47594,10 +47721,10 @@ _ = 42.P;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("int", "P").WithLocation(2, 8));
     }
 
-    [Fact(Skip = "Used IL is obsolete")] // PROTOTYPE: Adjust
+    [Fact]
     public void SpecialName_02()
     {
-        // extension(int)
+        // extension(int i)
         // {
         //    public void M() { }
         //    public void M2() { }
@@ -47606,70 +47733,105 @@ _ = 42.P;
         // }
         // but with specialname mismatch between skeleton and implementation methods
         var ilSrc = """
+
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
-        .method public hidebysig instance void M () cil managed
+        .method public hidebysig instance void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance void M2 () cil managed
+        .method public hidebysig specialname instance void M2 () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance int32 get_P () cil managed
+        .method public hidebysig specialname instance int32 get_P () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig instance int32 get_P2 () cil managed
+        .method public hidebysig instance int32 get_P2 () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
         .property instance int32 P()
         {
-            .get instance int32 E/'<>E__0'::get_P()
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+            .get instance int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
         }
         .property instance int32 P2()
         {
-            .get instance int32 E/'<>E__0'::get_P2()
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+            .get instance int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P2()
         }
     }
-    .method public hidebysig specialname static void M ( int32 '' ) cil managed
+    .method public hidebysig specialname static void M ( int32 i ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static void M2 ( int32 '' ) cil managed
+    .method public hidebysig static void M2 ( int32 i ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static int32 get_P ( int32 '' ) cil managed
+    .method public hidebysig static int32 get_P ( int32 i ) cil managed 
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
-    .method public hidebysig specialname static int32 get_P2 ( int32 '' ) cil managed
+    .method public hidebysig specialname static int32 get_P2 ( int32 i ) cil managed 
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
         string source = """
 42.M();
 42.M2();
@@ -47680,42 +47842,51 @@ _ = 42.P2;
         comp.VerifyEmitDiagnostics();
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78963")]
+    [Fact]
     public void SpecialName_03()
     {
         // extension(int)
         // {
-        //    public void M() { }
+        //    public static void M() { }
         // }
-        // but no specialname on skeleton type
+        // but no specialname on marker type
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+    extends System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
+    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
         }
-
-        .method public hidebysig static void M () cil managed
+        .method public hidebysig static void M () cil managed 
         {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
             IL_0000: ldnull
             IL_0001: throw
         }
     }
 
-    .method public hidebysig static void M () cil managed
+    .method public hidebysig static void M () cil managed 
     {
-        IL_0000: nop
-        IL_0001: ret
+        IL_0000: ret
     }
 }
-""";
+""" + ExtensionMarkerNameAttributeIL;
+
         string source = """
 int.M();
 """;
@@ -47725,7 +47896,7 @@ int.M();
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
 
-        Assert.False(comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().IsExtension);
+        Assert.Empty(comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers());
     }
 
     [Fact]
@@ -47801,6 +47972,63 @@ static class E
 
         Assert.True(comp.GetMember<MethodSymbol>("E.get_P").HasSpecialName);
         Assert.True(comp.GetMember<MethodSymbol>("E.set_P").HasSpecialName);
+    }
+
+    [Fact]
+    public void SpecialName_06()
+    {
+        // extension(int)
+        // {
+        //    public static void M() { }
+        // }
+        // but no specialname on grouping type
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                IL_0000: ret
+            }
+        }
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
+                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
+                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            )
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+}
+""" + ExtensionMarkerNameAttributeIL;
+
+        string source = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().IsExtension);
     }
 
     [Fact]

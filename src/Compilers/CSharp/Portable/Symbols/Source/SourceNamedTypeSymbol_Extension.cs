@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_lazyExtensionInfo.LazyExtensionMarkerName is null)
                 {
-                    _lazyExtensionInfo.LazyExtensionMarkerName = "<Marker>$" + RawNameToHashString(ComputeExtensionMarkerRawName()); // PROTOTYPE: Add a constant for this prefix.
+                    _lazyExtensionInfo.LazyExtensionMarkerName = WellKnownMemberNames.ExtensionMarkerTypeName + RawNameToHashString(ComputeExtensionMarkerRawName());
                 }
 
                 return _lazyExtensionInfo.LazyExtensionMarkerName;

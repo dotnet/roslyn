@@ -738,7 +738,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                       out _,
                       this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
                       out CustomAttributeHandle required,
-                      AttributeDescription.RequiredMemberAttribute);
+                      AttributeDescription.RequiredMemberAttribute,
+                      out _,
+                      this.GetIsNewExtensionMember() ? AttributeDescription.ExtensionMarkerNameAttribute : default,
+                      out _,
+                      default,
+                      out _,
+                      default,
+                      out _,
+                      default);
 
                 if (!attributes.IsEmpty)
                 {

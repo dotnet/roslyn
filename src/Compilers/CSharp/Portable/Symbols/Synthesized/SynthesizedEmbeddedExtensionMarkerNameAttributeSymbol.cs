@@ -8,8 +8,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // PROTOTYPE: Test the shape and various scenarios when the attribute should and should not be synthesized.
-    // PROTOTYPE: We are not declaring and not initializing the "Name" property yet.
+    // Tracked by https://github.com/dotnet/roslyn/issues/78963 : We are not declaring and not initializing the "Name" property yet.
     internal sealed class SynthesizedEmbeddedExtensionMarkerNameAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
     {
         private readonly ImmutableArray<MethodSymbol> _constructors;
