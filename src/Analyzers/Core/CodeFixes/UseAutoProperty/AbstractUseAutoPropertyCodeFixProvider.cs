@@ -422,7 +422,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         SyntaxNode finalPropertyDeclaration,
         CancellationToken cancellationToken)
     {
-#if CODE_STYLE
+#if false
         return await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 #else
         // First see if we need to apply any specialized formatting rules.
