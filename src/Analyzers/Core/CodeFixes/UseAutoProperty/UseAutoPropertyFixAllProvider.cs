@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -23,6 +25,22 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 {
     private sealed class UseAutoPropertyFixAllProvider(TProvider provider) : FixAllProvider
     {
+#if CODE_STYLE
+
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        {
+            return Task.FromResult<CodeAction?>(CodeAction.Create(
+                fixAllContext.GetDefaultFixAllTitle(),
+                cancellationToken => FixAllAsync(fixAllContext, cancellationToken)));
+        }
+
+        private async Task<Solution> FixAllAsync(FixAllContext fixAllContext, CancellationToken cancellationToken)
+        {
+
+        }
+
+#else
+
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
                 fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
@@ -78,5 +96,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
             return originalContext.Solution.WithDocumentSyntaxRoots(documentsIdsAndNewRoots);
         }
+
+#endif
     }
 }
