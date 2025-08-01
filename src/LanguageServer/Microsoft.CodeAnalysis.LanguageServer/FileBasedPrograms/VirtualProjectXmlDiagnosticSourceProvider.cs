@@ -58,7 +58,8 @@ internal sealed class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXm
                     isEnabledByDefault: true,
                     // Warning level 0 is used as a placeholder when the diagnostic has error severity
                     warningLevel: 0,
-                    customTags: ImmutableArray<string>.Empty,
+                    // Mark these diagnostics as build errors so they can be overridden by diagnostics from an explicit build.
+                    customTags: [WellKnownDiagnosticTags.Build],
                     properties: ImmutableDictionary<string, string?>.Empty,
                     projectId: document.Project.Id,
                     location: new DiagnosticDataLocation(location, document.Id)
@@ -84,13 +85,6 @@ internal sealed class VirtualProjectXmlDiagnosticSourceProvider(VirtualProjectXm
         {
             return document.Project;
         }
-
-        /// <summary>
-        /// These diagnostics are from the last time 'dotnet run-api' was invoked, which only occurs when a design time build is performed.
-        /// <seealso cref="IDiagnosticSource.IsLiveSource"/>.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsLiveSource() => false;
 
         public string ToDisplayString() => nameof(VirtualProjectXmlDiagnosticSource);
     }
