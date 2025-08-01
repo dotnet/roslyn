@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Composition;
 using Nerdbank.Streams;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -102,6 +103,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
     }
 
+    protected virtual ValueTask<ExportProvider> CreateExportProviderAsync() => ValueTask.FromResult(Composition.ExportProviderFactory.CreateExportProvider());
     protected virtual TestComposition Composition => FeaturesLspComposition;
 
     private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
@@ -307,12 +309,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
     private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
         => CreateTestLspServerAsync([markup], LanguageNames.VisualBasic, mutatingLspWorkspace, initializationOptions, composition);
 
-    private protected Task<TestLspServer> CreateTestLspServerAsync(
+    private protected async Task<TestLspServer> CreateTestLspServerAsync(
         string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, TestComposition? composition = null, bool commonReferences = true)
     {
         var lspOptions = initializationOptions ?? new InitializationOptions();
 
-        var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, composition);
+        var workspace = await CreateWorkspaceAsync(lspOptions, workspaceKind: null, mutatingLspWorkspace, composition);
 
         workspace.InitializeDocuments(
             LspTestWorkspace.CreateWorkspaceElement(
@@ -324,7 +326,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 commonReferences: commonReferences),
             openDocuments: false);
 
-        return CreateTestLspServerAsync(workspace, lspOptions, languageName);
+        return await CreateTestLspServerAsync(workspace, lspOptions, languageName);
     }
 
     private protected async Task<TestLspServer> CreateTestLspServerAsync(LspTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
@@ -349,7 +351,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     {
         var lspOptions = initializationOptions ?? new InitializationOptions();
 
-        var workspace = CreateWorkspace(lspOptions, workspaceKind, mutatingLspWorkspace);
+        var workspace = await CreateWorkspaceAsync(lspOptions, workspaceKind, mutatingLspWorkspace);
 
         workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([CreateTestAnalyzersReference()]));
@@ -357,11 +359,14 @@ public abstract partial class AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
     }
 
-    internal LspTestWorkspace CreateWorkspace(
+    internal async Task<LspTestWorkspace> CreateWorkspaceAsync(
         InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, TestComposition? composition = null)
     {
         var workspace = new LspTestWorkspace(
-            composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true), supportsLspMutation: mutatingLspWorkspace);
+            composition?.ExportProviderFactory.CreateExportProvider() ?? await CreateExportProviderAsync(),
+            workspaceKind,
+            configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true),
+            supportsLspMutation: mutatingLspWorkspace);
         options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
         // By default, workspace event listeners are disabled in tests.  Explicitly enable the LSP workspace registration event listener

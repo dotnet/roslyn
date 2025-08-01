@@ -299,10 +299,10 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         // Verify 1 workspace registered to start with.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
 
-        using var testWorkspaceTwo = LspTestWorkspace.Create(
+        using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
-            workspaceKind: "OtherWorkspaceKind",
-            composition: testLspServer.TestWorkspace.Composition);
+            exportProvider: testLspServer.TestWorkspace.ExportProvider,
+            workspaceKind: "OtherWorkspaceKind");
 
         // Wait for workspace creation operations for the second workspace to complete.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
@@ -359,7 +359,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             """;
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml, mutatingLspWorkspace);
 
-        using var testWorkspaceTwo = CreateWorkspace(options: null, WorkspaceKind.MSBuild, mutatingLspWorkspace);
+        using var testWorkspaceTwo = await CreateWorkspaceAsync(options: null, WorkspaceKind.MSBuild, mutatingLspWorkspace);
         testWorkspaceTwo.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="SecondWorkspaceProject">
@@ -418,7 +418,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             """;
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml, mutatingLspWorkspace);
 
-        using var testWorkspaceTwo = CreateWorkspace(options: null, workspaceKind: WorkspaceKind.MSBuild, mutatingLspWorkspace);
+        using var testWorkspaceTwo = await CreateWorkspaceAsync(options: null, workspaceKind: WorkspaceKind.MSBuild, mutatingLspWorkspace);
         testWorkspaceTwo.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="SecondWorkspaceProject">
@@ -463,7 +463,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     [Theory, CombinatorialData]
     public async Task TestSeparateWorkspaceManagerPerServerAsync(bool mutatingLspWorkspace)
     {
-        using var testWorkspace = CreateWorkspace(options: null, workspaceKind: null, mutatingLspWorkspace);
+        using var testWorkspace = await CreateWorkspaceAsync(options: null, workspaceKind: null, mutatingLspWorkspace);
         testWorkspace.InitializeDocuments(XElement.Parse($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
