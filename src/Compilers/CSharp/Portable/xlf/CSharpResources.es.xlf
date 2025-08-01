@@ -812,6 +812,11 @@
         <target state="translated">Un árbol de expresión no puede contener una expresión with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionBlockCollision">
+        <source>This extension block collides with another extension block. They have different signatures, but result in the same marker type identifier.</source>
+        <target state="new">This extension block collides with another extension block. They have different signatures, but result in the same marker type identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
         <target state="new">This member is not allowed in an extension block</target>

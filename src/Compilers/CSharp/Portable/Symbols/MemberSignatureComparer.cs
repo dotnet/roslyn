@@ -354,6 +354,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerDefaultValues: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
+        /// <summary>
+        /// This instance is used to determine if two extension blocks match in C# sense and thus are allowed to share a marker type.
+        /// It considers parameter and type parameter names, type constraints, nullability and attributes.
+        /// </summary>
+        public static readonly MemberSignatureComparer ExtensionSignatureComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: false,
+            considerTypeConstraints: true,
+            considerCallingConvention: false,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            typeComparison: TypeCompareKind.ConsiderEverything,
+            considerParameterNames: true,
+            considerAttributes: true);
+
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;
 
@@ -380,6 +395,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Equality options for parameter types and return types (if return is considered).
         private readonly TypeCompareKind _typeComparison;
 
+        // Compare parameter and type parameter names
+        private readonly bool _considerParameterNames;
+
+        private readonly bool _considerAttributes;
+
         private MemberSignatureComparer(
             bool considerName,
             bool considerExplicitlyImplementedInterfaces,
@@ -389,7 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKindCompareMode refKindCompareMode,
             bool considerArity = true,
             bool considerDefaultValues = false,
-            TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers)
+            TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers,
+            bool considerParameterNames = false,
+            bool considerAttributes = false)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
             Debug.Assert(!considerTypeConstraints || considerArity, "If you consider type constraints, you must also consider arity");
@@ -412,6 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
             }
+
+            _considerParameterNames = considerParameterNames;
+            _considerAttributes = considerAttributes;
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -447,9 +472,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // NB: up to, and including, this check, we have not actually forced the (type) parameters
             // to be expanded - we're only using the counts.
-            if (_considerArity && (member1.GetMemberArity() != member2.GetMemberArity()))
+            if (_considerArity)
             {
-                return false;
+                if (member1.GetMemberArity() != member2.GetMemberArity())
+                {
+                    return false;
+                }
+
+                if (member1.GetMemberArity() > 0 && (_considerParameterNames || _considerAttributes))
+                {
+                    ImmutableArray<TypeParameterSymbol> typeParams1 = member1.GetMemberTypeParameters();
+                    ImmutableArray<TypeParameterSymbol> typeParams2 = member2.GetMemberTypeParameters();
+
+                    if (_considerParameterNames && typeParams1.Length > 0 && !haveSameTypeParameterNames(typeParams1, typeParams2))
+                    {
+                        return false;
+                    }
+
+                    if (_considerAttributes && !haveSameTypeParameterAttributes(typeParams1, typeParams2))
+                    {
+                        return false;
+                    }
+                }
             }
 
             if (member1.GetParameterCount() != member2.GetParameterCount())
@@ -465,10 +509,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters().AsSpan(), typeMap1, member2.GetParameters().AsSpan(), typeMap2,
-                                                                           _refKindCompareMode, considerDefaultValues: _considerDefaultValues, _typeComparison))
+            if (member1.GetParameterCount() > 0)
             {
-                return false;
+                var params1 = member1.GetParameters();
+                var params2 = member2.GetParameters();
+                if (!HaveSameParameterTypes(params1.AsSpan(), typeMap1, params2.AsSpan(), typeMap2,
+                    _refKindCompareMode, considerDefaultValues: _considerDefaultValues, _typeComparison))
+                {
+                    return false;
+                }
+
+                if (_considerParameterNames && !haveSameParameterNames(params1, params2))
+                {
+                    return false;
+                }
+
+                if (_considerAttributes && !haveSameParameterAttributes(params1, params2))
+                {
+                    return false;
+                }
             }
 
             if (_considerCallingConvention)
@@ -526,7 +585,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return !_considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2);
+            return !_considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2, ignoreNullability: (_typeComparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) != 0);
+
+            static bool haveSameParameterNames(ImmutableArray<ParameterSymbol> params1, ImmutableArray<ParameterSymbol> params2)
+            {
+                return params1.SequenceEqual(params2, (p1, p2) => p1.Name == p2.Name);
+            }
+
+            static bool haveSameTypeParameterNames(ImmutableArray<TypeParameterSymbol> typeParams1, ImmutableArray<TypeParameterSymbol> typeParams2)
+            {
+                return typeParams1.SequenceEqual(typeParams2, (p1, p2) => p1.Name == p2.Name);
+            }
+
+            static bool haveSameParameterAttributes(ImmutableArray<ParameterSymbol> params1, ImmutableArray<ParameterSymbol> params2)
+            {
+                return params1.SequenceEqual(params2, (p1, p2) => hasSameAttribute(p1.GetAttributes(), p2.GetAttributes()));
+            }
+
+            static bool haveSameTypeParameterAttributes(ImmutableArray<TypeParameterSymbol> typeParams1, ImmutableArray<TypeParameterSymbol> typeParams2)
+            {
+                return typeParams1.SequenceEqual(typeParams2, (p1, p2) => hasSameAttribute(p1.GetAttributes(), p2.GetAttributes()));
+            }
+
+            static bool hasSameAttribute(ImmutableArray<CSharpAttributeData> attributes1, ImmutableArray<CSharpAttributeData> attributes2)
+            {
+                if (attributes1.Length != attributes2.Length)
+                {
+                    return false;
+                }
+
+                var comparer = CommonAttributeDataComparer.InstanceIgnoringNamedArgumentOrder;
+
+                if (attributes1 is [var single1] && attributes2 is [var single2])
+                {
+                    // Fast path for single attribute case
+                    return comparer.Equals(single1, single2);
+                }
+
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : optimization, consider using a pool
+                var counts = new Dictionary<CSharpAttributeData, int>(comparer);
+
+                foreach (var attribute in attributes1)
+                {
+                    counts[attribute] = counts.TryGetValue(attribute, out var foundCount) ? foundCount + 1 : 1;
+                }
+
+                foreach (var attribute in attributes2)
+                {
+                    if (!counts.TryGetValue(attribute, out var foundCount) || foundCount == 0)
+                    {
+                        return false;
+                    }
+
+                    counts[attribute] = foundCount - 1;
+                }
+
+                return counts.Values.All(c => c == 0);
+            }
         }
 
         public int GetHashCode(Symbol? member)
@@ -623,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     true);
         }
 
-        private static bool HaveSameConstraints(Symbol member1, TypeMap? typeMap1, Symbol member2, TypeMap? typeMap2)
+        private static bool HaveSameConstraints(Symbol member1, TypeMap? typeMap1, Symbol member2, TypeMap? typeMap2, bool ignoreNullability = true)
         {
             Debug.Assert(member1.GetMemberArity() == member2.GetMemberArity());
 
@@ -635,17 +750,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var typeParameters1 = member1.GetMemberTypeParameters();
             var typeParameters2 = member2.GetMemberTypeParameters();
-            return HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
+            return HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, ignoreNullability);
         }
 
-        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap? typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap? typeMap2)
+        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap? typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap? typeMap2, bool ignoreNullability = true)
         {
             Debug.Assert(typeParameters1.Length == typeParameters2.Length);
 
             int arity = typeParameters1.Length;
             for (int i = 0; i < arity; i++)
             {
-                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2))
+                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2, ignoreNullability))
                 {
                     return false;
                 }
@@ -654,9 +769,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        public static bool HaveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2)
+        public static bool HaveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, bool ignoreNullability = true)
         {
             // Spec 13.4.3: Implementation of generic methods.
+
+            if (!ignoreNullability &&
+                typeParameter1.HasNotNullConstraint != typeParameter2.HasNotNullConstraint)
+            {
+                return false;
+            }
 
             if ((typeParameter1.HasConstructorConstraint != typeParameter2.HasConstructorConstraint) ||
                 (typeParameter1.HasReferenceTypeConstraint != typeParameter2.HasReferenceTypeConstraint) ||
@@ -903,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal enum RefKindCompareMode
         {
             /// <summary>
-            /// Ref parameter modifiers are ignored.
+            /// All ref modifiers are considered equivalent.
             /// </summary>
             DoNotConsiderDifferences = 0,
 

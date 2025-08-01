@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,8 +18,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class CommonAttributeDataComparer : IEqualityComparer<AttributeData>
     {
-        public static CommonAttributeDataComparer Instance = new CommonAttributeDataComparer();
-        private CommonAttributeDataComparer() { }
+        public static CommonAttributeDataComparer Instance = new CommonAttributeDataComparer(considerNamedArgumentsOrder: true);
+        public static CommonAttributeDataComparer InstanceIgnoringNamedArgumentOrder = new CommonAttributeDataComparer(considerNamedArgumentsOrder: false);
+
+        private readonly bool _considerNamedArgumentsOrder;
+        private CommonAttributeDataComparer(bool considerNamedArgumentsOrder)
+        {
+            this._considerNamedArgumentsOrder = considerNamedArgumentsOrder;
+        }
 
         public bool Equals(AttributeData attr1, AttributeData attr2)
         {
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                 attr1.HasErrors == attr2.HasErrors &&
                 attr1.IsConditionallyOmitted == attr2.IsConditionallyOmitted &&
                 attr1.CommonConstructorArguments.SequenceEqual(attr2.CommonConstructorArguments) &&
-                attr1.NamedArguments.SequenceEqual(attr2.NamedArguments);
+                (_considerNamedArgumentsOrder ? attr1.NamedArguments.SequenceEqual(attr2.NamedArguments) : attr1.NamedArguments.SetEquals(attr2.NamedArguments));
         }
 
         public int GetHashCode(AttributeData attr)

@@ -2532,6 +2532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType
                 or ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
+                or ErrorCode.ERR_ExtensionBlockCollision
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
