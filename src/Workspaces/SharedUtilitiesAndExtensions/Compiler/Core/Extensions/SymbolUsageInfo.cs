@@ -140,7 +140,7 @@ internal readonly record struct SymbolUsageInfo
                     return Create(TypeOrNamespaceUsageInfo.ObjectCreation);
 
                 // Note: sizeof/typeof also return 'name', but are handled above in GetSymbolUsageInfo.
-                if (IsInNameOfOperation(syntaxFacts, semanticModel, node, cancellationToken))
+                if (IsInNameOfOperation(node))
                     return Create(ValueUsageInfo.Name);
 
                 if (node.IsPartOfStructuredTrivia())
@@ -185,28 +185,25 @@ internal readonly record struct SymbolUsageInfo
                 return SymbolUsageInfo.None;
             }
         }
+
+        bool IsInNameOfOperation(SyntaxNode node)
+        {
+            // Walk up out of the member access expression. This way if we have something like
+            // nameof(C.Goo()), we ensure that operation.Parent is the INameOfOperation. 
+
+            while (syntaxFacts.IsMemberAccessExpression(node?.Parent))
+                node = node.Parent;
+
+            var operation = semanticModel.GetOperation(node, cancellationToken);
+
+            // Note: sizeof/typeof also return 'name', but are handled in GetSymbolUsageInfo.
+            if (operation?.Parent is INameOfOperation)
+                return true;
+
+            return false;
+        }
     }
 
-    private static bool IsInNameOfOperation(
-        ISyntaxFacts syntaxFacts,
-        SemanticModel semanticModel,
-        SyntaxNode node,
-        CancellationToken cancellationToken)
-    {
-        // Walk up out of the member access expression. This way if we have something like
-        // nameof(C.Goo()), we ensure that operation.Parent is the INameOfOperation. 
-
-        while (syntaxFacts.IsMemberAccessExpression(node?.Parent))
-            node = node.Parent;
-
-        var operation = semanticModel.GetOperation(node, cancellationToken);
-
-        // Note: sizeof/typeof also return 'name', but are handled in GetSymbolUsageInfo.
-        if (operation?.Parent is INameOfOperation)
-            return true;
-
-        return false;
-    }
     private static bool IsNodeOrAnyAncestorLeftSideOfDot(SyntaxNode node, ISyntaxFacts syntaxFacts)
     {
         if (syntaxFacts.IsLeftSideOfDot(node))
