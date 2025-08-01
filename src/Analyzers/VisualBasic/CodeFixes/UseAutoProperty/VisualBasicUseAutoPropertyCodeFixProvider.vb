@@ -61,7 +61,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)
             Dim canBeReadOnly = Not isWrittenToOutsideOfConstructor AndAlso Not propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock)
 
-            statement = generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly))
+            statement = DirectCast(
+                generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly)),
+                PropertyStatementSyntax)
 
             Dim initializer = Await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then

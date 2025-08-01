@@ -253,8 +253,8 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_
     // This enables porting the tests for the ported analyzer in CodeStyle layer.
     #region CodeFixProvider Helpers
 
-    // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
-    protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();
+    //// https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
+    //protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();
 
     // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
     protected static CodeFixProvider GetVisualBasicUseAutoPropertyCodeFixProvider() => new VisualBasicUseAutoPropertyCodeFixProvider();

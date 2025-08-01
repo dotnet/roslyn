@@ -25,7 +25,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     private readonly ParseOptions CSharp12 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-        => (new CSharpUseAutoPropertyAnalyzer(), GetCSharpUseAutoPropertyCodeFixProvider());
+        => (new CSharpUseAutoPropertyAnalyzer(), new CSharpUseAutoPropertyCodeFixProvider());
 
     [Fact]
     public Task TestSingleGetterFromField()

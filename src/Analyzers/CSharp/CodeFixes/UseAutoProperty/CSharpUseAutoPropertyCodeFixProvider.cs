@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -222,7 +223,8 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         if (propertyDeclaration is PropertyDeclarationSyntax { AccessorList.Accessors: var accessors } &&
             accessors.All(a => a is { ExpressionBody: null, Body: null, AttributeLists.Count: 0 }))
         {
-            return [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
+            var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            return [new SingleLinePropertyFormattingRule(), .. formattingService.GetDefaultFormattingRules()];
         }
 
         return default;
