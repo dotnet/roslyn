@@ -573,9 +573,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureExtensionMarkerNameAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureExtensionMarkerAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ExtensionMarkerNameAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ExtensionMarkerAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
@@ -664,12 +664,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
 
-                case EmbeddableAttributes.ExtensionMarkerNameAttribute:
+                case EmbeddableAttributes.ExtensionMarkerAttribute:
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
-                        WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute,
-                        WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute__ctor);
+                        WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

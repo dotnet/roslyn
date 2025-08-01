@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_lazyExtensionInfo.LazyExtensionGroupingName is null)
                 {
-                    _lazyExtensionInfo.LazyExtensionGroupingName = WellKnownMemberNames.ExtensionMarkerMethodName + RawNameToHashString(ComputeExtensionGroupingRawName());
+                    _lazyExtensionInfo.LazyExtensionGroupingName = WellKnownMemberNames.ExtensionGroupingTypePrefix + RawNameToHashString(ComputeExtensionGroupingRawName());
                 }
 
                 return _lazyExtensionInfo.LazyExtensionGroupingName;
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_lazyExtensionInfo.LazyExtensionMarkerName is null)
                 {
-                    _lazyExtensionInfo.LazyExtensionMarkerName = WellKnownMemberNames.ExtensionMarkerTypeName + RawNameToHashString(ComputeExtensionMarkerRawName());
+                    _lazyExtensionInfo.LazyExtensionMarkerName = WellKnownMemberNames.ExtensionMarkerTypePrefix + RawNameToHashString(ComputeExtensionMarkerRawName());
                 }
 
                 return _lazyExtensionInfo.LazyExtensionMarkerName;

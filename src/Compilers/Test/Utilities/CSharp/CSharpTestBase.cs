@@ -876,13 +876,13 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal static readonly string ExtensionMarkerNameAttributeDefinition = """
+        internal static readonly string ExtensionMarkerAttributeDefinition = """
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, Inherited = false)]
-    public sealed class ExtensionMarkerNameAttribute : Attribute
+    public sealed class ExtensionMarkerAttribute : Attribute
     {
-        public ExtensionMarkerNameAttribute(string name)
+        public ExtensionMarkerAttribute(string name)
             => Name = name;
 
         public string Name { get; }

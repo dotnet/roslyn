@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Extensions)]
 public partial class ExtensionTests : CompilingTestBase
 {
-    internal string ExtensionMarkerNameAttributeIL = """
+    internal string ExtensionMarkerAttributeIL = """
 
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerNameAttribute
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
     extends [mscorlib]System.Attribute
 {
     .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
@@ -139,14 +139,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -162,9 +162,9 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
-        } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+            } // end of method '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
+        } // end of class <M>$C43E2675C7BBF9284AF22FB8A9BF0280
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -189,10 +189,10 @@ public static class Extensions
         Assert.Same(symbol, symbol.ConstructedFrom);
         AssertEx.Equal("Extensions", symbol.ContainingSymbol.Name);
         AssertEx.Equal("Extensions", symbol.ContainingType.Name);
-        AssertEx.Equal("<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.MetadataName);
+        AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.MetadataName);
 
         var member = symbol.ContainingType.GetMembers().Single();
-        AssertEx.Equal("Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280", member.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", member.ToTestDisplayString());
 
         var format = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         AssertEx.Equal("Extensions.extension(System.Object)", symbol.ToDisplayString(format));
@@ -204,7 +204,7 @@ public static class Extensions
         AssertEx.Equal("extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
-        AssertEx.Equal("<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
+        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
 
         var comp5 = CreateCompilation(src);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
@@ -237,14 +237,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$01CE3801593377B4E240F33E20D30D50'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$01CE3801593377B4E240F33E20D30D50'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -260,9 +260,9 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$01CE3801593377B4E240F33E20D30D50'::'<Extension>$'
-        } // end of class <Marker>$01CE3801593377B4E240F33E20D30D50
-    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+            } // end of method '<M>$01CE3801593377B4E240F33E20D30D50'::'<Extension>$'
+        } // end of class <M>$01CE3801593377B4E240F33E20D30D50
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -282,21 +282,21 @@ public static class Extensions
         Assert.Same(symbol, symbol.ConstructedFrom);
         AssertEx.Equal("Extensions", symbol.ContainingSymbol.Name);
         AssertEx.Equal("Extensions", symbol.ContainingType.Name);
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol.MetadataName);
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol.MetadataName);
 
         var member = symbol.ContainingType.GetMembers().Single();
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", member.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", member.ToTestDisplayString());
 
         var constructed = symbol.Construct(comp.GetSpecialType(SpecialType.System_Int32));
         Assert.True(constructed.IsExtension);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Int32>", constructed.ToTestDisplayString());
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", constructed.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>", constructed.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", constructed.MetadataName);
         Assert.NotSame(symbol, constructed);
         Assert.Same(symbol, constructed.OriginalDefinition);
         Assert.Same(symbol, constructed.ConstructedFrom);
 
         var unbound = symbol.ConstructUnboundGenericType();
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<>", unbound.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<>", unbound.ToTestDisplayString());
         Assert.True(unbound.IsUnboundGenericType);
         Assert.NotSame(symbol, unbound);
         Assert.Same(symbol, unbound.OriginalDefinition);
@@ -325,14 +325,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BCF902721DDD961E5243C324D8379E5C'<valuetype .ctor ([mscorlib]System.ValueType) $T0>
+    .class nested public auto ansi sealed specialname '<G>$BCF902721DDD961E5243C324D8379E5C'<valuetype .ctor ([mscorlib]System.ValueType) $T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93'<valuetype .ctor ([mscorlib]System.ValueType) T>
+        .class nested public auto ansi abstract sealed specialname '<M>$B865B3ED3C68CE2EBBC104FFAF3CFF93'<valuetype .ctor ([mscorlib]System.ValueType) T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -348,9 +348,9 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93'::'<Extension>$'
-        } // end of class <Marker>$B865B3ED3C68CE2EBBC104FFAF3CFF93
-    } // end of class <Extension>$BCF902721DDD961E5243C324D8379E5C
+            } // end of method '<M>$B865B3ED3C68CE2EBBC104FFAF3CFF93'::'<Extension>$'
+        } // end of class <M>$B865B3ED3C68CE2EBBC104FFAF3CFF93
+    } // end of class <G>$BCF902721DDD961E5243C324D8379E5C
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -515,7 +515,7 @@ public static class Extensions<T>
 
         var container = symbol.ContainingType;
         var substitutedExtension = (INamedTypeSymbol)container.Construct(comp.GetSpecialType(SpecialType.System_Int32)).GetMembers().Single();
-        AssertEx.Equal("Extensions<System.Int32>.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", substitutedExtension.ToTestDisplayString());
+        AssertEx.Equal("Extensions<System.Int32>.<G>$8048A6C8BE30A622530249B904B537EB<T>", substitutedExtension.ToTestDisplayString());
         Assert.True(substitutedExtension.IsExtension);
     }
 
@@ -607,14 +607,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C7A07C3975E80DE5DBC93B5392C6C922'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$C7A07C3975E80DE5DBC93B5392C6C922'<T>
             extends [mscorlib]System.Object
         {
             .param type T
@@ -637,9 +637,9 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C7A07C3975E80DE5DBC93B5392C6C922'::'<Extension>$'
-        } // end of class <Marker>$C7A07C3975E80DE5DBC93B5392C6C922
-    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+            } // end of method '<M>$C7A07C3975E80DE5DBC93B5392C6C922'::'<Extension>$'
+        } // end of class <M>$C7A07C3975E80DE5DBC93B5392C6C922
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -672,7 +672,7 @@ public static class Extensions<T>
         AssertExtensionDeclaration(symbol);
         Assert.True(symbol.IsGenericType);
         var members = symbol.ContainingType.GetMembers();
-        AssertEx.SequenceEqual(["Extensions<T>.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280", "void Extensions<T>.M()"], members.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["Extensions<T>.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", "void Extensions<T>.M()"], members.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -699,7 +699,7 @@ extension(object) { public static void M() { } }
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
         Assert.Null(symbol.ContainingType);
-        AssertEx.Equal("<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToTestDisplayString());
+        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -741,7 +741,7 @@ public static class Extensions
         AssertExtensionDeclaration(nestedExtensionSymbol);
         AssertEx.Equal("Extensions.Extensions2", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
         var members = nestedExtensionSymbol.ContainingType.GetMembers();
-        AssertEx.SequenceEqual(["Extensions.Extensions2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280", "void Extensions.Extensions2.M()"], members.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["Extensions.Extensions2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", "void Extensions.Extensions2.M()"], members.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -789,8 +789,8 @@ public static class Extensions
 
         var nestedExtensionSymbol = model.GetDeclaredSymbol(nestedExtension);
         AssertExtensionDeclaration(nestedExtensionSymbol);
-        AssertEx.Equal("Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()", "Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$34505F560D9EACF86A87F3ED1F85E448"], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()", "Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$34505F560D9EACF86A87F3ED1F85E448"], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -866,14 +866,14 @@ public static partial class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -889,9 +889,9 @@ public static partial class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
-        } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+            } // end of method '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
+        } // end of class <M>$C43E2675C7BBF9284AF22FB8A9BF0280
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -901,7 +901,7 @@ public static partial class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
-        AssertEx.Equal("<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.MetadataName);
+        AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.MetadataName);
     }
 
     [Fact]
@@ -928,16 +928,16 @@ public static partial class Extensions
         var extension1 = tree1.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol1 = model1.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$D1693D81A12E8DED4ED68FE22D9E856F", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", sourceExtension1.ToTestDisplayString());
+        AssertEx.Equal("<M>$D1693D81A12E8DED4ED68FE22D9E856F", symbol1.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", sourceExtension1.ToTestDisplayString());
 
         var tree2 = comp.SyntaxTrees[1];
         var extension2 = tree2.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var model2 = comp.GetSemanticModel(tree2);
         var symbol2 = model2.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$38DD3033A2145E0D2274BCCB48D8434F", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", sourceExtension2.ToTestDisplayString());
+        AssertEx.Equal("<M>$38DD3033A2145E0D2274BCCB48D8434F", symbol2.MetadataName);
+        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", sourceExtension2.ToTestDisplayString());
     }
 
     [Fact]
@@ -961,13 +961,13 @@ public static partial class Extensions
         var model = comp.GetSemanticModel(tree);
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
-        AssertEx.Equal("<Marker>$0A2F70F0BFFD1BC7F8C8E0A6CD0B0194", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("<M>$0A2F70F0BFFD1BC7F8C8E0A6CD0B0194", symbol2.MetadataName);
+        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -989,14 +989,14 @@ public static class Extensions
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1169,14 +1169,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
+    .class nested public auto ansi sealed specialname '<G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
+        .class nested public auto ansi abstract sealed specialname '<M>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -1192,26 +1192,26 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::'<Extension>$'
-        } // end of class <Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
+            } // end of method '<M>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::'<Extension>$'
+        } // end of class <M>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
         // Methods
         .method public hidebysig static 
             class [mscorlib]System.Text.StringBuilder Inspect (
                 class [mscorlib]System.Text.StringBuilder sb
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 44 32 39
-                45 37 30 45 30 44 43 41 35 42 42 46 43 46 41 43
-                37 43 32 42 45 46 33 43 35 43 39 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 44 32 39 45 37 30 45 30
+                44 43 41 35 42 42 46 43 46 41 43 37 43 32 42 45
+                46 33 43 35 43 39 39 00 00
             )
             // Method begins at RVA 0x20a5
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::Inspect
-    } // end of class <Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
+        } // end of method '<G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::Inspect
+    } // end of class <G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
     {
@@ -1293,8 +1293,8 @@ public static class Extensions
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99", symbol1.MetadataName);
+        AssertEx.Equal("Extensions.<G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99", symbol1.ToTestDisplayString());
     }
 
     [Fact]
@@ -1346,14 +1346,14 @@ public static class IntExt
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        .class nested public auto ansi abstract sealed specialname '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -1369,24 +1369,24 @@ public static class IntExt
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
-        } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+            } // end of method '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
+        } // end of class <M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
         // Methods
         .method public hidebysig static 
             class [mscorlib]System.Action DoSomething () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x20bc
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
     {
@@ -1470,8 +1470,8 @@ public static class IntExt
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.MetadataName);
-        AssertEx.Equal("IntExt.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.MetadataName);
+        AssertEx.Equal("IntExt.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
     }
 
     [Fact]
@@ -1523,14 +1523,14 @@ public static class IntExt
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        .class nested public auto ansi abstract sealed specialname '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -1546,24 +1546,24 @@ public static class IntExt
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
-        } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+            } // end of method '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
+        } // end of class <M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
         // Methods
         .method public hidebysig static 
             class [mscorlib]System.Action DoSomething () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x20ba
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
     {
@@ -1644,8 +1644,8 @@ public static class IntExt
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.MetadataName);
-        AssertEx.Equal("IntExt.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.MetadataName);
+        AssertEx.Equal("IntExt.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
     }
 
     [Fact]
@@ -1668,14 +1668,14 @@ public static class Extensions
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1701,14 +1701,14 @@ extension<T>(T) { }
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
+        AssertEx.Equal("<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
-        AssertEx.Equal("<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
+        AssertEx.Equal("<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1730,14 +1730,14 @@ public static class Extensions
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$38DD3033A2145E0D2274BCCB48D8434F", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("<M>$38DD3033A2145E0D2274BCCB48D8434F", symbol2.MetadataName);
+        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1758,14 +1758,14 @@ public static class Extensions
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$0F0A7F439039332917C923D7DF48FA4C", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$BCF902721DDD961E5243C324D8379E5C<T1>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("<M>$0F0A7F439039332917C923D7DF48FA4C", symbol2.MetadataName);
+        AssertEx.Equal("Extensions.<G>$BCF902721DDD961E5243C324D8379E5C<T1>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1797,8 +1797,8 @@ public static class Extensions
         var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol = model.GetDeclaredSymbol(extension);
         var sourceExtension = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        AssertEx.Equal("<Marker>$9B08A69343790083B512FC2D1C4929FC", symbol.MetadataName);
-        AssertEx.Equal("Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<T11>", symbol.ToTestDisplayString());
+        AssertEx.Equal("<M>$9B08A69343790083B512FC2D1C4929FC", symbol.MetadataName);
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T11>", symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -1826,14 +1826,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -1849,24 +1849,24 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method assembly hidebysig 
             instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x2069
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method assembly hidebysig static 
         void M (
@@ -1891,7 +1891,7 @@ public static class Extensions
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["M"], symbol.MemberNames);
         AssertEx.SequenceEqual(["", "M"], symbol.ContainingType.MemberNames);
-        AssertEx.Equal("void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", symbol.GetMember("M").ToTestDisplayString());
+        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", symbol.GetMember("M").ToTestDisplayString());
     }
 
     [Fact]
@@ -1917,7 +1917,7 @@ public static class Extensions
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(method);
-        AssertEx.Equal("void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(this System.Int32 i)", symbol.ToTestDisplayString());
+        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(this System.Int32 i)", symbol.ToTestDisplayString());
         Assert.True(symbol.IsExtensionMethod);
     }
 
@@ -1946,14 +1946,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -1969,24 +1969,24 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
-        } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
+            } // end of method '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
+        } // end of class <M>$C43E2675C7BBF9284AF22FB8A9BF0280
         // Methods
         .method private hidebysig static 
             void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
             // Method begins at RVA 0x2069
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method private hidebysig static 
         void M () cil managed 
@@ -2005,7 +2005,7 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["M"], symbol.MemberNames);
-        AssertEx.Equal("void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", symbol.GetMember("M").ToTestDisplayString());
+        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", symbol.GetMember("M").ToTestDisplayString());
     }
 
     [Fact]
@@ -2084,14 +2084,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -2107,51 +2107,51 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method private hidebysig specialname 
             instance int32 get_Property () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property
         .method private hidebysig specialname 
             instance void set_Property (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property
         // Properties
         .property instance int32 Property()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
-            .get instance int32 Extensions/'<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property()
-            .set instance void Extensions/'<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property(int32)
+            .get instance int32 Extensions/'<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property()
+            .set instance void Extensions/'<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property(int32)
         }
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method private hidebysig static 
         int32 get_Property (
@@ -2184,12 +2184,12 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["Property"], symbol.MemberNames);
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
 
         AssertEx.Equal([
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set"],
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
+            "void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set"],
             symbol.GetMembers().ToTestDisplayStrings());
     }
 
@@ -2217,13 +2217,13 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["Property"], symbol.MemberNames);
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
 
         AssertEx.Equal([
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Property>k__BackingField",
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set"],
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<Property>k__BackingField",
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
+            "void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set"],
             symbol.GetMembers().ToTestDisplayStrings());
     }
 
@@ -2275,14 +2275,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -2298,51 +2298,51 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
-        } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
+            } // end of method '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
+        } // end of class <M>$C43E2675C7BBF9284AF22FB8A9BF0280
         // Methods
         .method private hidebysig specialname static 
             int32 get_Property () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property
         .method private hidebysig specialname static 
             void set_Property (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property
         // Properties
         .property int32 Property()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
-            .get int32 Extensions/'<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property()
-            .set void Extensions/'<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property(int32)
+            .get int32 Extensions/'<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property()
+            .set void Extensions/'<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property(int32)
         }
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method private hidebysig static 
         int32 get_Property () cil managed 
@@ -2372,7 +2372,7 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["Property"], symbol.MemberNames);
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
     }
 
     [Fact]
@@ -2400,13 +2400,13 @@ public static class Extensions
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["Property"], symbol.MemberNames);
         AssertEx.SequenceEqual([
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Property>k__BackingField",
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set"],
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<Property>k__BackingField",
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }",
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.get",
+            "void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property.set"],
             symbol.GetMembers().ToTestDisplayStrings());
 
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
     }
 
     [Fact]
@@ -2433,12 +2433,12 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertEx.SequenceEqual(["this[]"], symbol.MemberNames);
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i] { get; set; }", symbol.GetMember("this[]").ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i] { get; set; }", symbol.GetMember("this[]").ToTestDisplayString());
 
         AssertEx.Equal([
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i] { get; set; }",
-            "System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i].get",
-            "void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i].set"],
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i] { get; set; }",
+            "System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i].get",
+            "void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.this[System.Int32 i].set"],
             symbol.GetMembers().ToTestDisplayStrings());
 
         var comp5 = CreateCompilation(src);
@@ -2504,9 +2504,9 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Empty(symbol.MemberNames);
-        AssertEx.SequenceEqual(["Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested"], symbol.GetMembers().ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested"], symbol.GetTypeMembers().ToTestDisplayStrings());
-        AssertEx.Equal("Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested", symbol.GetTypeMember("Nested").ToTestDisplayString());
+        AssertEx.SequenceEqual(["Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested"], symbol.GetTypeMembers().ToTestDisplayStrings());
+        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Nested", symbol.GetTypeMember("Nested").ToTestDisplayString());
     }
 
     [Fact]
@@ -2595,9 +2595,9 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         AssertEx.SequenceEqual([".ctor"], symbol.MemberNames);
-        AssertEx.SequenceEqual(["Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280..ctor()"], symbol.InstanceConstructors.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280..ctor()"], symbol.InstanceConstructors.ToTestDisplayStrings());
         Assert.Empty(symbol.StaticConstructors);
-        AssertEx.SequenceEqual(["Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280..ctor()"], symbol.Constructors.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280..ctor()"], symbol.Constructors.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2623,7 +2623,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         AssertEx.SequenceEqual(["Finalize"], symbol.MemberNames);
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Finalize()"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Finalize()"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2657,7 +2657,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         AssertEx.SequenceEqual(["field"], symbol.MemberNames);
-        AssertEx.SequenceEqual(["System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.field"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.field"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2683,7 +2683,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         AssertEx.SequenceEqual(["i"], symbol.MemberNames);
-        AssertEx.SequenceEqual(["System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.i"], symbol.GetMembers().ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.i"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -4471,14 +4471,14 @@ public static class Extensions
             IL_0006: ret
         } // end of method C::.ctor
     } // end of class C
-    .class nested public auto ansi sealed specialname '<Extension>$C3CD11E70DE99F353AE602995BB874BF'
+    .class nested public auto ansi sealed specialname '<G>$C3CD11E70DE99F353AE602995BB874BF'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$4D270477BCDFAB12B9E9B1A79213B9FB'
+        .class nested public auto ansi abstract sealed specialname '<M>$4D270477BCDFAB12B9E9B1A79213B9FB'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -4494,9 +4494,9 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$4D270477BCDFAB12B9E9B1A79213B9FB'::'<Extension>$'
-        } // end of class <Marker>$4D270477BCDFAB12B9E9B1A79213B9FB
-    } // end of class <Extension>$C3CD11E70DE99F353AE602995BB874BF
+            } // end of method '<M>$4D270477BCDFAB12B9E9B1A79213B9FB'::'<Extension>$'
+        } // end of class <M>$4D270477BCDFAB12B9E9B1A79213B9FB
+    } // end of class <G>$C3CD11E70DE99F353AE602995BB874BF
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -4826,7 +4826,7 @@ public static class Extensions
         comp.VerifyEmitDiagnostics();
 
         var verifier = CompileAndVerify(comp);
-        verifier.VerifyIL("Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", """
+        verifier.VerifyIL("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", """
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -5120,14 +5120,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -5143,26 +5143,26 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method assembly hidebysig 
             instance void M (
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x2077
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method assembly hidebysig static 
         void M (
@@ -5253,14 +5253,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -5276,26 +5276,26 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method public hidebysig 
             instance string M (
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x207b
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         string M (
@@ -5390,7 +5390,7 @@ static class Extensions
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
 
-        comp2 = CreateCompilationWithIL(src2, expectedTypeIL + ExtensionMarkerNameAttributeIL, options: TestOptions.DebugExe);
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL + ExtensionMarkerAttributeIL, options: TestOptions.DebugExe);
         CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         var remove = """
@@ -5399,7 +5399,7 @@ static class Extensions
     )
 """;
 
-        comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerNameAttributeIL);
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerAttributeIL);
         comp2.VerifyDiagnostics(
             // (11,18): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
             //         return o.M("2");
@@ -5636,14 +5636,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -5659,26 +5659,26 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method public hidebysig 
             instance string M (
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x20ab
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.ValueType
     {
@@ -5830,14 +5830,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -5853,26 +5853,26 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method public hidebysig 
             instance string M (
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x208c
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
     {
@@ -6032,14 +6032,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -6055,26 +6055,26 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method public hidebysig 
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x207e
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.Object
         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<string>,
@@ -6447,14 +6447,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -6470,26 +6470,26 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method public hidebysig 
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M (
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x20b3
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.ValueType
         implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
@@ -6761,14 +6761,14 @@ public class C<T>(string v)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -6784,8 +6784,8 @@ public class C<T>(string v)
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
-        } // end of class <Marker>$D884D1E13988E83801B7574694E1C2C5
+            } // end of method '<M>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
+        } // end of class <M>$D884D1E13988E83801B7574694E1C2C5
         // Methods
         .method public hidebysig 
             instance string M<U> (
@@ -6793,18 +6793,18 @@ public class C<T>(string v)
                 !!U u
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 38 38 34
-                44 31 45 31 33 39 38 38 45 38 33 38 30 31 42 37
-                35 37 34 36 39 34 45 31 43 32 43 35 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 38 38 34 44 31 45 31 33
+                39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
+                34 45 31 43 32 43 35 00 00
             )
             // Method begins at RVA 0x20a5
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
     // Methods
     .method public hidebysig static 
         string M<T, U> (
@@ -7016,14 +7016,14 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -7039,8 +7039,8 @@ public class C<T>(string val)
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
-        } // end of class <Marker>$D884D1E13988E83801B7574694E1C2C5
+            } // end of method '<M>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
+        } // end of class <M>$D884D1E13988E83801B7574694E1C2C5
         // Methods
         .method public hidebysig 
             instance class C`1<!!U> M<U> (
@@ -7048,18 +7048,18 @@ public class C<T>(string val)
                 !!U u1
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 38 38 34
-                44 31 45 31 33 39 38 38 45 38 33 38 30 31 42 37
-                35 37 34 36 39 34 45 31 43 32 43 35 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 38 38 34 44 31 45 31 33
+                39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
+                34 45 31 43 32 43 35 00 00
             )
             // Method begins at RVA 0x216d
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.ValueType
     {
@@ -7305,14 +7305,14 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -7328,8 +7328,8 @@ public class C<T>(string val)
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
-        } // end of class <Marker>$D884D1E13988E83801B7574694E1C2C5
+            } // end of method '<M>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
+        } // end of class <M>$D884D1E13988E83801B7574694E1C2C5
         // Methods
         .method public hidebysig 
             instance class C`1<!!U> M<U> (
@@ -7337,18 +7337,18 @@ public class C<T>(string val)
                 !!U u1
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 38 38 34
-                44 31 45 31 33 39 38 38 45 38 33 38 30 31 42 37
-                35 37 34 36 39 34 45 31 43 32 43 35 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 38 38 34 44 31 45 31 33
+                39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
+                34 45 31 43 32 43 35 00 00
             )
             // Method begins at RVA 0x20c4
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.Object
     {
@@ -7578,14 +7578,14 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -7601,8 +7601,8 @@ public class C<T>(string val)
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
-        } // end of class <Marker>$D884D1E13988E83801B7574694E1C2C5
+            } // end of method '<M>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
+        } // end of class <M>$D884D1E13988E83801B7574694E1C2C5
         // Methods
         .method public hidebysig 
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M<U> (
@@ -7610,18 +7610,18 @@ public class C<T>(string val)
                 !!U u1
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 38 38 34
-                44 31 45 31 33 39 38 38 45 38 33 38 30 31 42 37
-                35 37 34 36 39 34 45 31 43 32 43 35 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 38 38 34 44 31 45 31 33
+                39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
+                34 45 31 43 32 43 35 00 00
             )
             // Method begins at RVA 0x209c
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
     .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
         extends [mscorlib]System.Object
         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<string>,
@@ -7981,14 +7981,14 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D884D1E13988E83801B7574694E1C2C5'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D884D1E13988E83801B7574694E1C2C5'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -8004,8 +8004,8 @@ public class C<T>(string val)
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
-        } // end of class <Marker>$D884D1E13988E83801B7574694E1C2C5
+            } // end of method '<M>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
+        } // end of class <M>$D884D1E13988E83801B7574694E1C2C5
         // Methods
         .method public hidebysig 
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M<U> (
@@ -8013,18 +8013,18 @@ public class C<T>(string val)
                 !!U u1
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 38 38 34
-                44 31 45 31 33 39 38 38 45 38 33 38 30 31 42 37
-                35 37 34 36 39 34 45 31 43 32 43 35 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 38 38 34 44 31 45 31 33
+                39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
+                34 45 31 43 32 43 35 00 00
             )
             // Method begins at RVA 0x20d2
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
     .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
         extends [mscorlib]System.ValueType
         implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
@@ -8312,14 +8312,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<M>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -8335,8 +8335,8 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
-        } // end of class <Marker>$3D34838CB2C73A4E406AE3905787D97D
+            } // end of method '<M>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
+        } // end of class <M>$3D34838CB2C73A4E406AE3905787D97D
         // Methods
         .method public hidebysig static 
             string M (
@@ -8344,18 +8344,18 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 33 44 33 34
-                38 33 38 43 42 32 43 37 33 41 34 45 34 30 36 41
-                45 33 39 30 35 37 38 37 44 39 37 44 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 33 34 38 33 38 43 42
+                32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
+                37 38 37 44 39 37 44 00 00
             )
             // Method begins at RVA 0x207b
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         string M (
@@ -8451,7 +8451,7 @@ static class Extensions
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
 
-        comp2 = CreateCompilationWithIL(src2, expectedTypeIL + ExtensionMarkerNameAttributeIL, options: TestOptions.DebugExe);
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL + ExtensionMarkerAttributeIL, options: TestOptions.DebugExe);
         CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         var remove = """
@@ -8460,7 +8460,7 @@ static class Extensions
     )
 """;
 
-        comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerNameAttributeIL);
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerAttributeIL);
         comp2.VerifyDiagnostics(
             // (11,23): error CS0117: 'object' does not contain a definition for 'M'
             //         return object.M(o, "2");
@@ -8807,14 +8807,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<M>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -8830,8 +8830,8 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
-        } // end of class <Marker>$3D34838CB2C73A4E406AE3905787D97D
+            } // end of method '<M>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
+        } // end of class <M>$3D34838CB2C73A4E406AE3905787D97D
         // Methods
         .method public hidebysig static 
             string M (
@@ -8839,18 +8839,18 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 33 44 33 34
-                38 33 38 43 42 32 43 37 33 41 34 45 34 30 36 41
-                45 33 39 30 35 37 38 37 44 39 37 44 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 33 34 38 33 38 43 42
+                32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
+                37 38 37 44 39 37 44 00 00
             )
             // Method begins at RVA 0x20ab
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.ValueType
     {
@@ -8940,13 +8940,13 @@ public static class Extensions
             var extensions = container.GetTypeMembers();
 
             AssertEx.Equal("System.Object _", extensions[0].ExtensionParameter.ToTestDisplayString());
-            AssertEx.Equal("<Marker>$3D34838CB2C73A4E406AE3905787D97D", extensions[0].MetadataName);
+            AssertEx.Equal("<M>$3D34838CB2C73A4E406AE3905787D97D", extensions[0].MetadataName);
             Symbol m1 = extensions[0].GetMembers().Single();
             AssertEx.Equal("Extensions.extension(object).M(object, string)", m1.ToDisplayString());
             AssertEx.Equal([], m1.GetAttributes());
 
             AssertEx.Equal("System.Object value", extensions[1].ExtensionParameter.ToTestDisplayString());
-            AssertEx.Equal("<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280", extensions[1].MetadataName);
+            AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", extensions[1].MetadataName);
             Symbol m2 = extensions[1].GetMembers().Single();
             AssertEx.Equal("Extensions.extension(object).M(object, string, int)", m2.ToDisplayString());
             AssertEx.Equal([], m2.GetAttributes());
@@ -8959,14 +8959,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<M>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -8982,9 +8982,9 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
-        } // end of class <Marker>$3D34838CB2C73A4E406AE3905787D97D
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+            } // end of method '<M>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
+        } // end of class <M>$3D34838CB2C73A4E406AE3905787D97D
+        .class nested public auto ansi abstract sealed specialname '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -9000,8 +9000,8 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
-        } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
+            } // end of method '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
+        } // end of class <M>$C43E2675C7BBF9284AF22FB8A9BF0280
         // Methods
         .method public hidebysig static 
             string M (
@@ -9009,17 +9009,17 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 33 44 33 34
-                38 33 38 43 42 32 43 37 33 41 34 45 34 30 36 41
-                45 33 39 30 35 37 38 37 44 39 37 44 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 33 34 38 33 38 43 42
+                32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
+                37 38 37 44 39 37 44 00 00
             )
             // Method begins at RVA 0x20ee
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
         .method public hidebysig static 
             string M (
                 object o,
@@ -9027,18 +9027,18 @@ public static class Extensions
                 int32 x
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
             // Method begins at RVA 0x20ee
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.ValueType
     {
@@ -9219,14 +9219,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<M>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -9242,8 +9242,8 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
-        } // end of class <Marker>$3D34838CB2C73A4E406AE3905787D97D
+            } // end of method '<M>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
+        } // end of class <M>$3D34838CB2C73A4E406AE3905787D97D
         // Methods
         .method public hidebysig static 
             string M (
@@ -9251,18 +9251,18 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 33 44 33 34
-                38 33 38 43 42 32 43 37 33 41 34 45 34 30 36 41
-                45 33 39 30 35 37 38 37 44 39 37 44 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 33 34 38 33 38 43 42
+                32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
+                37 38 37 44 39 37 44 00 00
             )
             // Method begins at RVA 0x208c
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
     {
@@ -9419,14 +9419,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<M>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -9442,8 +9442,8 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
-        } // end of class <Marker>$3D34838CB2C73A4E406AE3905787D97D
+            } // end of method '<M>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
+        } // end of class <M>$3D34838CB2C73A4E406AE3905787D97D
         // Methods
         .method public hidebysig static 
             class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
@@ -9451,18 +9451,18 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 33 44 33 34
-                38 33 38 43 42 32 43 37 33 41 34 45 34 30 36 41
-                45 33 39 30 35 37 38 37 44 39 37 44 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 33 34 38 33 38 43 42
+                32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
+                37 38 37 44 39 37 44 00 00
             )
             // Method begins at RVA 0x207e
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.Object
         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<string>,
@@ -9798,14 +9798,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$3D34838CB2C73A4E406AE3905787D97D'
+        .class nested public auto ansi abstract sealed specialname '<M>$3D34838CB2C73A4E406AE3905787D97D'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -9821,8 +9821,8 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
-        } // end of class <Marker>$3D34838CB2C73A4E406AE3905787D97D
+            } // end of method '<M>$3D34838CB2C73A4E406AE3905787D97D'::'<Extension>$'
+        } // end of class <M>$3D34838CB2C73A4E406AE3905787D97D
         // Methods
         .method public hidebysig static 
             class [mscorlib]System.Threading.Tasks.Task`1<string> M (
@@ -9830,18 +9830,18 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 33 44 33 34
-                38 33 38 43 42 32 43 37 33 41 34 45 34 30 36 41
-                45 33 39 30 35 37 38 37 44 39 37 44 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 33 34 38 33 38 43 42
+                32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
+                37 38 37 44 39 37 44 00 00
             )
             // Method begins at RVA 0x20b3
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.ValueType
         implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
@@ -10102,14 +10102,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -10125,34 +10125,34 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method public hidebysig specialname 
             instance string get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
         // Properties
         .property instance string P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
-            .get instance string Extensions/'<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P()
+            .get instance string Extensions/'<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P()
         }
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         string get_P (
@@ -10235,7 +10235,7 @@ static class Extensions
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2(object)", m2IL);
 
-        comp3 = CreateCompilationWithIL(src3, expectedTypeIL + ExtensionMarkerNameAttributeIL, options: TestOptions.DebugExe);
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL + ExtensionMarkerAttributeIL, options: TestOptions.DebugExe);
         CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         var remove = """
@@ -10244,7 +10244,7 @@ static class Extensions
     )
 """;
 
-        comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerNameAttributeIL);
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerAttributeIL);
         comp3.VerifyDiagnostics(
             // (11,18): error CS1061: 'object' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
             //         return o.P;
@@ -10410,14 +10410,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -10433,34 +10433,34 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
-        } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
+            } // end of method '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
+        } // end of class <M>$C43E2675C7BBF9284AF22FB8A9BF0280
         // Methods
         .method public hidebysig specialname static 
             string get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
             // Method begins at RVA 0x206e
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
         // Properties
         .property string P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
-            .get string Extensions/'<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P()
+            .get string Extensions/'<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P()
         }
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         string get_P () cil managed 
@@ -10538,7 +10538,7 @@ static class Extensions
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2()", m2IL);
 
-        comp3 = CreateCompilationWithIL(src3, expectedTypeIL + ExtensionMarkerNameAttributeIL, options: TestOptions.DebugExe);
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL + ExtensionMarkerAttributeIL, options: TestOptions.DebugExe);
         CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
 
         var remove = """
@@ -10547,7 +10547,7 @@ static class Extensions
     )
 """;
 
-        comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerNameAttributeIL);
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length) + ExtensionMarkerAttributeIL);
         comp3.VerifyDiagnostics(
             // (11,23): error CS0117: 'object' does not contain a definition for 'P'
             //         return object.P;
@@ -10640,14 +10640,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -10663,34 +10663,34 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method public hidebysig specialname 
             instance string get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
         // Properties
         .property instance string P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
-            .get instance string Extensions/'<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P()
+            .get instance string Extensions/'<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P()
         }
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         string get_P (
@@ -10808,14 +10808,14 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -10831,24 +10831,24 @@ class C1
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
-        } // end of class <Marker>$D3EAC011D93395A3E50DF069CE627102
+            } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
+        } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
         .method public hidebysig 
             instance void M2<U> () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 33 45 41
-                43 30 31 31 44 39 33 33 39 35 41 33 45 35 30 44
-                46 30 36 39 43 45 36 32 37 31 30 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
+                39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
+                45 36 32 37 31 30 32 00 00
             )
             // Method begins at RVA 0x20e7
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
     .class nested private auto ansi abstract sealed beforefieldinit '<local>O__1_0`3'<T, U, V>
         extends [mscorlib]System.Object
     {
@@ -10973,14 +10973,14 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -10996,24 +10996,24 @@ class C1
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
-        } // end of class <Marker>$D3EAC011D93395A3E50DF069CE627102
+            } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
+        } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
         .method public hidebysig 
             instance void M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 33 45 41
-                43 30 31 31 44 39 33 33 39 35 41 33 45 35 30 44
-                46 30 36 39 43 45 36 32 37 31 30 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
+                39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
+                45 36 32 37 31 30 32 00 00
             )
             // Method begins at RVA 0x20b2
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
     {
@@ -11134,14 +11134,14 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -11157,24 +11157,24 @@ class C1
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method private hidebysig 
             instance void M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x208e
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
         extends [mscorlib]System.Object
     {
@@ -11288,14 +11288,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -11311,24 +11311,24 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
-        } // end of class <Marker>$D3EAC011D93395A3E50DF069CE627102
+            } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
+        } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
         .method private hidebysig 
             instance class [mscorlib]System.Action M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 33 45 41
-                43 30 31 31 44 39 33 33 39 35 41 33 45 35 30 44
-                46 30 36 39 43 45 36 32 37 31 30 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
+                39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
+                45 36 32 37 31 30 32 00 00
             )
             // Method begins at RVA 0x2096
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
     {
@@ -11444,14 +11444,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -11467,24 +11467,24 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method private hidebysig 
             instance class [mscorlib]System.Action M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x2096
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
         extends [mscorlib]System.Object
     {
@@ -11607,14 +11607,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -11630,24 +11630,24 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
-        } // end of class <Marker>$D3EAC011D93395A3E50DF069CE627102
+            } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
+        } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
         .method public hidebysig 
             instance void M2<U> () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 33 45 41
-                43 30 31 31 44 39 33 33 39 35 41 33 45 35 30 44
-                46 30 36 39 43 45 36 32 37 31 30 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
+                39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
+                45 36 32 37 31 30 32 00 00
             )
             // Method begins at RVA 0x2152
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__0|1`3'<T, U, V>
         extends [mscorlib]System.Object
     {
@@ -11814,14 +11814,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$D3EAC011D93395A3E50DF069CE627102'<T>
+        .class nested public auto ansi abstract sealed specialname '<M>$D3EAC011D93395A3E50DF069CE627102'<T>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -11837,24 +11837,24 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
-        } // end of class <Marker>$D3EAC011D93395A3E50DF069CE627102
+            } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
+        } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
         .method public hidebysig 
             instance void M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 44 33 45 41
-                43 30 31 31 44 39 33 33 39 35 41 33 45 35 30 44
-                46 30 36 39 43 45 36 32 37 31 30 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
+                39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
+                45 36 32 37 31 30 32 00 00
             )
             // Method begins at RVA 0x20d4
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <Extension>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1`1'<T>
         extends [mscorlib]System.Object
     {
@@ -11991,14 +11991,14 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$119AA281C143547563250CAF89B48A76'
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -12014,24 +12014,24 @@ public static class Extensions
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
-        } // end of class <Marker>$119AA281C143547563250CAF89B48A76
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
         // Methods
         .method private hidebysig 
             instance void M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 31 39 41
-                41 32 38 31 43 31 34 33 35 34 37 35 36 33 32 35
-                30 43 41 46 38 39 42 34 38 41 37 36 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
             )
             // Method begins at RVA 0x20c9
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1'
         extends [mscorlib]System.Object
     {
@@ -12151,7 +12151,7 @@ public static class Extensions
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
-        AssertEx.Equal("void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -12183,8 +12183,8 @@ public static class Extensions
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         src = """
 new object().M();
@@ -12239,12 +12239,12 @@ public static class E2
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
-        AssertEx.Equal("void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         src = """
 new object().M();
@@ -12292,10 +12292,10 @@ public static class Extensions
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
-        AssertEx.Equal("void Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void Extensions.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void Extensions.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12330,13 +12330,13 @@ public static class Extensions
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
 
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "int.M()");
-        AssertEx.Equal("void Extensions.<Extension>$BCF902721DDD961E5243C324D8379E5C<System.Int32>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void Extensions.<G>$BCF902721DDD961E5243C324D8379E5C<System.Int32>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.SequenceEqual(["void Extensions.<Extension>$BCF902721DDD961E5243C324D8379E5C<System.Int32>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void Extensions.<G>$BCF902721DDD961E5243C324D8379E5C<System.Int32>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12363,11 +12363,11 @@ public static class E
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
-        AssertEx.Equal("System.Int32 E.<Extension>$BCF902721DDD961E5243C324D8379E5C<T>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$BCF902721DDD961E5243C324D8379E5C<T>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
-        AssertEx.Equal("System.Int32 E.<Extension>$BCF902721DDD961E5243C324D8379E5C<System.Int32>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$BCF902721DDD961E5243C324D8379E5C<System.Int32>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -12542,7 +12542,7 @@ using N2;
 
 {{eSrc}}
 """;
-        verify(src1, "N2.E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280");
+        verify(src1, "N2.E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280");
 
         var src2 = $$"""
 using N2;
@@ -12575,7 +12575,7 @@ namespace N3
     {{eSrc}}
 }
 """;
-        verify(src3, "N3.N2.E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280");
+        verify(src3, "N3.N2.E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280");
 
         void verify(string src, string extensionName)
         {
@@ -12626,8 +12626,8 @@ namespace N
         var model = comp.GetSemanticModel(tree);
 
         var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Method");
-        AssertEx.Equal("void N.E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void N.E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()"], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+        AssertEx.Equal("void N.E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void N.E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()"], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         src = """
 using N;
@@ -12732,18 +12732,18 @@ static class E2
         var model = comp.GetSemanticModel(tree);
 
         var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(42)");
-        AssertEx.Equal("void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation1));
 
         var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """new object().Method("hello")""");
-        AssertEx.Equal("void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation2));
 
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").First();
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").Last();
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12788,18 +12788,18 @@ namespace N1
         var model = comp.GetSemanticModel(tree);
 
         var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(42)");
-        AssertEx.Equal("void N1.E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation1));
 
         var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """new object().Method("hello")""");
-        AssertEx.Equal("void N1.N2.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N1.N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation2));
 
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").First();
-        AssertEx.SequenceEqual(["void N1.N2.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", "void N1.E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void N1.N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", "void N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").Last();
-        AssertEx.SequenceEqual(["void N1.N2.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", "void N1.E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void N1.N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", "void N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12838,19 +12838,19 @@ namespace N2
         var model = comp.GetSemanticModel(tree);
 
         var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(42)");
-        AssertEx.Equal("void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation1));
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void N2.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(invocation1.Expression).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(invocation1.Expression).ToTestDisplayStrings());
 
         var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """new object().Method("hello")""");
-        AssertEx.Equal("void N2.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation2));
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void N2.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(invocation2.Expression).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(invocation2.Expression).ToTestDisplayStrings());
 
         var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(default)");
-        AssertEx.Equal("void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation3));
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void N2.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(invocation3.Expression).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.String s)"], model.GetMemberGroup(invocation3.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12876,12 +12876,12 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new Derived().M()");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation));
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new Derived().M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12907,12 +12907,12 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M()");
-        AssertEx.Equal("void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation));
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12939,12 +12939,12 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M()");
-        AssertEx.Equal("void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation));
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12975,11 +12975,11 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "t.M()");
-        AssertEx.Equal("void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M");
-        AssertEx.Equal("void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$3EADBD08A82F6ABA9495623CB335729C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$3EADBD08A82F6ABA9495623CB335729C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13046,10 +13046,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "t.M2()");
-        AssertEx.Equal("void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<T>.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<T>.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M2");
-        AssertEx.SequenceEqual(["void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<T>.M2()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<T>.M2()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13088,10 +13088,10 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "t.M2()");
-        AssertEx.Equal("void E2.<Extension>$66F77D1E46F965A5B22D4932892FA78B<T>.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M2");
-        AssertEx.SequenceEqual(["void E2.<Extension>$66F77D1E46F965A5B22D4932892FA78B<T>.M2()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E2.<G>$66F77D1E46F965A5B22D4932892FA78B<T>.M2()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13149,9 +13149,9 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M()");
-        AssertEx.Equal("void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
-        AssertEx.SequenceEqual(["void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13183,7 +13183,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int>().M<string>");
-        AssertEx.SequenceEqual(["void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13209,10 +13209,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<int, string>()");
-        AssertEx.Equal("void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<System.String>()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<System.String>()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
-        AssertEx.SequenceEqual(["void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<System.String>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<System.String>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13246,7 +13246,7 @@ static class E
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
-        AssertEx.SequenceEqual(["void E.<Extension>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U, V>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U, V>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13394,7 +13394,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new Alias().M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -13427,7 +13427,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Object o1)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Object o1)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13455,8 +13455,8 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<dynamic>().M");
-        AssertEx.Equal("void E.<Extension>$BCD00C90E683E728071BA88912DD74BD.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$BCD00C90E683E728071BA88912DD74BD.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$BCD00C90E683E728071BA88912DD74BD.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$BCD00C90E683E728071BA88912DD74BD.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13485,8 +13485,8 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new D().M");
-        AssertEx.Equal("void E.<Extension>$BCD00C90E683E728071BA88912DD74BD.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$BCD00C90E683E728071BA88912DD74BD.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$BCD00C90E683E728071BA88912DD74BD.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$BCD00C90E683E728071BA88912DD74BD.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13515,7 +13515,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new D().M");
-        AssertEx.SequenceEqual(["void E.<Extension>$2B406085AC5EBECC11B16BCD2A24DF4E.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$2B406085AC5EBECC11B16BCD2A24DF4E.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13542,13 +13542,13 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<(int a, int b)>().M");
-        AssertEx.SequenceEqual(["void E.<Extension>$F9AFEE2D1546C3A2A4599051616A8F6D.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$F9AFEE2D1546C3A2A4599051616A8F6D.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<(int, int)>().M");
-        AssertEx.SequenceEqual(["void E.<Extension>$F9AFEE2D1546C3A2A4599051616A8F6D.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$F9AFEE2D1546C3A2A4599051616A8F6D.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<(int other, int)>().M");
-        AssertEx.SequenceEqual(["void E.<Extension>$F9AFEE2D1546C3A2A4599051616A8F6D.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$F9AFEE2D1546C3A2A4599051616A8F6D.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         src = """
 new C<(int a, int b)>().M();
@@ -13640,7 +13640,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13663,7 +13663,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "E.M");
-        AssertEx.SequenceEqual(["void E.M(this System.Object o)", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.M(this System.Object o)", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13691,7 +13691,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13780,8 +13780,8 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13813,8 +13813,8 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14150,8 +14150,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void C.M()", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void C.M()", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14194,8 +14194,8 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("void N.E2.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void C.M()", "void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)", "void N.E2.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void N.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void C.M()", "void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)", "void N.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14232,7 +14232,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void C.M()", "void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void C.M()", "void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14269,7 +14269,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void C.M()", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void C.M()", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14306,7 +14306,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         AssertEx.Equal("void C.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void C.M()", "void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)", "void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Char c1)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void C.M()", "void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)", "void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Char c1)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14374,8 +14374,8 @@ static class E1
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 b)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void C.M(System.Int32 a)", "void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 b)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 b)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void C.M(System.Int32 a)", "void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 b)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14414,7 +14414,7 @@ public static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         AssertEx.Equal("void C.M(System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-        AssertEx.SequenceEqual(["void C.M(System.Int32 a)", "void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 b)", "void C.M(System.Int32 c)"],
+        AssertEx.SequenceEqual(["void C.M(System.Int32 a)", "void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 b)", "void C.M(System.Int32 c)"],
             model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
@@ -14438,7 +14438,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 b, System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 b, System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -14490,7 +14490,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(ref System.Int32 b, out System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(ref System.Int32 b, out System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -14525,8 +14525,8 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("System.Int32 E2.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["System.Int32 E1.<Extension>$76A32DFFBBF61DFEA0C27B13F12F6EFB.M(System.Int32 i)", "System.Int32 E2.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("System.Int32 E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["System.Int32 E1.<G>$76A32DFFBBF61DFEA0C27B13F12F6EFB.M(System.Int32 i)", "System.Int32 E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         source = """
 System.Console.Write(new C().M(42));
@@ -14575,8 +14575,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14607,8 +14607,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object, object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14637,8 +14637,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<>");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<?>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<?>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<?>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<?>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14667,8 +14667,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Int32>(System.Int32 t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(T t)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Int32>(System.Int32 t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(T t)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14698,7 +14698,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         source = """
 C.Method();
@@ -14744,7 +14744,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14854,7 +14854,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
-        AssertEx.Equal("void E.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$2404CFB602D7DEE90BDDEF217EC37C58.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -14968,7 +14968,7 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Member");
-        AssertEx.Equal("void N.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15035,7 +15035,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<(string, string)>.Nested<(int, int)>().M");
-        AssertEx.Equal("System.String E.<Extension>$FD79C355D693194B747A629F6876929C<System.String, System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$FD79C355D693194B747A629F6876929C<System.String, System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15069,7 +15069,7 @@ unsafe static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<long*[]>.Nested<int*[]>().M");
-        AssertEx.Equal("System.String E.<Extension>$C781704B647A2CCC8FD47AE9790BA08B<System.Int64, System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C781704B647A2CCC8FD47AE9790BA08B<System.Int64, System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15147,7 +15147,7 @@ unsafe static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<delegate*<int>[]>.Nested<delegate*<long>[]>().M");
-        AssertEx.Equal("System.String E.<Extension>$5F3142482E98DE8C6B0C70A682DD0496<System.Int32, System.Int64>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$5F3142482E98DE8C6B0C70A682DD0496<System.Int32, System.Int64>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15174,7 +15174,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int>().M");
-        AssertEx.Equal("System.String E.<Extension>$74EBC78B2187AB07A25EEFC1322000B0<System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15202,7 +15202,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int>().M");
-        AssertEx.Equal("System.String E.<Extension>$5D7EC0FD2C9001515B0ADE0CEE121AB0<System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$5D7EC0FD2C9001515B0ADE0CEE121AB0<System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15229,7 +15229,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int, string>().M");
-        AssertEx.Equal("System.String E.<Extension>$414BE9969A3DFDFF167B842681736663<System.String, System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$414BE9969A3DFDFF167B842681736663<System.String, System.Int32>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15291,8 +15291,8 @@ namespace Inner
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
-        AssertEx.Equal("void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15376,11 +15376,11 @@ new object().M();
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         if (e1BeforeE2)
         {
-            AssertEx.SequenceEqual(["System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.SequenceEqual(["System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
         else
         {
-            AssertEx.SequenceEqual(["System.String E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.SequenceEqual(["System.String E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
     }
 
@@ -15493,9 +15493,9 @@ public interface I<out T> { }
         AssertEx.SequenceEqual(["void I<System.String>.M<System.String>(out System.String t)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M2");
-        AssertEx.Equal("void E2.<Extension>$74EBC78B2187AB07A25EEFC1322000B0<System.Object>.M2(out System.Object t)", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.Object>.M2(out System.Object t)", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E2.<Extension>$74EBC78B2187AB07A25EEFC1322000B0<System.String>.M2(out System.String t)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E2.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.String>.M2(out System.String t)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15524,11 +15524,11 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
-        AssertEx.Equal("void E.<Extension>$977919F21861BE18BA139544085CA0BD.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$977919F21861BE18BA139544085CA0BD.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$977919F21861BE18BA139544085CA0BD.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$977919F21861BE18BA139544085CA0BD.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.P");
-        AssertEx.Equal("System.Int32 E.<Extension>$977919F21861BE18BA139544085CA0BD.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$977919F21861BE18BA139544085CA0BD.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         src = """
 using System.Collections.Generic;
@@ -15581,8 +15581,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15608,8 +15608,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15912,7 +15912,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I<object, string>.M");
-        AssertEx.Equal("void E.<Extension>$B135BA58FDFC6D88E9886008265BE41B<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$B135BA58FDFC6D88E9886008265BE41B<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15938,7 +15938,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I<object, string>.M");
-        AssertEx.Equal("void E.<Extension>$B135BA58FDFC6D88E9886008265BE41B<System.String>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$B135BA58FDFC6D88E9886008265BE41B<System.String>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16080,7 +16080,7 @@ namespace N
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Container.M");
-        AssertEx.Equal("void N.E2.<Extension>$8048A6C8BE30A622530249B904B537EB<Container>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N.E2.<G>$8048A6C8BE30A622530249B904B537EB<Container>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         src = """
@@ -16130,7 +16130,7 @@ namespace N
         tree = comp.SyntaxTrees.Single();
         model = comp.GetSemanticModel(tree);
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Container.M");
-        AssertEx.Equal("void N.E2.<Extension>$8048A6C8BE30A622530249B904B537EB<Container>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N.E2.<G>$8048A6C8BE30A622530249B904B537EB<Container>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         src = """
@@ -16216,7 +16216,7 @@ public static class Extensions
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().P");
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -16243,7 +16243,7 @@ public static class Extensions
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().P");
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -16273,7 +16273,7 @@ public static class Extensions
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
 
-        AssertEx.SequenceEqual(["System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16296,7 +16296,7 @@ public static class Extensions
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().P");
-        AssertEx.Equal("System.Action Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Action Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
@@ -16321,7 +16321,7 @@ public static class Extensions
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "object.M()");
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -16348,8 +16348,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<object>");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Theory, CombinatorialData]
@@ -16421,7 +16421,7 @@ public static class Extensions
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().P");
-        AssertEx.Equal("System.Int32 Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -16452,8 +16452,8 @@ static class E
         Assert.Null(model.GetSymbolInfo(memberAccess[0]).Symbol);
         Assert.Null(model.GetSymbolInfo(memberAccess[1]).Symbol);
 
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16478,8 +16478,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.StaticProperty").ToArray();
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16505,7 +16505,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticProperty");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         AssertEx.Equal("System.Int32", model.GetTypeInfo(memberAccess).Type.ToTestDisplayString());
         AssertEx.Equal("System.Int64", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
@@ -16533,8 +16533,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.StaticProperty").ToArray();
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
 
         AssertEx.Equal("System.Int32", model.GetTypeInfo(memberAccess[0]).Type.ToTestDisplayString());
         AssertEx.Equal("System.Int32", model.GetTypeInfo(memberAccess[0]).ConvertedType.ToTestDisplayString());
@@ -16636,7 +16636,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticProperty");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         AssertEx.Equal("System.Int32", model.GetTypeInfo(memberAccess).Type.ToTestDisplayString());
         AssertEx.Equal("System.Int32", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
@@ -16754,7 +16754,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         AssertEx.Equal("System.Int32", model.GetTypeInfo(memberAccess).Type.ToTestDisplayString());
         AssertEx.Equal("System.Int32", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
@@ -16781,8 +16781,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.StaticProperty").ToArray();
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16806,7 +16806,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticProperty");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.StaticProperty { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16830,7 +16830,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("(System.Int32, System.Int32) E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("(System.Int32, System.Int32) E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16855,7 +16855,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("(System.Int32, System.Int32) E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("(System.Int32, System.Int32) E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16878,8 +16878,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.M").ToArray();
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -16903,7 +16903,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17140,7 +17140,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17170,9 +17170,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.OverloadResolutionFailure, model.GetSymbolInfo(memberAccess).CandidateReason);
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -17201,7 +17201,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17224,7 +17224,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17248,7 +17248,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberBinding = GetSyntax<MemberBindingExpressionSyntax>(tree, ".M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17273,7 +17273,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberBinding = GetSyntax<MemberBindingExpressionSyntax>(tree, ".M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17297,7 +17297,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17322,7 +17322,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17351,8 +17351,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.M").ToArray();
-        AssertEx.Equal("C E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
-        AssertEx.Equal("C E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("C E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("C E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
 
         var binaryOp = GetSyntax<BinaryExpressionSyntax>(tree, "object.M + object.M");
         AssertEx.Equal("System.Int32 C.op_Addition(C c1, C c2)", model.GetSymbolInfo(binaryOp).Symbol.ToTestDisplayString());
@@ -17384,8 +17384,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.M").ToArray();
-        AssertEx.Equal("C E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
-        AssertEx.Equal("C E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("C E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[0]).Symbol.ToTestDisplayString());
+        AssertEx.Equal("C E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess[1]).Symbol.ToTestDisplayString());
 
         var binaryOp = GetSyntax<BinaryExpressionSyntax>(tree, "object.M + object.M");
         Assert.Null(model.GetSymbolInfo(binaryOp).Symbol);
@@ -17413,7 +17413,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         var unaryOp = GetSyntax<PostfixUnaryExpressionSyntax>(tree, "object.M++");
         AssertEx.Equal("System.Int32 System.Int32.op_Increment(System.Int32 value)", model.GetSymbolInfo(unaryOp).Symbol.ToTestDisplayString());
@@ -17441,7 +17441,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Boolean E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Boolean E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         var unaryOp = GetSyntax<PrefixUnaryExpressionSyntax>(tree, "!object.M");
         AssertEx.Equal("System.Boolean System.Boolean.op_LogicalNot(System.Boolean value)",
@@ -17470,10 +17470,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17497,10 +17497,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17530,7 +17530,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17675,10 +17675,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17702,7 +17702,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17738,10 +17738,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17786,10 +17786,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17819,7 +17819,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Exception E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Exception E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17847,7 +17847,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17875,7 +17875,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.M").First();
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17903,7 +17903,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.M").First();
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17931,7 +17931,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.M").First();
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17959,7 +17959,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.ToString").First();
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.ToString(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.ToString(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -17998,7 +17998,7 @@ public static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Member");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Member { get; }", "void E2.Member(this System.Object o)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Member { get; }", "void E2.Member(this System.Object o)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18026,7 +18026,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -18102,7 +18102,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.f { get; }", "void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.f()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.f { get; }", "void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.f()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18155,7 +18155,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Member");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -18243,7 +18243,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
-        AssertEx.Equal("System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.f { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.f { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         var defaultExpr = GetSyntax<LiteralExpressionSyntax>(tree, "default");
         AssertEx.Equal("System.String", model.GetTypeInfo(defaultExpr).Type.ToTestDisplayString());
@@ -18283,7 +18283,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s1.f");
-        AssertEx.Equal("ref System.String E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.f { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("ref System.String E.<G>$34505F560D9EACF86A87F3ED1F85E448.f { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -18374,7 +18374,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("System.Action E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Action E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -18412,7 +18412,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("System.Action E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Action E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -18452,7 +18452,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         AssertEx.Equal("void System.Object.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "System.Action E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "System.Action E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18493,7 +18493,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18534,7 +18534,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18578,7 +18578,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void N.E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", "System.Int32 E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void N.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", "System.Int32 E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18622,7 +18622,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void N.E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", "System.Int32 E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void N.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", "System.Int32 E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18660,7 +18660,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -18699,8 +18699,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void System.Object.M(System.Int32 i)", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18738,8 +18738,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -18823,10 +18823,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Null(model.GetTypeInfo(memberAccess).Type);
         AssertEx.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
@@ -18855,10 +18855,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Null(model.GetTypeInfo(memberAccess).Type);
         AssertEx.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
@@ -18887,10 +18887,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Null(model.GetTypeInfo(memberAccess).Type);
         AssertEx.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
@@ -18937,8 +18937,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C(42).M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void C.M()", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void C.M()", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
@@ -18971,8 +18971,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19003,8 +19003,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19041,8 +19041,8 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
-        AssertEx.Equal("void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E2.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19079,8 +19079,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19111,8 +19111,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<System.String>(System.String t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<T>(T t)", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<T1, T2>(T1 t1, T2 t2)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<System.String>(System.String t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method(System.Int32 i)", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<T>(T t)", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<T1, T2>(T1 t1, T2 t2)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19161,8 +19161,8 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
-        AssertEx.Equal("void N.E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void C.M(System.Char c)", "void E2.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)", "void N.E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void N.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void C.M(System.Char c)", "void E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s)", "void N.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19208,8 +19208,8 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
-        AssertEx.Equal("void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E1.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void N.E2.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void N.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19236,8 +19236,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object>");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19293,8 +19293,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object, int>");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int32>(System.Int32 u)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int32>(System.Int32 u)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19320,8 +19320,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object>");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19354,7 +19354,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M([System.Int32 i = 0])"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M([System.Int32 i = 0])"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         source = """
 static class E
@@ -19399,7 +19399,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["ref System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["ref System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19427,7 +19427,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19461,10 +19461,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2(System.Int64 l)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2(System.Int64 l)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19491,7 +19491,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19606,7 +19606,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19836,7 +19836,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(property)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -19868,7 +19868,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(property)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -19893,7 +19893,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Property""");
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20081,7 +20081,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 1");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { init; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { init; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20148,7 +20148,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
-        AssertEx.Equal("void E.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$2404CFB602D7DEE90BDDEF217EC37C58.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20190,7 +20190,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.P1");
-        AssertEx.Equal("System.Int32 E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.P1 { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.P1 { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20283,7 +20283,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("System.Action E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Action E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20368,7 +20368,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20416,7 +20416,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20466,7 +20466,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20516,7 +20516,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20570,7 +20570,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void N.E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N.E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20624,7 +20624,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E2.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20678,7 +20678,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E2.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20726,7 +20726,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E2.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20774,7 +20774,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E2.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20814,7 +20814,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("void E.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20854,7 +20854,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("System.Action E.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Action E.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20937,7 +20937,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
-        AssertEx.Equal("System.Action E.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Action E.<G>$2404CFB602D7DEE90BDDEF217EC37C58.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -21174,9 +21174,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -21228,7 +21228,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
@@ -21484,7 +21484,7 @@ static class E
                 IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '"1".M($""); ... ("2", $"");')
                   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '"1".M($"");')
                     Expression:
-                      IInvocationOperation ( void E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.M(InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: '"1".M($"")')
+                      IInvocationOperation ( void E.<G>$34505F560D9EACF86A87F3ED1F85E448.M(InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: '"1".M($"")')
                         Instance Receiver:
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
                         Arguments(1):
@@ -21647,7 +21647,7 @@ static class E
                 IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '"1".M("2",  ...  "4", $"");')
                   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '"1".M("2", $"");')
                     Expression:
-                      IInvocationOperation ( void E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.M(System.String s2, InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: '"1".M("2", $"")')
+                      IInvocationOperation ( void E.<G>$34505F560D9EACF86A87F3ED1F85E448.M(System.String s2, InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: '"1".M("2", $"")')
                         Instance Receiver:
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
                         Arguments(2):
@@ -23733,6 +23733,7 @@ static class E
         //         public void M() {}
         //     }
         // }
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var il = $$"""
             .class public sequential ansi sealed beforefieldinit InterpolationHandler
                 extends [mscorlib]System.ValueType
@@ -23787,7 +23788,7 @@ static class E
 
                     .method public hidebysig instance void M () cil managed 
                     {
-                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                             01 00 29 3c 4d 61 72 6b 65 72 3e 24 34 33 32 35
                             45 45 37 36 44 44 43 43 37 36 36 35 31 32 33 31
                             46 32 38 33 44 41 35 39 44 39 45 39 00 00
@@ -23805,7 +23806,7 @@ static class E
                     IL_0000: ret
                 }
             }
-            """ + ExtensionMarkerNameAttributeIL;
+            """ + ExtensionMarkerAttributeIL;
 
         var src = """
             $"".M();
@@ -24134,6 +24135,7 @@ static class E
         //         }
         //     }
         // }
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
 
         var il = $$"""
             .class public sequential ansi sealed beforefieldinit InterpolationHandler
@@ -24187,7 +24189,7 @@ static class E
 
                     .method public hidebysig static void StaticMethod ( valuetype InterpolationHandler h ) cil managed 
                     {
-                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                        .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                             01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                             46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                             46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -24206,7 +24208,7 @@ static class E
                     ret
                 }
             }
-            """ + ExtensionMarkerNameAttributeIL;
+            """ + ExtensionMarkerAttributeIL;
 
         var src = """
             int.StaticMethod($"");
@@ -24258,6 +24260,7 @@ static class E
         //         }
         //     }
         // }
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
 
         var il = """
             .class public sequential ansi sealed beforefieldinit InterpolationHandler
@@ -24311,7 +24314,7 @@ static class E
 
                     .method public hidebysig instance void InstanceMethod ( valuetype InterpolationHandler h ) cil managed 
                     {
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                             01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                             46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                             46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -24331,7 +24334,7 @@ static class E
                     ret
                 }
             }
-            """ + ExtensionMarkerNameAttributeIL;
+            """ + ExtensionMarkerAttributeIL;
 
         var src = """
             1.InstanceMethod($"");
@@ -24436,7 +24439,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Enum.Zero.Property");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<Extension>$5BDAAC939B0896D4F1349316F7C8CE0F.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 E.<G>$5BDAAC939B0896D4F1349316F7C8CE0F.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
@@ -24469,12 +24472,12 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$E8CA98ACBCAEE63BB261A3FD4AF31675.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$E8CA98ACBCAEE63BB261A3FD4AF31675.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "2.Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$E8CA98ACBCAEE63BB261A3FD4AF31675.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$E8CA98ACBCAEE63BB261A3FD4AF31675.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
     }
@@ -24500,10 +24503,10 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "\"\".Property").First();
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "\"\".Property").Last();
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -24528,10 +24531,10 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b switch { true => "", _ => "" }).Property""").First();
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b switch { true => "", _ => "" }).Property""").Last();
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -24556,10 +24559,10 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Property""").First();
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Property""").Last();
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -24582,7 +24585,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -24610,7 +24613,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
     }
 
@@ -24678,12 +24681,12 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "default.Property").First();
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "default.Property").Last();
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
     }
@@ -24708,7 +24711,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 2).Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$49AAF2D3C1326E88AED3848611C299DA.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$49AAF2D3C1326E88AED3848611C299DA.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -24736,7 +24739,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 2).Property");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<Extension>$49AAF2D3C1326E88AED3848611C299DA.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 E.<G>$49AAF2D3C1326E88AED3848611C299DA.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
     }
 
@@ -24811,12 +24814,12 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 1).Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$8477960720B8106C28CEADF5CDF3A674.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$8477960720B8106C28CEADF5CDF3A674.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "(2, 2).Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$8477960720B8106C28CEADF5CDF3A674.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$8477960720B8106C28CEADF5CDF3A674.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
     }
@@ -24853,7 +24856,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"],
+        AssertEx.SequenceEqual(["System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundBadExpression better
     }
@@ -24892,7 +24895,7 @@ static class E2
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundBadExpression better
-        AssertEx.SequenceEqual(["System.String E1.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()", "System.String E2.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M { get; }"],
+        AssertEx.SequenceEqual(["System.String E1.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()", "System.String E2.<G>$8048A6C8BE30A622530249B904B537EB<T>.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
     }
@@ -24925,9 +24928,9 @@ static class E2
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.String E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25376,7 +25379,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-        AssertEx.Equal("System.Collections.Generic.IEnumerator<C> E.<Extension>$8048A6C8BE30A622530249B904B537EB<C>.GetEnumerator()",
+        AssertEx.Equal("System.Collections.Generic.IEnumerator<C> E.<G>$8048A6C8BE30A622530249B904B537EB<C>.GetEnumerator()",
             model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString());
     }
 
@@ -25408,7 +25411,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-        AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<C> E.<Extension>$8048A6C8BE30A622530249B904B537EB<C>.GetAsyncEnumerator()",
+        AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<C> E.<G>$8048A6C8BE30A622530249B904B537EB<C>.GetAsyncEnumerator()",
             model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString());
     }
 
@@ -25436,7 +25439,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Deconstruct(out System.Int32 i, out System.Int32 j)",
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Deconstruct(out System.Int32 i, out System.Int32 j)",
             model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
@@ -25570,7 +25573,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<C>.Deconstruct(out System.Int32 i, out System.Int32 j)",
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<C>.Deconstruct(out System.Int32 i, out System.Int32 j)",
             model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
@@ -25756,7 +25759,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Deconstruct(out System.Int32 i, out System.Int32 j)",
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Deconstruct(out System.Int32 i, out System.Int32 j)",
             model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
@@ -27406,7 +27409,7 @@ _ = c is { Property: 42 };
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var nameColon = GetSyntax<NameColonSyntax>(tree, "Property:");
-        AssertEx.Equal("System.Int32 E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
@@ -27850,7 +27853,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var expressionColon = GetSyntax<ExpressionColonSyntax>(tree, "Property.Property2:");
-        AssertEx.Equal("System.Int32 E2.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property2 { get; }", model.GetSymbolInfo(expressionColon.Expression).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E2.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property2 { get; }", model.GetSymbolInfo(expressionColon.Expression).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -27973,7 +27976,7 @@ _ = new C() { Property = 42 };
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
-        AssertEx.Equal("System.Int32 E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
@@ -28127,7 +28130,7 @@ _ = new S() with { Property = 42 };
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
-        AssertEx.Equal("System.Int32 E.<Extension>$3B24C9A1A6673CA92CA71905DDEE0A6C.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$3B24C9A1A6673CA92CA71905DDEE0A6C.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
@@ -28178,7 +28181,7 @@ Right:
     Initializer:
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ 42 }')
         Initializers(1):
-            IInvocationOperation ( void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+            IInvocationOperation ( void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
               Instance Receiver:
                 IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
               Arguments(1):
@@ -28231,7 +28234,7 @@ Right:
     Initializer:
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ 42 }')
         Initializers(1):
-            IInvocationOperation ( void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+            IInvocationOperation ( void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
               Instance Receiver:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -28294,7 +28297,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '_
       Initializer:
         IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ 42 }')
           Initializers(1):
-              IInvocationOperation ( void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+              IInvocationOperation ( void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
                 Instance Receiver:
                   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -28327,7 +28330,7 @@ Block[B0] - Entry
                   Arguments(0)
                   Initializer:
                     null
-            IInvocationOperation ( void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+            IInvocationOperation ( void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
               Instance Receiver:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -28528,7 +28531,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= from x in ... () select x')
               ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.String) (Syntax: 'from x in n ... () select x')
                 Expression:
-                  IInvocationOperation ( System.String E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Select(System.Func<C, C> selector)) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: 'select x')
+                  IInvocationOperation ( System.String E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Select(System.Func<C, C> selector)) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: 'select x')
                     Instance Receiver:
                       IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
                         Arguments(0)
@@ -28605,7 +28608,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, """object.Method("")""");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<System.String>(System.String t)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method<System.String>(System.String t)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : need to fix the semantic model
     }
 
@@ -28641,7 +28644,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", "void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P<T>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", "void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P<T>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -28676,7 +28679,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P<System.Int32>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P<System.Int32>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -28704,8 +28707,8 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -28755,7 +28758,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
-        AssertEx.Equal("void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s, System.Object o)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s, System.Object o)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -28829,7 +28832,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s, System.Object o)", "void E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Object o, System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.String s, System.Object o)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Object o, System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -28924,7 +28927,7 @@ static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        AssertEx.SequenceEqual(["System.String E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.Func<System.String> E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"],
+        AssertEx.SequenceEqual(["System.String E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.Func<System.String> E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundBadExpression better
@@ -28956,7 +28959,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.String E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.String E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -29013,7 +29016,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
-        AssertEx.Equal("System.String E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -29042,7 +29045,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.String E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Method<T>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.String E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Method<T>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -29071,7 +29074,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.Property");
-        AssertEx.Equal("System.String E.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -29151,7 +29154,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
-        AssertEx.Equal("System.String E.<Extension>$74EBC78B2187AB07A25EEFC1322000B0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -29180,7 +29183,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
-        AssertEx.Equal("System.String E.<Extension>$74EBC78B2187AB07A25EEFC1322000B0<T>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$74EBC78B2187AB07A25EEFC1322000B0<T>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -29208,7 +29211,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I<string>.Property");
-        AssertEx.Equal("System.String E.<Extension>$74EBC78B2187AB07A25EEFC1322000B0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -29265,8 +29268,8 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E1.<Extension>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E1.<Extension>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -29450,7 +29453,7 @@ public static partial class C
             var extension = container.GetTypeMembers().Single();
 
             AssertEx.Equal("System.Object value", extension.ExtensionParameter.ToTestDisplayString());
-            AssertEx.Equal("<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280", extension.MetadataName);
+            AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", extension.MetadataName);
 
             var methods = extension.GetMembers();
             AssertEx.Equal("C.extension(object).M()", methods[0].ToDisplayString());
@@ -29468,14 +29471,14 @@ public static partial class C
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        .class nested public auto ansi abstract sealed specialname '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -29491,38 +29494,38 @@ public static partial class C
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
-        } // end of class <Marker>$C43E2675C7BBF9284AF22FB8A9BF0280
+            } // end of method '<M>$C43E2675C7BBF9284AF22FB8A9BF0280'::'<Extension>$'
+        } // end of class <M>$C43E2675C7BBF9284AF22FB8A9BF0280
         // Methods
         .method public hidebysig static 
             void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
             // Method begins at RVA 0x2093
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
         .method public hidebysig static 
             void M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 43 34 33 45
-                32 36 37 35 43 37 42 42 46 39 32 38 34 41 46 32
-                32 46 42 38 41 39 42 46 30 32 38 30 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 43 34 33 45 32 36 37 35 43
+                37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
+                39 42 46 30 32 38 30 00 00
             )
             // Method begins at RVA 0x2093
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         void M () cil managed 
@@ -33009,14 +33012,14 @@ class C<T, S> {}
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$373395272A45479DE48E8BB1CCB2C42B'<$T0, $T1>
+    .class nested public auto ansi sealed specialname '<G>$373395272A45479DE48E8BB1CCB2C42B'<$T0, $T1>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$80D5112A03B26C94C628316C4DA793B2'<T, S>
+        .class nested public auto ansi abstract sealed specialname '<M>$80D5112A03B26C94C628316C4DA793B2'<T, S>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -33032,32 +33035,32 @@ class C<T, S> {}
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$80D5112A03B26C94C628316C4DA793B2'::'<Extension>$'
-        } // end of class <Marker>$80D5112A03B26C94C628316C4DA793B2
+            } // end of method '<M>$80D5112A03B26C94C628316C4DA793B2'::'<Extension>$'
+        } // end of class <M>$80D5112A03B26C94C628316C4DA793B2
         // Methods
         .method assembly hidebysig 
             instance void M1 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 38 30 44 35
-                31 31 32 41 30 33 42 32 36 43 39 34 43 36 32 38
-                33 31 36 43 34 44 41 37 39 33 42 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 38 30 44 35 31 31 32 41 30
+                33 42 32 36 43 39 34 43 36 32 38 33 31 36 43 34
+                44 41 37 39 33 42 32 00 00
             )
             // Method begins at RVA 0x2071
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$373395272A45479DE48E8BB1CCB2C42B'::M1
-    } // end of class <Extension>$373395272A45479DE48E8BB1CCB2C42B
-    .class nested public auto ansi sealed specialname '<Extension>$6D4255504AB27A230E5AB4858D9E46EB'<$T0, $T1>
+        } // end of method '<G>$373395272A45479DE48E8BB1CCB2C42B'::M1
+    } // end of class <G>$373395272A45479DE48E8BB1CCB2C42B
+    .class nested public auto ansi sealed specialname '<G>$6D4255504AB27A230E5AB4858D9E46EB'<$T0, $T1>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A'<T, S>
+        .class nested public auto ansi abstract sealed specialname '<M>$2237E852D2E9F48E0CC6BF2FD528DA2A'<T, S>
             extends [mscorlib]System.Object
         {
             // Methods
@@ -33073,24 +33076,24 @@ class C<T, S> {}
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A'::'<Extension>$'
-        } // end of class <Marker>$2237E852D2E9F48E0CC6BF2FD528DA2A
+            } // end of method '<M>$2237E852D2E9F48E0CC6BF2FD528DA2A'::'<Extension>$'
+        } // end of class <M>$2237E852D2E9F48E0CC6BF2FD528DA2A
         // Methods
         .method assembly hidebysig 
             instance void M1 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 32 32 33 37
-                45 38 35 32 44 32 45 39 46 34 38 45 30 43 43 36
-                42 46 32 46 44 35 32 38 44 41 32 41 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 32 32 33 37 45 38 35 32 44
+                32 45 39 46 34 38 45 30 43 43 36 42 46 32 46 44
+                35 32 38 44 41 32 41 00 00
             )
             // Method begins at RVA 0x2071
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$6D4255504AB27A230E5AB4858D9E46EB'::M1
-    } // end of class <Extension>$6D4255504AB27A230E5AB4858D9E46EB
+        } // end of method '<G>$6D4255504AB27A230E5AB4858D9E46EB'::M1
+    } // end of class <G>$6D4255504AB27A230E5AB4858D9E46EB
     // Methods
     .method assembly hidebysig static 
         void M1<T, S> (
@@ -33476,7 +33479,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.SequenceEqual(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -33503,7 +33506,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        AssertEx.Equal("void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33557,7 +33560,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33631,7 +33634,7 @@ static class E1
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33661,7 +33664,7 @@ public static class E1
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
         var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
@@ -33726,7 +33729,7 @@ static class E1
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33757,7 +33760,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int32 j)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int32 j)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33814,7 +33817,7 @@ static class E1
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
-        AssertEx.Equal("void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33893,7 +33896,7 @@ int.M(43);
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
         var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
@@ -33936,7 +33939,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33967,7 +33970,7 @@ _ = s.P;
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
         var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
         var comp2 = CreateCompilation([source], references: [libComp.EmitToImageReference()]);
@@ -34003,7 +34006,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
-        AssertEx.Equal("System.Int32 E2.<Extension>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E2.<G>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34242,7 +34245,7 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void N.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34282,7 +34285,7 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34318,7 +34321,7 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void N.E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void N.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34367,7 +34370,7 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M");
-        AssertEx.Equal("void E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(memberAccess.Expression).Symbol.Kind);
     }
 
@@ -34416,7 +34419,7 @@ namespace N
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M");
-        AssertEx.Equal("void E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal(SymbolKind.Parameter, model.GetSymbolInfo(memberAccess.Expression).Symbol.Kind);
     }
 
@@ -34505,7 +34508,7 @@ class C2 : C1 { }
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
-        AssertEx.Equal("void E1.<Extension>$04E653405309F31558CF576D60A83155.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$04E653405309F31558CF576D60A83155.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34538,7 +34541,7 @@ class C2 : C1 { }
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I<C2>.M");
-        AssertEx.Equal("void E1.<Extension>$04E653405309F31558CF576D60A83155.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$04E653405309F31558CF576D60A83155.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34568,7 +34571,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E2.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34599,7 +34602,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void E2.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34629,7 +34632,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        AssertEx.Equal("void E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34659,7 +34662,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -34720,7 +34723,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -35360,7 +35363,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.P");
-        AssertEx.Equal("System.Int32 E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -35390,7 +35393,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
-        AssertEx.Equal("System.Int32 E2.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E2.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -35431,7 +35434,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.P");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }", "System.Int32 E2.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }", "System.Int32 E2.<G>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -35462,7 +35465,7 @@ static class E1
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.P");
-        AssertEx.Equal("System.Int32 E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         AssertEx.Equal("Color Color", model.GetSymbolInfo(memberAccess.Expression).Symbol.ToTestDisplayString());
         Assert.Equal(SymbolKind.Parameter, model.GetSymbolInfo(memberAccess.Expression).Symbol.Kind);
     }
@@ -35495,7 +35498,7 @@ static class E1
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.P");
-        AssertEx.Equal("System.Int32 E1.<Extension>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$2404CFB602D7DEE90BDDEF217EC37C58.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         AssertEx.Equal("Color", model.GetSymbolInfo(memberAccess.Expression).Symbol.ToTestDisplayString());
         Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(memberAccess.Expression).Symbol.Kind);
     }
@@ -35743,7 +35746,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String?>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String?>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -35769,7 +35772,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String?>.M(System.String? t2)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String?>.M(System.String? t2)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -35856,7 +35859,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
-        AssertEx.Equal("System.Int32 E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -35887,7 +35890,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.P");
-        AssertEx.Equal("System.Int32 E1.<Extension>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$34505F560D9EACF86A87F3ED1F85E448.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -35980,7 +35983,7 @@ static class E2
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.P");
-        AssertEx.Equal("System.Int32 E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -36012,7 +36015,7 @@ static class E2
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
-        AssertEx.Equal("System.Int32 E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -36044,7 +36047,7 @@ static class E2
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
-        AssertEx.Equal("System.Int32 E1.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -36077,7 +36080,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Action E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.M { get; }", "System.String E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Action E.<G>$34505F560D9EACF86A87F3ED1F85E448.M { get; }", "System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36108,7 +36111,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Action E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", "System.String E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Action E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", "System.String E.<G>$34505F560D9EACF86A87F3ED1F85E448.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36142,7 +36145,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Action E.<Extension>$B5F2BFAFBDD4469288FE06B785D143CD.M { get; }", "System.String E.<Extension>$2B406085AC5EBECC11B16BCD2A24DF4E.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Action E.<G>$B5F2BFAFBDD4469288FE06B785D143CD.M { get; }", "System.String E.<G>$2B406085AC5EBECC11B16BCD2A24DF4E.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36180,7 +36183,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Action E1.<Extension>$2B406085AC5EBECC11B16BCD2A24DF4E.M { get; }", "System.String E2.<Extension>$B5F2BFAFBDD4469288FE06B785D143CD.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Action E1.<G>$2B406085AC5EBECC11B16BCD2A24DF4E.M { get; }", "System.String E2.<G>$B5F2BFAFBDD4469288FE06B785D143CD.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
@@ -36318,8 +36321,8 @@ static class E
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "d.P");
         var dynamicType = model.GetTypeInfo(memberAccess.Expression).Type;
         Assert.True(dynamicType.IsDynamic());
-        AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36645,6 +36648,7 @@ static class E
     public void ParamsReceiver_01()
     {
         // extension(params int[] i)
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends System.Object
@@ -36671,7 +36675,7 @@ static class E
 
         .method public hidebysig instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 43 32 35
                 35 38 45 32 37 33 34 35 46 32 30 38 44 31 38 35
                 41 41 39 39 36 36 36 36 44 46 44 41 00 00
@@ -36695,7 +36699,7 @@ static class E
         IL_000a: ret
     }
 }
-""" + ExtensionMarkerNameAttributeIL;
+""" + ExtensionMarkerAttributeIL;
 
         var src = """
 int[] i = null;
@@ -36730,6 +36734,7 @@ i.M(2);
     public void ParamsReceiver_02()
     {
         // extension(params int[] i)
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends System.Object
@@ -36757,7 +36762,7 @@ i.M(2);
 
         .method public hidebysig specialname instance int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 43 32 35
                 35 38 45 32 37 33 34 35 46 32 30 38 44 31 38 35
                 41 41 39 39 36 36 36 36 44 46 44 41 00 00
@@ -36769,7 +36774,7 @@ i.M(2);
 
         .property instance int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 31 43 32 35
                 35 38 45 32 37 33 34 35 46 32 30 38 44 31 38 35
                 41 41 39 39 36 36 36 36 44 46 44 41 00 00
@@ -36790,7 +36795,7 @@ i.M(2);
         IL_000b: ret
     }
 }
-""" + ExtensionMarkerNameAttributeIL;
+""" + ExtensionMarkerAttributeIL;
 
         var src = """
 int[] i = null;
@@ -36841,11 +36846,11 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "s.M<object>()");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<object>");
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36930,7 +36935,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", "void E.<Extension>$34505F560D9EACF86A87F3ED1F85E448.M<System.String>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", "void E.<G>$34505F560D9EACF86A87F3ED1F85E448.M<System.String>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36957,7 +36962,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36984,7 +36989,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string, string>.M<string>");
-        AssertEx.SequenceEqual(["void E.<Extension>$373395272A45479DE48E8BB1CCB2C42B<System.String, System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$373395272A45479DE48E8BB1CCB2C42B<System.String, System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37007,10 +37012,10 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "string.M<object, long>(42)");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int64>(System.Int64 u)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int64>(System.Int64 u)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M<object, long>");
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int64>(System.Int64 u)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M<System.Int64>(System.Int64 u)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37143,17 +37148,17 @@ public static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "object.M()");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
-        AssertEx.Equal("System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
 
         var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
         AssertEqualAndNoDuplicates(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["void E.M()", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.M()", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertEqualAndNoDuplicates(["System.Int32 E.get_Property()"], model.LookupSymbols(position: 0, e, name: "get_Property").ToTestDisplayStrings());
 
@@ -37162,12 +37167,12 @@ public static class E
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
         AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         Assert.Equal([
@@ -37242,20 +37247,20 @@ public static class E
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
         AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", "System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property { get; }", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", "System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.Property { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         var s = ((Compilation)comp).GetSpecialType(SpecialType.System_String);
         AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, s, name: "M").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, s, name: "Property").ToTestDisplayStrings());
-        AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.Property { get; }"], model.LookupSymbols(position: 0, s, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.Property { get; }"], model.LookupSymbols(position: 0, s, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37280,7 +37285,7 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var s = ((Compilation)comp).GetSpecialType(SpecialType.System_String);
-        AssertEqualAndNoDuplicates(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M<U>(U u)"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M<U>(U u)"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37312,17 +37317,17 @@ public static class E2
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertEqualAndNoDuplicates(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"],
+        AssertEqualAndNoDuplicates(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"],
             model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["System.Int32 E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }", "System.Int32 E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }"],
+        AssertEqualAndNoDuplicates(["System.Int32 E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }", "System.Int32 E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }"],
             model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertEqualAndNoDuplicates([
-            "void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()",
-            "System.Int32 E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }",
-            "void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()",
-            "System.Int32 E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }",
+            "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()",
+            "System.Int32 E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }",
+            "void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()",
+            "System.Int32 E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; }",
             .. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
@@ -37353,10 +37358,10 @@ public static class E2
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertEqualAndNoDuplicates(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.MP()", "System.Int32 E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.MP { get; }"],
+        AssertEqualAndNoDuplicates(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.MP()", "System.Int32 E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.MP { get; }"],
             model.LookupSymbols(position: 0, o, name: "MP", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["void E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.MP()", "System.Int32 E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.MP { get; }", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.MP()", "System.Int32 E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.MP { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
@@ -37384,10 +37389,10 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertEqualAndNoDuplicates(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.String s)", "void System.Object.M(System.Int32 i)"],
+        AssertEqualAndNoDuplicates(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.String s)", "void System.Object.M(System.Int32 i)"],
             model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.String s)", "void System.Object.M(System.Int32 i)", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.String s)", "void System.Object.M(System.Int32 i)", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
@@ -37515,7 +37520,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M<U>(U u)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<U>(U u)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M2");
         AssertEx.SequenceEqual(["void System.Object.M2<U>(U u)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
@@ -37615,7 +37620,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37670,7 +37675,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.SequenceEqual(["System.Int32 E1.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", "void E2.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["System.Int32 E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", "void E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37700,11 +37705,11 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
-        AssertEx.Equal("void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["System.Int32 E1.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M { get; }", "void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["System.Int32 E1.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M { get; }", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "string.M()");
-        AssertEx.Equal("void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -37738,8 +37743,8 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E1.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", "void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E1.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", "void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E1.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37763,8 +37768,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37788,9 +37793,9 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", "void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", "void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37814,12 +37819,12 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", "void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", "void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         var cast = GetSyntax<CastExpressionSyntax>(tree, "(System.Action)object.M");
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(cast).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", model.GetSymbolInfo(cast).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(cast).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal([], model.GetMemberGroup(cast).ToTestDisplayStrings());
     }
@@ -37870,11 +37875,11 @@ static class E2
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "a.F").ToArray();
         Assert.Null(model.GetSymbolInfo(memberAccess[0]).Symbol);
         AssertEx.SequenceEqual(["void A.F()"], model.GetSymbolInfo(memberAccess[0]).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void A.F()", "void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
 
         Assert.Null(model.GetSymbolInfo(memberAccess[1]).Symbol);
-        AssertEx.SequenceEqual(["void A.F()", "void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetSymbolInfo(memberAccess[1]).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void A.F()", "void E2.<Extension>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetSymbolInfo(memberAccess[1]).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SequenceEqual(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37906,7 +37911,7 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
-        AssertEx.Equal("System.Int32 E2.<Extension>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Int32 E2.<G>$66F77D1E46F965A5B22D4932892FA78B<System.Object>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
@@ -38084,12 +38089,12 @@ public static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M<T>()").Expression;
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
 
         expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M()").Expression;
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -38123,22 +38128,22 @@ public static class E
         var t = extensionParameter.Type;
 
         var expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M<T, U>(u)").Expression;
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.LookupSymbols(position: expr.SpanStart, t, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.LookupSymbols(position: expr.SpanStart, t, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M(u)").Expression;
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
 
         expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M(42)").Expression;
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
 
         expr = GetSyntax<InvocationExpressionSyntax>(tree, "42.M(u)").Expression;
-        AssertEx.Equal("void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void E.<Extension>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -38271,10 +38276,10 @@ _ = new object().P;
             var model = comp.GetSemanticModel(tree);
             var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
 
-            AssertEqualAndNoDuplicates(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            AssertEqualAndNoDuplicates(["void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2()"], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            AssertEqualAndNoDuplicates(["System.Int32 E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.P2 { get; }"], model.LookupSymbols(position: 0, o, name: "P2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            AssertEqualAndNoDuplicates(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            AssertEqualAndNoDuplicates(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2()"], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            AssertEqualAndNoDuplicates(["System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P { get; }"], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            AssertEqualAndNoDuplicates(["System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.P2 { get; }"], model.LookupSymbols(position: 0, o, name: "P2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
         }
     }
 
@@ -38467,7 +38472,7 @@ static class E
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
 
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
-        AssertEx.Equal("void E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2(new object())");
         AssertEx.Equal("void E.M2(this System.Object o)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -39818,7 +39823,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C()')
               Value:
-                IInvocationOperation ( C.Enumerator Extensions.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.GetEnumerator([System.Int32 x = 1])) (OperationKind.Invocation, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                IInvocationOperation ( C.Enumerator Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.GetEnumerator([System.Int32 x = 1])) (OperationKind.Invocation, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
                   Instance Receiver:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new C()')
                       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -39925,7 +39930,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C()')
               Value:
-                IInvocationOperation ( C.Enumerator Extensions.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.GetEnumerator([System.Int32 x = 1])) (OperationKind.Invocation, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                IInvocationOperation ( C.Enumerator Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.GetEnumerator([System.Int32 x = 1])) (OperationKind.Invocation, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
                   Instance Receiver:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new C()')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -41406,6 +41411,7 @@ ref struct RS { }
         //    public int P3 => 0;
         //    public static int P4 => 0;
         // }
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
@@ -41429,7 +41435,7 @@ ref struct RS { }
 
         .method public hidebysig instance void M3 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -41440,7 +41446,7 @@ ref struct RS { }
         }
         .method public hidebysig static void M4 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -41452,7 +41458,7 @@ ref struct RS { }
 
         .method public hidebysig specialname instance int32 get_P3 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -41464,7 +41470,7 @@ ref struct RS { }
 
         .method public hidebysig specialname static int32 get_P4 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -41476,7 +41482,7 @@ ref struct RS { }
 
         .property instance int32 P3()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -41485,7 +41491,7 @@ ref struct RS { }
         }
         .property int32 P4()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -41514,7 +41520,7 @@ ref struct RS { }
         IL_0001: ret
     }
 }
-""" + ExtensionMarkerNameAttributeIL;
+""" + ExtensionMarkerAttributeIL;
         string source = """
 42.M3();
 int.M4();
@@ -41873,14 +41879,14 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        .class nested public auto ansi abstract sealed specialname '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -41896,65 +41902,65 @@ static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
-        } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+            } // end of method '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
+        } // end of class <M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
         // Methods
         .method private hidebysig static 
             void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
-            .get int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
-            .set void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
+            .get int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+            .set void E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
         }
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
     .method private hidebysig static pinvokeimpl("something.dll" winapi) 
         void M () cil managed preservesig 
@@ -42006,14 +42012,14 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -42029,65 +42035,65 @@ static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
-        } // end of class <Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
         // Methods
         .method private hidebysig 
             instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname 
             instance int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname 
             instance void set_P (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property instance int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
-            .get instance int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
-            .set instance void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
+            .get instance int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+            .set instance void E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
         }
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
     .method private hidebysig static pinvokeimpl("something.dll" winapi) 
         void M (
@@ -42157,14 +42163,14 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        .class nested public auto ansi abstract sealed specialname '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -42180,65 +42186,65 @@ static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
-        } // end of class <Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+            } // end of method '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::'<Extension>$'
+        } // end of class <M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
         // Methods
         .method private hidebysig static 
             void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 41 34 31
-                43 46 45 32 42 35 45 44 41 45 42 38 43 31 42 39
-                30 36 32 46 35 39 45 44 34 44 36 39 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
             )
-            .get int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
-            .set void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
+            .get int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+            .set void E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
         }
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
     .method private hidebysig static pinvokeimpl("something.dll" as "Method1" winapi) 
         void M () cil managed preservesig 
@@ -42297,14 +42303,14 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -42320,65 +42326,65 @@ static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
-        } // end of class <Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
         // Methods
         .method private hidebysig 
             instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname 
             instance int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname 
             instance void set_P (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property instance int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
-            .get instance int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
-            .set instance void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
+            .get instance int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+            .set instance void E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
         }
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
     .method private hidebysig static 
         void M (
@@ -42483,14 +42489,14 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -42506,65 +42512,65 @@ static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
-        } // end of class <Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
         // Methods
         .method private hidebysig static 
             void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
-            .get int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
-            .set void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
+            .get int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+            .set void E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
         }
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
     .method private hidebysig static 
         void M () cil managed 
@@ -42639,14 +42645,14 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -42662,65 +42668,65 @@ static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
-        } // end of class <Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
         // Methods
         .method private hidebysig static 
             void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
-            .get int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
-            .set void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
+            .get int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+            .set void E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
         }
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
     .method private hidebysig static 
         void M () cil managed internalcall 
@@ -42773,14 +42779,14 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -42796,65 +42802,65 @@ static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
-        } // end of class <Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
         // Methods
         .method private hidebysig 
             instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname 
             instance int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname 
             instance void set_P (
                 int32 'value'
             ) cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
             // Method begins at RVA 0x2067
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property instance int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
-                46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
-                46 33 39 30 43 46 36 45 42 33 37 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
             )
-            .get instance int32 E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
-            .set instance void E/'<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
+            .get instance int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+            .set instance void E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P(int32)
         }
-    } // end of class <Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
     .method private hidebysig static 
         void M (
@@ -43227,15 +43233,15 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
         comp.VerifyEmitDiagnostics(
-            // error CS1555: Could not find 'E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69' specified for Main method
-            Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69").WithLocation(1, 1));
+            // error CS1555: Could not find 'E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69' specified for Main method
+            Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69").WithLocation(1, 1));
 
-        AssertEx.Equal("<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionGroupingName);
+        AssertEx.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionGroupingName);
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
-        Assert.Null(comp.GetTypeByMetadataName("E+<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
+        Assert.Null(comp.GetTypeByMetadataName("E+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
     }
 
     [Fact]
@@ -45442,21 +45448,21 @@ public static class E
         var libComp = CreateCompilation(libSrc);
 
         CompileAndVerify(libComp).VerifyTypeIL("E", """
-.class public auto ansi abstract sealed beforefieldinit E
+ .class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$FCD10F86264A5A381A31E52427E53CAB'
+        .class nested public auto ansi abstract sealed specialname '<M>$FCD10F86264A5A381A31E52427E53CAB'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -45475,9 +45481,9 @@ public static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$FCD10F86264A5A381A31E52427E53CAB'::'<Extension>$'
-        } // end of class <Marker>$FCD10F86264A5A381A31E52427E53CAB
-        .class nested public auto ansi abstract sealed specialname '<Marker>$FB03ECDF5D1B3883A99E213C2D618E82'
+            } // end of method '<M>$FCD10F86264A5A381A31E52427E53CAB'::'<Extension>$'
+        } // end of class <M>$FCD10F86264A5A381A31E52427E53CAB
+        .class nested public auto ansi abstract sealed specialname '<M>$FB03ECDF5D1B3883A99E213C2D618E82'
             extends [mscorlib]System.Object
         {
             // Methods
@@ -45496,38 +45502,38 @@ public static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$FB03ECDF5D1B3883A99E213C2D618E82'::'<Extension>$'
-        } // end of class <Marker>$FB03ECDF5D1B3883A99E213C2D618E82
+            } // end of method '<M>$FB03ECDF5D1B3883A99E213C2D618E82'::'<Extension>$'
+        } // end of class <M>$FB03ECDF5D1B3883A99E213C2D618E82
         // Methods
         .method public hidebysig 
             instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 43 44 31
-                30 46 38 36 32 36 34 41 35 41 33 38 31 41 33 31
-                45 35 32 34 32 37 45 35 33 43 41 42 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 43 44 31 30 46 38 36 32
+                36 34 41 35 41 33 38 31 41 33 31 45 35 32 34 32
+                37 45 35 33 43 41 42 00 00
             )
             // Method begins at RVA 0x20a6
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
         .method public hidebysig 
             instance void M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 42 30 33
-                45 43 44 46 35 44 31 42 33 38 38 33 41 39 39 45
-                32 31 33 43 32 44 36 31 38 45 38 32 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 42 30 33 45 43 44 46 35
+                44 31 42 33 38 38 33 41 39 39 45 32 31 33 43 32
+                44 36 31 38 45 38 32 00 00
             )
             // Method begins at RVA 0x20a6
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
-    } // end of class <Extension>$C43E2675C7BBF9284AF22FB8A9BF0280
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         void M (
@@ -46651,13 +46657,13 @@ public static class E
             var extensions = container.GetTypeMembers();
 
             AssertEx.Equal("System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute(false)", extensions[0].ExtensionParameter.GetAttributes().Single().ToString());
-            AssertEx.Equal("<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB", extensions[0].MetadataName);
+            AssertEx.Equal("<M>$7073A58FCA9AF178F78C9DFB2EC1CFCB", extensions[0].MetadataName);
             Symbol m1 = extensions[0].GetMembers().Single();
             AssertEx.Equal("E.extension(bool).AssertTrue()", m1.ToDisplayString());
             AssertEx.Equal([], m1.GetAttributes());
 
             AssertEx.Equal("System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute(true)", extensions[1].ExtensionParameter.GetAttributes().Single().ToString());
-            AssertEx.Equal("<Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7", extensions[1].MetadataName);
+            AssertEx.Equal("<M>$B2C5862F475D26FF0E9CB6F2B30AA3F7", extensions[1].MetadataName);
             Symbol m2 = extensions[1].GetMembers().Single();
             AssertEx.Equal("E.extension(bool).AssertFalse()", m2.ToDisplayString());
             AssertEx.Equal([], m2.GetAttributes());
@@ -46680,14 +46686,14 @@ public static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<Extension>$A73C5770D9DE823384DE9FB3AFAAD000'
+    .class nested public auto ansi sealed specialname '<G>$A73C5770D9DE823384DE9FB3AFAAD000'
         extends [System.Runtime]System.Object
     {
         .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB'
+        .class nested public auto ansi abstract sealed specialname '<M>$7073A58FCA9AF178F78C9DFB2EC1CFCB'
             extends [System.Runtime]System.Object
         {
             // Methods
@@ -46707,9 +46713,9 @@ public static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB'::'<Extension>$'
-        } // end of class <Marker>$7073A58FCA9AF178F78C9DFB2EC1CFCB
-        .class nested public auto ansi abstract sealed specialname '<Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7'
+            } // end of method '<M>$7073A58FCA9AF178F78C9DFB2EC1CFCB'::'<Extension>$'
+        } // end of class <M>$7073A58FCA9AF178F78C9DFB2EC1CFCB
+        .class nested public auto ansi abstract sealed specialname '<M>$B2C5862F475D26FF0E9CB6F2B30AA3F7'
             extends [System.Runtime]System.Object
         {
             // Methods
@@ -46729,38 +46735,38 @@ public static class E
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7'::'<Extension>$'
-        } // end of class <Marker>$B2C5862F475D26FF0E9CB6F2B30AA3F7
+            } // end of method '<M>$B2C5862F475D26FF0E9CB6F2B30AA3F7'::'<Extension>$'
+        } // end of class <M>$B2C5862F475D26FF0E9CB6F2B30AA3F7
         // Methods
         .method public hidebysig 
             instance class C AssertTrue () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 37 30 37 33
-                41 35 38 46 43 41 39 41 46 31 37 38 46 37 38 43
-                39 44 46 42 32 45 43 31 43 46 43 42 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 30 37 33 41 35 38 46 43
+                41 39 41 46 31 37 38 46 37 38 43 39 44 46 42 32
+                45 43 31 43 46 43 42 00 00
             )
             // Method begins at RVA 0x2096
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$A73C5770D9DE823384DE9FB3AFAAD000'::AssertTrue
+        } // end of method '<G>$A73C5770D9DE823384DE9FB3AFAAD000'::AssertTrue
         .method public hidebysig 
             instance class C AssertFalse () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
-                01 00 29 3c 4d 61 72 6b 65 72 3e 24 42 32 43 35
-                38 36 32 46 34 37 35 44 32 36 46 46 30 45 39 43
-                42 36 46 32 42 33 30 41 41 33 46 37 00 00
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 32 43 35 38 36 32 46 34
+                37 35 44 32 36 46 46 30 45 39 43 42 36 46 32 42
+                33 30 41 41 33 46 37 00 00
             )
             // Method begins at RVA 0x2096
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<Extension>$A73C5770D9DE823384DE9FB3AFAAD000'::AssertFalse
-    } // end of class <Extension>$A73C5770D9DE823384DE9FB3AFAAD000
+        } // end of method '<G>$A73C5770D9DE823384DE9FB3AFAAD000'::AssertFalse
+    } // end of class <G>$A73C5770D9DE823384DE9FB3AFAAD000
     // Methods
     .method public hidebysig static 
         class C AssertTrue (
@@ -47647,6 +47653,7 @@ static class E
         //    public int P { get; }
         // }
         // but with specialname missing from marker method
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends System.Object
@@ -47667,7 +47674,7 @@ static class E
         }
         .method public hidebysig instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47677,7 +47684,7 @@ static class E
         }
         .method public hidebysig specialname instance int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47687,7 +47694,7 @@ static class E
         }
         .property instance int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47707,7 +47714,7 @@ static class E
         IL_0001: ret
     }
 }
-""" + ExtensionMarkerNameAttributeIL;
+""" + ExtensionMarkerAttributeIL;
 
         string source = """
 42.M();
@@ -47731,6 +47738,7 @@ _ = 42.P;
         //    public int P2 { get; }
         // }
         // but with specialname mismatch between skeleton and implementation methods
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var ilSrc = """
 
 .class public auto ansi abstract sealed beforefieldinit E
@@ -47752,7 +47760,7 @@ _ = 42.P;
         }
         .method public hidebysig instance void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47762,7 +47770,7 @@ _ = 42.P;
         }
         .method public hidebysig specialname instance void M2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47772,7 +47780,7 @@ _ = 42.P;
         }
         .method public hidebysig specialname instance int32 get_P () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47782,7 +47790,7 @@ _ = 42.P;
         }
         .method public hidebysig instance int32 get_P2 () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47792,7 +47800,7 @@ _ = 42.P;
         }
         .property instance int32 P()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47801,7 +47809,7 @@ _ = 42.P;
         }
         .property instance int32 P2()
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47830,7 +47838,7 @@ _ = 42.P;
         IL_0001: ret
     }
 }
-""" + ExtensionMarkerNameAttributeIL;
+""" + ExtensionMarkerAttributeIL;
         string source = """
 42.M();
 42.M2();
@@ -47849,6 +47857,7 @@ _ = 42.P2;
         //    public static void M() { }
         // }
         // but no specialname on marker type
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends System.Object
@@ -47869,7 +47878,7 @@ _ = 42.P2;
         }
         .method public hidebysig static void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -47884,7 +47893,7 @@ _ = 42.P2;
         IL_0000: ret
     }
 }
-""" + ExtensionMarkerNameAttributeIL;
+""" + ExtensionMarkerAttributeIL;
 
         string source = """
 int.M();
@@ -47981,6 +47990,7 @@ static class E
         //    public static void M() { }
         // }
         // but no specialname on grouping type
+        // Note: the grouping and marker types and attributes use a previous naming convention (which doesn't affect metadata loading)
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
     extends System.Object
@@ -48001,7 +48011,7 @@ static class E
         }
         .method public hidebysig static void M () cil managed 
         {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerNameAttribute::.ctor(string) = (
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 29 3c 4d 61 72 6b 65 72 3e 24 46 34 42 34
                 46 46 45 34 31 41 42 34 39 45 38 30 41 34 45 43
                 46 33 39 30 43 46 36 45 42 33 37 32 00 00
@@ -48016,7 +48026,7 @@ static class E
         IL_0000: ret
     }
 }
-""" + ExtensionMarkerNameAttributeIL;
+""" + ExtensionMarkerAttributeIL;
 
         string source = """
 int.M();
@@ -48117,9 +48127,9 @@ static class E
 """, e.GetDocumentationCommentXml());
 
         var extension = e.GetTypeMembers().Single();
-        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
         AssertEx.Equal("""
-<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -48129,7 +48139,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
+<member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -48140,14 +48150,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``0,``1)">
-    <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P">
+<member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -48156,7 +48166,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1(``0)">
-    <inheritdoc cref="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -48172,22 +48182,22 @@ static class E
             <summary>Summary for E</summary>
         </member>
         <member name="M:E.M``2(``0,``1)">
-            <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
         </member>
         <member name="M:E.get_P``1(``0)">
-            <inheritdoc cref="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+            <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
         </member>
-        <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>Summary for extension block</summary>
             <typeparam name="T">Description for T</typeparam>
             <param name="t">Description for t</param>
         </member>
-        <member name="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
+        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
             <summary>Summary for M</summary>
             <typeparam name="U">Description for U</typeparam>
             <param name="u">Description for u</param>
         </member>
-        <member name="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P">
+        <member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P">
             <summary>Summary for P</summary>
         </member>
     </members>
@@ -48268,7 +48278,7 @@ static class E
 
         var extension = e.GetTypeMembers().Single();
         AssertEx.Equal("""
-<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -48278,7 +48288,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
+<member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -48289,14 +48299,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P">
+<member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -48305,7 +48315,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -48381,28 +48391,28 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)" -->
+<!-- Badly formed XML comment ignored for member "M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)" -->
 
 """, mSkeleton.GetDocumentationCommentXml());
 
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P" -->
+<!-- Badly formed XML comment ignored for member "P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P" -->
 
 """, p.GetDocumentationCommentXml());
 
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -48444,7 +48454,7 @@ static class E
 
         var extensions = e.GetTypeMembers();
         AssertEx.Equal("""
-<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
     <typeparam name="T">First description for T</typeparam>
     <param name="t">First description for t</param>
@@ -48456,7 +48466,7 @@ static class E
 """, extensions[0].GetDocumentationCommentXml());
 
         AssertEx.Equal("""
-<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
     <typeparam name="T">First description for T</typeparam>
     <param name="t">First description for t</param>
@@ -48475,12 +48485,12 @@ static class E
     </assembly>
     <members>
         <member name="M:E.M``1(System.Int32)">
-            <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
+            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
         </member>
         <member name="M:E.M``1(System.String)">
-            <inheritdoc cref="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)"/>
+            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)"/>
         </member>
-        <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <typeparam name="T">First description for T</typeparam>
             <param name="t">First description for t</param>
@@ -48488,10 +48498,10 @@ static class E
             <typeparam name="T">Second description for T</typeparam>
             <param name="t">Second description for t</param>
         </member>
-        <member name="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
             <summary>First method</summary>
         </member>
-        <member name="M:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)">
+        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)">
             <summary>Second method</summary>
         </member>
     </members>
@@ -48528,7 +48538,7 @@ static class E
         foreach (var extension in extensions)
         {
             AssertEx.Equal("""
-<member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
     <summary>Second summary for extension block</summary>
 </member>
@@ -48543,7 +48553,7 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
@@ -48587,7 +48597,7 @@ static class E
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var nestedExtension = e.GetTypeMembers().Single().GetTypeMembers().First();
-        AssertEx.Equal("T:E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F",
+        AssertEx.Equal("T:E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
             nestedExtension.GetDocumentationCommentId());
 
         var expected = """
@@ -48597,14 +48607,14 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;Extension&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
-        <member name="M:E.&lt;Extension&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
             <summary>method</summary>
         </member>
-        <member name="T:E.&lt;Extension&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
@@ -48654,13 +48664,13 @@ static class E1
     </assembly>
     <members>
         <member name="M:E1.E2.M``1(System.Int32)">
-            <inheritdoc cref="M:E1.E2.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
+            <inheritdoc cref="M:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
         </member>
-        <member name="T:E1.E2.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
-        <member name="M:E1.E2.&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
             <summary>method</summary>
         </member>
     </members>
@@ -48702,13 +48712,13 @@ extension<T>(T t)
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
         </member>
-        <member name="M:&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
             <summary>method</summary>
         </member>
-        <member name="T:&lt;Extension&gt;$8048A6C8BE30A622530249B904B537EB.&lt;Marker&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>Second summary for extension block</summary>
         </member>
     </members>
@@ -48751,7 +48761,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension1 = e.GetTypeMembers().First();
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69" -->
+<!-- Badly formed XML comment ignored for member "T:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;M&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69" -->
 
 """, extension1.GetDocumentationCommentXml());
 
@@ -48763,10 +48773,10 @@ static class E
     </assembly>
     <members>
         <member name="M:E.M">
-            <inheritdoc cref="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
+            <inheritdoc cref="M:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M"/>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69" -->
-        <member name="M:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M">
+        <!-- Badly formed XML comment ignored for member "T:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;M&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69" -->
+        <member name="M:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M">
             <summary>Summary for M</summary>
         </member>
     </members>
@@ -48846,7 +48856,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = e.GetTypeMembers().Single();
         AssertEx.Equal($$"""
-<member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+<member name="T:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;M&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
     <include file='{{xmlFilePath}}' path='//target'/>
 </member>
 
@@ -48859,7 +48869,7 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+        <member name="T:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;M&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
             <target stuff="things" />
         </member>
     </members>
@@ -48905,7 +48915,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = e.GetTypeMembers().First();
         AssertEx.Equal($$"""
-<member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+<member name="T:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;M&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
     <include file='{{xmlFilePath}}' path='//target1'/>
     <include file='{{xmlFilePath}}' path='//target2'/>
 </member>
@@ -48919,7 +48929,7 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;Extension&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;Marker&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
+        <member name="T:E.&lt;G&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69.&lt;M&gt;$BA41CFE2B5EDAEB8C1B9062F59ED4D69">
             <target1 stuff="things1" />
             <target2 stuff="things2" />
         </member>
@@ -48946,19 +48956,19 @@ public static class E
 
         var extension = libComp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Debug.Assert(extension.IsExtension);
-        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
 
         var p = extension.GetMember<PropertySymbol>("P");
-        AssertEx.Equal("P:E.<Extension>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
+        AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
 
         var comp = CreateCompilation("", references: [libComp.EmitToImageReference()]);
 
         extension = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Debug.Assert(extension.IsExtension);
-        AssertEx.Equal("T:E.<Extension>$8048A6C8BE30A622530249B904B537EB.<Marker>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
 
         p = extension.GetMember<PropertySymbol>("P");
-        AssertEx.Equal("P:E.<Extension>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
+        AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
     }
 
     [Fact]
@@ -49486,13 +49496,13 @@ static class E
         comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
 
         AssertEx.SetEqual([
-            "Attr2 -> void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()",
-            "M -> void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()",
-            "Attr3 -> System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
-            "P -> System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
-            "T -> E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>",
-            "Attr -> E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>",
-            "extension -> E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>"],
+            "Attr2 -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()",
+            "M -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()",
+            "Attr3 -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
+            "P -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
+            "T -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
+            "Attr -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
+            "extension -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>"],
             analyzer._results.ToArray());
     }
 
@@ -49555,15 +49565,15 @@ static class E
 
         AssertEx.SetEqual([
             "E",
-            "E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>",
-            "System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
+            "E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
+            "System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
             "T t",
-            "E.<Extension>$865F3E9780C1FF12019ECA0B40816384",
-            "E.<Extension>$C43E2675C7BBF9284AF22FB8A9BF0280",
+            "E.<G>$865F3E9780C1FF12019ECA0B40816384",
+            "E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280",
             "System.Object o1",
-            "void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
+            "void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
             "System.Int32 i",
-            "System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P.get"],
+            "System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P.get"],
             analyzer._results.ToArray());
     }
 
@@ -49610,8 +49620,8 @@ static class E
         comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
 
         AssertEx.SetEqual([
-            "public void M() { } -> void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M()",
-            "get { return 0; } -> System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P.get"],
+            "public void M() { } -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()",
+            "get { return 0; } -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P.get"],
             analyzer._results.ToArray());
     }
 
@@ -49655,14 +49665,14 @@ static class E
 
         AssertEx.SetEqual([
             "Start: E",
-            "Start: E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>",
-            "Start: void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
-            "Start: System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
-            "Start: System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P.get",
-            "End: System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
-            "End: System.Int32 E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.P.get",
-            "End: void E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
-            "End: E.<Extension>$8048A6C8BE30A622530249B904B537EB<T>",
+            "Start: E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
+            "Start: void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
+            "Start: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
+            "Start: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P.get",
+            "End: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
+            "End: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P.get",
+            "End: void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
+            "End: E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
             "End: E"],
             analyzer._results.ToArray());
     }

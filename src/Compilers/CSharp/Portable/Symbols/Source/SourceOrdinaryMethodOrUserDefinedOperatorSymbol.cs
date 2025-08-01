@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
                 }
 
-                compilation.EnsureExtensionMarkerNameAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
 
             Location getReturnTypeLocation()

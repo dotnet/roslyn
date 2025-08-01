@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                       out CustomAttributeHandle required,
                       AttributeDescription.RequiredMemberAttribute,
                       out _,
-                      this.GetIsNewExtensionMember() ? AttributeDescription.ExtensionMarkerNameAttribute : default,
+                      this.GetIsNewExtensionMember() ? AttributeDescription.ExtensionMarkerAttribute : default,
                       out _,
                       default,
                       out _,

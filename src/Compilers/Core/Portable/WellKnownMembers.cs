@@ -4338,9 +4338,9 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
-                // System_Runtime_CompilerServices_ExtensionMarkerNameAttribute__ctor
+                // System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
@@ -5740,7 +5740,7 @@ namespace Microsoft.CodeAnalysis
                 "Empty",                                    // System_Collections_Immutable_ImmutableArray_T__Empty
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
                 ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
-                ".ctor",                                    // System_Runtime_CompilerServices_ExtensionMarkerNameAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor
                 "ToList",                                   // System_Linq_Enumerable__ToList
                 "ToArray",                                  // System_Linq_Enumerable__ToArray
                 "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression

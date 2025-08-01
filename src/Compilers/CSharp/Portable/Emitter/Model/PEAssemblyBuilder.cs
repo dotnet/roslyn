@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
         private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
         private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
-        private SynthesizedEmbeddedExtensionMarkerNameAttributeSymbol _lazyExtensionMarkerNameAttribute;
+        private SynthesizedEmbeddedExtensionMarkerAttributeSymbol _lazyExtensionMarkerAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNativeIntegerAttribute);
             builder.AddIfNotNull(_lazyScopedRefAttribute);
             builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
-            builder.AddIfNotNull(_lazyExtensionMarkerNameAttribute);
+            builder.AddIfNotNull(_lazyExtensionMarkerAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -339,18 +339,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeParamCollectionAttribute();
         }
 
-        protected override SynthesizedAttributeData TrySynthesizeExtensionMarkerNameAttribute(string markerName)
+        protected override SynthesizedAttributeData TrySynthesizeExtensionMarkerAttribute(string markerName)
         {
-            if ((object)_lazyExtensionMarkerNameAttribute != null)
+            if ((object)_lazyExtensionMarkerAttribute != null)
             {
                 return SynthesizedAttributeData.Create(
                     Compilation,
-                    _lazyExtensionMarkerNameAttribute.Constructors[0],
+                    _lazyExtensionMarkerAttribute.Constructors[0],
                     [new TypedConstant(Compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, markerName)],
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.TrySynthesizeExtensionMarkerNameAttribute(markerName);
+            return base.TrySynthesizeExtensionMarkerAttribute(markerName);
         }
 
         internal override SynthesizedEmbeddedAttributeSymbol TryGetSynthesizedIsUnmanagedAttribute()
@@ -516,13 +516,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     CreateRefSafetyRulesAttributeSymbol);
             }
 
-            if ((needsAttributes & EmbeddableAttributes.ExtensionMarkerNameAttribute) != 0)
+            if ((needsAttributes & EmbeddableAttributes.ExtensionMarkerAttribute) != 0)
             {
                 CreateAttributeIfNeeded(
-                    ref _lazyExtensionMarkerNameAttribute,
+                    ref _lazyExtensionMarkerAttribute,
                     diagnostics,
-                    AttributeDescription.ExtensionMarkerNameAttribute,
-                    CreateExtensionMarkerNameAttributeSymbol);
+                    AttributeDescription.ExtensionMarkerAttribute,
+                    CreateExtensionMarkerAttributeSymbol);
             }
         }
 
@@ -580,8 +580,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Int32, diagnostics));
 
-        private SynthesizedEmbeddedExtensionMarkerNameAttributeSymbol CreateExtensionMarkerNameAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
-            => new SynthesizedEmbeddedExtensionMarkerNameAttributeSymbol(
+        private SynthesizedEmbeddedExtensionMarkerAttributeSymbol CreateExtensionMarkerAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedExtensionMarkerAttributeSymbol(
                     name,
                     containingNamespace,
                     SourceModule,

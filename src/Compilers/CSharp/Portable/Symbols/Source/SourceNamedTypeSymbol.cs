@@ -1171,7 +1171,7 @@ next:;
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
                 | ReservedAttributes.RequiredMemberAttribute
-                | ReservedAttributes.ExtensionMarkerNameAttribute))
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)

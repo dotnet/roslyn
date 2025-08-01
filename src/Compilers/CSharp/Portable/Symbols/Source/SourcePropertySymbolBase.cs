@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
 
-                compilation.EnsureExtensionMarkerNameAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
         }
 
@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.GetIsNewExtensionMember())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerNameAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
             }
         }
 
@@ -1570,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 | ReservedAttributes.NullableAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.RequiredMemberAttribute
-                | ReservedAttributes.ExtensionMarkerNameAttribute))
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DisallowNullAttribute))

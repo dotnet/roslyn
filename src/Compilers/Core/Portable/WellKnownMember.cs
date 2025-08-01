@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Generic_List_T__AddRange,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
-        System_Runtime_CompilerServices_ExtensionMarkerNameAttribute__ctor,
+        System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
 
         System_Linq_Enumerable__ToList,
         System_Linq_Enumerable__ToArray,

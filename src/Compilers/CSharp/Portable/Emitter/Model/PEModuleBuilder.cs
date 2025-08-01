@@ -1525,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeParamCollectionAttribute();
         }
 
-        internal SynthesizedAttributeData SynthesizeExtensionMarkerNameAttribute(Symbol symbol, string markerName)
+        internal SynthesizedAttributeData SynthesizeExtensionMarkerAttribute(Symbol symbol, string markerName)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1533,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            return TrySynthesizeExtensionMarkerNameAttribute(markerName);
+            return TrySynthesizeExtensionMarkerAttribute(markerName);
         }
 
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
@@ -1754,10 +1754,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
         }
 
-        protected virtual SynthesizedAttributeData TrySynthesizeExtensionMarkerNameAttribute(string markerName)
+        protected virtual SynthesizedAttributeData TrySynthesizeExtensionMarkerAttribute(string markerName)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerNameAttribute__ctor,
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
                 [new TypedConstant(Compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, markerName)]);
         }
 
