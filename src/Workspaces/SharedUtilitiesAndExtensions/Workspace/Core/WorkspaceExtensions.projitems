@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateEqualsMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FindSymbols\LinkedFileReferenceLocationEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormatterShared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\InitializeParameter\AbstractInitializerParameterService.cs" />

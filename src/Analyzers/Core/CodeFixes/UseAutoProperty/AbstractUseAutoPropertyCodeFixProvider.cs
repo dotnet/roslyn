@@ -430,7 +430,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         if (!formattingRules.IsDefault)
         {
             var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-            document = await Formatter.FormatAsync(
+            document = await FormatterShared.FormatAsync(
                 document, SpecializedFormattingAnnotation, options, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 

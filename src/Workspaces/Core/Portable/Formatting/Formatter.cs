@@ -110,12 +110,8 @@ public static class Formatter
     internal static Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         => FormatAsync(document, annotation, options, rules: default, cancellationToken);
 
-    internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
-    {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var services = document.Project.Solution.Services;
-        return document.WithSyntaxRoot(Format(root, annotation, services, options, rules, cancellationToken));
-    }
+    internal static Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
+        => FormatterShared.FormatAsync(document, annotation, options, rules, cancellationToken);
 
     internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, OptionSet? optionSet, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
     {
@@ -175,7 +171,7 @@ public static class Formatter
     }
 
     internal static SyntaxNode Format(SyntaxNode node, SyntaxAnnotation annotation, SolutionServices services, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
-        => Format(node, GetAnnotatedSpans(node, annotation), services, options, rules, cancellationToken);
+        => FormatterShared.Format(node, annotation, services, options, rules, cancellationToken);
 
     /// <summary>
     /// Formats the whitespace of a syntax tree.
@@ -225,7 +221,7 @@ public static class Formatter
     }
 
     internal static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan>? spans, SolutionServices services, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
-        => GetFormattingResult(node, spans, services, options, rules, cancellationToken).GetFormattedRoot(cancellationToken);
+        => FormatterShared.Format(node, spans, services, options, rules, cancellationToken);
 
     private static IFormattingResult? GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, Workspace workspace, OptionSet? options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
     {
@@ -252,10 +248,7 @@ public static class Formatter
     }
 
     internal static IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SolutionServices services, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
-    {
-        var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(node.Language);
-        return formatter.GetFormattingResult(node, spans, options, rules, cancellationToken);
-    }
+        => FormatterShared.GetFormattingResult(node, spans, services, options, rules, cancellationToken);
 
     /// <summary>
     /// Determines the changes necessary to format the whitespace of a syntax tree.
