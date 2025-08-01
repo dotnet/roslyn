@@ -230,51 +230,6 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Theory, CombinatorialData]
-    public async Task TestLspTransfersDocumentToNewWorkspaceAsync(bool mutatingLspWorkspace)
-    {
-        var markup = "One";
-
-        // Create a server that includes the LSP misc files workspace so we can test transfers to and from it.
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
-
-        // Create a new document, but do not update the workspace solution yet.
-        var newDocumentId = DocumentId.CreateNewId(testLspServer.TestWorkspace.CurrentSolution.ProjectIds[0]);
-
-        // Include some Unicode characters to test URL handling.
-        var newDocumentFilePath = "C:\\NewDoc\\\ue25b\ud86d\udeac.cs";
-        var newDocumentInfo = DocumentInfo.Create(newDocumentId, "NewDoc.cs", filePath: newDocumentFilePath, loader: new TestTextLoader("New Doc"));
-        var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(newDocumentFilePath);
-
-        // Open the document via LSP before the workspace sees it.
-        await testLspServer.OpenDocumentAsync(newDocumentUri, "LSP text");
-
-        // Verify it is in the lsp misc workspace.
-        var (_, miscDocument) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
-        Assert.NotNull(miscDocument);
-        Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(miscDocument));
-        Assert.Equal("LSP text", (await miscDocument.GetTextAsync(CancellationToken.None)).ToString());
-
-        // Make a change and verify the misc document is updated.
-        await testLspServer.InsertTextAsync(newDocumentUri, (0, 0, "More LSP text"));
-        (_, miscDocument) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
-        AssertEx.NotNull(miscDocument);
-        var miscText = await miscDocument.GetTextAsync(CancellationToken.None);
-        Assert.Equal("More LSP textLSP text", miscText.ToString());
-
-        // Update the registered workspace with the new document.
-        await testLspServer.TestWorkspace.AddDocumentAsync(newDocumentInfo);
-
-        // Verify that the newly added document in the registered workspace is returned.
-        var (documentWorkspace, document) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
-        AssertEx.NotNull(document);
-        Assert.Equal(testLspServer.TestWorkspace, documentWorkspace);
-        Assert.Equal(newDocumentId, document.Id);
-        // Verify we still are using the tracked LSP text for the document.
-        var documentText = await document.GetTextAsync(CancellationToken.None);
-        Assert.Equal("More LSP textLSP text", documentText.ToString());
-    }
-
-    [Theory, CombinatorialData]
     public async Task TestUsesRegisteredHostWorkspace(bool mutatingLspWorkspace)
     {
         var firstWorkspaceXml =
