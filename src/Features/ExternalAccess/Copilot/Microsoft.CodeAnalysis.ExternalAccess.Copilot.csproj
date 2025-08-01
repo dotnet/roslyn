@@ -20,6 +20,7 @@
     <!--
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.CodeMappers.CSharp" Key="$(CopilotKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.LanguageServer" Key="$(CopilotKey)" />
@@ -27,6 +28,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Threading" />
   </ItemGroup>
 
   <ItemGroup>
