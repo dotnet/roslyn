@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -41,5 +44,26 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             cacheDirectory: _mefCacheDirectory.Path,
             extensionPaths: []);
         return exportProvider;
+    }
+
+    private protected override async ValueTask<Document> AddDocumentAsync(TestLspServer testLspServer, string filePath, string content)
+    {
+        // For the file-based programs, we want to put them in the real workspace via the real host service
+        var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
+        var project = await workspaceFactory.HostProjectFactory.CreateAndAddToWorkspaceAsync(
+            Guid.NewGuid().ToString(),
+            LanguageNames.CSharp,
+            new ProjectSystemProjectCreationInfo { AssemblyName = Guid.NewGuid().ToString() },
+            workspaceFactory.ProjectSystemHostInfo);
+
+        project.AddSourceFile(filePath);
+
+        return workspaceFactory.HostWorkspace.CurrentSolution.GetRequiredProject(project.Id).Documents.Single();
+    }
+
+    private protected override Workspace GetHostWorkspace(TestLspServer testLspServer)
+    {
+        var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
+        return workspaceFactory.HostWorkspace;
     }
 }
