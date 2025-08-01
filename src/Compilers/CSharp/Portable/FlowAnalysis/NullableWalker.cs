@@ -6667,14 +6667,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<RefKind> GetArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, bool isNewExtension,
+        internal static ImmutableArray<RefKind> GetArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, bool adjustForNewExtension,
             MethodSymbol method, int argumentCount)
         {
-            if (!isNewExtension)
+            if (!adjustForNewExtension)
             {
                 return argumentRefKindsOpt;
             }
 
+            Debug.Assert(method.GetIsNewExtensionMember());
             RefKind receiverRefKind = GetExtensionReceiverRefKind(method);
 
             if (argumentRefKindsOpt.IsDefault)

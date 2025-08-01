@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixesAndRefactorings
     <ExportLanguageService(GetType(IFixAllSpanMappingService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicFixAllSpanMappingService
+    Friend NotInheritable Class VisualBasicFixAllSpanMappingService
         Inherits AbstractFixAllSpanMappingService
 
         <ImportingConstructor>

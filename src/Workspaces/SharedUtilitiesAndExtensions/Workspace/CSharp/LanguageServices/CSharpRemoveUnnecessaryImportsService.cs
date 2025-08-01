@@ -68,7 +68,7 @@ internal sealed partial class CSharpRemoveUnnecessaryImportsService() :
                 }
             }
 
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
             var formattedRoot = SyntaxFormatting.GetFormattingResult(newRoot, spansToFormat, formattingOptions, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
 
             return document.WithSyntaxRoot(formattedRoot);

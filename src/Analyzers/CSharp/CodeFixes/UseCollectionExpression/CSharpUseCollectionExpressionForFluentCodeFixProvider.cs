@@ -146,8 +146,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvi
                 return default;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-                CSharpSyntaxFormatting.Instance, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 

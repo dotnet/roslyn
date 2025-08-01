@@ -115,11 +115,11 @@ internal static class ITextViewWindowVerifierInProcessExtensions
                     ],
                     cancellationToken);
 
-                if (codeActionLogger.Messages.Any())
+                if (codeActionLogger.Messages.Count != 0)
                 {
                     foreach (var e in events)
                     {
-                        codeActionLogger.Messages.Add($"{e.OldSolution.WorkspaceVersion} to {e.NewSolution.WorkspaceVersion}: {e.Kind} {e.DocumentId}");
+                        codeActionLogger.Messages.Add($"{e.OldSolution.SolutionStateContentVersion} to {e.NewSolution.SolutionStateContentVersion}: {e.Kind} {e.DocumentId}");
                     }
                 }
 

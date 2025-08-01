@@ -125,8 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/78962 : Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
-                //            Specifically BoundParameterId, etc.   
                 parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).ExtensionParameter!));
             }
 
@@ -137,6 +135,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(parameters.Count == ParameterCount);
             return parameters.ToImmutableAndFree();
+        }
+
+        internal static int GetImplementationParameterOrdinal(ParameterSymbol underlyingParameter)
+        {
+            if (underlyingParameter.ContainingSymbol is NamedTypeSymbol)
+            {
+                return 0;
+            }
+
+            var ordinal = underlyingParameter.Ordinal;
+
+            if (underlyingParameter.ContainingSymbol.IsStatic)
+            {
+                return ordinal;
+            }
+
+            return ordinal + 1;
         }
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
@@ -182,19 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    if (this._underlyingParameter.ContainingSymbol is NamedTypeSymbol)
-                    {
-                        return 0;
-                    }
-
-                    var ordinal = this._underlyingParameter.Ordinal;
-
-                    if (this._underlyingParameter.ContainingSymbol.IsStatic)
-                    {
-                        return ordinal;
-                    }
-
-                    return ordinal + 1;
+                    return GetImplementationParameterOrdinal(this._underlyingParameter);
                 }
             }
 

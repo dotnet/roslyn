@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal interface IRazorSourceGeneratedDocumentSpanMappingService
     {
-        Task<ImmutableArray<RazorMappedEditResult>> GetMappedTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
-        Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
+        Task<ImmutableArray<RazorMappedEditResult>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken);
+        Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
     }
 }

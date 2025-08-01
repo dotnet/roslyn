@@ -20,12 +20,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
-public sealed class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
+public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    public LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     [Theory, CombinatorialData]
     public async Task TestUsesLspTextOnOpenCloseAsync(bool mutatingLspWorkspace)
     {

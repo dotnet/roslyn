@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -12,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -39,6 +39,8 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         ConstructorDeclarationSyntax,
         ExpressionSyntax>
 {
+    protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
+
     protected override PropertyDeclarationSyntax GetPropertyDeclaration(SyntaxNode node)
         => (PropertyDeclarationSyntax)node;
 
@@ -221,9 +223,9 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
     {
         // If the final property is only simple `get;set;` accessors, then reformat the property to be on a single line.
         if (propertyDeclaration is PropertyDeclarationSyntax { AccessorList.Accessors: var accessors } &&
-            accessors.All(a => a is { ExpressionBody: null, Body: null }))
+            accessors.All(a => a is { ExpressionBody: null, Body: null, AttributeLists.Count: 0 }))
         {
-            return [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
+            return [new SingleLinePropertyFormattingRule(), .. this.SyntaxFormatting.GetDefaultFormattingRules()];
         }
 
         return default;
