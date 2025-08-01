@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\CSharpFixAllSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ArgumentGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AttributeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConstructorGenerator.cs" />
