@@ -80,7 +80,7 @@ internal partial class StreamingFindUsagesPresenter
 
         public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
         {
-            var results = await documentSpan.Document.TryGetMappedSpanResultAsync([documentSpan.SourceSpan], cancellationToken).ConfigureAwait(false);
+            var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(documentSpan.Document, [documentSpan.SourceSpan], cancellationToken).ConfigureAwait(false);
             if (results is not { } mappedSpans || mappedSpans.IsDefaultOrEmpty)
             {
                 return new MappedSpanResult(documentSpan.Document.FilePath!, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);

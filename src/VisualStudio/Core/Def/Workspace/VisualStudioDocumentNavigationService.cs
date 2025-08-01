@@ -197,7 +197,7 @@ internal sealed class VisualStudioDocumentNavigationService(
 
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
         if (textDocument is Document document &&
-            document.CanMapSpans())
+            SpanMappingHelper.CanMapSpans(document))
         {
             var mappedSpanResult = await GetMappedSpanAsync(
                 document,
@@ -314,7 +314,7 @@ internal sealed class VisualStudioDocumentNavigationService(
 
     private static async Task<MappedSpanResult?> GetMappedSpanAsync(Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        var results = await generatedDocument.TryGetMappedSpanResultAsync([textSpan], cancellationToken).ConfigureAwait(false);
+        var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
 
         if (results == null)
         {

@@ -155,7 +155,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
             }
 
             var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
-            var results = await document.TryGetMappedSpanResultAsync([span], cancellationToken).ConfigureAwait(false);
+            var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(document, [span], cancellationToken).ConfigureAwait(false);
             if (results is null)
             {
                 // for normal document, just add one as they are

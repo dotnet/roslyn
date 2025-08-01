@@ -417,7 +417,7 @@ internal static partial class ProtocolConversions
             }
 
             // Map all the text changes' spans for this document.
-            var mappedResults = await oldDocument.TryGetMappedSpanResultAsync([.. textChanges.Select(tc => tc.Span)], cancellationToken).ConfigureAwait(false);
+            var mappedResults = await SpanMappingHelper.TryGetMappedSpanResultAsync(oldDocument, [.. textChanges.Select(tc => tc.Span)], cancellationToken).ConfigureAwait(false);
             if (mappedResults == null)
             {
                 // There's no span mapping available, just create text edits from the original text changes.
@@ -473,7 +473,7 @@ internal static partial class ProtocolConversions
         Debug.Assert(document.FilePath != null);
 
         var result = document is Document d
-            ? await d.TryGetMappedSpanResultAsync([textSpan], cancellationToken).ConfigureAwait(false)
+            ? await SpanMappingHelper.TryGetMappedSpanResultAsync(d, [textSpan], cancellationToken).ConfigureAwait(false)
             : null;
         if (result == null)
             return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
