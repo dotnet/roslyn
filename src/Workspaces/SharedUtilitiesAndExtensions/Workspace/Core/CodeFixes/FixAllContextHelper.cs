@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,6 +56,8 @@ internal static partial class FixAllContextHelper
                             diagnosticSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
                         return await GetSpanDiagnosticsAsync(fixAllContext, documentsAndSpans).ConfigureAwait(false);
                     }
+#else
+                    Debug.Fail("FixAllScope.ContainingMember and FixAllScope.ContainingType are not supported in CodeStyle layer");
 #endif
                 }
 

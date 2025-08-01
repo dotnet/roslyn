@@ -247,17 +247,4 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_
         var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.AnalyzerException));
         AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
     }
-
-    // This region provides instances of code fix providers from Features layers, such that the corresponding 
-    // analyzer has been ported to CodeStyle layer, but not the fixer.
-    // This enables porting the tests for the ported analyzer in CodeStyle layer.
-    #region CodeFixProvider Helpers
-
-    // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
-    protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();
-
-    // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
-    protected static CodeFixProvider GetVisualBasicUseAutoPropertyCodeFixProvider() => new VisualBasicUseAutoPropertyCodeFixProvider();
-
-    #endregion
 }

@@ -28,7 +28,6 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
 {
     protected const string DisposingName = "disposing";
 
-    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
     protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
     protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
