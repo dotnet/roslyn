@@ -553,6 +553,7 @@ public sealed class CSharpCallHierarchyTests
     }
 
     [WpfFact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71068")]
     public async Task Method_ExcludeNameofReferencesWithoutMemberAccess()
     {
         var text = """
@@ -585,6 +586,7 @@ public sealed class CSharpCallHierarchyTests
     }
 
     [WpfFact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71068")]
     public async Task Method_ExcludeNameofReferences()
     {
         var text = """

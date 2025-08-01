@@ -683,18 +683,12 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             }
             else
             {
-                // Walk up out of the member access expression. This way if we have something like
-                // nameof(C.Goo()), we ensure that operation.Parent is the INameOfOperation. 
-                var operationNode = node;
-                while (syntaxFacts.IsMemberAccessExpression(operationNode.Parent))
-                    operationNode = operationNode.Parent;
+                var operation = semanticModel.GetOperation(node, cancellationToken);
 
-                var operation = semanticModel.GetOperation(operationNode, cancellationToken);
                 if (operation is IObjectCreationOperation)
                     return SymbolUsageInfo.Create(TypeOrNamespaceUsageInfo.ObjectCreation);
 
-                // Note: sizeof/typeof also return 'name', but are handled above in GetSymbolUsageInfo.
-                if (operation?.Parent is INameOfOperation)
+                if (IsInNameOfOperation(node, state, cancellationToken))
                     return SymbolUsageInfo.Create(ValueUsageInfo.Name);
 
                 if (node.IsPartOfStructuredTrivia())
@@ -739,6 +733,26 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 return SymbolUsageInfo.None;
             }
         }
+    }
+
+    private static bool IsInNameOfOperation(SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
+    {
+        // Walk up out of the member access expression. This way if we have something like
+        // nameof(C.Goo()), we ensure that operation.Parent is the INameOfOperation. 
+
+        var syntaxFacts = state.SyntaxFacts;
+        var semanticModel = state.SemanticModel;
+
+        while (syntaxFacts.IsMemberAccessExpression(node?.Parent))
+            node = node.Parent;
+
+        var operation = semanticModel.GetOperation(node, cancellationToken);
+
+        // Note: sizeof/typeof also return 'name', but are handled in GetSymbolUsageInfo.
+        if (operation?.Parent is INameOfOperation)
+            return true;
+
+        return false;
     }
 
     private static bool IsNodeOrAnyAncestorLeftSideOfDot(SyntaxNode node, ISyntaxFactsService syntaxFacts)

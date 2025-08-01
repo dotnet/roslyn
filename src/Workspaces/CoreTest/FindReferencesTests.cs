@@ -694,44 +694,44 @@ public sealed class FindReferencesTests : TestBase
         var solution = GetSingleDocumentSolution(workspace, text);
         var project = solution.Projects.First();
         var compilation = await project.GetCompilationAsync();
-        
+
         var typeC = compilation.GetTypeByMetadataName("C");
         var innerCSymbol = typeC.GetMembers("InnerC").OfType<IFieldSymbol>().First();
         var fieldSymbol = typeC.GetMembers("Field").OfType<IFieldSymbol>().First();
-        
+
         // Find references to InnerC
         var innerCReferences = (await SymbolFinder.FindReferencesAsync(innerCSymbol, solution)).ToList();
         Assert.Equal(1, innerCReferences.Count);
-        
+
         var innerCLocations = innerCReferences[0].Locations.Where(loc => !loc.IsImplicit).ToList();
         Assert.Equal(1, innerCLocations.Count); // Should only have the assignment usage, not declaration
-        
+
         var innerCUsage = innerCLocations.Single();
-        
+
         // CRITICAL TEST: In "InnerC.Field = 5", InnerC should be READ (not written)
         // This is the key assertion - in a.b.c = 5, 'b' (InnerC) is read to access 'c' (Field)
         Assert.True(innerCUsage.SymbolUsageInfo.IsReadFrom(), 
             "InnerC should be READ in 'InnerC.Field = 5'. " +
             $"The walk-up logic should not affect this. UsageInfo: {innerCUsage.SymbolUsageInfo}");
-        
+
         Assert.False(innerCUsage.SymbolUsageInfo.IsWrittenTo(), 
             "InnerC should NOT be WRITTEN in 'InnerC.Field = 5'. " +
             $"Only Field should be written. UsageInfo: {innerCUsage.SymbolUsageInfo}");
-        
+
         // Verify Field is written as expected
         var fieldReferences = (await SymbolFinder.FindReferencesAsync(fieldSymbol, solution)).ToList();
         Assert.Equal(1, fieldReferences.Count);
-        
+
         var fieldLocations = fieldReferences[0].Locations.Where(loc => !loc.IsImplicit).ToList();
         Assert.Equal(1, fieldLocations.Count); // Should only have the assignment usage, not declaration
-        
+
         var fieldUsage = fieldLocations.Single();
-        
+
         Assert.True(fieldUsage.SymbolUsageInfo.IsWrittenTo(), 
             "Field should be WRITTEN in 'InnerC.Field = 5'. " +
             $"UsageInfo: {fieldUsage.SymbolUsageInfo}");
     }
-    
+
     private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)
     {
         void verifier(Location location)
