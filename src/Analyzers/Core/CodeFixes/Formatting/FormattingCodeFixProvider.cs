@@ -79,7 +79,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
             text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
             text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
-        var formattingOptions = await context.Document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await context.Document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var formattedRoot = SyntaxFormatting.GetFormattingResult(root, [spanToFormat], formattingOptions, rules: default, cancellationToken: cancellationToken).GetFormattedRoot(cancellationToken);
 
         return context.Document.WithSyntaxRoot(formattedRoot);
@@ -87,7 +87,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var updatedRoot = SyntaxFormatting.GetFormattingResult(editor.OriginalRoot, [editor.OriginalRoot.FullSpan], formattingOptions, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
         editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
     }
