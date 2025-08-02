@@ -22,38 +22,51 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorStartupServiceFactory(
     [Import(AllowDefault = true)] IUIContextActivationService? uIContextActivationService,
-    [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService) : ILspServiceFactory
+    [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService,
+    [Import(AllowDefault = true)] AbstractRazorCohostLifecycleService? razorCohostLifecycleService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new RazorStartupService(uIContextActivationService, cohostStartupService);
+        return new RazorStartupService(uIContextActivationService, cohostStartupService, razorCohostLifecycleService);
     }
 
     private class RazorStartupService(
         IUIContextActivationService? uIContextActivationService,
-        Lazy<ICohostStartupService>? cohostStartupService) : ILspService, IOnInitialized, IDisposable
+#pragma warning disable CS0618 // Type or member is obsolete
+        Lazy<ICohostStartupService>? cohostStartupService,
+#pragma warning restore CS0618 // Type or member is obsolete
+        AbstractRazorCohostLifecycleService? razorCohostLifecycleService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
         private IDisposable? _activation;
 
         public void Dispose()
         {
+            razorCohostLifecycleService?.Dispose();
+
             _activation?.Dispose();
             _activation = null;
             _disposalTokenSource.Cancel();
         }
 
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             if (context.ServerKind is not (WellKnownLspServerKinds.AlwaysActiveVSLspServer or WellKnownLspServerKinds.CSharpVisualBasicLspServer))
             {
                 // We have to register this class for Any server, but only want to run in the C# server in VS or VS Code
-                return Task.CompletedTask;
+                return;
             }
 
-            if (cohostStartupService is null)
+            if (cohostStartupService is null && razorCohostLifecycleService is null)
             {
-                return Task.CompletedTask;
+                return;
+            }
+
+            if (razorCohostLifecycleService is not null)
+            {
+                // If we have a cohost lifecycle service, fire pre-initialization, which happens when the LSP server starts up, but before
+                // the UIContext is activated.
+                await razorCohostLifecycleService.LspServerIntializedAsync(cancellationToken).ConfigureAwait(false);
             }
 
             if (uIContextActivationService is null)
@@ -66,7 +79,7 @@ internal sealed class RazorStartupServiceFactory(
                 _activation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
             }
 
-            return Task.CompletedTask;
+            return;
 
             void InitializeRazor()
             {
@@ -85,13 +98,18 @@ internal sealed class RazorStartupServiceFactory(
 
             using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
 
-            // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-            var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
-
             var requestContext = new RazorCohostRequestContext(context);
+
+            if (razorCohostLifecycleService is not null)
+            {
+                // If we have a cohost lifecycle service, fire post-initialization, which happens when the UIContext is activated.
+                await razorCohostLifecycleService.RazorActivatedAsync(clientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+            }
 
             if (cohostStartupService is not null)
             {
+                // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
+                var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
                 await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
             }
         }
