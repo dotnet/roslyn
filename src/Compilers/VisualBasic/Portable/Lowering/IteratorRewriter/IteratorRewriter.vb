@@ -17,7 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _isEnumerable As Boolean
 
         Private _currentField As FieldSymbol
-        Private _initialThreadIdField As FieldSymbol
 
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
@@ -141,16 +140,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Add a field: T current
             _currentField = F.StateMachineField(_elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Public)
 
-            ' if it is an Enumerable, add a field: initialThreadId As Integer
-            _initialThreadIdField = If(_isEnumerable,
-                F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeIteratorInitialThreadIdName(), Accessibility.Public),
-                Nothing)
-
         End Sub
 
         Protected Overrides Sub GenerateMethodImplementations()
-            Dim managedThreadId As BoundExpression = Nothing  ' Thread.CurrentThread.ManagedThreadId
-
             ' Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
             Dim disposeMethod = Me.OpenMethodImplementation(SpecialMember.System_IDisposable__Dispose,
                                                              "Dispose",
@@ -165,16 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If _isEnumerable Then
                 ' generate the code for GetEnumerator()
-                '    IEnumerable<elementType> result;
-                '    if (this.initialThreadId == Thread.CurrentThread.ManagedThreadId && this.state == -2)
-                '    {
-                '        this.state = 0;
-                '        result = this;
-                '    }
-                '    else
-                '    {
-                '        result = new Ints0_Impl(0);
-                '    }
+                '    IEnumerable<elementType> result = new Ints0_Impl(0);
                 '    result.parameter = this.parameterProxy; ' copy all of the parameter proxies
 
                 ' Add IEnumerator<int> IEnumerable<int>.GetEnumerator()
@@ -187,47 +170,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
                 Dim resultVariable = F.SynthesizedLocal(StateMachineType)      ' iteratorClass result;
 
-                Dim currentManagedThreadIdMethod As MethodSymbol = Nothing
-
-                Dim currentManagedThreadIdProperty As PropertySymbol = F.WellKnownMember(Of PropertySymbol)(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional:=True)
-
-                If (currentManagedThreadIdProperty IsNot Nothing) Then
-                    currentManagedThreadIdMethod = currentManagedThreadIdProperty.GetMethod()
-                End If
-
-                If (currentManagedThreadIdMethod IsNot Nothing) Then
-                    managedThreadId = F.Call(Nothing, currentManagedThreadIdMethod)
-                Else
-                    managedThreadId = F.Property(F.Property(WellKnownMember.System_Threading_Thread__CurrentThread), WellKnownMember.System_Threading_Thread__ManagedThreadId)
-                End If
-
-                ' if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
-                '    this.state = 0;
-                '    result = this;
-                '    goto thisInitialized
-                ' else
-                '    result = new IteratorClass(0)
-                '    ' initialize [Me] if needed
-                '    thisInitialized:
-                '    ' initialize other fields
+                ' result = new IteratorClass(0)
+                ' ' initialize [Me] if needed
+                ' thisInitialized:
+                ' ' initialize other fields
                 Dim thisInitialized = F.GenerateLabel("thisInitialized")
-                bodyBuilder.Add(
-                    F.If(
-                    condition:=
-                        F.LogicalAndAlso(
-                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineState.FinishedState)),
-                            F.IntEqual(F.Field(F.Me, _initialThreadIdField, False), managedThreadId)),
-                    thenClause:=
-                        F.Block(
-                            F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineState.FirstUnusedState)),
-                            F.Assignment(F.Local(resultVariable, True), F.Me),
-                            If(Method.IsShared OrElse Method.MeParameter.Type.IsReferenceType,
-                                    F.Goto(thisInitialized),
-                                    DirectCast(F.StatementList(), BoundStatement))
-                        ),
-                    elseClause:=
-                        F.Assignment(F.Local(resultVariable, True), F.[New](StateMachineType.Constructor, F.Literal(0)))
-                    ))
+                bodyBuilder.Add(F.Assignment(F.Local(resultVariable, True), F.[New](StateMachineType.Constructor, F.Literal(0))))
 
                 ' Initialize all the parameter copies
                 Dim copySrc = InitialParameters
@@ -303,11 +251,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
                 bodyBuilder.Add(F.BaseInitialization())
                 bodyBuilder.Add(F.Assignment(F.Field(F.Me, StateField, True), F.Parameter(F.CurrentMethod.Parameters(0)).MakeRValue))    ' this.state = state
-
-                If _isEnumerable Then
-                    ' this.initialThreadId = Thread.CurrentThread.ManagedThreadId;
-                    bodyBuilder.Add(F.Assignment(F.Field(F.Me, _initialThreadIdField, True), managedThreadId))
-                End If
 
                 bodyBuilder.Add(F.Return())
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()))

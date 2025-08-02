@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateIAsyncDisposable_DisposeAsync();
             }
 
-            protected override bool PreserveInitialParameterValuesAndThreadId
+            protected override bool PreserveInitialParameterValues
                 => _isEnumerable;
 
             protected override void GenerateControlFields()
@@ -167,13 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(GenerateCreateAndAssignBuilder());
 
                 bodyBuilder.Add(F.Assignment(F.InstanceField(stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
-
-                var managedThreadId = MakeCurrentThreadId();
-                if (managedThreadId != null && (object)initialThreadIdField != null)
-                {
-                    // this.initialThreadId = {managedThreadId};
-                    bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
-                }
 
                 if (instanceIdField is not null &&
                     F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
@@ -656,8 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.WellKnownMethod(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator)
                     .AsMember(IAsyncEnumerableOfElementType);
 
-                BoundExpression managedThreadId = null;
-                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineState.InitialAsyncIteratorState);
+                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, initialState: StateMachineState.InitialAsyncIteratorState);
             }
 
             protected override void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, StateMachineState initialState)
