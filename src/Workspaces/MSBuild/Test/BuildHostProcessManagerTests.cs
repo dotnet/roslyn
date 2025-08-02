@@ -18,7 +18,7 @@ public sealed class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForNetCore_RollsForwardToLatestPreview()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "");
+            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
 
 #if NET
         var rollForwardIndex = processStartInfo.ArgumentList.IndexOf("--roll-forward");
@@ -35,7 +35,7 @@ public sealed class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForNetCore_LaunchesDotNetCLI()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "");
+            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
 
         Assert.StartsWith("dotnet", processStartInfo.FileName);
     }
@@ -44,7 +44,7 @@ public sealed class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForMono_LaunchesMono()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.Mono, pipeName: "");
+            .CreateBuildHostStartInfo(BuildHostProcessKind.Mono, pipeName: "", dotnetPath: null);
 
         Assert.Equal("mono", processStartInfo.FileName);
     }
@@ -53,7 +53,7 @@ public sealed class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForNetFramework_LaunchesBuildHost()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetFramework, pipeName: "");
+            .CreateBuildHostStartInfo(BuildHostProcessKind.NetFramework, pipeName: "", dotnetPath: null);
 
         Assert.EndsWith("Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe", processStartInfo.FileName);
     }
@@ -70,7 +70,7 @@ public sealed class BuildHostProcessManagerTests
         binLogPathProviderMock.Setup(m => m.GetNewLogPath()).Returns(BinaryLogPath);
 
         var processStartInfo = new BuildHostProcessManager(binaryLogPathProvider: binLogPathProviderMock.Object)
-            .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
+            .CreateBuildHostStartInfo(buildHostKind, pipeName: "", dotnetPath: null);
 
 #if NET
         var binlogIndex = processStartInfo.ArgumentList.IndexOf("--binlog");
@@ -90,7 +90,7 @@ public sealed class BuildHostProcessManagerTests
         const string PipeName = "TestPipe";
 
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(buildHostKind, PipeName);
+            .CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
 
 #if NET
         var binlogIndex = processStartInfo.ArgumentList.IndexOf("--pipe");
@@ -111,7 +111,7 @@ public sealed class BuildHostProcessManagerTests
         const string Locale = "de-DE";
 
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
+            .CreateBuildHostStartInfo(buildHostKind, pipeName: "", dotnetPath: null);
 
 #if NET
         var localeIndex = processStartInfo.ArgumentList.IndexOf("--locale");
@@ -136,7 +136,7 @@ public sealed class BuildHostProcessManagerTests
 
         var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties);
 
-        var processStartInfo = buildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, pipeName: "");
+        var processStartInfo = buildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, pipeName: "", dotnetPath: null);
 
 #if NET
         foreach (var kvp in globalMSBuildProperties)
