@@ -1,0 +1,122 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyAccessor;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+{
+    public CSharpSimplifyPropertyAccessorDiagnosticAnalyzer()
+        : base(IDEDiagnosticIds.SimplifyPropertyAccessorDiagnosticId,
+               EnforceOnBuildValues.SimplifyPropertyAccessor,
+               CSharpCodeStyleOptions.PreferSimplePropertyAccessors,
+               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_property_accessor), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Property_accessor_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+    {
+    }
+
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+    protected override void InitializeWorker(AnalysisContext context)
+    {
+        context.RegisterSyntaxNodeAction(AnalyzeAccessorList, SyntaxKind.AccessorList);
+    }
+
+    private void AnalyzeAccessorList(SyntaxNodeAnalysisContext context)
+    {
+        var option = context.GetCSharpAnalyzerOptions().PreferSimplePropertyAccessors;
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+            return;
+
+        var accessorList = (AccessorListSyntax)context.Node;
+        var accessors = accessorList.Accessors;
+
+        if (!accessorList.Parent.IsKind(SyntaxKind.PropertyDeclaration) ||
+            !IsValidAccessorList(accessorList))
+        {
+            return;
+        }
+
+        foreach (var accessor in accessors)
+        {
+            // get { return field; }
+            // get => field;
+            if (accessor is { RawKind: (int)SyntaxKind.GetAccessorDeclaration, Body.Statements: [ReturnStatementSyntax { Expression.RawKind: (int)SyntaxKind.FieldExpression }] }
+                         or { RawKind: (int)SyntaxKind.GetAccessorDeclaration, ExpressionBody.Expression.RawKind: (int)SyntaxKind.FieldExpression })
+            {
+                ReportIfValid(accessor);
+            }
+
+            // set/init { field = value; }
+            if (accessor is { RawKind: (int)SyntaxKind.SetAccessorDeclaration or (int)SyntaxKind.InitAccessorDeclaration, Body.Statements: [ExpressionStatementSyntax { Expression: var innerBlockBodyExpression }] } &&
+                IsFieldValueAssignmentExpression(innerBlockBodyExpression))
+            {
+                ReportIfValid(accessor);
+            }
+
+            // set/init => field = value;
+            if (accessor is { RawKind: (int)SyntaxKind.SetAccessorDeclaration or (int)SyntaxKind.InitAccessorDeclaration, ExpressionBody.Expression: var innerExpressionBodyExpression } &&
+                IsFieldValueAssignmentExpression(innerExpressionBodyExpression))
+            {
+                ReportIfValid(accessor);
+            }
+        }
+
+        // One can argue that these are semantic-level checks and they would be correct.
+        // However it is very simple to perform them on our own to not fall
+        // from the quick and efficient syntax-only analyzer path
+        static bool IsValidAccessorList(AccessorListSyntax accessorList)
+        {
+            var accessors = accessorList.Accessors;
+            if (accessors.Count > 2)
+                return false;
+
+            if (accessors is [var accessor1, var accessor2] &&
+                accessor1.RawKind == accessor2.RawKind)
+            {
+                return false;
+            }
+
+            return !accessorList.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
+        }
+
+        static bool IsFieldValueAssignmentExpression(ExpressionSyntax expression)
+        {
+            return expression is AssignmentExpressionSyntax
+            {
+                RawKind: (int)SyntaxKind.SimpleAssignmentExpression,
+                Left.RawKind: (int)SyntaxKind.FieldExpression,
+                Right: IdentifierNameSyntax { Identifier.ValueText: "value" }
+            };
+        }
+
+        void ReportIfValid(AccessorDeclarationSyntax accessorDeclaration)
+        {
+            // If we are analyzing an accessor of a partial property and all other accessors have no bodies
+            // then if we simplify our current accessor the property will no longer be a valid
+            // implementation part. Thus we block that case
+            if (accessorDeclaration is { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax containingPropertyDeclaration } containingAccessorList } &&
+                containingPropertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) &&
+                containingAccessorList.Accessors.All(a => ReferenceEquals(a, accessorDeclaration) || a is { Body: null, ExpressionBody: null }))
+            {
+                return;
+            }
+
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                accessorDeclaration.GetLocation(),
+                option.Notification,
+                context.Options,
+                additionalLocations: null,
+                properties: null));
+        }
+    }
+}

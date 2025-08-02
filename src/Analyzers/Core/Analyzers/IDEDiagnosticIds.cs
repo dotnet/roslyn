@@ -209,6 +209,8 @@ internal static class IDEDiagnosticIds
 
     public const string UseImplicitlyTypedLambdaExpressionDiagnosticId = "IDE0350";
 
+    public const string SimplifyPropertyAccessorDiagnosticId = "IDE0360";
+
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
     public const string AnalyzerDependencyConflictId = "IDE1002";

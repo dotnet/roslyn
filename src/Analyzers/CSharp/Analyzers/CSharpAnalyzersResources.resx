@@ -434,4 +434,10 @@
   <data name="Implement_with_Copilot" xml:space="preserve">
     <value>Implement with Copilot</value>
   </data>
+  <data name="Simplify_property_accessor" xml:space="preserve">
+    <value>Simplify property accessor</value>
+  </data>
+  <data name="Property_accessor_can_be_simplified" xml:space="preserve">
+    <value>Property accessor can be simplified</value>
+  </data>
 </root>

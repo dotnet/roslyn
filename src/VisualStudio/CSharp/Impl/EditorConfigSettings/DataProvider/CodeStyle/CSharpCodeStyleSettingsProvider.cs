@@ -105,6 +105,7 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTopLevelStatements, ServicesVSResources.Prefer_top_level_statements, options, updater);
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferPrimaryConstructors, ServicesVSResources.Prefer_primary_constructors, options, updater);
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferSystemThreadingLock, ServicesVSResources.Prefer_System_Threading_Lock, options, updater);
+        yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferSimplePropertyAccessors, ServicesVSResources.Prefer_simple_property_accessors, options, updater);
     }
 
     private static IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

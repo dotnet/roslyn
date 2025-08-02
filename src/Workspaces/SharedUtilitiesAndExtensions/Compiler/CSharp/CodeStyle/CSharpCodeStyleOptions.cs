@@ -297,6 +297,11 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_style_prefer_primary_constructors",
         defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
+    public static readonly Option2<CodeStyleOption2<bool>> PreferSimplePropertyAccessors = CreateOption(
+        CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+        "csharp_style_prefer_simple_property_accessors",
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
+
     /// <summary>
     /// Options that we expect the user to set in editorconfig.
     /// </summary>
