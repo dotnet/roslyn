@@ -533,9 +533,6 @@
   <data name="Collapse_usings_on_file_open" xml:space="preserve">
     <value>Collapse usings on file open</value>
   </data>
-  <data name="Show_new_snippet_experience_experimental" xml:space="preserve">
-    <value>Show new snippet experience (experimental)</value>
-  </data>
   <data name="Show_new_snippet_experience" xml:space="preserve">
     <value>Show new snippet experience</value>
   </data>
