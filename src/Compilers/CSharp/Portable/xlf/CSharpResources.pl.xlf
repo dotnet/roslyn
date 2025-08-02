@@ -2332,11 +2332,6 @@
         <target state="translated">Składowa rekordu „{0}” musi zwracać wartość „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">Nie można określić opcji /main, jeśli istnieje jednostka kompilacji z instrukcjami najwyższego poziomu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">Co najmniej jedna instrukcja najwyższego poziomu nie może być pusta.</target>
