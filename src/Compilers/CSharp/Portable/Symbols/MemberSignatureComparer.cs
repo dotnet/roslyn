@@ -46,6 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerCallingConvention: true,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -68,6 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -82,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions); //shouldn't actually matter for source members
 
         /// <summary>
@@ -98,7 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -112,6 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -125,6 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -138,6 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
 
         /// <summary>
@@ -151,7 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
-            considerArity: false,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: false,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -166,7 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
-            considerArity: false,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: false,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
@@ -179,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -191,7 +229,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: true,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames);
 
         /// <summary>
@@ -204,7 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: true,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -218,6 +264,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -232,6 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -244,7 +298,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
@@ -259,7 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: true,
             considerTypeConstraints: false,
             considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -271,7 +333,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: true,
             considerTypeConstraints: false,
             considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -286,6 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -298,7 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: true,
             considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -311,6 +385,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers); //if it was a true explicit impl, we expect it to remain so after retargeting
 
         /// <summary>
@@ -324,6 +402,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
@@ -336,7 +418,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
-            considerArity: true,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
             considerDefaultValues: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
@@ -350,24 +434,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
-            considerArity: false,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: false,
             considerDefaultValues: true,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+
+        /// <summary>
+        /// This instance is used to determine if two extension blocks match in IL sense and thus are allowed to share a grouping type.
+        /// It ignores parameter and type parameter names, parameter ref kind, C#-isms in type constraints, nullability and attributes.
+        /// </summary>
+        public static readonly MemberSignatureComparer ExtensionILSignatureComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: false,
+            considerTypeConstraints: true,
+            considerCallingConvention: false,
+            refKindCompareMode: RefKindCompareMode.IgnoreRefKind,
+            considerTypeParameterAndParameterNames: false,
+            considerAttributes: false,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
         /// This instance is used to determine if two extension blocks match in C# sense and thus are allowed to share a marker type.
         /// It considers parameter and type parameter names, type constraints, nullability and attributes.
         /// </summary>
-        public static readonly MemberSignatureComparer ExtensionSignatureComparer = new MemberSignatureComparer(
+        public static readonly MemberSignatureComparer ExtensionCSharpSignatureComparer = new MemberSignatureComparer(
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: false,
             considerTypeConstraints: true,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
-            typeComparison: TypeCompareKind.ConsiderEverything,
-            considerParameterNames: true,
-            considerAttributes: true);
+            considerTypeParameterAndParameterNames: true,
+            considerAttributes: true,
+            considerTypeParameters: true,
+            considerDefaultValues: false,
+            typeComparison: TypeCompareKind.ConsiderEverything);
 
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;
@@ -381,8 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Compare the type constraints
         private readonly bool _considerTypeConstraints;
 
-        // Compare the arity (type parameter count)
-        private readonly bool _considerArity;
+        // Compare the type parameters (arity, and potentially names, attributes and constraints, depending on other settings)
+        private readonly bool _considerTypeParameters;
 
         // Compare the full calling conventions.  Still compares varargs if false.
         private readonly bool _considerCallingConvention;
@@ -398,6 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Compare parameter and type parameter names
         private readonly bool _considerParameterNames;
 
+        // Compare attributes too.
+        // Note: the order of named arguments is ignored
         private readonly bool _considerAttributes;
 
         private MemberSignatureComparer(
@@ -407,14 +515,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerTypeConstraints,
             bool considerCallingConvention,
             RefKindCompareMode refKindCompareMode,
-            bool considerArity = true,
-            bool considerDefaultValues = false,
-            TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers,
-            bool considerParameterNames = false,
-            bool considerAttributes = false)
+            bool considerTypeParameterAndParameterNames,
+            bool considerAttributes,
+            bool considerTypeParameters,
+            bool considerDefaultValues,
+            TypeCompareKind typeComparison)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
-            Debug.Assert(!considerTypeConstraints || considerArity, "If you consider type constraints, you must also consider arity");
+            Debug.Assert(!considerTypeConstraints || considerTypeParameters, "If you consider type constraints, you must also consider type parameters");
 
             _considerName = considerName;
             _considerExplicitlyImplementedInterfaces = considerExplicitlyImplementedInterfaces;
@@ -422,20 +530,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerTypeConstraints = considerTypeConstraints;
             _considerCallingConvention = considerCallingConvention;
             _refKindCompareMode = refKindCompareMode;
-            _considerArity = considerArity;
+            _considerTypeParameters = considerTypeParameters;
             _considerDefaultValues = considerDefaultValues;
             _typeComparison = typeComparison;
             Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
                          $"Rely on the {nameof(refKindCompareMode)} flag to set this to ensure all cases are handled.");
-            Debug.Assert(_refKindCompareMode == RefKindCompareMode.DoNotConsiderDifferences ||
+            Debug.Assert(_refKindCompareMode == RefKindCompareMode.RefMatchesOutInRefReadonly ||
+                _refKindCompareMode == RefKindCompareMode.IgnoreRefKind ||
                 (_refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0,
                 $"Cannot set {nameof(RefKindCompareMode)} flags without {nameof(RefKindCompareMode.ConsiderDifferences)}.");
-            if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) == 0)
+
+            if (refKindCompareMode == RefKindCompareMode.RefMatchesOutInRefReadonly)
             {
                 _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
             }
 
-            _considerParameterNames = considerParameterNames;
+            _considerParameterNames = considerTypeParameterAndParameterNames;
             _considerAttributes = considerAttributes;
         }
 
@@ -453,139 +563,146 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            bool sawInterfaceInName1 = false;
-            bool sawInterfaceInName2 = false;
+            bool equals = equalsSlow(member1, member2);
+            Debug.Assert(!equals || GetHashCode(member1) == GetHashCode(member2), "If symbols are equal for some options, their hashes must be equal for those same options.");
+            return equals;
 
-            if (_considerName)
+            bool equalsSlow(Symbol member1, Symbol member2)
             {
-                string name1 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member1.Name);
-                string name2 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member2.Name);
+                bool sawInterfaceInName1 = false;
+                bool sawInterfaceInName2 = false;
 
-                sawInterfaceInName1 = name1 != member1.Name;
-                sawInterfaceInName2 = name2 != member2.Name;
-
-                if (name1 != name2)
+                if (_considerName)
                 {
-                    return false;
-                }
-            }
+                    string name1 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member1.Name);
+                    string name2 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member2.Name);
 
-            // NB: up to, and including, this check, we have not actually forced the (type) parameters
-            // to be expanded - we're only using the counts.
-            if (_considerArity)
-            {
-                if (member1.GetMemberArity() != member2.GetMemberArity())
-                {
-                    return false;
-                }
+                    sawInterfaceInName1 = name1 != member1.Name;
+                    sawInterfaceInName2 = name2 != member2.Name;
 
-                if (member1.GetMemberArity() > 0 && (_considerParameterNames || _considerAttributes))
-                {
-                    ImmutableArray<TypeParameterSymbol> typeParams1 = member1.GetMemberTypeParameters();
-                    ImmutableArray<TypeParameterSymbol> typeParams2 = member2.GetMemberTypeParameters();
-
-                    if (_considerParameterNames && typeParams1.Length > 0 && !haveSameTypeParameterNames(typeParams1, typeParams2))
-                    {
-                        return false;
-                    }
-
-                    if (_considerAttributes && !haveSameTypeParameterAttributes(typeParams1, typeParams2))
+                    if (name1 != name2)
                     {
                         return false;
                     }
                 }
-            }
 
-            if (member1.GetParameterCount() != member2.GetParameterCount())
-            {
-                return false;
-            }
-
-            TypeMap? typeMap1 = GetTypeMap(member1);
-            TypeMap? typeMap2 = GetTypeMap(member2);
-
-            if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _typeComparison))
-            {
-                return false;
-            }
-
-            if (member1.GetParameterCount() > 0)
-            {
-                var params1 = member1.GetParameters();
-                var params2 = member2.GetParameters();
-                if (!HaveSameParameterTypes(params1.AsSpan(), typeMap1, params2.AsSpan(), typeMap2,
-                    _refKindCompareMode, considerDefaultValues: _considerDefaultValues, _typeComparison))
+                // NB: up to, and including, this check, we have not actually forced the (type) parameters
+                // to be expanded - we're only using the counts.
+                if (_considerTypeParameters)
                 {
-                    return false;
-                }
-
-                if (_considerParameterNames && !haveSameParameterNames(params1, params2))
-                {
-                    return false;
-                }
-
-                if (_considerAttributes && !haveSameParameterAttributes(params1, params2))
-                {
-                    return false;
-                }
-            }
-
-            if (_considerCallingConvention)
-            {
-                if (GetCallingConvention(member1) != GetCallingConvention(member2))
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                if (IsVarargMethod(member1) != IsVarargMethod(member2))
-                {
-                    return false;
-                }
-            }
-
-            if (_considerExplicitlyImplementedInterfaces)
-            {
-                if (sawInterfaceInName1 != sawInterfaceInName2)
-                {
-                    return false;
-                }
-
-                // The purpose of this check is to determine whether the interface parts of the member names agree,
-                // but to do so using robust symbolic checks, rather than syntactic ones.  Therefore, if neither member
-                // name contains an interface name, this check is not relevant.  
-                // Phrased differently, the explicitly implemented interface is not part of the signature unless it's
-                // part of the name.
-                if (sawInterfaceInName1)
-                {
-                    Debug.Assert(sawInterfaceInName2);
-
-                    // May avoid realizing interface members.
-                    if (member1.IsExplicitInterfaceImplementation() != member2.IsExplicitInterfaceImplementation())
+                    if (member1.GetMemberArity() != member2.GetMemberArity())
                     {
                         return false;
                     }
 
-                    // By comparing symbols, rather than syntax, we gain the flexibility of ignoring whitespace
-                    // and gracefully accepting multiple names for the same (or equivalent) types (e.g. "I<int>.M"
-                    // vs "I<System.Int32>.M"), but we lose the connection with the name.  For example, in metadata,
-                    // a method name "I.M" could have nothing to do with "I" but explicitly implement interface "I2".
-                    // We will behave as if the method was really named "I2.M".  Furthermore, in metadata, a method
-                    // can explicitly implement more than one interface method, in which case it doesn't really
-                    // make sense to pretend that all of them are part of the signature.
+                    if (member1.GetMemberArity() > 0 && (_considerParameterNames || _considerAttributes))
+                    {
+                        ImmutableArray<TypeParameterSymbol> typeParams1 = member1.GetMemberTypeParameters();
+                        ImmutableArray<TypeParameterSymbol> typeParams2 = member2.GetMemberTypeParameters();
 
-                    var explicitInterfaceImplementations1 = member1.GetExplicitInterfaceImplementations();
-                    var explicitInterfaceImplementations2 = member2.GetExplicitInterfaceImplementations();
+                        if (_considerParameterNames && typeParams1.Length > 0 && !haveSameTypeParameterNames(typeParams1, typeParams2))
+                        {
+                            return false;
+                        }
 
-                    if (!explicitInterfaceImplementations1.SetEquals(explicitInterfaceImplementations2, SymbolEqualityComparer.ConsiderEverything))
+                        if (_considerAttributes && !haveSameTypeParameterAttributes(typeParams1, typeParams2))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                if (GetParameterCountIncludingParameterOfExtension(member1) != GetParameterCountIncludingParameterOfExtension(member2))
+                {
+                    return false;
+                }
+
+                TypeMap? typeMap1 = GetTypeMap(member1);
+                TypeMap? typeMap2 = GetTypeMap(member2);
+
+                if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _typeComparison))
+                {
+                    return false;
+                }
+
+                if (GetParameterCountIncludingParameterOfExtension(member1) > 0)
+                {
+                    var params1 = getParametersIncludingParameterOfExtension(member1);
+                    var params2 = getParametersIncludingParameterOfExtension(member2);
+                    if (!HaveSameParameterTypes(params1.AsSpan(), typeMap1, params2.AsSpan(), typeMap2,
+                        _refKindCompareMode, considerDefaultValues: _considerDefaultValues, _typeComparison))
+                    {
+                        return false;
+                    }
+
+                    if (_considerParameterNames && !haveSameParameterNames(params1, params2))
+                    {
+                        return false;
+                    }
+
+                    if (_considerAttributes && !haveSameParameterAttributes(params1, params2))
                     {
                         return false;
                     }
                 }
-            }
 
-            return !_considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2, ignoreNullability: (_typeComparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) != 0);
+                if (_considerCallingConvention)
+                {
+                    if (GetCallingConvention(member1) != GetCallingConvention(member2))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (IsVarargMethod(member1) != IsVarargMethod(member2))
+                    {
+                        return false;
+                    }
+                }
+
+                if (_considerExplicitlyImplementedInterfaces)
+                {
+                    if (sawInterfaceInName1 != sawInterfaceInName2)
+                    {
+                        return false;
+                    }
+
+                    // The purpose of this check is to determine whether the interface parts of the member names agree,
+                    // but to do so using robust symbolic checks, rather than syntactic ones.  Therefore, if neither member
+                    // name contains an interface name, this check is not relevant.  
+                    // Phrased differently, the explicitly implemented interface is not part of the signature unless it's
+                    // part of the name.
+                    if (sawInterfaceInName1)
+                    {
+                        Debug.Assert(sawInterfaceInName2);
+
+                        // May avoid realizing interface members.
+                        if (member1.IsExplicitInterfaceImplementation() != member2.IsExplicitInterfaceImplementation())
+                        {
+                            return false;
+                        }
+
+                        // By comparing symbols, rather than syntax, we gain the flexibility of ignoring whitespace
+                        // and gracefully accepting multiple names for the same (or equivalent) types (e.g. "I<int>.M"
+                        // vs "I<System.Int32>.M"), but we lose the connection with the name.  For example, in metadata,
+                        // a method name "I.M" could have nothing to do with "I" but explicitly implement interface "I2".
+                        // We will behave as if the method was really named "I2.M".  Furthermore, in metadata, a method
+                        // can explicitly implement more than one interface method, in which case it doesn't really
+                        // make sense to pretend that all of them are part of the signature.
+
+                        var explicitInterfaceImplementations1 = member1.GetExplicitInterfaceImplementations();
+                        var explicitInterfaceImplementations2 = member2.GetExplicitInterfaceImplementations();
+
+                        if (!explicitInterfaceImplementations1.SetEquals(explicitInterfaceImplementations2, SymbolEqualityComparer.ConsiderEverything))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return !_considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2, _typeComparison);
+            }
 
             static bool haveSameParameterNames(ImmutableArray<ParameterSymbol> params1, ImmutableArray<ParameterSymbol> params2)
             {
@@ -609,29 +726,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool hasSameAttribute(ImmutableArray<CSharpAttributeData> attributes1, ImmutableArray<CSharpAttributeData> attributes2)
             {
-                if (attributes1.Length != attributes2.Length)
+                if (attributes1.IsEmpty && attributes2.IsEmpty)
                 {
-                    return false;
-                }
-
-                var comparer = CommonAttributeDataComparer.InstanceIgnoringNamedArgumentOrder;
-
-                if (attributes1 is [var single1] && attributes2 is [var single2])
-                {
-                    // Fast path for single attribute case
-                    return comparer.Equals(single1, single2);
+                    return true;
                 }
 
                 // Tracked by https://github.com/dotnet/roslyn/issues/78827 : optimization, consider using a pool
+                var comparer = CommonAttributeDataComparer.InstanceIgnoringNamedArgumentOrder;
                 var counts = new Dictionary<CSharpAttributeData, int>(comparer);
 
                 foreach (var attribute in attributes1)
                 {
+                    if (attribute.IsConditionallyOmitted)
+                    {
+                        continue;
+                    }
+
                     counts[attribute] = counts.TryGetValue(attribute, out var foundCount) ? foundCount + 1 : 1;
                 }
 
                 foreach (var attribute in attributes2)
                 {
+                    if (attribute.IsConditionallyOmitted)
+                    {
+                        continue;
+                    }
+
                     if (!counts.TryGetValue(attribute, out var foundCount) || foundCount == 0)
                     {
                         return false;
@@ -642,6 +762,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return counts.Values.All(c => c == 0);
             }
+
+            static ImmutableArray<ParameterSymbol> getParametersIncludingParameterOfExtension(Symbol member)
+            {
+                if (member is NamedTypeSymbol { IsExtension: true } namedType)
+                {
+                    return namedType.ExtensionParameter is not null
+                        ? [namedType.ExtensionParameter]
+                        : [];
+                }
+
+                return member.GetParameters();
+            }
+        }
+
+        private static int GetParameterCountIncludingParameterOfExtension(Symbol member)
+        {
+            if (member is NamedTypeSymbol { IsExtension: true } namedType)
+            {
+                return namedType.ExtensionParameter is not null ? 1 : 0;
+            }
+
+            return member.GetParameterCount();
         }
 
         public int GetHashCode(Symbol? member)
@@ -667,8 +809,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (member.Kind != SymbolKind.Field)
                 {
-                    hash = Hash.Combine(member.GetMemberArity(), hash);
-                    hash = Hash.Combine(member.GetParameterCount(), hash);
+                    if (_considerTypeParameters)
+                    {
+                        hash = Hash.Combine(member.GetMemberArity(), hash);
+                    }
+
+                    hash = Hash.Combine(GetParameterCountIncludingParameterOfExtension(member), hash);
                 }
             }
             return hash;
@@ -738,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     true);
         }
 
-        private static bool HaveSameConstraints(Symbol member1, TypeMap? typeMap1, Symbol member2, TypeMap? typeMap2, bool ignoreNullability = true)
+        private static bool HaveSameConstraints(Symbol member1, TypeMap? typeMap1, Symbol member2, TypeMap? typeMap2, TypeCompareKind typeComparison)
         {
             Debug.Assert(member1.GetMemberArity() == member2.GetMemberArity());
 
@@ -750,17 +896,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var typeParameters1 = member1.GetMemberTypeParameters();
             var typeParameters2 = member2.GetMemberTypeParameters();
-            return HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, ignoreNullability);
+            return HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, typeComparison);
         }
 
-        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap? typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap? typeMap2, bool ignoreNullability = true)
+        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap? typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap? typeMap2, TypeCompareKind typeComparison)
         {
             Debug.Assert(typeParameters1.Length == typeParameters2.Length);
 
             int arity = typeParameters1.Length;
             for (int i = 0; i < arity; i++)
             {
-                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2, ignoreNullability))
+                TypeParameterSymbol typeParameter1 = typeParameters1[i];
+                TypeParameterSymbol typeParameter2 = typeParameters2[i];
+                if (!HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, typeComparison))
+                {
+                    return false;
+                }
+                else if ((typeComparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0
+                    && !HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, typeComparison))
                 {
                     return false;
                 }
@@ -769,11 +922,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        public static bool HaveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, bool ignoreNullability = true)
+        public static bool HaveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, TypeCompareKind typeComparison)
         {
             // Spec 13.4.3: Implementation of generic methods.
 
-            if (!ignoreNullability &&
+            if ((typeComparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0 &&
                 typeParameter1.HasNotNullConstraint != typeParameter2.HasNotNullConstraint)
             {
                 return false;
@@ -789,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.Create(typeComparison));
         }
 
         private static bool HaveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, IEqualityComparer<TypeSymbol> comparer)
@@ -819,20 +972,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AreConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
         }
 
-        public static bool HaveSameNullabilityInConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2)
+        public static bool HaveSameNullabilityInConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, TypeCompareKind typeComparison)
         {
-            if (!typeParameter1.IsValueType)
+            if (!typeParameter1.IsValueType
+                && !hasSameLevelNullability(typeParameter1, typeParameter2, typeComparison))
+            {
+                return false;
+            }
+
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.Create(typeComparison));
+
+            static bool hasSameLevelNullability(TypeParameterSymbol typeParameter1, TypeParameterSymbol typeParameter2, TypeCompareKind typeComparison)
             {
                 bool? isNotNullable1 = typeParameter1.IsNotNullable;
                 bool? isNotNullable2 = typeParameter2.IsNotNullable;
+
+                if ((typeComparison & TypeCompareKind.ObliviousNullableModifierMatchesAny) != 0)
+                {
+                    if (!isNotNullable1.HasValue || !isNotNullable2.HasValue)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (!isNotNullable1.HasValue || !isNotNullable2.HasValue)
+                    {
+                        return !isNotNullable1.HasValue && !isNotNullable2.HasValue;
+                    }
+                }
+
                 if (isNotNullable1.HasValue && isNotNullable2.HasValue &&
                     isNotNullable1.GetValueOrDefault() != isNotNullable2.GetValueOrDefault())
                 {
                     return false;
                 }
-            }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.AllIgnoreOptionsPlusNullableWithUnknownMatchesAny);
+                return true;
+            }
         }
 
         /// <summary>
@@ -940,12 +1117,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
             }
-            else
+            else if (refKindCompareMode == RefKindCompareMode.RefMatchesOutInRefReadonly)
             {
                 if ((refKind1 == RefKind.None) != (refKind2 == RefKind.None))
                 {
                     return false;
                 }
+            }
+            else
+            {
+                Debug.Assert(refKindCompareMode == RefKindCompareMode.IgnoreRefKind);
             }
 
             return true;
@@ -1026,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary>
             /// All ref modifiers are considered equivalent.
             /// </summary>
-            DoNotConsiderDifferences = 0,
+            RefMatchesOutInRefReadonly = 0,
 
             /// <summary>
             /// Parameters with different ref modifiers are considered different.
@@ -1037,6 +1218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// 'in'/'ref readonly' modifiers are considered equivalent.
             /// </summary>
             AllowRefReadonlyVsInMismatch = 1 << 1,
+
+            /// <summary>
+            /// Ignore ref kind differences.
+            /// </summary>
+            IgnoreRefKind = 1 << 2,
         }
     }
 }

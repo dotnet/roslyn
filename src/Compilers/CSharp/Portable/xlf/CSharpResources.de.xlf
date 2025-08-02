@@ -813,8 +813,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionBlockCollision">
-        <source>This extension block collides with another extension block. They have different signatures, but result in the same marker type identifier.</source>
-        <target state="new">This extension block collides with another extension block. They have different signatures, but result in the same marker type identifier.</target>
+        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata.</source>
+        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">

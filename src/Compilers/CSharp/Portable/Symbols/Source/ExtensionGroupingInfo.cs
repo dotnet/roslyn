@@ -54,6 +54,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _groupingMap = groupingMap;
+            AssertInvariants(container);
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertInvariants(SourceMemberContainerTypeSymbol container)
+        {
+            ImmutableArray<NamedTypeSymbol> typeMembers = container.GetTypeMembers("");
+
+            for (int i = 0; i < typeMembers.Length; i++)
+            {
+                var type1 = (SourceNamedTypeSymbol)typeMembers[i];
+                if (!type1.IsExtension)
+                {
+                    continue;
+                }
+
+                for (int j = i + 1; j < typeMembers.Length; j++)
+                {
+                    var type2 = (SourceNamedTypeSymbol)typeMembers[j];
+                    if (!type2.IsExtension)
+                    {
+                        continue;
+                    }
+
+                    bool groupingNamesMatch = type1.ComputeExtensionGroupingRawName() == type2.ComputeExtensionGroupingRawName();
+                    Debug.Assert(groupingNamesMatch || !MemberSignatureComparer.ExtensionILSignatureComparer.Equals(type1, type2),
+                            "If the IL-level comparer considers two extensions equal, then they must have the same grouping name.");
+
+                    bool markerNamesMatch = type1.ComputeExtensionMarkerRawName() == type2.ComputeExtensionMarkerRawName();
+                    Debug.Assert(markerNamesMatch || !MemberSignatureComparer.ExtensionCSharpSignatureComparer.Equals(type1, type2),
+                            "If the C#-level comparer considers two extensions equal, then they must have the same marker name.");
+
+                    Debug.Assert(groupingNamesMatch || !markerNamesMatch, "If the marker names are equal, then the grouping names must also be equal.");
+                }
+            }
         }
 
         public ImmutableArray<Cci.INestedTypeDefinition> GetGroupingTypes()
@@ -185,27 +220,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Reports a diagnostic when two extension blocks grouped into a single marker type have different C#-level signatures.
-        /// Note: It's fine for two extension blocks with different IL-level signatures to be grouped into the same grouping type, so we don't check for collisions there.
+        /// Reports diagnostic when:
+        /// two extension blocks grouped into a single grouping type have different IL-level signatures, or
+        /// two extension blocks grouped into a single marker type have different C#-level signatures.
         /// </summary>
         internal void CheckSignatureCollisions(BindingDiagnosticBag diagnostics)
         {
-            foreach (ImmutableArray<SourceNamedTypeSymbol> mergedBlocks in EnumerateMergedExtensionBlocks())
+            GetGroupingTypes();
+            PooledHashSet<SourceNamedTypeSymbol>? alreadyReportedExtensions = null;
+
+            foreach (ExtensionGroupingType groupingType in _lazyGroupingTypes)
             {
-                checkCollisions(mergedBlocks, diagnostics);
+                checkCollisions(enumerateExtensionsInGrouping(groupingType), MemberSignatureComparer.ExtensionILSignatureComparer, ref alreadyReportedExtensions, diagnostics);
             }
 
+            foreach (ImmutableArray<SourceNamedTypeSymbol> mergedBlocks in EnumerateMergedExtensionBlocks())
+            {
+                checkCollisions(mergedBlocks, MemberSignatureComparer.ExtensionCSharpSignatureComparer, ref alreadyReportedExtensions, diagnostics);
+            }
+
+            alreadyReportedExtensions?.Free();
             return;
 
-            static void checkCollisions(ImmutableArray<SourceNamedTypeSymbol> mergedBlocks, BindingDiagnosticBag diagnostics)
+            static IEnumerable<SourceNamedTypeSymbol> enumerateExtensionsInGrouping(ExtensionGroupingType groupingType)
             {
-                SourceNamedTypeSymbol first = mergedBlocks[0];
-
-                for (int i = 1; i < mergedBlocks.Length; i++)
+                foreach (var marker in groupingType.ExtensionMarkerTypes)
                 {
-                    if (!MemberSignatureComparer.ExtensionSignatureComparer.Equals(first, (SourceNamedTypeSymbol?)mergedBlocks[i]))
+                    foreach (var extension in marker.UnderlyingExtensions)
                     {
-                        diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, mergedBlocks[i].Locations[0]);
+                        yield return extension;
+                    }
+                }
+            }
+
+            static void checkCollisions(IEnumerable<SourceNamedTypeSymbol> extensions, MemberSignatureComparer comparer, ref PooledHashSet<SourceNamedTypeSymbol>? alreadyReportedExtensions, BindingDiagnosticBag diagnostics)
+            {
+                SourceNamedTypeSymbol? first = null;
+
+                foreach (SourceNamedTypeSymbol extension in extensions)
+                {
+                    Debug.Assert(extension.IsExtension);
+                    Debug.Assert(extension.IsDefinition);
+
+                    if (first is null)
+                    {
+                        first = extension;
+                        continue;
+                    }
+
+                    if (!comparer.Equals(first, extension))
+                    {
+                        alreadyReportedExtensions ??= PooledHashSet<SourceNamedTypeSymbol>.GetInstance();
+                        if (alreadyReportedExtensions.Add(extension))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, extension.Locations[0]);
+                        }
                     }
                 }
             }

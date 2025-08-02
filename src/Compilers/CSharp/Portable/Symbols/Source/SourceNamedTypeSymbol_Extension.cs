@@ -496,8 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendNamedType(NamedTypeSymbol namedType, StringBuilder builder)
             {
-                Debug.Assert(namedType.CustomModifierCount() == 0);
-
                 if (namedType.SpecialType == SpecialType.System_Void)
                 {
                     builder.Append("void");
@@ -628,10 +626,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Append("struct");
                     needComma = true;
                 }
-                else if (typeParam.HasNotNullConstraint)
+                else
                 {
-                    builder.Append("notnull");
-                    needComma = true;
+                    switch (typeParam.IsNotNullable)
+                    {
+                        case true:
+                            builder.Append("notnull");
+                            needComma = true;
+                            break;
+                        case false:
+                            builder.Append("maybenull");
+                            needComma = true;
+                            break;
+                    }
                 }
 
                 if (typeParam.ConstraintTypesNoUseSiteDiagnostics.Length > 0)
@@ -663,12 +670,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendTypeConstraints(TypeParameterSymbol typeParam, StringBuilder builder, ref bool needComma)
             {
-                ImmutableArray<TypeWithAnnotations> contraintTypes = typeParam.ConstraintTypesNoUseSiteDiagnostics;
-                var typeConstraintsBuilder = ArrayBuilder<string>.GetInstance(contraintTypes.Length);
-                for (int i = 0; i < contraintTypes.Length; i++)
+                ImmutableArray<TypeWithAnnotations> constraintTypes = typeParam.ConstraintTypesNoUseSiteDiagnostics;
+                var typeConstraintsBuilder = ArrayBuilder<string>.GetInstance(constraintTypes.Length);
+                for (int i = 0; i < constraintTypes.Length; i++)
                 {
                     var stringBuilder = PooledStringBuilder.GetInstance();
-                    appendTypeWithAnnotation(contraintTypes[i], stringBuilder.Builder);
+                    appendType(constraintTypes[i].Type, stringBuilder.Builder);
+                    Debug.Assert(constraintTypes[i].CustomModifiers.IsEmpty);
                     typeConstraintsBuilder.Add(stringBuilder.ToStringAndFree());
                 }
 

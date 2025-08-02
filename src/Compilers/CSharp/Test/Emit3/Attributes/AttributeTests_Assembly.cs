@@ -1610,24 +1610,19 @@ public interface I<T> { }
             MetadataReference netmoduleRef = ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray()).GetReference(display: assemblyName + ".netmodule");
 
             var comp = CreateCompilation("", references: [netmoduleRef], targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, symbolValidator: m => validate(m, hasDuplicate: false));
+            CompileAndVerify(comp, symbolValidator: validate);
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, symbolValidator: m => validate(m, hasDuplicate: true));
+            CompileAndVerify(comp, symbolValidator: validate);
 
-            static void validate(ModuleSymbol module, bool hasDuplicate)
+            static void validate(ModuleSymbol module)
             {
                 var metadataAttributes = module.ContainingAssembly
                     .GetAttributes()
                     .Where(a => a.AttributeClass.Name == "AAttribute");
 
-                string[] expected = hasDuplicate ?
+                string[] expected =
                 [
-                    "AAttribute(typeof(object))",
-                    "AAttribute(typeof((int, int)))",
-                    "AAttribute(typeof((int, int)))",
-                    "AAttribute(typeof(I<object>))"
-                ] : [
                     "AAttribute(typeof(object))",
                     "AAttribute(typeof((int, int)))",
                     "AAttribute(typeof(I<object>))"
