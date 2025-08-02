@@ -194,6 +194,9 @@ internal readonly record struct SymbolUsageInfo
             while (syntaxFacts.IsMemberAccessExpression(node?.Parent))
                 node = node.Parent;
 
+            if (node is null)
+                return false;
+            
             var operation = semanticModel.GetOperation(node, cancellationToken);
 
             // Note: sizeof/typeof also return 'name', but are handled in GetSymbolUsageInfo.
