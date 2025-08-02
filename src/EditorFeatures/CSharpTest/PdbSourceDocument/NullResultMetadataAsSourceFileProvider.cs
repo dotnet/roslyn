@@ -37,18 +37,8 @@ internal sealed class NullResultMetadataAsSourceFileProvider : IMetadataAsSource
     {
     }
 
-    public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, TelemetryMessage? telemetry, CancellationToken cancellationToken)
+    public Task<(MetadataAsSourceFile file, MetadataAsSourceFileMetadata fileMetadata)?> GetGeneratedFileAsync(MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, TelemetryMessage? telemetry, IMetadataDocumentPersister persister, CancellationToken cancellationToken)
     {
-        return Task.FromResult<MetadataAsSourceFile?>(NullResult);
-    }
-
-    public Project? MapDocument(Document document)
-    {
-        return null;
-    }
-
-    public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions options)
-    {
-        return true;
+        return Task.FromResult<(MetadataAsSourceFile File, MetadataAsSourceFileMetadata FileMetadata)?>((NullResult, new MetadataAsSourceFileMetadata(null!, null!, false)));
     }
 }
