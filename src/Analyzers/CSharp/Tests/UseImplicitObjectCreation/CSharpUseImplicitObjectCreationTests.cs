@@ -584,6 +584,34 @@ public sealed class UseImplicitObjectCreationTests
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
 
+    [Theory]
+    [InlineData("Task")]
+    [InlineData("ValueTask")]
+    public async Task TestWithAsyncMethodExpressionBody(string taskLike)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    async {{taskLike}}<C> Func() => new [|C|]();
+                }
+                """,
+            FixedCode = $$"""
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    async {{taskLike}}<C> Func() => new();
+                }
+                """,
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
     public Task TestListOfTuplesWithLabels()
         => new VerifyCS.Test
