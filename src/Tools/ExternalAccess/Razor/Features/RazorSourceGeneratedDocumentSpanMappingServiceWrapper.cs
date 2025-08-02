@@ -23,6 +23,11 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
 {
     private readonly IRazorSourceGeneratedDocumentSpanMappingService? _implementation = implementation;
 
+    public bool CanMapSpans(SourceGeneratedDocument document)
+    {
+        return _implementation is not null && document.IsRazorSourceGeneratedDocument();
+    }
+
     public async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
     {
         if (_implementation is null ||

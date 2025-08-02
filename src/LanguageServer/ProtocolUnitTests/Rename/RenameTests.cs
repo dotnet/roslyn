@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -351,9 +350,14 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     {
         public bool DidMapSpans { get; private set; }
 
+        public bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
