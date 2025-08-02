@@ -1,0 +1,36 @@
+name: "Spot Issues Missing Labels or Assignments"
+on:
+  workflow_dispatch: 
+
+permissions:
+  issues: read
+  contents: read
+
+jobs:
+  check-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Check for issues without labels or assignees
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+            });
+
+            const noLabelsOrAssignees = issues.filter(issue => {
+              const hasUntriagedLabel = issue.labels.some(label => label.name === 'untriaged');
+              const hasAreaCompilersLabel = issue.labels.some(label => label.name === 'Area-Compilers');
+              const hasOtherLabels = issue.labels.length > 1 || (issue.labels.length === 1 && !hasUntriagedLabel);
+              return hasUntriagedLabel && !hasAreaCompilersLabel && !issue.assignee && !hasOtherLabels;
+            });
+
+            for (const issue of noLabelsOrAssignees) {
+              console.log(`Issue #${issue.number} is missing labels apart from "untriaged" or is not assigned.`);
+            }
