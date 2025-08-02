@@ -74,16 +74,12 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(false);
-
-        // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
-        // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
-        // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
-        // rules to apply.
-        if (!_threadingContext.JoinableTaskContext.IsMainThreadBlocked())
-        {
-            await TaskScheduler.Default;
-        }
+        // Since we're following JTF/VS threading rules here, we just use ConfigureAwait(true) in this method, which does what we want for performance:
+        //
+        // - For CPS where we expect this to be called on a thread pool thread, we'll stay on the thread pool thread and that's what we want.
+        // - For csproj/msvbprj, this gets called on the UI thread from AbstractLegacyProject's constructor, which since that's under a
+        //    JTF.Run() on the UI thread, ensures we don't find ourselves blocked on a busy thread pool.
+        await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(true);
 
         var solution = await _solution.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
 
