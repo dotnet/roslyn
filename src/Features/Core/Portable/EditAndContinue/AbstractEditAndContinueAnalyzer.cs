@@ -1275,8 +1275,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
             // Updating an entry point, a method marked with RestartRequiredOnMetadataUpdateAttribute,
             // a static constructor or a static member with an initializer will most likely have no effect,
-            // unless the update is in a lambda body.
-            if (IsRestartRequired(oldMember, oldDeclaration, oldModel.Compilation, newMember, newDeclaration, cancellationToken))
+            // unless the update is in a lambda body or the member body is an active frame.
+            if (!bodyHasActiveStatement && IsRestartRequired(oldMember, oldDeclaration, oldModel.Compilation, newMember, newDeclaration, cancellationToken))
             {
                 var oldTokens = oldMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
                 var newTokens = newMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
