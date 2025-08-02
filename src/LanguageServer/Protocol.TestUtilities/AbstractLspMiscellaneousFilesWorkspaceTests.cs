@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -299,25 +303,37 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
     }
 
     [Theory, CombinatorialData]
-    public async Task TestLspTransfersFromMiscellaneousFilesToHostWorkspaceAsync(bool mutatingLspWorkspace)
+    public async Task TestLspTransfersFromMiscellaneousFilesToHostWorkspaceAsync(bool mutatingLspWorkspace, bool waitForWorkspace, bool fileBasedProgramContent)
     {
-        var markup = "One";
+        var markup = fileBasedProgramContent ? "Console.WriteLine();" : "class C { }";
 
         // Create a server that includes the LSP misc files workspace so we can test transfers to and from it.
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Include some Unicode characters to test URL handling.
-        var newDocumentFilePath = "C:\\NewDoc\\\ue25b\ud86d\udeac.cs";
+        using var tempRoot = new TempRoot();
+        var newDocumentFilePath = Path.Combine(tempRoot.CreateDirectory().Path, "ue25b\ud86d\udeac.cs");
+
+        // If this is file based, we're going to be inspecting the actual content on disk as a part of a dotnet run-api invocation
+        if (fileBasedProgramContent)
+            File.WriteAllText(newDocumentFilePath, markup);
         var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(newDocumentFilePath);
 
         // Open the document via LSP before the workspace sees it.
         await testLspServer.OpenDocumentAsync(newDocumentUri, "LSP text");
 
-        // Verify it is in the lsp misc workspace.
+        // Verify it is a miscellaneous document of some kind
         var (_, miscDocument) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
         Assert.NotNull(miscDocument);
         Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(miscDocument));
         Assert.Equal("LSP text", (await miscDocument.GetTextAsync(CancellationToken.None)).ToString());
+
+        if (waitForWorkspace)
+        {
+            // Optionally wait for the workspace so we can test what happens if we're seeing if it's a file-based program; otherwise we can test what
+            // happens if that analysis is still happening while we're loading real solutions.
+            await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        }
 
         // Make a change and verify the misc document is updated.
         await testLspServer.InsertTextAsync(newDocumentUri, (0, 0, "More LSP text"));
