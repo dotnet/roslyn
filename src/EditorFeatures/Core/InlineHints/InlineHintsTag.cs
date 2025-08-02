@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -49,7 +49,7 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         : base(adornment,
                removalCallback: null,
                topSpace: null,
-               baseline: null,
+               baseline: null, // Add baseline calculation
                textHeight: null,
                bottomSpace: null,
                PositionAffinity.Predecessor,
@@ -123,6 +123,8 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         ClassificationTypeMap typeMap,
         bool classify)
     {
+        var textViewLine = textView.TextViewLines.WpfTextViewLines[0];
+
         // Constructs the hint block which gets assigned parameter name and FontStyles according to the options
         // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
         // well with VS at any zoom level or font size.
@@ -134,7 +136,8 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
             Foreground = format.ForegroundBrush,
             // Adds a little bit of padding to the left of the text relative to the border to make the text seem
             // more balanced in the border
-            Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0)
+            Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
+            HorizontalAlignment = HorizontalAlignment.Center,
         };
 
         var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
@@ -158,39 +161,43 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         // Encapsulates the TextBlock within a border. Gets foreground/background colors from the options menu.
         // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
         // left or right side.
-        var left = leftPadding * 5;
-        var right = rightPadding * 5;
+        var left = leftPadding * textViewLine.VirtualSpaceWidth;
+        var right = rightPadding * textViewLine.VirtualSpaceWidth;
+        var width = Math.Round((block.DesiredSize.Width / textViewLine.VirtualSpaceWidth) + 0.5) * textViewLine.VirtualSpaceWidth;
 
         var border = new Border
         {
             Background = format.BackgroundBrush,
             Child = block,
             CornerRadius = new CornerRadius(2),
-            VerticalAlignment = VerticalAlignment.Bottom,
+            VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(left, top: 0, right, bottom: 0),
+            Width = width,
         };
 
         // gets pixel distance of baseline to top of the font height
-        var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
-        var dockPanel = new DockPanel
-        {
-            Height = dockPanelHeight,
-            LastChildFill = false,
-            // VerticalAlignment is set to Top because it will rest to the top relative to the StackPanel
-            VerticalAlignment = VerticalAlignment.Top
-        };
+        //var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
+        //var dockPanel = new DockPanel
+        //{
+        //    Height = dockPanelHeight,
+        //    LastChildFill = false,
+        //    // VerticalAlignment is set to Top because it will rest to the top relative to the StackPanel
+        //    VerticalAlignment = VerticalAlignment.Top
+        //};
 
-        dockPanel.Children.Add(border);
-        DockPanel.SetDock(border, Dock.Bottom);
+        //dockPanel.Children.Add(border);
+        //DockPanel.SetDock(border, Dock.Bottom);
 
         var stackPanel = new StackPanel
         {
             // Height set to align the baseline of the text within the TextBlock with the baseline of text in the editor
-            Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize)),
-            Orientation = Orientation.Vertical
+            //Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize)),
+            Height = block.DesiredSize.Height,
+            //VerticalAlignment = VerticalAlignment.Top,
+            Orientation = Orientation.Horizontal
         };
 
-        stackPanel.Children.Add(dockPanel);
+        stackPanel.Children.Add(border);
         // Need to set these properties to avoid unnecessary reformatting because some dependency properties
         // affect layout
         TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
@@ -199,7 +206,6 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
 
         return stackPanel;
     }
-
     private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
     {
         using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
