@@ -115,19 +115,25 @@ internal static partial class Extensions
     /// </summary>
     public static async ValueTask<TextDocument?> GetTextDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
     {
-        // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
-        if (documentIdentifier.DocumentUri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
-        {
-            // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
-            // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
-            var documentId = solution.GetDocumentIds(documentIdentifier.DocumentUri).SingleOrDefault();
-            return await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-        }
-
-        var documents = solution.GetTextDocuments(documentIdentifier.DocumentUri);
+        var documents = await solution.GetTextDocumentsAsync(documentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
         return documents.Length == 0
             ? null
             : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
+    }
+
+    public static async ValueTask<ImmutableArray<TextDocument>> GetTextDocumentsAsync(this Solution solution, DocumentUri documentUri, CancellationToken cancellationToken)
+    {
+        // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
+        if (documentUri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
+        {
+            // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
+            // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
+            var documentId = solution.GetDocumentIds(documentUri).SingleOrDefault();
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            return document is not null ? [document] : [];
+        }
+
+        return solution.GetTextDocuments(documentUri);
     }
 
     private static T FindItemInProjectContext<T>(

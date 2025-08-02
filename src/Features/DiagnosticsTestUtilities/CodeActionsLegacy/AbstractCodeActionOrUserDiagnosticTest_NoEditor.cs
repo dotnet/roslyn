@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.Composition;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -604,7 +606,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         if (TestWorkspace.IsWorkspaceElement(expectedText))
         {
             var newSolutionWithLinkedFiles = await newSolution.WithMergedLinkedFileChangesAsync(oldSolution);
-            await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolutionWithLinkedFiles, workspace.Composition);
+            await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolutionWithLinkedFiles, workspace.ExportProvider);
             return Tuple.Create(oldSolution, newSolution);
         }
 
@@ -669,9 +671,9 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         return document;
     }
 
-    private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, TestComposition composition)
+    private static async Task VerifyAgainstWorkspaceDefinitionAsync(string xmlDefinition, Solution newSolution, ExportProvider exportProvider)
     {
-        using var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition);
+        using var expectedWorkspace = TestWorkspace.Create(XElement.Parse(xmlDefinition), exportProvider);
         var expectedSolution = expectedWorkspace.CurrentSolution;
         Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
         foreach (var project in newSolution.Projects)

@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,7 +22,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
@@ -1400,20 +1397,11 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
     }
 
-    [PartNotDiscoverable]
-    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class TestWorkspaceConfigurationService() : IWorkspaceConfigurationService
-    {
-        public WorkspaceConfigurationOptions Options { get; set; } = WorkspaceConfigurationOptions.Default;
-    }
-
     [Theory, CombinatorialData]
     internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
         SourceGeneratorExecutionPreference executionPreference)
     {
-        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)], TestHost.OutOfProcess);
+        using var workspace = CreateWorkspace([], TestHost.OutOfProcess);
         var mefServices = (VisualStudioMefHostServices)workspace.Services.HostServices;
 
         // Ensure the local and remote sides agree on how we're executing source generators.
@@ -1502,7 +1490,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     {
         using var workspace = TestWorkspace.CreateCSharp(
             "// First file",
-            composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(typeof(TestWorkspaceConfigurationService)));
+            composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess));
 
         var configService = (TestWorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
         configService.Options = configService.Options with { SourceGeneratorExecution = executionPreference };
