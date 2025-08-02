@@ -70,7 +70,6 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CommonLanguageServerProtocol.Framework.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch.dll" />
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
