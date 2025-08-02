@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -38,11 +39,14 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
     protected override async ValueTask<ExportProvider> CreateExportProviderAsync()
     {
+        AsynchronousOperationListenerProvider.Enable(enable: true);
+
         var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
             _loggerFactory,
             includeDevKitComponents: false,
             cacheDirectory: _mefCacheDirectory.Path,
             extensionPaths: []);
+
         return exportProvider;
     }
 
