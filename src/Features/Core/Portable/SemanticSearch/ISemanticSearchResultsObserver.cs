@@ -18,6 +18,15 @@ internal interface ISemanticSearchResultsCommonObserver
     ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken);
     ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken);
     ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Invoked on each updated document (at most once).
+    /// </summary>
+    ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+
+    ValueTask OnTextFileUpdatedAsync(string filePath, string? newContent, CancellationToken cancellationToken);
+
+    ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken);
 }
 
 internal interface ISemanticSearchResultsObserver : ISemanticSearchResultsCommonObserver
