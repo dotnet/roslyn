@@ -11414,5 +11414,5 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                         }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
 }

@@ -1777,7 +1777,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
-        using var session = CreateSession(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+        using var session = CreateSession(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
         Assert.NotNull(session);
 
         CheckStart(session.Session);

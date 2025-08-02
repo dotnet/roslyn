@@ -203,7 +203,7 @@ public sealed class AutomaticParenthesisCompletionTests : AbstractAutomaticBrace
             }
             """;
 
-        using var session = CreateSession(code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+        using var session = CreateSession(code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
         Assert.NotNull(session);
         CheckStart(session.Session);
         CheckBackspace(session.Session);

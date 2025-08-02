@@ -38,17 +38,17 @@ typeKeyword + @" C1
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
-                // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public void operator++() {} 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 25),
-                // (4,33): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public void operator checked++() {} 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(4, 33)
+                // (3,25): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //     public void operator--() {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(3, 25),
+                // (4,33): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //     public void operator checked--() {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(4, 33)
                 );
 
             validate(comp.SourceModule);
@@ -560,12 +560,12 @@ typeKeyword + @" C3 : I1
 
             var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net90, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(
-                // (3,22): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void I1.operator ++() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 22),
-                // (8,30): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     void I2.operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(8, 30)
+                // (3,22): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //     void I1.operator --() {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(3, 22),
+                // (8,30): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //     void I2.operator checked --() {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(8, 30)
                 );
 
             void validate(ModuleSymbol m)
@@ -3256,10 +3256,10 @@ IIncrementOrDecrementOperation (Prefix, Checked) (OperatorMethod: void I1." + me
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -4326,10 +4326,10 @@ IIncrementOrDecrementOperation (Postfix, Checked) (OperatorMethod: void I1." + m
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -7979,24 +7979,24 @@ typeKeyword + @" C1
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 checkedForm is null ?
                     [
-                        // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     public void operator+=(C1 x) {}
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 25)
+                        // (3,25): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                        //     public void operator%=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(3, 25)
                     ] :
                     [
-                        // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     public void operator+=(C1 x) {}
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 25),
-                        // (5,33): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     public void operator checked+=(C1 x) {} 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(5, 33)
+                        // (3,25): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                        //     public void operator*=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(3, 25),
+                        // (5,33): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                        //     public void operator checked*=(C1 x) {} 
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(5, 33)
                     ]
                 );
 
@@ -8665,17 +8665,17 @@ public interface I2
             comp2.VerifyDiagnostics(
                 hasCheckedForm ?
                     [
-                        // (3,22): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     void I1.operator +=(int x) {}
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 22),
-                        // (8,30): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     void I2.operator checked +=(int x) {}
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(8, 30)
+                        // (3,22): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                        //     void I1.operator *=(int x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(3, 22),
+                        // (8,30): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                        //     void I2.operator checked *=(int x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(8, 30)
                     ] :
                     [
-                        // (3,22): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     void I1.operator +=(int x) {}
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 22)
+                        // (3,22): error CS9260: Feature 'user-defined compound assignment operators' is not available in C# 13.0. Please use language version 14.0 or greater.
+                        //     void I1.operator %=(int x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("user-defined compound assignment operators", "14.0").WithLocation(3, 22)
                     ]
                 );
 
@@ -12194,10 +12194,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -12568,10 +12568,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -13132,10 +13132,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -13435,10 +13435,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -14049,10 +14049,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -14460,10 +14460,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -15119,10 +15119,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
@@ -15467,10 +15467,10 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);

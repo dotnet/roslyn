@@ -60,7 +60,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -87,7 +87,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_IllegalStatement, "() => new()").WithLocation(2, 10)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -126,7 +126,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(6, 38)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -144,18 +144,18 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (3,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial F() { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 5),
-            // (3,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial F() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(3, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(3, 5),
             // (3,13): error CS0161: 'C.F()': not all code paths return a value
             //     partial F() { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("C.F()").WithLocation(3, 13),
             // (4,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 5),
-            // (4,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial C() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(4, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(4, 5),
             // (4,13): error CS0542: 'C': member names cannot be the same as their enclosing type
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 13),
@@ -195,7 +195,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -213,15 +213,15 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 13.0. Please use language version 'preview' or greater.
+            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 13.0. Please use language version '14.0' or greater.
             //     partial event System.Action E;
-            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "13.0", "preview").WithLocation(3, 33),
+            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "13.0", "14.0").WithLocation(3, 33),
             // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial C();
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
-            // (5,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial C();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(5, 5),
             // (5,13): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
             //     partial C();
             Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(5, 13),
@@ -231,9 +231,9 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5),
-            // (6,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial C() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(6, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(6, 5),
             // (6,13): error CS0542: 'C': member names cannot be the same as their enclosing type
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(6, 13),
@@ -244,7 +244,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "C").WithArguments("C.C()").WithLocation(6, 13));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -920,9 +920,9 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
 
         CreateCompilation(source, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version 'preview' or greater.
+            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version '14.0' or greater.
             //     partial event System.Action E;
-            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "7.0", "preview").WithLocation(3, 33),
+            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "7.0", "14.0").WithLocation(3, 33),
             // (4,37): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(4, 37),

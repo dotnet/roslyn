@@ -3073,7 +3073,7 @@ Punctuation.CloseCurly);
             }
             """,
             testHost,
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext),
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14),
             Keyword("static"),
             Keyword("class"),
             Class("C"),
