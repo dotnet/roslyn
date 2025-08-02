@@ -198,7 +198,7 @@ internal abstract class ExportProviderBuilder(
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
                 LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
-                throw;
+                throw new CompositionFailedException(ex.Message + Environment.NewLine + ex.ErrorsAsString);
             }
         }
     }
