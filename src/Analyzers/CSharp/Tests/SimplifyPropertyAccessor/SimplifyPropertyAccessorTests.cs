@@ -207,6 +207,18 @@ public sealed class SimplifyPropertyAccessorTests
     }
 
     [Fact]
+    public async Task NotWhenPropertyHasNoAccessors()
+    {
+        // Just to verify we do not crash etc.
+        await TestAsync("""
+            class C
+            {
+                public int {|CS0548:Prop|} { }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task NotWhenPropertyHasTooManyAccessors()
     {
         await TestAsync("""
