@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyAccessor;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeAnonymousFunctionStatic), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,7 +63,7 @@ internal sealed class CSharpSimplifyPropertyAccessorCodeFixProvider() : SyntaxEd
             if (fixedAccessor.SemicolonToken == default)
             {
                 fixedAccessor = fixedAccessor.WithSemicolonToken(
-                    CSharpSyntaxTokens.SemicolonToken.WithTrailingTrivia(accessor.GetTrailingTrivia()));
+                    SemicolonToken.WithTrailingTrivia(accessor.GetTrailingTrivia()));
             }
 
             editor.ReplaceNode(accessor, fixedAccessor.WithAdditionalAnnotations(Formatter.Annotation));
