@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -49,21 +50,21 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
         {
             // get { return field; }
             // get => field;
-            if (accessor is { RawKind: (int)SyntaxKind.GetAccessorDeclaration, Body.Statements: [ReturnStatementSyntax { Expression.RawKind: (int)SyntaxKind.FieldExpression }] }
-                         or { RawKind: (int)SyntaxKind.GetAccessorDeclaration, ExpressionBody.Expression.RawKind: (int)SyntaxKind.FieldExpression })
+            if (accessor is (SyntaxKind.GetAccessorDeclaration) { Body.Statements: [ReturnStatementSyntax { Expression.RawKind: (int)SyntaxKind.FieldExpression }] }
+                         or (SyntaxKind.GetAccessorDeclaration) { ExpressionBody.Expression.RawKind: (int)SyntaxKind.FieldExpression })
             {
                 ReportIfValid(accessor);
             }
 
             // set/init { field = value; }
-            if (accessor is { RawKind: (int)SyntaxKind.SetAccessorDeclaration or (int)SyntaxKind.InitAccessorDeclaration, Body.Statements: [ExpressionStatementSyntax { Expression: var innerBlockBodyExpression }] } &&
+            if (accessor is (SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration) { Body.Statements: [ExpressionStatementSyntax { Expression: var innerBlockBodyExpression }] } &&
                 IsFieldValueAssignmentExpression(innerBlockBodyExpression))
             {
                 ReportIfValid(accessor);
             }
 
             // set/init => field = value;
-            if (accessor is { RawKind: (int)SyntaxKind.SetAccessorDeclaration or (int)SyntaxKind.InitAccessorDeclaration, ExpressionBody.Expression: var innerExpressionBodyExpression } &&
+            if (accessor is (SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration) { ExpressionBody.Expression: var innerExpressionBodyExpression } &&
                 IsFieldValueAssignmentExpression(innerExpressionBodyExpression))
             {
                 ReportIfValid(accessor);
@@ -90,9 +91,8 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
 
         static bool IsFieldValueAssignmentExpression(ExpressionSyntax expression)
         {
-            return expression is AssignmentExpressionSyntax
+            return expression is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
             {
-                RawKind: (int)SyntaxKind.SimpleAssignmentExpression,
                 Left.RawKind: (int)SyntaxKind.FieldExpression,
                 Right: IdentifierNameSyntax { Identifier.ValueText: "value" }
             };
