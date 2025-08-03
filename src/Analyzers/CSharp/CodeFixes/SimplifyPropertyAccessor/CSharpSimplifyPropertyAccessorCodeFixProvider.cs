@@ -51,7 +51,7 @@ internal sealed class CSharpSimplifyPropertyAccessorCodeFixProvider() : SyntaxEd
                 containingProperty.Modifiers.Any(SyntaxKind.PartialKeyword) &&
                 !seenPartialProperties.Add(containingProperty))
             {
-                return Task.CompletedTask;
+                continue;
             }
 
             var fixedAccessor = accessor

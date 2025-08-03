@@ -342,4 +342,46 @@ public sealed class SimplifyPropertyAccessorTests
             DiagnosticSelector = diagnostics => diagnostics[1],
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task MultiplePartialPropertyImplementationsWithBothAccessors()
+    {
+        await TestAsync("""
+            partial class C
+            {
+                public partial int Prop1 { get; set; }
+                public partial string Prop2 { get; set; }
+
+                public partial int Prop1
+                {
+                    {|IDE0360:get => field;|}
+                    {|IDE0360:set { field = value; }|}
+                }
+
+                public partial string Prop2
+                {
+                    {|IDE0360:get => field;|}
+                    {|IDE0360:set { field = value; }|}
+                }
+            }
+            """, """"
+            partial class C
+            {
+                public partial int Prop1 { get; set; }
+                public partial string Prop2 { get; set; }
+            
+                public partial int Prop1
+                {
+                    get;
+                    set { field = value; }
+                }
+            
+                public partial string Prop2
+                {
+                    get;
+                    set { field = value; }
+                }
+            }
+            """");
+    }
 }
