@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -77,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames(".ctor", ".ctor");
+
+                        g.VerifyMethodDefs(
+                            ("deleted_.ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName),
+                            (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName));
 
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
                         g.VerifyMemberRefNames(".ctor", ".ctor");
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                         });
 
                         g.VerifyIL("""
-                            .ctor
+                            deleted_.ctor
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -161,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     validator: g =>
                     {
                         // The default constructor is added and the deleted constructor is updated to throw:
-                        g.VerifyMethodDefNames(".ctor", ".ctor", ".ctor");
+                        g.VerifyMethodDefNames("deleted_.ctor", ".ctor", ".ctor");
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                         });
 
                         g.VerifyIL("""
-                            .ctor
+                            deleted_.ctor
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -2550,7 +2554,13 @@ class C
                             "C: {<>c}",
                             "C.<>c: {<>9__0_1, <F>b__0_1}");
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor");
+
+                        g.VerifyMethodDefs(
+                            ("F", MethodAttributes.Private | MethodAttributes.HideBySig),
+                            ("deleted_<F>b__0_0", MethodAttributes.Assembly | MethodAttributes.HideBySig | MethodAttributes.SpecialName),
+                            ("<F>b__0_1", MethodAttributes.Assembly | MethodAttributes.HideBySig),
+                            (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName));
+
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action", "Console");
                         g.VerifyMemberRefNames(".ctor", ".ctor", "WriteLine", ".ctor");
 
@@ -2591,7 +2601,7 @@ class C
                               IL_0018:  stsfld     0x04000003
                               IL_001d:  ret
                             }
-                            <F>b__0_0
+                            deleted_<F>b__0_0
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -2919,7 +2929,7 @@ partial class C
                     },
                     validator: g =>
                     {
-                        g.VerifyMethodDefNames("M", "<M>b__0", ".ctor", ".ctor", "<M>b__0#1");
+                        g.VerifyMethodDefNames("M", "deleted_<M>b__0", ".ctor", ".ctor", "<M>b__0#1");
 
                         g.VerifyIL("""
                             M
@@ -2938,7 +2948,7 @@ partial class C
                               IL_001a:  stloc.1
                               IL_001b:  ret
                             }
-                            <M>b__0
+                            deleted_<M>b__0
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -4268,10 +4278,9 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyMethodDefNames("deleted_get_P", "deleted_set_P", ".ctor");
+                        g.VerifyPropertyDefs(("deleted_P", PropertyAttributes.SpecialName));
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -4281,6 +4290,7 @@ class C
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
 
@@ -4291,11 +4301,12 @@ class C
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(4, TableIndex.MethodDef),
-                            Handle(8, TableIndex.CustomAttribute)
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property)
                         });
 
                         g.VerifyIL("""
-                            get_P, set_P
+                            deleted_get_P, deleted_set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4415,10 +4426,9 @@ class C
                     {
                         g.VerifyTypeDefNames("HotReloadException");
                         g.VerifyFieldDefNames("Code");
-                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyMethodDefNames("deleted_get_P", "deleted_set_P", ".ctor");
+                        g.VerifyPropertyDefs(("deleted_P", PropertyAttributes.SpecialName));
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(
                         [
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -4428,6 +4438,7 @@ class C
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         ]);
 
@@ -4438,11 +4449,12 @@ class C
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(4, TableIndex.MethodDef),
-                            Handle(4, TableIndex.CustomAttribute)
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property)
                         ]);
 
                         g.VerifyIL("""
-                            get_P, set_P
+                            deleted_get_P, deleted_set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4567,10 +4579,9 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyMethodDefNames("deleted_get_P", "deleted_set_P", ".ctor");
+                        g.VerifyPropertyDefs(("deleted_P", PropertyAttributes.SpecialName));
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -4580,6 +4591,7 @@ class C
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
@@ -4589,11 +4601,12 @@ class C
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(4, TableIndex.MethodDef),
-                            Handle(4, TableIndex.CustomAttribute)
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property)
                         });
 
                         g.VerifyIL("""
-                            get_P, set_P
+                            deleted_get_P, deleted_set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4711,7 +4724,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("set_P", ".ctor");
+                        g.VerifyMethodDefNames("deleted_set_P", ".ctor");
                         g.VerifyMemberRefNames(/* Exception */ ".ctor", /* CompilerGeneratedAttribute */ ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -4733,7 +4746,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            set_P
+                            deleted_set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5113,8 +5126,12 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P", ".ctor");
+                        g.VerifyMethodDefNames("deleted_get_P", "deleted_set_P", "get_P", "set_P", ".ctor");
                         g.VerifyDeletedMembers("C: {P, get_P, set_P}");
+
+                        g.VerifyPropertyDefs(
+                            ("deleted_P", PropertyAttributes.SpecialName),
+                            ("P", PropertyAttributes.None));
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -5131,6 +5148,7 @@ class C
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
@@ -5159,13 +5177,14 @@ class C
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
                             Handle(12, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
-                            get_P, set_P
+                            deleted_get_P, deleted_set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5225,7 +5244,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P");
+                        g.VerifyMethodDefNames("get_P", "set_P", "deleted_get_P", "deleted_set_P");
                         g.VerifyDeletedMembers("C: {P, get_P, set_P}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -5235,6 +5254,7 @@ class C
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -5251,6 +5271,7 @@ class C
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.Property),
                             Handle(5, TableIndex.MethodSemantics),
                             Handle(6, TableIndex.MethodSemantics),
                         });
@@ -5273,7 +5294,7 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
-                            get_P, set_P
+                            deleted_get_P, deleted_set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5322,7 +5343,18 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("get_P", "set_P", "get_Q", "set_Q", ".ctor");
+
+                        g.VerifyMethodDefs(
+                            ("deleted_get_P", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.SpecialName),
+                            ("deleted_set_P", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.SpecialName),
+                            ("get_Q", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.SpecialName),
+                            ("set_Q", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.SpecialName),
+                            (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName));
+
+                        g.VerifyPropertyDefs(
+                            ("deleted_P", PropertyAttributes.SpecialName),
+                            ("Q", PropertyAttributes.None));
+
                         g.VerifyDeletedMembers("C: {get_P, set_P, P}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -5340,6 +5372,7 @@ class C
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
@@ -5368,13 +5401,14 @@ class C
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
                             Handle(12, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
-                            get_P, set_P
+                            deleted_get_P, deleted_set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5434,7 +5468,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_P", "set_P", "get_Q", "set_Q");
+                        g.VerifyMethodDefNames("get_P", "set_P", "deleted_get_Q", "deleted_set_Q");
                         g.VerifyDeletedMembers("C: {get_Q, set_Q, Q}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -5444,6 +5478,7 @@ class C
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -5460,6 +5495,7 @@ class C
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.Property),
                             Handle(5, TableIndex.MethodSemantics),
                             Handle(6, TableIndex.MethodSemantics)
                         });
@@ -5482,7 +5518,7 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
-                            get_Q, set_Q
+                            deleted_get_Q, deleted_set_Q
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5514,6 +5550,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                         class C
                         {
@@ -5527,11 +5564,9 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("get_Item", "set_Item", ".ctor");
+                        g.VerifyMethodDefNames("deleted_get_Item", "deleted_set_Item", ".ctor");
                         g.VerifyDeletedMembers("C: {get_Item, set_Item, this[]}");
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -5541,6 +5576,7 @@ class C
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
@@ -5550,11 +5586,12 @@ class C
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(4, TableIndex.MethodDef),
-                            Handle(5, TableIndex.CustomAttribute)
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property)
                         });
 
                         g.VerifyIL("""
-                            get_Item, set_Item
+                            deleted_get_Item, deleted_set_Item
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5614,7 +5651,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("get_Item", "get_Item", ".ctor");
+                        g.VerifyMethodDefNames("deleted_get_Item", "get_Item", ".ctor");
                         g.VerifyDeletedMembers("C: {this[], get_Item}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -5628,6 +5665,7 @@ class C
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
@@ -5645,12 +5683,13 @@ class C
                             Handle(2, TableIndex.Param),
                             Handle(5, TableIndex.CustomAttribute),
                             Handle(2, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(2, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
-                            get_Item
+                            deleted_get_Item
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5702,7 +5741,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_Item", "get_Item");
+                        g.VerifyMethodDefNames("get_Item", "deleted_get_Item");
                         g.VerifyDeletedMembers("C: {this[], get_Item}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -5711,6 +5750,7 @@ class C
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
@@ -5721,6 +5761,7 @@ class C
                             Handle(1, TableIndex.Param),
                             Handle(3, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                         });
 
@@ -5736,7 +5777,7 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
-                            get_Item
+                            deleted_get_Item
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -6044,14 +6085,14 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+                        g.VerifyMethodDefNames("deleted_add_E", "deleted_remove_E", ".ctor");
                         g.VerifyTypeRefNames("Object", "EventHandler", "CompilerGeneratedAttribute", "Exception");
+                        g.VerifyEventDefs(("deleted_E", EventAttributes.SpecialName));
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -6060,6 +6101,7 @@ class C
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(3, TableIndex.TypeDef),
@@ -6067,11 +6109,12 @@ class C
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(4, TableIndex.MethodDef),
-                            Handle(8, TableIndex.CustomAttribute)
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Event)
                         });
 
                         g.VerifyIL("""
-                            add_E, remove_E
+                            deleted_add_E, deleted_remove_E
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -6134,11 +6177,17 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("add_E", "remove_E", "add_F", "remove_F", ".ctor");
+                        g.VerifyMethodDefNames("deleted_add_E", "deleted_remove_E", "add_F", "remove_F", ".ctor");
+
+                        g.VerifyEventDefs(
+                            ("deleted_E", EventAttributes.SpecialName),
+                            ("F", EventAttributes.None));
+
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
                             Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
@@ -6165,6 +6214,7 @@ class C
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(3, TableIndex.TypeDef),
@@ -6183,13 +6233,14 @@ class C
                             Handle(11, TableIndex.CustomAttribute),
                             Handle(12, TableIndex.CustomAttribute),
                             Handle(2, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Event),
                             Handle(2, TableIndex.Event),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
-                            add_E, remove_E
+                            deleted_add_E, deleted_remove_E
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -6283,11 +6334,17 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("add_E", "remove_E", "add_F", "remove_F");
+                        g.VerifyMethodDefNames("add_E", "remove_E", "deleted_add_F", "deleted_remove_F");
+
+                        g.VerifyEventDefs(
+                            ("E", EventAttributes.None),
+                            ("deleted_F", EventAttributes.SpecialName));
+
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -6311,6 +6368,7 @@ class C
                             Handle(7, TableIndex.CustomAttribute),
                             Handle(3, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Event),
+                            Handle(2, TableIndex.Event),
                             Handle(5, TableIndex.MethodSemantics),
                             Handle(6, TableIndex.MethodSemantics),
                         });
@@ -6366,7 +6424,7 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
-                            add_F, remove_F
+                            deleted_add_F, deleted_remove_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -12548,7 +12606,7 @@ public interface IB
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("op_LogicalNot", ".ctor");
+                        g.VerifyMethodDefNames("deleted_op_LogicalNot", ".ctor");
                         g.VerifyMemberRefNames(/* Exception */ ".ctor", /* CompilerGeneratedAttribute */ ".ctor");
 
                         g.VerifyEncLogDefinitions(
@@ -12572,7 +12630,7 @@ public interface IB
                         ]);
 
                         g.VerifyIL("""
-                            op_LogicalNot
+                            deleted_op_LogicalNot
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16241,8 +16299,8 @@ namespace N
                     validator: g =>
                     {
                         g.VerifyMethodDefNames(
+                            "deleted_.ctor", // updated parameterless ctor
                             ".ctor", // inserted primary ctor
-                            ".ctor", // updated parameterless ctor
                             "get_P",
                             "set_P",
                             "Deconstruct",
@@ -16741,7 +16799,7 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16809,7 +16867,7 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
-                            F1
+                            deleted_F1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16838,7 +16896,7 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
-                            F2
+                            deleted_F2
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16894,7 +16952,7 @@ class C
                         g.VerifyTypeRefNames("Exception", "Object");
 
                         g.VerifyIL("""
-                            F1
+                            deleted_F1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16934,7 +16992,7 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
-                            F2
+                            deleted_F2
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17034,7 +17092,7 @@ class C
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "ValueType", "Encoding");
 
                         g.VerifyIL("""
-                        F1
+                        deleted_F1
                         {
                             // Code size       13 (0xd)
                             .maxstack  8
@@ -17118,7 +17176,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMethodDefNames("deleted_M1", ".ctor");
                         g.VerifyMemberRefNames(".ctor", ".ctor");
                         g.VerifyEncLogDefinitions(
                         [
@@ -17141,7 +17199,7 @@ class C
                         ]);
 
                         g.VerifyIL("""
-                            M1
+                            deleted_M1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17187,6 +17245,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                         class C
                         {
@@ -17223,6 +17282,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 2
                     source: """
                         class C
                         {
@@ -17235,7 +17295,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M2", ".ctor");
+                        g.VerifyMethodDefNames("deleted_M2", ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -17257,7 +17317,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            M2
+                            deleted_M2
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17314,7 +17374,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMethodDefNames("deleted_M1", ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -17335,7 +17395,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            M1
+                            deleted_M1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17437,7 +17497,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMethodDefNames("deleted_M1", ".ctor");
                         g.VerifyEncLogDefinitions(
                         [
                             Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -17464,7 +17524,7 @@ class C
                         ]);
 
                         g.VerifyIL("""
-                            M1
+                            deleted_M1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17580,7 +17640,10 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1");
+
+                        g.VerifyMethodDefs(
+                            ("M1", MethodAttributes.Private | MethodAttributes.HideBySig));
+
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -17625,7 +17688,10 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M1", ".ctor");
+
+                        g.VerifyMethodDefs(
+                            ("deleted_M1", MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.SpecialName),
+                            (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName));
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -17648,7 +17714,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            M1
+                            deleted_M1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17689,7 +17755,10 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1");
+
+                        g.VerifyMethodDefs(
+                            ("M1", MethodAttributes.Private | MethodAttributes.HideBySig));
+
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -17760,7 +17829,7 @@ class C
                         g.VerifySynthesizedMembers("System.Runtime.CompilerServices.HotReloadException");
 
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("F", "<F>b__0_0", ".ctor");
+                        g.VerifyMethodDefNames("deleted_F", "deleted_<F>b__0_0", ".ctor");
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
                         g.VerifyMemberRefNames(".ctor", ".ctor");
 
@@ -17787,7 +17856,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17796,7 +17865,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
-                            <F>b__0_0
+                            deleted_<F>b__0_0
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17919,7 +17988,7 @@ class C
                             "C.<>c: {<>9__0#2_0#2, <F>b__0#2_0#2}");
 
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F", "<F>b__0#2_0#2");
+                        g.VerifyMethodDefNames("deleted_F", "deleted_<F>b__0#2_0#2");
                         g.VerifyTypeRefNames("Object");
                         g.VerifyMemberRefNames();
 
@@ -17936,7 +18005,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17945,7 +18014,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
-                            <F>b__0#2_0#2
+                            deleted_<F>b__0#2_0#2
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -18020,7 +18089,7 @@ class C
                             "C.<>c: {<>9__0#1_0#1, <F>b__0#1_0#1}");
 
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("F", "<F>b__0#1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("deleted_F", "deleted_<F>b__0#1_0#1", ".ctor");
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
                         g.VerifyMemberRefNames(".ctor", ".ctor");
 
@@ -18047,7 +18116,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18056,7 +18125,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
-                            <F>b__0#1_0#1
+                            deleted_<F>b__0#1_0#1
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -18194,7 +18263,7 @@ class C
                         ]);
 
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1#1", "<F>b__0_2#2", ".ctor");
+                        g.VerifyMethodDefNames("deleted_F", "deleted_<F>b__0_0", "deleted_<F>b__0_1#1", "deleted_<F>b__0_2#2", ".ctor");
 
                         // Note: InAttribute is a custom modifier included in the signature
                         g.VerifyTypeRefNames("Object", "InAttribute", "CompilerGeneratedAttribute", "Exception");
@@ -18228,7 +18297,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18237,7 +18306,7 @@ class C
                               IL_0007:  newobj     0x0600000C
                               IL_000c:  throw
                             }
-                            <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2
+                            deleted_<F>b__0_0, deleted_<F>b__0_1#1, deleted_<F>b__0_2#2
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -18359,7 +18428,7 @@ class C
                         g.VerifyTypeDefNames();
 
                         // Only lambdas that were not deleted before are updated:
-                        g.VerifyMethodDefNames("F", "<F>b__0#4_0#4");
+                        g.VerifyMethodDefNames("deleted_F", "deleted_<F>b__0#4_0#4");
 
                         g.VerifyTypeRefNames("Object");
                         g.VerifyMemberRefNames();
@@ -18377,7 +18446,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18386,7 +18455,7 @@ class C
                               IL_0007:  newobj     0x0600000C
                               IL_000c:  throw
                             }
-                            <F>b__0#4_0#4
+                            deleted_<F>b__0#4_0#4
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -18482,7 +18551,7 @@ class C
                         ]);
 
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__M|0_1#1", ".ctor");
+                        g.VerifyMethodDefNames("deleted_F", "deleted_<F>g__L|0_0", "deleted_<F>g__M|0_1#1", ".ctor");
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
 
                         g.VerifyMemberRefNames(".ctor", ".ctor");
@@ -18512,7 +18581,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18521,7 +18590,7 @@ class C
                               IL_0007:  newobj     0x06000009
                               IL_000c:  throw
                             }
-                            <F>g__L|0_0, <F>g__M|0_1#1
+                            deleted_<F>g__L|0_0, deleted_<F>g__M|0_1#1
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -18664,7 +18733,7 @@ class C
                         g.VerifyTypeDefNames();
 
                         // Only lambdas that were not deleted before are updated:
-                        g.VerifyMethodDefNames("F", "<F>g__N|0#3_1#3", "<F>g__O|0#3", "<F>b__2#3");
+                        g.VerifyMethodDefNames("deleted_F", "deleted_<F>g__N|0#3_1#3", "deleted_<F>g__O|0#3", "deleted_<F>b__2#3");
 
                         g.VerifyTypeRefNames("Object");
                         g.VerifyMemberRefNames();
@@ -18678,7 +18747,7 @@ class C
                         ]);
 
                         g.VerifyIL("""
-                            F
+                            deleted_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18687,7 +18756,7 @@ class C
                               IL_0007:  newobj     0x06000009
                               IL_000c:  throw
                             }
-                            <F>g__N|0#3_1#3, <F>g__O|0#3, <F>b__2#3
+                            deleted_<F>g__N|0#3_1#3, deleted_<F>g__O|0#3, deleted_<F>b__2#3
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -18736,13 +18805,13 @@ class C
                         ? g =>
                         {
                             g.VerifyTypeDefNames("HotReloadException");
-                            g.VerifyMethodDefNames("M1", "M2", ".ctor");
+                            g.VerifyMethodDefNames("deleted_M1", "M2", ".ctor");
                             g.VerifyDeletedMembers("C: {M1}");
                         }
                         : g =>
                         {
                             g.VerifyTypeDefNames();
-                            g.VerifyMethodDefNames("M1", "M2");
+                            g.VerifyMethodDefNames("deleted_M1", "M2");
                             g.VerifyDeletedMembers("C: {M1}");
                         })
                 .AddGeneration(
@@ -18758,7 +18827,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1", "M2");
+                        g.VerifyMethodDefNames("M1", "deleted_M2");
                         g.VerifyDeletedMembers("C: {M2}");
                     });
 #pragma warning restore format
@@ -18798,7 +18867,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M", "M", ".ctor");
+                        g.VerifyMethodDefNames("deleted_M", "M", ".ctor");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -18827,7 +18896,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            M
+                            deleted_M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18876,7 +18945,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyMethodDefNames("M", "deleted_M");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -18904,7 +18973,7 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
-                            M
+                            deleted_M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18949,7 +19018,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M", "M", ".ctor");
+                        g.VerifyMethodDefNames("deleted_M", "M", ".ctor");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -18981,7 +19050,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            M
+                            deleted_M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -19031,7 +19100,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyMethodDefNames("M", "deleted_M");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -19062,7 +19131,7 @@ class C
                               IL_000b:  ldloc.0
                               IL_000c:  ret
                             }
-                            M
+                            deleted_M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -19107,7 +19176,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
-                        g.VerifyMethodDefNames("M", "M", ".ctor");
+                        g.VerifyMethodDefNames("deleted_M", "M", ".ctor");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -19140,7 +19209,7 @@ class C
                         });
 
                         g.VerifyIL("""
-                            M
+                            deleted_M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -19189,7 +19258,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyMethodDefNames("M", "deleted_M");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -19216,7 +19285,7 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
-                            M
+                            deleted_M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8

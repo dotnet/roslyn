@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private ArrayMethods? _lazyArrayMethods;
 
         // Calculated when emitting EnC deltas.
-        private IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.IMethodDefinition>>? _encDeletedMethodDefinitions;
+        private IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>>? _encDeletedMemberDefinitions;
 
         // Only set when running tests to allow inspection of the emitted data.
         internal CompilationTestData? TestData { get; private set; }
@@ -119,24 +119,24 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType();
 
         /// <summary>
-        /// Creates definitions for deleted methods based on symbol changes if emitting EnC delta.
+        /// Creates definitions for deleted methods and properties based on symbol changes if emitting EnC delta.
         /// Must be called before <see cref="PrivateImplementationDetails.Freeze"/>.
         /// </summary>
-        public void CreateDeletedMethodDefinitions(DiagnosticBag diagnosticBag)
+        public void CreateDeletedMemberDefinitions(DiagnosticBag diagnosticBag)
         {
-            Debug.Assert(_encDeletedMethodDefinitions == null);
+            Debug.Assert(_encDeletedMemberDefinitions == null);
 
             if (EncSymbolChanges != null)
             {
                 var context = new EmitContext(this, diagnosticBag, metadataOnly: false, includePrivateMembers: true);
-                _encDeletedMethodDefinitions = DeltaMetadataWriter.CreateDeletedMethodsDefs(context, EncSymbolChanges);
+                _encDeletedMemberDefinitions = DeltaMetadataWriter.CreateDeletedMemberDefs(context, EncSymbolChanges);
             }
         }
 
-        public IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.IMethodDefinition>> GetDeletedMethodDefinitions()
+        public IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>> GetDeletedMemberDefinitions()
         {
-            Debug.Assert(_encDeletedMethodDefinitions != null);
-            return _encDeletedMethodDefinitions;
+            Debug.Assert(_encDeletedMemberDefinitions != null);
+            return _encDeletedMemberDefinitions;
         }
 
 #nullable disable

@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -64,6 +66,60 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             private void AssertEntityNamesEqual(string entityKinds, string[] expected, StringHandle[] actual)
                 => AssertEx.Equal(expected, readers.GetStrings(actual), message: GetAssertMessage($"{entityKinds} don't match"), itemSeparator: ", ", itemInspector: s => $"\"{s}\"");
+
+            internal void VerifyMethodDefs(params (string name, MethodAttributes attributes)[] expected)
+                => Verify(() =>
+                {
+                    var actual = MetadataReader.MethodDefinitions.Select(handle =>
+                    {
+                        var def = MetadataReader.GetMethodDefinition(handle);
+                        return (name: readers.GetString(def.Name), attributes: def.Attributes);
+                    }).ToArray();
+
+                    AssertEx.Equal(
+                        expected,
+                        actual,
+                        message: GetAssertMessage($"MethodDefs don't match"),
+                        itemSeparator: "," + Environment.NewLine,
+                        itemInspector: s => $"(\"{s.name}\", {Inspect(s.attributes)})");
+                });
+
+            internal void VerifyPropertyDefs(params (string name, PropertyAttributes attributes)[] expected)
+                => Verify(() =>
+                {
+                    var actual = MetadataReader.PropertyDefinitions.Select(handle =>
+                    {
+                        var def = MetadataReader.GetPropertyDefinition(handle);
+                        return (name: readers.GetString(def.Name), attributes: def.Attributes);
+                    }).ToArray();
+
+                    AssertEx.Equal(
+                        expected,
+                        actual,
+                        message: GetAssertMessage($"PropertyDefs don't match"),
+                        itemSeparator: "," + Environment.NewLine,
+                        itemInspector: s => $"(\"{s.name}\", {Inspect(s.attributes)})");
+                });
+
+            internal void VerifyEventDefs(params (string name, EventAttributes attributes)[] expected)
+                => Verify(() =>
+                {
+                    var actual = MetadataReader.EventDefinitions.Select(handle =>
+                    {
+                        var def = MetadataReader.GetEventDefinition(handle);
+                        return (name: readers.GetString(def.Name), attributes: def.Attributes);
+                    }).ToArray();
+
+                    AssertEx.Equal(
+                        expected,
+                        actual,
+                        message: GetAssertMessage($"EventDefs don't match"),
+                        itemSeparator: "," + Environment.NewLine,
+                        itemInspector: s => $"(\"{s.name}\", {Inspect(s.attributes)})");
+                });
+
+            internal static string Inspect<TEnum>(TEnum value) where TEnum : Enum
+                => string.Join(" | ", value.ToString().Split(',').Select(s => $"{typeof(TEnum).Name}.{s.Trim()}"));
 
             internal void VerifyDeletedMembers(params string[] expected)
                 => Verify(() =>

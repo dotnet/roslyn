@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.Cci;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool IsSealed => OldDefinition.IsSealed;
 
-        public bool IsSpecialName => OldDefinition.IsSpecialName;
+        public bool IsSpecialName => true;
 
         public bool IsStatic => OldDefinition.IsStatic;
 
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool ReturnValueIsByRef => OldDefinition.ReturnValueIsByRef;
 
-        public string? Name => OldDefinition.Name;
+        public string? Name => OldDefinition.Name != null ? DeltaMetadataWriter.GetDeletedDefinitionName(OldDefinition.Name) : null;
 
         public override void Dispatch(MetadataVisitor visitor)
         {
