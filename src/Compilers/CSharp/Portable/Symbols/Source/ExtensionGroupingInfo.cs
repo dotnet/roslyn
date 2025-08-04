@@ -20,16 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class ExtensionGroupingInfo
     {
-        /// <summary>
-        /// Extension block symbols declared in a class are grouped by their corresponding grouping type metadata name (top level key),
-        /// then grouped by their corresponding extension marker type metadata name (the secondary key used by MultiDictionary).
-        /// <see cref="SourceNamedTypeSymbol"/>s are the extension blocks.
-        /// </summary>
-        private readonly Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>> _groupingMap;
-        private ImmutableArray<ExtensionGroupingType> _lazyGroupingTypes;
+        private readonly ImmutableArray<ExtensionGroupingType> _groupingTypes;
 
         public ExtensionGroupingInfo(SourceMemberContainerTypeSymbol container)
         {
+            // Extension block symbols declared in a class are grouped by their corresponding grouping type metadata name (top level key),
+            // then grouped by their corresponding extension marker type metadata name (the secondary key used by MultiDictionary).
+            // <see cref="SourceNamedTypeSymbol"/>s are the extension blocks.
             var groupingMap = new Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>>(EqualityComparer<string>.Default);
 
             foreach (var type in container.GetTypeMembers(""))
@@ -53,26 +50,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 markerMap.Add(sourceNamedType.ExtensionMarkerName, sourceNamedType);
             }
 
-            _groupingMap = groupingMap;
+            var builder = ArrayBuilder<ExtensionGroupingType>.GetInstance(groupingMap.Count);
+
+            foreach (KeyValuePair<string, MultiDictionary<string, SourceNamedTypeSymbol>> pair in groupingMap)
+            {
+                builder.Add(new ExtensionGroupingType(pair.Key, pair.Value));
+            }
+
+            builder.Sort();
+
+            _groupingTypes = builder.ToImmutableAndFree();
         }
 
         public ImmutableArray<Cci.INestedTypeDefinition> GetGroupingTypes()
         {
-            if (_lazyGroupingTypes.IsDefault)
-            {
-                var builder = ArrayBuilder<ExtensionGroupingType>.GetInstance(_groupingMap.Count);
-
-                foreach (KeyValuePair<string, MultiDictionary<string, SourceNamedTypeSymbol>> pair in _groupingMap)
-                {
-                    builder.Add(new ExtensionGroupingType(pair.Key, pair.Value));
-                }
-
-                builder.Sort();
-
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyGroupingTypes, builder.ToImmutableAndFree());
-            }
-
-            return ImmutableArray<Cci.INestedTypeDefinition>.CastUp(_lazyGroupingTypes);
+            return ImmutableArray<Cci.INestedTypeDefinition>.CastUp(_groupingTypes);
         }
 
         public Cci.ITypeDefinition GetCorrespondingMarkerType(SynthesizedExtensionMarker markerMethod)
@@ -83,13 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ExtensionMarkerType GetCorrespondingMarkerType(SourceNamedTypeSymbol extension)
         {
             Debug.Assert(extension.IsExtension);
-            GetGroupingTypes();
 
             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize lookup with side dictionaries?
             var groupingName = extension.ExtensionGroupingName;
             var markerName = extension.ExtensionMarkerName;
 
-            foreach (var groupingType in _lazyGroupingTypes)
+            foreach (var groupingType in _groupingTypes)
             {
                 if (groupingType.Name != groupingName)
                 {
@@ -144,12 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public Cci.ITypeDefinition GetCorrespondingGroupingType(SourceNamedTypeSymbol extension)
         {
             Debug.Assert(extension.IsExtension);
-            GetGroupingTypes();
 
             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize lookup with a side dictionary?
             var groupingName = extension.ExtensionGroupingName;
 
-            foreach (var groupingType in _lazyGroupingTypes)
+            foreach (var groupingType in _groupingTypes)
             {
                 if (groupingType.Name == groupingName)
                 {
@@ -174,8 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal IEnumerable<ImmutableArray<SourceNamedTypeSymbol>> EnumerateMergedExtensionBlocks()
         {
-            GetGroupingTypes();
-            foreach (var groupingType in _lazyGroupingTypes)
+            foreach (var groupingType in _groupingTypes)
             {
                 foreach (var markerType in groupingType.ExtensionMarkerTypes)
                 {
@@ -384,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly string _name;
             public readonly ImmutableArray<ExtensionMarkerType> ExtensionMarkerTypes;
-            private readonly ImmutableArray<ExtensionGroupingTypeTypeParameter> _typeParameters;
+            private ImmutableArray<ExtensionGroupingTypeTypeParameter> _lazyTypeParameters;
 
             public ExtensionGroupingType(string name, MultiDictionary<string, SourceNamedTypeSymbol> extensionMarkerTypes)
             {
@@ -399,10 +388,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 builder.Sort();
                 ExtensionMarkerTypes = builder.ToImmutableAndFree();
-
-                _typeParameters = ExtensionMarkerTypes[0].UnderlyingExtensions[0].Arity != 0 ?
-                    ((INestedTypeDefinition)ExtensionMarkerTypes[0].UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new ExtensionGroupingTypeTypeParameter(@this, p), this) :
-                    [];
             }
 
             int IComparable<ExtensionGroupingType>.CompareTo(ExtensionGroupingType? other)
@@ -411,7 +396,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ExtensionMarkerTypes[0].CompareTo(other.ExtensionMarkerTypes[0]);
             }
 
-            protected override IEnumerable<IGenericTypeParameter> GenericParameters => _typeParameters;
+            protected override IEnumerable<IGenericTypeParameter> GenericParameters
+            {
+                get
+                {
+                    if (_lazyTypeParameters.IsDefault)
+                    {
+                        var typeParameters = ExtensionMarkerTypes[0].UnderlyingExtensions[0].Arity != 0 ?
+                            ((INestedTypeDefinition)ExtensionMarkerTypes[0].UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new ExtensionGroupingTypeTypeParameter(@this, p), this) :
+                            [];
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, typeParameters);
+                    }
+
+                    return _lazyTypeParameters;
+                }
+            }
 
             protected override ushort GenericParameterCount => (ushort)ExtensionMarkerTypes[0].UnderlyingExtensions[0].Arity;
 
@@ -534,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ExtensionGroupingType GroupingType;
             private readonly string _name;
             public readonly ImmutableArray<SourceNamedTypeSymbol> UnderlyingExtensions;
-            private readonly ImmutableArray<InheritedTypeParameter> _typeParameters;
+            private ImmutableArray<InheritedTypeParameter> _lazyTypeParameters;
 
             public ExtensionMarkerType(ExtensionGroupingType groupingType, string name, MultiDictionary<string, SourceNamedTypeSymbol>.ValueSet extensions)
             {
@@ -545,10 +544,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 builder.AddRange(extensions);
                 builder.Sort(LexicalOrderSymbolComparer.Instance);
                 UnderlyingExtensions = builder.ToImmutableAndFree();
-
-                _typeParameters = UnderlyingExtensions[0].Arity != 0 ?
-                    ((INestedTypeDefinition)UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new InheritedTypeParameter(p.Index, @this, p), this) :
-                    [];
             }
 
             public int CompareTo(ExtensionMarkerType? other)
@@ -557,7 +552,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return LexicalOrderSymbolComparer.Instance.Compare(UnderlyingExtensions[0], other.UnderlyingExtensions[0]);
             }
 
-            protected override IEnumerable<IGenericTypeParameter> GenericParameters => _typeParameters;
+            protected override IEnumerable<IGenericTypeParameter> GenericParameters
+            {
+                get
+                {
+                    if (_lazyTypeParameters.IsDefault)
+                    {
+                        var typeParameters = UnderlyingExtensions[0].Arity != 0 ?
+                            ((INestedTypeDefinition)UnderlyingExtensions[0].GetCciAdapter()).GenericParameters.SelectAsArray(static (p, @this) => new InheritedTypeParameter(p.Index, @this, p), this) :
+                            [];
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, typeParameters);
+                    }
+
+                    return _lazyTypeParameters;
+                }
+            }
 
             protected override ushort GenericParameterCount => (ushort)UnderlyingExtensions[0].Arity;
 
