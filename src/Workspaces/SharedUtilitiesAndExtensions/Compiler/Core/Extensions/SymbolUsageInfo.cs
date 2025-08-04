@@ -196,7 +196,7 @@ internal readonly record struct SymbolUsageInfo
 
             if (node is null)
                 return false;
-            
+
             var operation = semanticModel.GetOperation(node, cancellationToken);
 
             // Note: sizeof/typeof also return 'name', but are handled in GetSymbolUsageInfo.
