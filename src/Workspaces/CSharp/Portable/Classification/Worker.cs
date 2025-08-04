@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -249,6 +249,7 @@ internal readonly ref partial struct Worker
             case SyntaxKind.PragmaChecksumDirectiveTrivia:
             case SyntaxKind.ReferenceDirectiveTrivia:
             case SyntaxKind.LoadDirectiveTrivia:
+            case SyntaxKind.IgnoredDirectiveTrivia:
             case SyntaxKind.NullableDirectiveTrivia:
             case SyntaxKind.BadDirectiveTrivia:
                 ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure()!);

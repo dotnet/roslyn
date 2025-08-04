@@ -14,10 +14,11 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
@@ -145,12 +146,6 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         await TaskScheduler.Default;
 
-        await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
-
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
@@ -215,11 +210,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
         ReportSessionWideTelemetry();
 
-        if (_solutionEventMonitor != null)
-        {
-            _solutionEventMonitor.Dispose();
-            _solutionEventMonitor = null;
-        }
+        _solutionEventMonitor?.Dispose();
+        _solutionEventMonitor = null;
 
         base.Dispose(disposing);
     }

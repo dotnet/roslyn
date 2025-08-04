@@ -118,11 +118,13 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
     public int SimpleAssignmentExpression => (int)SyntaxKind.SimpleAssignmentExpression;
     public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
+    public int? SizeOfExpression => (int)SyntaxKind.SizeOfExpression;
     public int? SuppressNullableWarningExpression => (int)SyntaxKind.SuppressNullableWarningExpression;
     public int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
     public int ThisExpression => (int)SyntaxKind.ThisExpression;
     public int? ThrowExpression => (int)SyntaxKind.ThrowExpression;
     public int TupleExpression => (int)SyntaxKind.TupleExpression;
+    public int TypeOfExpression => (int)SyntaxKind.TypeOfExpression;
 
     public int? AndPattern => (int)SyntaxKind.AndPattern;
     public int? ConstantPattern => (int)SyntaxKind.ConstantPattern;

@@ -28,7 +28,7 @@ public class CSharpNewDocumentFormatting : AbstractIntegrationTest
         await TestServices.Workspace.SetFullSolutionAnalysisAsync(false, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/79302"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
     public async Task CreateLegacyProjectWithFileScopedNamespaces()
     {
         await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);
@@ -61,12 +61,14 @@ public class CSharpNewDocumentFormatting : AbstractIntegrationTest
         var (solutionDirectory, _, _) = await TestServices.SolutionExplorer.GetSolutionInfoAsync(HangMitigatingCancellationToken);
         var editorConfigFilePath = Path.Combine(solutionDirectory, ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
-@"
-root = true
+            """
 
-[*.cs]
-csharp_style_namespace_declarations = block_scoped
-");
+            root = true
+
+            [*.cs]
+            csharp_style_namespace_declarations = block_scoped
+
+            """);
 
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
@@ -86,17 +88,21 @@ csharp_style_namespace_declarations = block_scoped
         var (solutionDirectory, _, _) = await TestServices.SolutionExplorer.GetSolutionInfoAsync(HangMitigatingCancellationToken);
         var editorConfigFilePath = Path.Combine(solutionDirectory, ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
-@"
-root = true
-");
+            """
+
+            root = true
+
+            """);
 
         // This editor config file should be ignored
         editorConfigFilePath = Path.Combine(solutionDirectory, "..", ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
-@"
-[*.cs]
-csharp_style_namespace_declarations = block_scoped
-");
+            """
+
+            [*.cs]
+            csharp_style_namespace_declarations = block_scoped
+
+            """);
 
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
@@ -116,12 +122,14 @@ csharp_style_namespace_declarations = block_scoped
         var (solutionDirectory, _, _) = await TestServices.SolutionExplorer.GetSolutionInfoAsync(HangMitigatingCancellationToken);
         var editorConfigFilePath = Path.Combine(solutionDirectory, ".editorconfig");
         File.WriteAllText(editorConfigFilePath,
-@"
-root = true
+            """
 
-[*.cs]
-csharp_style_namespace_declarations = file_scoped
-");
+            root = true
+
+            [*.cs]
+            csharp_style_namespace_declarations = file_scoped
+
+            """);
 
         await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);

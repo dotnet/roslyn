@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -30,8 +31,8 @@ internal sealed class LanguageServerWorkspaceFactory
         IFileChangeWatcher fileChangeWatcher,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
-        ServerConfigurationFactory serverConfigurationFactory,
         ExtensionAssemblyManager extensionManager,
+        [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
@@ -45,27 +46,35 @@ internal sealed class LanguageServerWorkspaceFactory
             .ToImmutableArray();
 
         // Create the workspace and set analyzer references for it
-        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
+        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.Host);
         workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(workspace)), WorkspaceChangeKind.SolutionChanged);
-        Workspace = workspace;
 
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
-            Workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
+        HostProjectFactory = new ProjectSystemProjectFactory(
+            workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
-        workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
+        workspace.ProjectSystemProjectFactory = HostProjectFactory;
 
-        var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
+        // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
+        // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
+        var miscellaneousFilesWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
+        miscellaneousFilesWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(miscellaneousFilesWorkspace)), WorkspaceChangeKind.SolutionChanged);
+
+        MiscellaneousFilesWorkspaceProjectFactory = new ProjectSystemProjectFactory(
+            miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
+        miscellaneousFilesWorkspace.ProjectSystemProjectFactory = MiscellaneousFilesWorkspaceProjectFactory;
+
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
-            new HostDiagnosticAnalyzerProvider(razorSourceGenerator),
-            AnalyzerAssemblyRedirectors: []);
+            AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
 
         TargetFrameworkManager = projectTargetFrameworkManager;
     }
 
-    public Workspace Workspace { get; }
+    public Workspace HostWorkspace => HostProjectFactory.Workspace;
 
-    public ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
+    public ProjectSystemProjectFactory HostProjectFactory { get; }
+    public ProjectSystemProjectFactory MiscellaneousFilesWorkspaceProjectFactory { get; }
+
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
     public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 

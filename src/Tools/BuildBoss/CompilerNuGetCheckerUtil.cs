@@ -11,7 +11,6 @@ using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -191,7 +190,7 @@ namespace BuildBoss
                 (@"tasks\netcore\bincore", GetProjectPublishDirectory("vbc", "net9.0")),
                 (@"tasks\netcore\bincore", GetProjectPublishDirectory("VBCSCompiler", "net9.0")),
                 (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net9.0")),
-                (@"tasks\netcore\binfx", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net472")));
+                (@"tasks\netcore\binfx", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis.Sdk", "net472")));
 
             foreach (var arch in new[] { "x86", "x64", "arm64" })
             {

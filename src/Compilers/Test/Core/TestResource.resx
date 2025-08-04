@@ -877,6 +877,15 @@ class RawStringLiterals
                                     """;
 }
 
+static class Extensions
+{
+  extension(int)
+  {
+    public static void M() { }
+    public static int P => 0;
+  }
+}
+
 #line 6
 #line 2 "test.cs"
 #line default

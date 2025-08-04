@@ -12,90 +12,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class ByKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAtRoot()
+        => VerifyAbsenceAsync(
 @"$$", options: CSharp9ParseOptions);
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterGlobalStatement()
+        => VerifyAbsenceAsync(
             """
             System.Console.WriteLine();
             $$
             """, options: CSharp9ParseOptions);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterGlobalVariableDeclaration()
+        => VerifyAbsenceAsync(
             """
             int i = 0;
             $$
             """, options: CSharp9ParseOptions);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotInEmptyStatement(bool topLevelStatement)
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestAfterGroupExpr(bool topLevelStatement)
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterGroupExpr(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       group a $$
             """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotAfterGroup(bool topLevelStatement)
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterGroup(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       group $$
             """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotAfterBy(bool topLevelStatement)
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterBy(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       group a by $$
             """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-    }
 }

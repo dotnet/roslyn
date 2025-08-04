@@ -18,21 +18,18 @@ internal sealed class StackTraceExplorerViewModel : ViewModelBase
     private readonly Workspace _workspace;
     public ObservableCollection<FrameViewModel> Frames { get; } = [];
 
-    private bool _isLoading;
     private readonly ClassificationTypeMap _classificationTypeMap;
     private readonly IClassificationFormatMap _formatMap;
 
     public bool IsLoading
     {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
+        get;
+        set => SetProperty(ref field, value);
     }
-
-    private FrameViewModel? _selection;
     public FrameViewModel? Selection
     {
-        get => _selection;
-        set => SetProperty(ref _selection, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     public bool IsListVisible => Frames.Count > 0;

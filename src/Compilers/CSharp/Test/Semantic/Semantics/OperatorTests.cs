@@ -7383,7 +7383,8 @@ public class RubyTime
                 else
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, isChecked, left, right, result, ref discardedUseSiteInfo);
+                    OverloadResolution.GetStaticUserDefinedBinaryOperatorMethodNames(kind, isChecked, out string name1, out string name2Opt);
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, isChecked, name1, name2Opt, left, right, result, ref discardedUseSiteInfo);
                 }
                 var signature = result.Best.Signature.Kind;
                 result.Free();
@@ -8967,6 +8968,646 @@ class P
                 // (21,13): error CS0218: In order for 'A<object>.operator |(A<object>, A<object>)' to be applicable as a short circuit operator, its declaring type 'A<object>' must define operator true and operator false
                 //         if (x || y)
                 Diagnostic(ErrorCode.ERR_MustHaveOpTF, "x || y").WithArguments("A<object>.operator |(A<object>, A<object>)", "A<object>").WithLocation(21, 13));
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_01([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        Test1(s1);
+        Test2(s1);
+    }
+
+    static S1 Test1(S1 s1) => s1 {{{op}}} s1;
+
+    static void Test2(S1 s1)
+    {
+        System.Linq.Expressions.Expression<System.Func<S1>> ex;
+        
+        try
+        {
+            ex = () => s1 {{{op}}} s1;
+        }
+        catch (System.ArgumentException) // https://github.com/dotnet/runtime/issues/115674 The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+        {
+            System.Console.Write("exception");
+            return;
+        }
+
+        ex.Compile()();
+    }
+
+    static void Test3(S1 s1)
+    {
+        if (s1)
+        {
+            s1 = default;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "operator2operator1exception").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  newobj     ""S1?..ctor(S1)""
+  IL_0008:  call       ""bool S1." + (op == "&&" ? "op_False" : "op_True") + @"(S1?)""
+  IL_000d:  brtrue.s   IL_0018
+  IL_000f:  ldloc.0
+  IL_0010:  ldarg.0
+  IL_0011:  call       ""S1 S1." + (op == "&&" ? "op_BitwiseAnd" : "op_BitwiseOr") + @"(S1, S1)""
+  IL_0016:  br.s       IL_0019
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_02([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        Test1(s1);
+        Test2(s1);
+    }
+
+    static S1? Test1(S1? s1) => s1 {{{op}}} s1;
+
+    static void Test2(S1? s1)
+    {
+        System.Linq.Expressions.Expression<System.Func<S1?>> ex;
+        
+        try
+        {
+            ex = () => s1 {{{op}}} s1;
+        }
+        catch (System.ArgumentException) // https://github.com/dotnet/runtime/issues/115674 The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+        {
+            System.Console.Write("exception");
+            return;
+        }
+
+        ex.Compile()();
+    }
+
+    static void Test3(S1? s1)
+    {
+        if (s1)
+        {
+            s1 = default;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2operator1exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_03([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1? operator {{{op[0]}}}(S1? x, S1? y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        Test1(s1);
+        Test2(s1);
+    }
+
+    static S1? Test1(S1? s1) => s1 {{{op}}} s1;
+
+    static void Test2(S1? s1)
+    {
+        System.Linq.Expressions.Expression<System.Func<S1?>> ex;
+        
+        try
+        {
+            ex = () => s1 {{{op}}} s1;
+        }
+        catch (System.ArgumentException) // https://github.com/dotnet/runtime/issues/115674 The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+        {
+            System.Console.Write("exception");
+            return;
+        }
+
+        ex.Compile()();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2operator1exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_04_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        try
+        {
+            Test1(s1);
+        }
+        catch (System.ArgumentException) // https://github.com/dotnet/runtime/issues/115674 The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+        {
+            System.Console.Write("exception");
+        }
+    }
+
+    static dynamic Test1(S1 s1) => s1 {{{op}}} (dynamic)s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_05_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        Test1(s1);
+    }
+
+    static dynamic Test1(S1? s1) => s1 {{{op}}} (dynamic)s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must define operator 'false'.
+                //     static dynamic Test1(S1? s1) => s1 && (dynamic)s1;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s1").WithArguments("S1?", (op == "&&" ? "false" : "true")).WithLocation(27, 37)
+                );
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_06_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1? operator {{{op[0]}}}(S1? x, S1? y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        Test1(s1);
+    }
+
+    static dynamic Test1(S1? s1) => s1 {{{op}}} (dynamic)s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must define operator 'false'.
+                //     static dynamic Test1(S1? s1) => s1 && (dynamic)s1;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s1").WithArguments("S1?", (op == "&&" ? "false" : "true")).WithLocation(27, 37)
+                );
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_07_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        try
+        {
+            Test1(s1);
+        }
+        catch (System.ArgumentException) // https://github.com/dotnet/runtime/issues/115674 The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+        {
+            System.Console.Write("exception");
+        }
+    }
+
+    static dynamic Test1(S1 s1) => (dynamic)s1 {{{op}}} (dynamic)s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_08_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        try
+        {
+            Test1(s1);
+        }
+        catch (System.ArgumentException) // https://github.com/dotnet/runtime/issues/115674 The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+        {
+            System.Console.Write("exception");
+        }
+    }
+
+    static dynamic Test1(S1? s1) => (dynamic)s1 {{{op}}} (dynamic)s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_09_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1? operator {{{op[0]}}}(S1? x, S1? y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        try
+        {
+            Test1(s1);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) // The type ('S1?') must contain declarations of operator true and operator false
+        {
+            System.Console.Write("exception");
+        }
+    }
+
+    static dynamic Test1(S1? s1) => (dynamic)s1 {{{op}}} (dynamic)s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_10_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        try
+        {
+            Test1(s1);
+        }
+        catch (System.ArgumentException) // https://github.com/dotnet/runtime/issues/115674 The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+        {
+            System.Console.Write("exception");
+        }
+    }
+
+    static dynamic Test1(S1 s1) => (dynamic)s1 {{{op}}} s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_11_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        try
+        {
+            Test1(s1);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) // Operator '&&' cannot be applied to operands of type 'S1' and 'S1?'
+        {
+            System.Console.Write("exception");
+        }
+    }
+
+    static dynamic Test1(S1? s1) => (dynamic)s1 {{{op}}} s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78609")]
+        [WorkItem("https://github.com/dotnet/runtime/issues/115674")]
+        [CombinatorialData]
+        public void UserDefinedShortCircuitingOperators_TrueFalseArgumentConversion_12_Dynamic([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    public static S1? operator {{{op[0]}}}(S1? x, S1? y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+    {
+        System.Console.Write("operator2");
+        return false;
+    }
+
+    public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+
+        try
+        {
+            Test1(s1);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException) // The type ('S1?') must contain declarations of operator true and operator false
+        {
+            System.Console.Write("exception");
+        }
+    }
+
+    static dynamic Test1(S1? s1) => (dynamic)s1 {{{op}}} s1;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
         }
 
         private sealed class EmptyRewriter : BoundTreeRewriter

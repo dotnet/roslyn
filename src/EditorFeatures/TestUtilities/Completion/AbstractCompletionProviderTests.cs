@@ -427,69 +427,59 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
     protected virtual IEqualityComparer<string> GetStringComparer()
         => StringComparer.Ordinal;
 
-    private protected async Task VerifyItemExistsAsync(
+    private protected Task VerifyItemExistsAsync(
         string markup, string expectedItem, string expectedDescriptionOrNull = null,
         SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false, char? deletedCharTrigger = null,
         Glyph? glyph = null, int? matchPriority = null, bool? hasSuggestionModeItem = null,
         string displayTextSuffix = null, string displayTextPrefix = null, string inlineDescription = null,
         bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null,
         CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
-    {
-        await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull,
+        => VerifyAsync(markup, expectedItem, expectedDescriptionOrNull,
             sourceCodeKind, usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence: false,
             glyph: glyph, matchPriority: matchPriority,
             hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
             displayTextPrefix: displayTextPrefix, inlineDescription: inlineDescription,
             isComplexTextEdit: isComplexTextEdit, matchingFilters: matchingFilters,
             flags: flags, options, skipSpeculation: skipSpeculation);
-    }
 
-    private protected async Task VerifyItemIsAbsentAsync(
+    private protected Task VerifyItemIsAbsentAsync(
         string markup, string expectedItem, string expectedDescriptionOrNull = null,
         SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false, char? deletedCharTrigger = null,
         bool? hasSuggestionModeItem = null, string displayTextSuffix = null,
         string displayTextPrefix = null, string inlineDescription = null,
         bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions options = null)
-    {
-        await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull, sourceCodeKind,
+        => VerifyAsync(markup, expectedItem, expectedDescriptionOrNull, sourceCodeKind,
             usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence: true, glyph: null, matchPriority: null,
             hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
             displayTextPrefix: displayTextPrefix, inlineDescription: inlineDescription,
             isComplexTextEdit: isComplexTextEdit, matchingFilters: matchingFilters, flags: flags, options);
-    }
 
-    private protected async Task VerifyAnyItemExistsAsync(
+    private protected Task VerifyAnyItemExistsAsync(
         string markup, SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
         bool? hasSuggestionModeItem = null, CompletionOptions options = null)
-    {
-        await VerifyExpectedItemsAsync(
+        => VerifyExpectedItemsAsync(
             markup, results: ItemExpectation.Any, sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
             hasSuggestionModeItem: hasSuggestionModeItem, options: options);
-    }
 
-    private protected async Task VerifyNoItemsExistAsync(
+    private protected Task VerifyNoItemsExistAsync(
         string markup, SourceCodeKind? sourceCodeKind = null,
         bool usePreviousCharAsTrigger = false, bool? hasSuggestionModeItem = null,
         CompletionOptions options = null)
-    {
-        await VerifyExpectedItemsAsync(
+        => VerifyExpectedItemsAsync(
             markup, results: ItemExpectation.None, sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
             hasSuggestionModeItem: hasSuggestionModeItem, options: options);
-    }
 
-    private protected async Task VerifyExpectedItemsAsync(
+    private protected Task VerifyExpectedItemsAsync(
         string markup, ItemExpectation[] results,
         SourceCodeKind? sourceCodeKind = null,
         char? deletedCharTrigger = null,
         bool usePreviousCharAsTrigger = false,
         bool? hasSuggestionModeItem = null, CompletionOptions options = null)
-    {
-        await VerifyAsync(markup,
+        => VerifyAsync(markup,
             sourceCodeKind, deletedCharTrigger: deletedCharTrigger, usePreviousCharAsTrigger, results: results,
             hasSuggestionModeItem: hasSuggestionModeItem, matchingFilters: null,
             flags: null, options);
-    }
 
     internal abstract Type GetCompletionProviderType();
 
@@ -804,15 +794,16 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected static string CreateMarkupForProjectWithMetadataReference(string markup, string metadataReferenceCode, string sourceLanguage, string referencedLanguage)
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <Document FilePath=""SourceDocument"">{1}</Document>
-        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {4}>
-            <Document FilePath=""ReferencedDocument"">{3}</Document>
-        </MetadataReferenceFromSource>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode), GetLanguageVersionAttribute(referencedLanguage));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1">
+                    <Document FilePath="SourceDocument">{1}</Document>
+                    <MetadataReferenceFromSource Language="{2}" CommonReferences="true" IncludeXmlDocComments="true" DocumentationMode="Diagnose" {4}>
+                        <Document FilePath="ReferencedDocument">{3}</Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode), GetLanguageVersionAttribute(referencedLanguage));
     }
 
     protected async Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
@@ -825,21 +816,24 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     private static string GetLanguageVersionAttribute(string languageName)
     {
-        return languageName == LanguageNames.CSharp ? @"LanguageVersion = ""preview""" : string.Empty;
+        return languageName == LanguageNames.CSharp ? """
+            LanguageVersion = "preview"
+            """ : string.Empty;
     }
 
     protected static string CreateMarkupForProjectWithAliasedMetadataReference(string markup, string metadataAlias, string referencedCode, string sourceLanguage, string referencedLanguage, bool hasGlobalAlias = true)
     {
         var aliases = hasGlobalAlias ? $"{metadataAlias},{MetadataReferenceProperties.GlobalAlias}" : $"{metadataAlias}";
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"" {1}>
-        <Document FilePath=""SourceDocument"">{2}</Document>
-        <MetadataReferenceFromSource Language=""{3}"" CommonReferences=""true"" Aliases=""{4}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {5}>
-            <Document FilePath=""ReferencedDocument"">{6}</Document>
-        </MetadataReferenceFromSource>
-    </Project>
-</Workspace>", sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1" {1}>
+                    <Document FilePath="SourceDocument">{2}</Document>
+                    <MetadataReferenceFromSource Language="{3}" CommonReferences="true" Aliases="{4}" IncludeXmlDocComments="true" DocumentationMode="Diagnose" {5}>
+                        <Document FilePath="ReferencedDocument">{6}</Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
     }
 
     protected async Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage)
@@ -851,44 +845,47 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected static string CreateMarkupForProjectWithAliasedProjectReference(string markup, string projectAlias, string referencedCode, string sourceLanguage, string referencedLanguage)
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <ProjectReference Alias=""{4}"">ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">{1}</Document>
-    </Project>
-    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-        <Document FilePath=""ReferencedDocument"">{3}</Document>
-    </Project>
-    
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode), SecurityElement.Escape(projectAlias));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1">
+                    <ProjectReference Alias="{4}">ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">{1}</Document>
+                </Project>
+                <Project Language="{2}" CommonReferences="true" AssemblyName="ReferencedProject" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+                    <Document FilePath="ReferencedDocument">{3}</Document>
+                </Project>
+
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode), SecurityElement.Escape(projectAlias));
     }
 
     protected static string CreateMarkupForProjectWithProjectReference(string markup, string referencedCode, string sourceLanguage, string referencedLanguage)
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"" {1}>
-        <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">{2}</Document>
-    </Project>
-    <Project Language=""{3}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {4}>
-        <Document FilePath=""ReferencedDocument"">{5}</Document>
-    </Project>
-    
-</Workspace>", sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1" {1}>
+                    <ProjectReference>ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">{2}</Document>
+                </Project>
+                <Project Language="{3}" CommonReferences="true" AssemblyName="ReferencedProject" IncludeXmlDocComments="true" DocumentationMode="Diagnose" {4}>
+                    <Document FilePath="ReferencedDocument">{5}</Document>
+                </Project>
+
+            </Workspace>
+            """, sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
     }
 
     protected static string CreateMarkupForProjectWithMultupleProjectReferences(string sourceText, string sourceLanguage, string referencedLanguage, string[] referencedTexts)
     {
-        return $@"
-<Workspace>
-    <Project Language=""{sourceLanguage}"" CommonReferences=""true"" AssemblyName=""Project1"">
-{GetProjectReferenceElements(referencedTexts)}
-        <Document FilePath=""SourceDocument"">{SecurityElement.Escape(sourceText)}</Document>
-    </Project>
-{GetReferencedProjectElements(referencedLanguage, referencedTexts)}
-</Workspace>";
+        return $"""
+            <Workspace>
+                <Project Language="{sourceLanguage}" CommonReferences="true" AssemblyName="Project1">
+            {GetProjectReferenceElements(referencedTexts)}
+                    <Document FilePath="SourceDocument">{SecurityElement.Escape(sourceText)}</Document>
+                </Project>
+            {GetReferencedProjectElements(referencedLanguage, referencedTexts)}
+            </Workspace>
+            """;
 
         static string GetProjectReferenceElements(string[] referencedTexts)
         {
@@ -906,10 +903,11 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             var builder = new StringBuilder();
             for (var i = 0; i < referencedTexts.Length; ++i)
             {
-                builder.Append($@"
-<Project Language=""{language}"" CommonReferences=""true"" AssemblyName=""ReferencedProject{i}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-  <Document FilePath=""ReferencedDocument{i}"">{SecurityElement.Escape(referencedTexts[i])}</Document>
-</Project>");
+                builder.Append($"""
+                    <Project Language="{language}" CommonReferences="true" AssemblyName="ReferencedProject{i}" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+                      <Document FilePath="ReferencedDocument{i}">{SecurityElement.Escape(referencedTexts[i])}</Document>
+                    </Project>
+                    """);
             }
 
             return builder.ToString();
@@ -918,18 +916,19 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected static string CreateMarkupForProjecWithVBProjectReference(string markup, string referencedCode, string sourceLanguage, string rootNamespace = "")
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">{1}</Document>
-    </Project>
-    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-        <Document FilePath=""ReferencedDocument"">{3}</Document>
-        <CompilationOptions RootNamespace=""{4}""/>
-    </Project>
-    
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), LanguageNames.VisualBasic, SecurityElement.Escape(referencedCode), rootNamespace);
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" AssemblyName="Project1">
+                    <ProjectReference>ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">{1}</Document>
+                </Project>
+                <Project Language="{2}" CommonReferences="true" AssemblyName="ReferencedProject" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+                    <Document FilePath="ReferencedDocument">{3}</Document>
+                    <CompilationOptions RootNamespace="{4}"/>
+                </Project>
+
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup), LanguageNames.VisualBasic, SecurityElement.Escape(referencedCode), rootNamespace);
     }
 
     private Task VerifyItemInSameProjectAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage)
@@ -946,13 +945,14 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         string sourceFileName = "SourceDocument",
         string referencedFileName = "ReferencedDocument")
     {
-        return string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" Name=""ProjectName"" {5}>
-        <Document FilePath=""{3}"">{1}</Document>
-        <Document FilePath=""{4}"">{2}</Document>
-    </Project>    
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName, GetLanguageVersionAttribute(sourceLanguage));
+        return string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true" Name="ProjectName" {5}>
+                    <Document FilePath="{3}">{1}</Document>
+                    <Document FilePath="{4}">{2}</Document>
+                </Project>    
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName, GetLanguageVersionAttribute(sourceLanguage));
     }
 
     private async Task VerifyItemWithReferenceWorkerAsync(
@@ -999,14 +999,15 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected async Task VerifyItemWithMscorlib45Async(string markup, string expectedItem, string expectedDescription, string sourceLanguage)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferencesNet45=""true""> 
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup));
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferencesNet45="true"> 
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup));
 
         await VerifyItemWithMscorlib45WorkerAsync(xmlString, expectedItem, expectedDescription);
     }
@@ -1077,25 +1078,21 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             matchingFilters, flags, options, skipSpeculation: skipSpeculation);
     }
 
-    private protected async Task VerifyAtPositionAsync(
+    private protected Task VerifyAtPositionAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
         SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
-    {
-        await VerifyAtPositionAsync(code, position, string.Empty, usePreviousCharAsTrigger,
+        => VerifyAtPositionAsync(code, position, string.Empty, usePreviousCharAsTrigger,
             deletedCharTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
             matchingFilters, flags, options, skipSpeculation: skipSpeculation);
-    }
 
-    private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
+    private protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
         SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults, string partialItem,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
-    {
-        await VerifyAtPositionAsync(code, position, ItemPartiallyWritten(partialItem),
+        => VerifyAtPositionAsync(code, position, ItemPartiallyWritten(partialItem),
             usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
             matchingFilters, flags, options, skipSpeculation: skipSpeculation);
-    }
 
     private protected async Task VerifyAtPositionAsync(
         string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
@@ -1115,22 +1112,20 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation: skipSpeculation);
     }
 
-    private protected async Task VerifyAtPositionAsync(
+    private protected Task VerifyAtPositionAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
-    {
-        await VerifyAtPositionAsync(
+        => VerifyAtPositionAsync(
             code, position, string.Empty, usePreviousCharAsTrigger, deletedCharTrigger,
             expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence,
             glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix,
             inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation: skipSpeculation);
-    }
 
-    private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
+    private protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
@@ -1138,14 +1133,12 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions options = null, bool skipSpeculation = false)
-    {
-        await VerifyAtPositionAsync(
+        => VerifyAtPositionAsync(
             code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
             deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options,
             skipSpeculation: skipSpeculation);
-    }
 
     private protected async Task VerifyAtEndOfFileAsync(
         string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
@@ -1166,25 +1159,21 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             matchingFilters, flags, options, skipSpeculation: skipSpeculation);
     }
 
-    private protected async Task VerifyAtEndOfFileAsync(
+    private protected Task VerifyAtEndOfFileAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
         SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
-    {
-        await VerifyAtEndOfFileAsync(code, position, string.Empty,
+        => VerifyAtEndOfFileAsync(code, position, string.Empty,
             usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
             matchingFilters, flags, options, skipSpeculation: skipSpeculation);
-    }
 
-    private protected async Task VerifyAtEndOfFileAsync(
+    private protected Task VerifyAtEndOfFileAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
         SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options)
-    {
-        await VerifyAtEndOfFileAsync(code, position, string.Empty,
+        => VerifyAtEndOfFileAsync(code, position, string.Empty,
             usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
             matchingFilters, flags, options);
-    }
 
     private protected async Task VerifyAtEndOfFileAsync(
         string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
@@ -1211,7 +1200,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
     }
 
-    private protected async Task VerifyAtEndOfFileAsync(
+    private protected Task VerifyAtEndOfFileAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
@@ -1219,25 +1208,21 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions options = null)
-    {
-        await VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger, deletedCharTrigger,
+        => VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger, deletedCharTrigger,
             expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
-    }
 
-    private protected async Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+    private protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
         SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults, string partialItem,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options)
-    {
-        await VerifyAtEndOfFileAsync(
+        => VerifyAtEndOfFileAsync(
             code, position, ItemPartiallyWritten(partialItem),
             usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
             matchingFilters, flags, options);
-    }
 
-    private protected async Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+    private protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
@@ -1245,13 +1230,11 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions options = null)
-    {
-        await VerifyAtEndOfFileAsync(
+        => VerifyAtEndOfFileAsync(
             code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, deletedCharTrigger,
             expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence,
             glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
             isComplexTextEdit, matchingFilters, flags, options);
-    }
 
     protected void VerifyTextualTriggerCharacter(
         string markup,

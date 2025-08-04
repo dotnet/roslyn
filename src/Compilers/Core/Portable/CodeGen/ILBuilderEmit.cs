@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Roslyn.Utilities;
-using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -40,15 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _emitState.InstructionAdded();
         }
 
-        internal void EmitToken(string value)
+        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
         {
-            uint token = module?.GetFakeStringTokenForIL(value) ?? 0xFFFF;
-            this.GetCurrentWriter().WriteUInt32(token);
-        }
-
-        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
-        {
-            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            uint token = module.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics);
             if (encoding != Cci.MetadataWriter.RawTokenEncoding.None)
             {
                 token = Cci.MetadataWriter.GetRawToken(encoding, token);
@@ -56,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.ISignature value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.ISignature value, SyntaxNode? syntaxNode)
         {
-            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            uint token = module.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics);
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
@@ -76,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
         {
-            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.DocumentRowId, module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF);
+            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.DocumentRowId, module.GetSourceDocumentIndexForIL(document));
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode)
         {
             // Emit the call to RuntimeHelpers.InitializeArray, creating the necessary metadata blob if there isn't
             // already one for this data.  Note that this specifies an alignment of 1.  This is valid regardless of
@@ -100,14 +92,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var initializeArray = module.GetInitArrayHelper();
 
             // map a field to the block (that makes it addressable via a token).
-            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
+            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, _diagnostics);
 
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array
             EmitOpCode(ILOpCode.Ldtoken);
-            EmitToken(field, syntaxNode, diagnostics);      //block
+            EmitToken(field, syntaxNode);      //block
             EmitOpCode(ILOpCode.Call, -2);
-            EmitToken(initializeArray, syntaxNode, diagnostics);
+            EmitToken(initializeArray, syntaxNode);
         }
 
         /// <summary>
@@ -211,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Primary method for emitting string switch jump table
         /// </summary>
+        /// <param name="syntax">Associated syntax for diagnostic reporting.</param>
         /// <param name="caseLabels">switch case labels</param>
         /// <param name="fallThroughLabel">fall through label for the jump table</param>
         /// <param name="key">Local holding the value to switch on.
@@ -227,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Delegate to compute string hash consistent with value of keyHash.
         /// </param>
         internal void EmitStringSwitchJumpTable(
+            SyntaxNode syntax,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalOrParameter key,
@@ -238,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             var emitter = new SwitchStringJumpTableEmitter(
                 this,
+                syntax,
                 key,
                 caseLabels,
                 fallThroughLabel,
@@ -257,11 +252,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// This value has already been loaded onto the execution stack.
         /// </param>
         /// <param name="keyTypeCode">Primitive type code of switch key.</param>
+        /// <param name="syntax">Associated syntax for error reporting.</param>
         internal void EmitIntegerSwitchJumpTable(
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalOrParameter key,
-            Cci.PrimitiveTypeCode keyTypeCode)
+            Cci.PrimitiveTypeCode keyTypeCode,
+            SyntaxNode syntax)
         {
             Debug.Assert(caseLabels.Length > 0);
             Debug.Assert(keyTypeCode != Cci.PrimitiveTypeCode.String);
@@ -270,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // CONSIDER: Currently, only purpose of creating this caseLabels array is for Emitting the jump table.
             // CONSIDER: If this requirement changes, we may want to pass in ArrayBuilder<KeyValuePair<ConstantValue, object>> instead.
 
-            var emitter = new SwitchIntegralJumpTableEmitter(this, caseLabels, fallThroughLabel, keyTypeCode, key);
+            var emitter = new SwitchIntegralJumpTableEmitter(this, syntax, caseLabels, fallThroughLabel, keyTypeCode, key);
             emitter.EmitJumpTable();
         }
 
@@ -360,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Generates code that creates an instance of multidimensional array
         /// </summary>
-        internal void EmitArrayCreation(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayCreation(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -368,13 +365,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // idx1, idx2 --> array
             this.EmitOpCode(ILOpCode.Newobj, 1 - (int)arrayType.Rank);
-            this.EmitToken(ctor, syntaxNode, diagnostics);
+            this.EmitToken(ctor, syntaxNode);
         }
 
         /// <summary>
         /// Generates code that loads an element of a multidimensional array
         /// </summary>
-        internal void EmitArrayElementLoad(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayElementLoad(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -382,13 +379,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // this, idx1, idx2 --> value
             this.EmitOpCode(ILOpCode.Call, -(int)arrayType.Rank);
-            this.EmitToken(load, syntaxNode, diagnostics);
+            this.EmitToken(load, syntaxNode);
         }
 
         /// <summary>
         /// Generates code that loads an address of an element of a multidimensional array.
         /// </summary>
-        internal void EmitArrayElementAddress(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayElementAddress(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -396,13 +393,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // this, idx1, idx2 --> &value
             this.EmitOpCode(ILOpCode.Call, -(int)arrayType.Rank);
-            this.EmitToken(address, syntaxNode, diagnostics);
+            this.EmitToken(address, syntaxNode);
         }
 
         /// <summary>
         /// Generates code that stores an element of a multidimensional array.
         /// </summary>
-        internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -410,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // this, idx1, idx2, value --> void
             this.EmitOpCode(ILOpCode.Call, -(2 + (int)arrayType.Rank));
-            this.EmitToken(store, syntaxNode, diagnostics);
+            this.EmitToken(store, syntaxNode);
         }
 
         internal void EmitLoad(LocalOrParameter localOrParameter)
@@ -489,6 +486,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitLocalAddress(LocalDefinition local)
         {
+            Debug.Assert(LocalSlotManager != null);
+            LocalSlotManager.AddAddressedLocal(local, _optimizations);
+
             if (local.IsReference)
             {
                 EmitLocalLoad(local);
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal void EmitConstantValue(ConstantValue value)
+        internal void EmitConstantValue(ConstantValue value, SyntaxNode? syntaxNode)
         {
             ConstantValueTypeDiscriminator discriminator = value.Discriminator;
 
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     EmitDoubleConstant(value.DoubleValue);
                     break;
                 case ConstantValueTypeDiscriminator.String:
-                    EmitStringConstant(value.StringValue);
+                    EmitStringConstant(value.StringValue, syntaxNode);
                     break;
                 case ConstantValueTypeDiscriminator.Boolean:
                     EmitBoolConstant(value.BooleanValue);
@@ -734,16 +734,70 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitOpCode(ILOpCode.Ldnull);
         }
 
-        internal void EmitStringConstant(string? value)
+        internal void EmitStringConstant(string? value, SyntaxNode? syntax)
         {
             if (value == null)
             {
                 EmitNullConstant();
+                return;
             }
-            else
+
+            // If the length is greater than the specified threshold try ldsfld first and fall back to ldstr.
+            // Otherwise, try emit ldstr and fall back to ldsfld if emitting EnC delta and the heap is already full.
+            bool success = (value.Length > module.CommonCompilation.DataSectionStringLiteralThreshold)
+                ? tryEmitLoadField() || tryEmitLoadString()
+                : tryEmitLoadString() || (module.PreviousGeneration != null && tryEmitLoadField());
+
+            if (!success)
             {
-                EmitOpCode(ILOpCode.Ldstr);
-                EmitToken(value);
+                // emit null to balance eval stack
+                EmitNullConstant();
+
+                var messageProvider = module.CommonCompilation.MessageProvider;
+                int code = module.PreviousGeneration != null ? messageProvider.ERR_TooManyUserStrings_RestartRequired : messageProvider.ERR_TooManyUserStrings;
+                _diagnostics.Add(messageProvider.CreateDiagnostic(code, syntax?.Location ?? Location.None));
+            }
+
+            bool tryEmitLoadString()
+            {
+                if (module.TryGetFakeStringTokenForIL(value, out uint token))
+                {
+                    EmitOpCode(ILOpCode.Ldstr);
+                    GetCurrentWriter().WriteUInt32(token);
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool tryEmitLoadField()
+            {
+                var field = tryGetOrCreateField();
+                if (field != null)
+                {
+                    EmitOpCode(ILOpCode.Ldsfld);
+                    EmitToken(field, syntax);
+                    return true;
+                }
+
+                return false;
+            }
+
+            Cci.IFieldReference? tryGetOrCreateField()
+            {
+                if (!module.FieldRvaSupported)
+                {
+                    return null;
+                }
+
+                // Binder should have reported use-site errors for these members.
+                if (module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__get_UTF8) == null ||
+                    module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__GetString) == null)
+                {
+                    return null;
+                }
+
+                return module.TryGetOrCreateFieldForStringValue(value, syntax, _diagnostics);
             }
         }
 

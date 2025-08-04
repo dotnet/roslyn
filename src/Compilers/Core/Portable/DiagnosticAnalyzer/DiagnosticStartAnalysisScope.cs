@@ -549,8 +549,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
                             case SymbolKind.NamedType:
                                 var namedType = (INamedTypeSymbol)context.Symbol;
-                                var delegateInvokeMethod = namedType.DelegateInvokeMethod;
-                                parameters = delegateInvokeMethod?.Parameters ?? ImmutableArray.Create<IParameterSymbol>();
+                                if (namedType.IsExtension)
+                                {
+                                    parameters = namedType.ExtensionParameter is { } extensionParameter ? [extensionParameter] : [];
+                                }
+                                else
+                                {
+                                    var delegateInvokeMethod = namedType.DelegateInvokeMethod;
+                                    parameters = delegateInvokeMethod?.Parameters ?? ImmutableArray.Create<IParameterSymbol>();
+                                }
                                 break;
                             default:
                                 throw new ArgumentException($"{context.Symbol.Kind} is not supported.", nameof(context));

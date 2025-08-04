@@ -31,16 +31,22 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
 {
     public bool SupportsMutation => true;
 
-    // For this implementation, it's easiest to just have it inherit from Workspace, so we'll just return this.
-    public Workspace Workspace => this;
+    public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+    {
+        // In this case, the only documents ever created live in the Miscellaneous Files workspace (which is this object directly), so we can just compare to 'this'.
+        return ValueTaskFactory.FromResult(document.Project.Solution.Workspace == this);
+    }
 
     /// <summary>
     /// Takes in a file URI and text and creates a misc project and document for the file.
     /// 
-    /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(DocumentUri, bool)"/> are made
+    /// Calls to this method and <see cref="TryRemoveMiscellaneousDocumentAsync(DocumentUri, bool)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public TextDocument? AddMiscellaneousDocument(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
+    public ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
+        => ValueTaskFactory.FromResult(AddMiscellaneousDocument(uri, documentText, languageId, logger));
+
+    private TextDocument? AddMiscellaneousDocument(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = uri.UriString;
         if (uri.ParsedUri is not null)
@@ -87,11 +93,11 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     /// Calls to this method and <see cref="AddMiscellaneousDocument(DocumentUri, SourceText, string, ILspLogger)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public void TryRemoveMiscellaneousDocument(DocumentUri uri, bool removeFromMetadataWorkspace)
+    public ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
     {
         if (removeFromMetadataWorkspace && uri.ParsedUri is not null && metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri)))
         {
-            return;
+            return ValueTaskFactory.CompletedTask;
         }
 
         // We'll only ever have a single document matching this URI in the misc solution.
@@ -112,6 +118,8 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
             var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
             OnProjectRemoved(project.Id);
         }
+
+        return ValueTaskFactory.CompletedTask;
     }
 
     public ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)

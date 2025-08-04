@@ -32,15 +32,15 @@ public class CSharpKeywordHighlighting : AbstractEditorTest
     [IdeFact]
     public async Task Foreach()
     {
-        var input = @"class C
-{
-    void M()
-    {
-        [|foreach|](var c in """") { if(true) [|break|]; else [|continue|]; }
-    }
-}";
-
-        MarkupTestFile.GetSpans(input, out var text, out var spans);
+        MarkupTestFile.GetSpans("""
+            class C
+            {
+                void M()
+                {
+                    [|foreach|](var c in "") { if(true) [|break|]; else [|continue|]; }
+                }
+            }
+            """, out var text, out var spans);
 
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 
@@ -53,25 +53,26 @@ public class CSharpKeywordHighlighting : AbstractEditorTest
     [IdeFact]
     public async Task PreprocessorConditionals()
     {
-        var input = @"
-#define Debug
-#undef Trace
-class PurchaseTransaction
-{
-    void Commit() {
-        {|if:#if|} Debug
-            CheckConsistency();
-            {|else:#if|} Trace
-                WriteToLog(this.ToString());
-            {|else:#else|}
-                Exit();
-            {|else:#endif|}
-        {|if:#endif|}
-        CommitHelper();
-    }
-}";
         MarkupTestFile.GetSpans(
-            input,
+            """
+
+            #define Debug
+            #undef Trace
+            class PurchaseTransaction
+            {
+                void Commit() {
+                    {|if:#if|} Debug
+                        CheckConsistency();
+                        {|else:#if|} Trace
+                            WriteToLog(this.ToString());
+                        {|else:#else|}
+                            Exit();
+                        {|else:#endif|}
+                    {|if:#endif|}
+                    CommitHelper();
+                }
+            }
+            """,
             out var text,
             out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
@@ -85,17 +86,17 @@ class PurchaseTransaction
     [IdeFact]
     public async Task PreprocessorRegions()
     {
-        var input = @"
-class C
-{
-    [|#region|] Main
-    static void Main()
-    {
-    }
-    [|#endregion|]
-}";
+        MarkupTestFile.GetSpans("""
 
-        MarkupTestFile.GetSpans(input, out var text, out var spans);
+            class C
+            {
+                [|#region|] Main
+                static void Main()
+                {
+                }
+                [|#endregion|]
+            }
+            """, out var text, out var spans);
 
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 

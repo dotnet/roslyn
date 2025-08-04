@@ -16,9 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -199,7 +197,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                     this, await _statusbar.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true),
                     progressName, totalProjectCount: projectsToAnalyze.Length, cancellationToken);
 
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     projectsToAnalyze,
                     cancellationToken,
                     async (project, cancellationToken) =>

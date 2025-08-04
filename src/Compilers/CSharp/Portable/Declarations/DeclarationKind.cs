@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration: return DeclarationKind.Delegate;
                 case SyntaxKind.RecordDeclaration: return DeclarationKind.Record;
                 case SyntaxKind.RecordStructDeclaration: return DeclarationKind.RecordStruct;
-                case SyntaxKind.ExtensionDeclaration: return DeclarationKind.Extension;
+                case SyntaxKind.ExtensionBlockDeclaration: return DeclarationKind.Extension;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

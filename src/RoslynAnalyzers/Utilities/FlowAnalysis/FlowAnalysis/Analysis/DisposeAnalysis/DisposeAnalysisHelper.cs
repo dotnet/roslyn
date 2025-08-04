@@ -9,13 +9,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -24,13 +25,13 @@ namespace Analyzer.Utilities
     /// </summary>
     internal sealed class DisposeAnalysisHelper
     {
-        private static readonly string[] s_disposeOwnershipTransferLikelyTypes = new string[]
-            {
+        private static readonly string[] s_disposeOwnershipTransferLikelyTypes =
+            [
                 "System.IO.Stream",
                 "System.IO.TextReader",
                 "System.IO.TextWriter",
                 "System.Resources.IResourceReader",
-            };
+            ];
         private static readonly BoundedCacheWithFactory<Compilation, DisposeAnalysisHelper> s_DisposeHelperCache =
             new();
 

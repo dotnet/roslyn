@@ -211,14 +211,17 @@ public abstract class AbstractPdbSourceDocumentTests
         Encoding? fallbackEncoding = null)
     {
         var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
-            ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
+            ? $"""
+            PreprocessorSymbols="{string.Join(";", preprocessorSymbols)}"
+            """
             : "";
 
-        var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
-    </Project>
-</Workspace>", composition: GetTestComposition());
+        var workspace = EditorTestWorkspace.Create($"""
+            <Workspace>
+                <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true" {preprocessorSymbolsAttribute}>
+                </Project>
+            </Workspace>
+            """, composition: GetTestComposition());
 
         var project = workspace.CurrentSolution.Projects.First();
 
@@ -250,9 +253,7 @@ public abstract class AbstractPdbSourceDocumentTests
         var dllFilePath = GetDllPath(path);
         var sourceCodePath = GetSourceFilePath(path);
         var pdbFilePath = GetPdbPath(path);
-        var assemblyName = "reference";
-
-        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, "reference", source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
     }
 
     protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)

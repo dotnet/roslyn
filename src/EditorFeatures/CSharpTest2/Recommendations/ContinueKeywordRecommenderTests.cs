@@ -12,204 +12,162 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class ContinueKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestBeforeStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestBeforeStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             $$
             return true;
             """));
-    }
 
     [Fact]
-    public async Task TestAfterStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             return true;
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterBlock()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterBlock()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             if (true) {
             }
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterIf()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterIf()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             if (true) 
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterDo()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterDo()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             do 
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterWhile()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterWhile()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             while (true) 
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterFor()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterFor()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             for (int i = 0; i < 10; i++) 
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterForeach()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterForeach()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             foreach (var v in bar)
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotInsideLambda()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInsideLambda()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             foreach (var v in bar) {
                var d = () => {
                  $$
             """));
-    }
 
     [Fact]
-    public async Task TestOutsideLambda()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestOutsideLambda()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             foreach (var v in bar) {
                var d = () => {
                };
                $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotInsideAnonymousMethod()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInsideAnonymousMethod()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             foreach (var v in bar) {
                var d = delegate {
                  $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotInsideSwitch()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInsideSwitch()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             switch (a) {
                 case 0:
                   $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterContinue()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterContinue()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"continue $$"));
-    }
 
     [Fact]
-    public async Task TestNotInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInClass()
+        => VerifyAbsenceAsync("""
             class C
             {
               $$
             }
             """);
-    }
 }

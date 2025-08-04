@@ -154,7 +154,7 @@ public sealed class RemoteEditAndContinueServiceTests
 
         // BreakStateChanged
 
-        mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
+        mockEncService.BreakStateOrCapabilitiesChangedImpl = inBreakState =>
         {
             Assert.True(inBreakState);
         };
@@ -213,7 +213,6 @@ public sealed class RemoteEditAndContinueServiceTests
                 Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = [],
                 SyntaxError = syntaxError,
                 ProjectsToRebuild = [project.Id],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, []),

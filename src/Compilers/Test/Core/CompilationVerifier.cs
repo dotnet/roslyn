@@ -21,6 +21,7 @@ using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader.Tools;
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         output = output.Trim();
                     }
 
-                    Assert.Equal(expectedOutput, output);
+                    AssertEx.Equal(expectedOutput, output);
                     Assert.Empty(errorOutput);
                 }
             }

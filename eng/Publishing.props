@@ -5,9 +5,13 @@
   </PropertyGroup>
 
   <!-- Update Artifacts with Kind=Package to have additional metadata item Category="ToolingPackage".
-       Depending on channel configuration, this means that these assets could be pushed to a different feed. -->
-  <ItemGroup>
+       Depending on channel configuration, this means that these assets could be pushed to a different feed.
+       Do not include these for source-only builds since these files aren't intended to be published in that mode. -->
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <Artifact Update="@(Artifact->WithMetadataValue('Kind', 'Package'))" Category="ToolingPackage" />
+
+    <FilesToPublishToSymbolServer Include="$(ArtifactsBinDir)**/Microsoft.Build.Tasks.CodeAnalysis.pdb" />
+    <FilesToPublishToSymbolServer Include="$(ArtifactsBinDir)**/Microsoft.Build.Tasks.CodeAnalysis.Sdk.pdb" />
   </ItemGroup>
 
   <!--

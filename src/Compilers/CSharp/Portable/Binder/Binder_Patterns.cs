@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1058,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (deconstructMethod is null)
                 hasErrors = true;
 
-            int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+            int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
             for (int i = 0; i < node.Subpatterns.Count; i++)
             {
                 var subPattern = node.Subpatterns[i];

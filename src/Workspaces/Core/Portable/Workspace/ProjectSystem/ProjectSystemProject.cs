@@ -81,14 +81,6 @@ internal sealed partial class ProjectSystemProject
     private string? _filePath;
     private CompilationOptions? _compilationOptions;
     private ParseOptions? _parseOptions;
-    private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
-    private bool _hasAllInformation = true;
-    private string? _compilationOutputAssemblyFilePath;
-    private string? _outputFilePath;
-    private string? _outputRefFilePath;
-    private string? _generatedFilesOutputDirectory;
-    private string? _defaultNamespace;
-    private bool _hasSdkCodeStyleAnalyzers;
 
     /// <summary>
     /// If this project is the 'primary' project the project system cares about for a group of Roslyn projects that
@@ -96,11 +88,6 @@ internal sealed partial class ProjectSystemProject
     /// default.
     /// </summary>
     internal bool IsPrimary { get; set; } = true;
-
-    // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
-    // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
-    private bool? _runAnalyzersPropertyValue;
-    private bool? _runAnalyzersDuringLiveAnalysisPropertyValue;
 
     // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
     private bool _runAnalyzers = true;
@@ -124,9 +111,9 @@ internal sealed partial class ProjectSystemProject
     private readonly IFileChangeContext _documentFileChangeContext;
 
     /// <summary>
-    /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
+    /// The set of dynamic file info providers we have already subscribed to.
     /// </summary>
-    private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = [];
+    private readonly HashSet<IDynamicFileInfoProvider> _dynamicFileInfoProvidersSubscribedTo = [];
 
     /// <summary>
     /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
@@ -396,9 +383,9 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     internal string? CompilationOutputAssemblyFilePath
     {
-        get => _compilationOutputAssemblyFilePath;
+        get;
         set => ChangeProjectOutputPath(
-            ref _compilationOutputAssemblyFilePath,
+            ref field,
             value,
             s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
     }
@@ -408,23 +395,23 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     internal string? GeneratedFilesOutputDirectory
     {
-        get => _generatedFilesOutputDirectory;
+        get;
         set => ChangeProjectOutputPath(
-            ref _generatedFilesOutputDirectory,
+            ref field,
             value,
             s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithGeneratedFilesOutputDirectory(value)));
     }
 
     public string? OutputFilePath
     {
-        get => _outputFilePath;
-        set => ChangeProjectOutputPath(ref _outputFilePath, value, s => s.WithProjectOutputFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputFilePath(Id, value));
     }
 
     public string? OutputRefFilePath
     {
-        get => _outputRefFilePath;
-        set => ChangeProjectOutputPath(ref _outputRefFilePath, value, s => s.WithProjectOutputRefFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputRefFilePath(Id, value));
     }
 
     public string? FilePath
@@ -441,34 +428,37 @@ internal sealed partial class ProjectSystemProject
 
     public SourceHashAlgorithm ChecksumAlgorithm
     {
-        get => _checksumAlgorithm;
-        set => ChangeProjectProperty(ref _checksumAlgorithm, value, s => s.WithProjectChecksumAlgorithm(Id, value));
-    }
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithProjectChecksumAlgorithm(Id, value));
+    } = SourceHashAlgorithms.Default;
 
     // internal to match the visibility of the Workspace-level API -- this is something
     // we use but we haven't made officially public yet.
     internal bool HasAllInformation
     {
-        get => _hasAllInformation;
-        set => ChangeProjectProperty(ref _hasAllInformation, value, s => s.WithHasAllInformation(Id, value));
-    }
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithHasAllInformation(Id, value));
+    } = true;
+
+    // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
+    // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
 
     internal bool? RunAnalyzers
     {
-        get => _runAnalyzersPropertyValue;
+        get;
         set
         {
-            _runAnalyzersPropertyValue = value;
+            field = value;
             UpdateRunAnalyzers();
         }
     }
 
     internal bool? RunAnalyzersDuringLiveAnalysis
     {
-        get => _runAnalyzersDuringLiveAnalysisPropertyValue;
+        get;
         set
         {
-            _runAnalyzersDuringLiveAnalysisPropertyValue = value;
+            field = value;
             UpdateRunAnalyzers();
         }
     }
@@ -476,14 +466,14 @@ internal sealed partial class ProjectSystemProject
     private void UpdateRunAnalyzers()
     {
         // Property RunAnalyzers overrides RunAnalyzersDuringLiveAnalysis, and default when both properties are not set is 'true'.
-        var runAnalyzers = _runAnalyzersPropertyValue ?? _runAnalyzersDuringLiveAnalysisPropertyValue ?? true;
+        var runAnalyzers = RunAnalyzers ?? RunAnalyzersDuringLiveAnalysis ?? true;
         ChangeProjectProperty(ref _runAnalyzers, runAnalyzers, s => s.WithRunAnalyzers(Id, runAnalyzers));
     }
 
     internal bool HasSdkCodeStyleAnalyzers
     {
-        get => _hasSdkCodeStyleAnalyzers;
-        set => ChangeProjectProperty(ref _hasSdkCodeStyleAnalyzers, value, s => s.WithHasSdkCodeStyleAnalyzers(Id, value));
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithHasSdkCodeStyleAnalyzers(Id, value));
     }
 
     /// <summary>
@@ -499,8 +489,8 @@ internal sealed partial class ProjectSystemProject
     /// </remarks>
     internal string? DefaultNamespace
     {
-        get => _defaultNamespace;
-        set => ChangeProjectProperty(ref _defaultNamespace, value, s => s.WithProjectDefaultNamespace(Id, value));
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithProjectDefaultNamespace(Id, value));
     }
 
     /// <summary>
@@ -726,7 +716,7 @@ internal sealed partial class ProjectSystemProject
                 foreach (var (path, properties) in metadataReferencesAddedInBatch)
                 {
                     projectUpdateState = TryCreateConvertedProjectReference_NoLock(
-                        projectId, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
+                        projectBeforeMutation.State, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
 
                     if (projectReference != null)
                     {
@@ -1054,6 +1044,7 @@ internal sealed partial class ProjectSystemProject
     public void AddAnalyzerReference(string fullPath)
     {
         CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestAddToProject(fullPath, DisplayName);
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
@@ -1084,6 +1075,7 @@ internal sealed partial class ProjectSystemProject
                 // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid
                 // removing it once we apply the batch
                 _projectAnalyzerPaths.Add(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceAddedToProject(mappedFullPath, DisplayName);
 
                 if (!_analyzersRemovedInBatch.Remove(mappedFullPath))
                     _analyzersAddedInBatch.Add(mappedFullPath);
@@ -1097,6 +1089,8 @@ internal sealed partial class ProjectSystemProject
     {
         if (string.IsNullOrEmpty(fullPath))
             throw new ArgumentException("message", nameof(fullPath));
+
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestRemoveFromProject(fullPath, DisplayName);
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
@@ -1125,6 +1119,7 @@ internal sealed partial class ProjectSystemProject
             foreach (var mappedFullPath in mappedPaths)
             {
                 _projectAnalyzerPaths.Remove(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceRemovedFromProject(fullPath, DisplayName);
 
                 // This analyzer may be one we've just added in the same batch; in that case, just don't add it in
                 // the first place.
@@ -1145,13 +1140,6 @@ internal sealed partial class ProjectSystemProject
             // We discard the CodeStyle analyzers added by the SDK when the EnforceCodeStyleInBuild property is set.
             // The same analyzers ship in-box as part of the Features layer and are version matched to the compiler.
             return OneOrMany<string>.Empty;
-        }
-
-        if (IsSdkRazorSourceGenerator(fullPath))
-        {
-            // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
-            // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
-            return GetMappedRazorSourceGenerator(fullPath);
         }
 
         if (TryRedirectAnalyzerAssembly(fullPath) is { } redirectedPath)
@@ -1175,6 +1163,7 @@ internal sealed partial class ProjectSystemProject
                     if (redirectedPath == null)
                     {
                         redirectedPath = currentlyRedirectedPath;
+                        CodeAnalysisEventSource.Log.AnanlyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
                     }
                     else if (redirectedPath != currentlyRedirectedPath)
                     {
@@ -1200,39 +1189,6 @@ internal sealed partial class ProjectSystemProject
         LanguageNames.VisualBasic => DirectoryNameEndsWith(fullPath, s_visualBasicCodeStyleAnalyzerSdkDirectory),
         _ => false,
     };
-
-    internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
-    private static readonly string s_razorSourceGeneratorSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators");
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
-    [
-        "Microsoft.NET.Sdk.Razor.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler",
-    ];
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
-        assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
-
-    private static bool IsSdkRazorSourceGenerator(string fullPath) => DirectoryNameEndsWith(fullPath, s_razorSourceGeneratorSdkDirectory);
-
-    private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
-    {
-        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetRazorAssembliesInExtensions().SelectAsArray(
-            predicate: item => item.extensionId == RazorVsixExtensionId,
-            selector: item => item.path);
-
-        if (!vsixRazorAnalyzers.IsEmpty)
-        {
-            if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
-                static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
-            {
-                return OneOrMany.Create(vsixRazorAnalyzers);
-            }
-
-            return OneOrMany<string>.Empty;
-        }
-
-        return OneOrMany.Create(fullPath);
-    }
 
     private static string CreateDirectoryPathFragment(params string[] paths) => Path.Combine([" ", .. paths, " "]).Trim();
 
@@ -1417,12 +1373,12 @@ internal sealed partial class ProjectSystemProject
             _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
 
             // clear tracking to external components
-            foreach (var provider in _eventSubscriptionTracker)
+            foreach (var provider in _dynamicFileInfoProvidersSubscribedTo)
             {
                 provider.Updated -= OnDynamicFileInfoUpdated;
             }
 
-            _eventSubscriptionTracker.Clear();
+            _dynamicFileInfoProvidersSubscribedTo.Clear();
         }
 
         _documentFileChangeContext.Dispose();

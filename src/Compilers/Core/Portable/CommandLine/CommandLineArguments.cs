@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis
         public bool NoWin32Manifest { get; internal set; }
 
         /// <summary>
-        /// Resources specified as arguments to the compilation.
+        /// Manifest resource information parsed from <c>/resource</c> arguments.
         /// </summary>
-        public ImmutableArray<ResourceDescription> ManifestResources { get; internal set; }
+        public ImmutableArray<CommandLineResource> ManifestResourceArguments { get; internal set; }
 
         /// <summary>
         /// Encoding to be used for source files or 'null' for autodetect/default.
@@ -308,12 +308,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo? PreferredUILang { get; internal set; }
 
+        // Cache the values so that underlying file streams are not created multiple times for the same files.
+        private readonly Lazy<ImmutableArray<ResourceDescription>> _lazyManifestResources;
+
         internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
             => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
 
         internal CommandLineArguments()
         {
+            _lazyManifestResources = new Lazy<ImmutableArray<ResourceDescription>>(
+                () => ManifestResourceArguments.SelectAsArray(static r => r.ToDescription()));
         }
+
+        /// <summary>
+        /// Resources specified as arguments to the compilation.
+        /// </summary>
+        public ImmutableArray<ResourceDescription> ManifestResources
+            => _lazyManifestResources.Value;
 
         /// <summary>
         /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
@@ -488,10 +499,10 @@ namespace Microsoft.CodeAnalysis
                 switch (e.ErrorCode)
                 {
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
-                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_UnableToLoadAnalyzer, analyzerReference.FullPath, e.Message);
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_UnableToLoadAnalyzer, analyzerReference.FullPath, e.Exception?.ToString() ?? e.Message);
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
-                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerCannotBeCreated, e.TypeName ?? "", analyzerReference.FullPath, e.Message);
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerCannotBeCreated, e.TypeName ?? "", analyzerReference.FullPath, e.Exception?.ToString() ?? e.Message);
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_NoAnalyzerInAssembly, analyzerReference.FullPath);

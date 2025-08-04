@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 #if NET
-#nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -13,7 +13,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,18 +27,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 [UseExportProvider]
 public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBase
 {
-    [Fact]
-    public async Task Test()
+    private static Task<SourceText> GetCommittedDocumentTextAsync(WatchHotReloadService service, DocumentId documentId)
+        => ((EditAndContinueService)service.GetTestAccessor().EncService)
+           .GetTestAccessor()
+           .GetActiveDebuggingSessions()
+           .Single()
+           .LastCommittedSolution
+           .GetRequiredProject(documentId.ProjectId)
+           .GetRequiredDocument(documentId)
+           .GetTextAsync();
+
+    [Theory]
+    [CombinatorialData]
+    public async Task Test(bool requireCommit)
     {
         // See https://github.com/dotnet/sdk/blob/main/src/BuiltInTools/dotnet-watch/HotReload/CompilationHandler.cs#L125
+
+        // Note that xUnit does not run test case of a theory in parallel, so we can set global state here:
+        WatchHotReloadService.RequireCommit = requireCommit;
 
         var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
         var source2 = "class C { void M() { System.Console.WriteLine(2); /*2*/} }";
         var source3 = "class C { void M() { System.Console.WriteLine(2); /*3*/} }";
-        var source4 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
-        var source5 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
-        var source6 = "class C { void M() { Unknown(); } }";
-
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
 
@@ -69,68 +78,93 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         AssertEx.Equal(
         [
             "(A, MatchesBuildOutput)"
-        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        ], matchingDocuments.Select(e => (solution.GetRequiredDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
         // Valid update:
         solution = solution.WithDocumentText(documentIdA, CreateText(source2));
 
         var result = await hotReload.GetUpdatesAsync(solution, runningProjects: ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
         Assert.Empty(result.CompilationDiagnostics);
+        Assert.Empty(result.RudeEdits);
         Assert.Equal(1, result.ProjectUpdates.Length);
         AssertEx.Equal([0x02000002], result.ProjectUpdates[0].UpdatedTypes);
+
+        if (requireCommit)
+        {
+            hotReload.CommitUpdate();
+        }
+
+        var updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
+        Assert.Equal(source2, updatedText.ToString());
 
         // Insignificant change:
         solution = solution.WithDocumentText(documentIdA, CreateText(source3));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects: ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty, CancellationToken.None);
         Assert.Empty(result.CompilationDiagnostics);
-        Assert.Empty(result.CompilationDiagnostics);
+        Assert.Empty(result.RudeEdits);
         Assert.Empty(result.ProjectUpdates);
         Assert.Equal(WatchHotReloadService.Status.NoChangesToApply, result.Status);
 
-        var updatedText = await ((EditAndContinueService)hotReload.GetTestAccessor().EncService)
-            .GetTestAccessor()
-            .GetActiveDebuggingSessions()
-            .Single()
-            .LastCommittedSolution
-            .GetRequiredProject(documentIdA.ProjectId)
-            .GetRequiredDocument(documentIdA)
-            .GetTextAsync();
-
+        updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source3, updatedText.ToString());
 
         // Rude edit:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source4));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M<T>() { System.Console.WriteLine(2); } }"));
 
         var runningProjects = ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty
-            .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false });
+            .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true });
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
+        Assert.Empty(result.CompilationDiagnostics);
         AssertEx.Equal(
-            ["P: ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
-            result.RudeEdits.SelectMany(re => re.diagnostics.Select(d => $"{re.project.DebugName}: {d.Id}: {d.GetMessage()}")));
+            [$"P: {sourceFileA.Path}: (0,17)-(0,18): Error ENC0110: {string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)}"],
+            InspectDiagnostics(result.RudeEdits));
         Assert.Empty(result.ProjectUpdates);
         AssertEx.SetEqual(["P"], result.ProjectsToRestart.Select(p => solution.GetRequiredProject(p.Key).Name));
         AssertEx.SetEqual(["P"], result.ProjectsToRebuild.Select(p => solution.GetRequiredProject(p).Name));
 
+        if (requireCommit)
+        {
+            // Emulate the user making choice to not restart.
+            // dotnet-watch then waits until Ctrl+R forces restart.
+            hotReload.DiscardUpdate();
+        }
+
+        updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
+        Assert.Equal(source3, updatedText.ToString());
+
         // Syntax error:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source5));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }"));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
         AssertEx.Equal(
-            ["CS1002: " + CSharpResources.ERR_SemicolonExpected],
-            result.CompilationDiagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+            [$"{sourceFileA.Path}: (0,72)-(0,73): Error CS1002: {CSharpResources.ERR_SemicolonExpected}"],
+            InspectDiagnostics(result.CompilationDiagnostics));
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
 
-        // Semantic error:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source6));
+        updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
+        Assert.Equal(source3, updatedText.ToString());
+
+        // Semantic diagnostics and no-effect edit:
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { Unknown(); } static C() { int x = 1; } }"));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
         AssertEx.Equal(
-            ["CS0103: " + string.Format(CSharpResources.ERR_NameNotInContext, "Unknown")],
-            result.CompilationDiagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+        [
+            $"{sourceFileA.Path}: (0,21)-(0,28): Error CS0103: {string.Format(CSharpResources.ERR_NameNotInContext, "Unknown")}",
+            $"{sourceFileA.Path}: (0,51)-(0,52): Warning CS0219: {string.Format(CSharpResources.WRN_UnreferencedVarAssg, "x")}",
+        ], InspectDiagnostics(result.CompilationDiagnostics));
+
+        // TODO: https://github.com/dotnet/roslyn/issues/79017
+        //AssertEx.Equal(
+        //[
+        //    $"P: {sourceFileA.Path}: (0,34)-(0,44): Warning ENC0118: {string.Format(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted, FeaturesResources.static_constructor)}",
+        //], InspectDiagnostics(result.RudeEdits));
+        AssertEx.Empty(result.RudeEdits);
+
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
@@ -150,7 +184,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
             {
                 generatorExecutionCount++;
 
-                var additionalText = context.AdditionalFiles.Single().GetText().ToString();
+                var additionalText = context.AdditionalFiles.Single().GetText()!.ToString();
                 if (additionalText.Contains("updated"))
                 {
                     throw new InvalidOperationException("Source generator failed");

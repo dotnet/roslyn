@@ -5,20 +5,18 @@
 #nullable disable
 
 extern alias InteractiveHost;
-
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Roslyn.Test.Utilities;
-using Xunit;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands;
 
@@ -26,21 +24,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands;
 public sealed class ResetInteractiveTests
 {
     private const string WorkspaceXmlStr =
-@"<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""ResetInteractiveVisualBasicSubproject"" CommonReferences=""true"">
-        <Document FilePath=""VisualBasicDocument""></Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""ResetInteractiveTestsAssembly"" CommonReferences=""true"">
-        <ProjectReference>ResetInteractiveVisualBasicSubproject</ProjectReference>
-        <Document FilePath=""ResetInteractiveTestsDocument"">
-namespace ResetInteractiveTestsDocument
-{
-    class TestClass
-    {
-    }
-}</Document>
-    </Project>
-</Workspace>";
+        """
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="ResetInteractiveVisualBasicSubproject" CommonReferences="true">
+                <Document FilePath="VisualBasicDocument"></Document>
+            </Project>
+            <Project Language="C#" AssemblyName="ResetInteractiveTestsAssembly" CommonReferences="true">
+                <ProjectReference>ResetInteractiveVisualBasicSubproject</ProjectReference>
+                <Document FilePath="ResetInteractiveTestsDocument">
+        namespace ResetInteractiveTestsDocument
+        {
+            class TestClass
+            {
+            }
+        }</Document>
+            </Project>
+        </Workspace>
+        """;
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.Interactive)]
@@ -52,8 +52,12 @@ namespace ResetInteractiveTestsDocument
         var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
         var replReferenceCommands = GetProjectReferences(workspace, project).Select(r => CreateReplReferenceCommand(r));
 
-        Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
-        Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
+        Assert.True(replReferenceCommands.Any(rc => rc.EndsWith("""
+            ResetInteractiveTestsAssembly.dll"
+            """)));
+        Assert.True(replReferenceCommands.Any(rc => rc.EndsWith("""
+            ResetInteractiveVisualBasicSubproject.dll"
+            """)));
 
         var expectedReferences = replReferenceCommands.ToList();
         var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
@@ -150,7 +154,9 @@ namespace ResetInteractiveTestsDocument
 
     private string CreateReplReferenceCommand(string referenceName)
     {
-        return $@"#r ""{referenceName}""";
+        return $"""
+            #r "{referenceName}"
+            """;
     }
 
     private string CreateImport(string importName)

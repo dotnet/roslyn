@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslyn.Utilities;
 
@@ -10,15 +11,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed class AnalysisResultPair
 {
-    private readonly AnalysisResult? _projectAnalysisResult;
-    private readonly AnalysisResult? _hostAnalysisResult;
-
-    private ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>? _lazyMergedSyntaxDiagnostics;
-    private ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>? _lazyMergedSemanticDiagnostics;
-    private ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>? _lazyMergedAdditionalFileDiagnostics;
-    private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>? _lazyMergedCompilationDiagnostics;
-    private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>? _lazyMergedAnalyzerTelemetryInfo;
-
     public AnalysisResultPair(AnalysisResult? projectAnalysisResult, AnalysisResult? hostAnalysisResult)
     {
         if (projectAnalysisResult is not null && hostAnalysisResult is not null)
@@ -29,20 +21,20 @@ internal sealed class AnalysisResultPair
             Contract.ThrowIfTrue(projectAnalysisResult is null && hostAnalysisResult is null);
         }
 
-        _projectAnalysisResult = projectAnalysisResult;
-        _hostAnalysisResult = hostAnalysisResult;
+        ProjectAnalysisResult = projectAnalysisResult;
+        HostAnalysisResult = hostAnalysisResult;
     }
 
-    public AnalysisResult? ProjectAnalysisResult => _projectAnalysisResult;
+    public AnalysisResult? ProjectAnalysisResult { get; }
 
-    public AnalysisResult? HostAnalysisResult => _hostAnalysisResult;
+    public AnalysisResult? HostAnalysisResult { get; }
 
     public ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> MergedSyntaxDiagnostics
     {
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyMergedSyntaxDiagnostics,
+                ref field,
                 static arg =>
                 {
                     if (arg.projectDiagnostics is null)
@@ -67,7 +59,7 @@ internal sealed class AnalysisResultPair
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyMergedSemanticDiagnostics,
+                ref field,
                 static arg =>
                 {
                     if (arg.projectDiagnostics is null)
@@ -92,7 +84,7 @@ internal sealed class AnalysisResultPair
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyMergedAdditionalFileDiagnostics,
+                ref field,
                 static arg =>
                 {
                     if (arg.projectDiagnostics is null)
@@ -117,7 +109,7 @@ internal sealed class AnalysisResultPair
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyMergedCompilationDiagnostics,
+                ref field,
                 static arg =>
                 {
                     if (arg.projectDiagnostics is null)
@@ -142,7 +134,7 @@ internal sealed class AnalysisResultPair
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyMergedAnalyzerTelemetryInfo,
+                ref field,
                 static arg =>
                 {
                     if (arg.projectTelemetryInfo is null)
@@ -160,6 +152,8 @@ internal sealed class AnalysisResultPair
                 },
                 (projectTelemetryInfo: ProjectAnalysisResult?.AnalyzerTelemetryInfo, hostTelemetryInfo: HostAnalysisResult?.AnalyzerTelemetryInfo));
         }
+
+        private set;
     }
 
     public static AnalysisResultPair? FromResult(AnalysisResult? projectAnalysisResult, AnalysisResult? hostAnalysisResult)

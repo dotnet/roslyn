@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,11 +46,11 @@ internal sealed partial class CallHierarchyProvider
         AsyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
         ThreadingContext = threadingContext;
         ThreadOperationExecutor = threadOperationExecutor;
-        this.GlyphService = glyphService;
+        GlyphService = glyphService;
         _streamingPresenter = streamingPresenter;
     }
 
-    public async Task<CallHierarchyItem> CreateItemAsync(
+    public async Task<CallHierarchyItem?> CreateItemAsync(
         ISymbol symbol, Project project, ImmutableArray<Location> callsites, CancellationToken cancellationToken)
     {
         if (symbol.Kind is SymbolKind.Method or
@@ -119,9 +118,9 @@ internal sealed partial class CallHierarchyProvider
                 finders.Add(new CallToOverrideFinder(symbol, project.Id, AsyncListener, this));
             }
 
-            if (symbol.GetOverriddenMember() != null)
+            if (symbol.GetOverriddenMember() is ISymbol overridenMember)
             {
-                finders.Add(new BaseMemberFinder(symbol.GetOverriddenMember(), project.Id, AsyncListener, this));
+                finders.Add(new BaseMemberFinder(overridenMember, project.Id, AsyncListener, this));
             }
 
             var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);

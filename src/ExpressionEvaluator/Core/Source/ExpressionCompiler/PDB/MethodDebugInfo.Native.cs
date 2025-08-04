@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var importStringGroups = CustomDebugInfoReader.GetCSharpGroupedImportStrings(
                 methodToken,
-                KeyValuePairUtil.Create(reader, methodVersion),
+                KeyValuePair.Create(reader, methodVersion),
                 getMethodCustomDebugInfo: (token, arg) => GetCustomDebugInfoBytes(arg.Key, token, arg.Value),
                 getMethodImportStrings: (token, arg) => GetImportStrings(arg.Key, token, arg.Value),
                 externAliasStrings: out externAliasStrings);
@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ITypeSymbolInternal? type = null;
                 if (targetKind == ImportTargetKind.Type)
                 {
+                    RoslynDebug.Assert(targetString != null);
                     type = symbolProvider.GetTypeSymbolForSerializedType(targetString);
                     targetString = null;
                 }
@@ -524,7 +525,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
                 methodToken,
-                KeyValuePairUtil.Create(reader, methodVersion),
+                KeyValuePair.Create(reader, methodVersion),
                 (token, arg) => GetImportStrings(arg.Key, token, arg.Value));
 
             if (importStrings.IsDefault)
@@ -599,10 +600,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out VBImportScopeKind scope)
         {
-            ImportTargetKind targetKind;
-            string alias;
-            string targetString;
-            if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out targetString, out targetKind, out scope))
+            if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out var alias, out var targetString, out var targetKind, out scope))
             {
                 record = new ImportRecord(
                     targetKind: targetKind,

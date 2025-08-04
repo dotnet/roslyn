@@ -364,11 +364,13 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
                 ProjectName("Project1"),
                 Sign,
                 Document(string.Format(
-@"using System.Runtime.CompilerServices;
-[assembly:InternalsVisibleTo(""Project2, PublicKey={0}"")]
-class C1
-{{
-}}", PublicKey))),
+                    """
+                    using System.Runtime.CompilerServices;
+                    [assembly:InternalsVisibleTo("Project2, PublicKey={0}")]
+                    class C1
+                    {{
+                    }}
+                    """, PublicKey))),
             Project(
                 ProjectName("Project2"),
                 Sign,
@@ -1002,13 +1004,11 @@ class C1
     public async Task TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
     {
         // when skipped we should see a diagnostic for the invalid project
-
-        CreateFiles(GetSimpleCSharpSolutionFiles()
-            .WithFile(@"TestSolution.sln", Resources.SolutionFiles.InvalidProjectPath));
-
         var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
+        CreateFiles(GetSimpleCSharpProjectFiles()
+            .WithFile(solutionFilePath, Resources.SolutionFiles.InvalidProjectPath));
 
-        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
         Assert.Single(workspace.Diagnostics);
     }
@@ -1050,7 +1050,7 @@ class C1
             .WithFile(@"TestSolution.sln", Resources.SolutionFiles.NonExistentProject));
         var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
         Assert.Single(workspace.Diagnostics);
@@ -2653,11 +2653,12 @@ class C1
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
     public async Task TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
     {
-        var files = new FileSet(
-            (@"TestSolution.sln", Resources.SolutionFiles.EmptyLineBetweenProjectBlock));
+        var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+        var files = GetSimpleCSharpProjectFiles()
+            .Concat(GetSimpleVisualBasicProjectFiles())
+            .Concat([(solutionFilePath, Resources.SolutionFiles.EmptyLineBetweenProjectBlock)]);
 
         CreateFiles(files);
-        var solutionFilePath = GetSolutionFileName("TestSolution.sln");
 
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
@@ -2850,8 +2851,10 @@ class C1
     public async Task MSBuildWorkspacePreservesEncoding()
     {
         var encoding = Encoding.BigEndianUnicode;
-        var fileContent = @"//“
-class C { }";
+        var fileContent = """
+            //“
+            class C { }
+            """;
         var files = new FileSet(
             ("Encoding.csproj", Resources.ProjectFiles.CSharp.Encoding.Replace("<CodePage>ReplaceMe</CodePage>", string.Empty)),
             ("class1.cs", encoding.GetBytesWithPreamble(fileContent)));
@@ -3150,7 +3153,7 @@ class C { }";
 
         var solutionFilePath = GetSolutionFileName(@"TestVB2.sln");
 
-        // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack 
+        // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
@@ -3272,6 +3275,34 @@ class C { }";
 
         using var workspace = CreateMSBuildWorkspace();
         var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
+
+        Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    public async Task TestValidXmlSolutionSupport()
+    {
+        CreateFiles(GetMultiProjectSolutionFiles()
+            .WithFile(@"CSharpXmlSolution.slnx", Resources.XmlSolutionFiles.CSharp));
+        var solutionFilePath = GetSolutionFileName(@"CSharpXmlSolution.slnx");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+        var csharpProject = Assert.Single(solution.Projects);
+
+        Assert.Equal(LanguageNames.CSharp, csharpProject.Language);
+        Assert.Equal("CSharpProject.csproj", Path.GetFileName(csharpProject.FilePath));
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    public async Task TestInvalidXmlSolutionSupport()
+    {
+        CreateFiles(GetMultiProjectSolutionFiles()
+            .WithFile(@"InvalidXmlSolution.slnx", Resources.XmlSolutionFiles.Invalid));
+        var solutionFilePath = GetSolutionFileName(@"InvalidXmlSolution.slnx");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var exception = await Assert.ThrowsAnyAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
 
         Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
     }

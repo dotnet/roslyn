@@ -23,7 +23,7 @@ public static class SquiggleUtilities
     internal static TestComposition CompositionWithSolutionCrawler = EditorTestCompositions.EditorFeatures
         .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
-    internal static TestComposition WpfCompositionWithSolutionCrawler = EditorTestCompositions.EditorFeaturesWpf
+    internal static TestComposition WpfCompositionWithSolutionCrawler = EditorTestCompositions.EditorFeatures
         .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
     internal static async Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync<TProvider, TTag>(

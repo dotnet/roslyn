@@ -13,8 +13,6 @@ internal readonly struct RazorCohostRequestContext(RequestContext context)
 {
     internal string Method => context.Method;
 
-    [Obsolete("Use DocumentUri instead")]
-    internal Uri? Uri => context.TextDocument?.GetURI().GetRequiredParsedUri();
     internal DocumentUri? DocumentUri => context.TextDocument?.GetURI();
     /// <inheritdoc cref="RequestContext.Workspace"/>
     internal Workspace? Workspace => context.Workspace;

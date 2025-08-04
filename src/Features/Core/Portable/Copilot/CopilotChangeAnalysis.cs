@@ -15,10 +15,17 @@ namespace Microsoft.CodeAnalysis.Copilot;
 [DataContract]
 internal readonly record struct CopilotChangeAnalysis(
     [property: DataMember(Order = 0)] bool Succeeded,
-    [property: DataMember(Order = 1)] TimeSpan TotalAnalysisTime,
-    [property: DataMember(Order = 2)] TimeSpan TotalDiagnosticComputationTime,
-    [property: DataMember(Order = 3)] ImmutableArray<CopilotDiagnosticAnalysis> DiagnosticAnalyses,
-    [property: DataMember(Order = 4)] CopilotCodeFixAnalysis CodeFixAnalysis);
+    [property: DataMember(Order = 1)] int OldDocumentLength,
+    [property: DataMember(Order = 2)] int NewDocumentLength,
+    [property: DataMember(Order = 3)] int TextChangeDelta,
+    [property: DataMember(Order = 4)] int ProjectDocumentCount,
+    [property: DataMember(Order = 5)] int ProjectSourceGeneratedDocumentCount,
+    [property: DataMember(Order = 6)] int ProjectConeCount,
+    [property: DataMember(Order = 7)] TimeSpan TotalAnalysisTime,
+    [property: DataMember(Order = 8)] TimeSpan ForkingTime,
+    [property: DataMember(Order = 9)] TimeSpan TotalDiagnosticComputationTime,
+    [property: DataMember(Order = 10)] ImmutableArray<CopilotDiagnosticAnalysis> DiagnosticAnalyses,
+    [property: DataMember(Order = 11)] CopilotCodeFixAnalysis CodeFixAnalysis);
 
 /// <param name="Kind">What diagnostic kind this is analysis data for.</param>
 /// <param name="ComputationTime">How long it took to produce the diagnostics for this diagnostic kind.</param>
@@ -39,6 +46,7 @@ internal readonly record struct CopilotDiagnosticAnalysis(
 /// <param name="DiagnosticIdToApplicationTime">Mapping from diagnostic id to the total time taken to fix diagnostics with that id.</param>
 /// <param name="DiagnosticIdToProviderName">Mapping from diagnostic id to the name of the provider that provided the fix.</param>
 /// <param name="ProviderNameToApplicationTime">Mapping from provider name to the total time taken to fix diagnostics with that provider.</param>
+/// <param name="ProviderNameToHasConflict">Mapping from provider name to whether or not that provider conflicted with another provider in producing a fix.</param>
 [DataContract]
 internal readonly record struct CopilotCodeFixAnalysis(
     [property: DataMember(Order = 0)] TimeSpan TotalComputationTime,
@@ -46,4 +54,7 @@ internal readonly record struct CopilotCodeFixAnalysis(
     [property: DataMember(Order = 2)] Dictionary<string, int> DiagnosticIdToCount,
     [property: DataMember(Order = 3)] Dictionary<string, TimeSpan> DiagnosticIdToApplicationTime,
     [property: DataMember(Order = 4)] Dictionary<string, HashSet<string>> DiagnosticIdToProviderName,
-    [property: DataMember(Order = 5)] Dictionary<string, TimeSpan> ProviderNameToApplicationTime);
+    [property: DataMember(Order = 5)] Dictionary<string, TimeSpan> ProviderNameToApplicationTime,
+    [property: DataMember(Order = 6)] Dictionary<string, bool> ProviderNameToHasConflict,
+    [property: DataMember(Order = 7)] Dictionary<string, int> ProviderNameToTotalCount,
+    [property: DataMember(Order = 8)] Dictionary<string, int> ProviderNameToSuccessCount);

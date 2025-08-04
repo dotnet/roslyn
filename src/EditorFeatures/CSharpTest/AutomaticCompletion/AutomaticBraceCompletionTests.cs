@@ -32,8 +32,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M(C c)
@@ -41,12 +44,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     c = c with { }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47381")]
@@ -61,8 +59,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M(C c)
@@ -70,12 +71,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     c = new() { }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expected);
+            """);
     }
 
     [WpfFact]
@@ -90,7 +86,9 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
-        var expected = """
+        using var session = CreateSession(code);
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M(C c)
@@ -101,10 +99,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact]
@@ -236,19 +231,16 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 string s = $"{}$$
             }
             """;
-
-        var expected = """
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 0, """
             class C
             {
                 string s = $"{}{
             }
             }
-            """;
-
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 0, expected);
+            """);
     }
 
     [WpfFact]
@@ -486,8 +478,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expectedBeforeReturn = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             record C
             {
                 void M()
@@ -495,9 +490,8 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     _ = this with { }
                 }
             }
-            """;
-
-        var expectedAfterReturn = """
+            """);
+        CheckReturn(session.Session, 12, """
             record C
             {
                 void M()
@@ -508,13 +502,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expectedAfterReturn);
+            """);
     }
 
     [WpfFact]
@@ -529,8 +517,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expectedBeforeReturn = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -538,9 +529,8 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     _ = this is { }
                 }
             }
-            """;
-
-        var expectedAfterReturn = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M()
@@ -551,13 +541,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expectedAfterReturn);
+            """);
     }
 
     [WpfFact]
@@ -572,8 +556,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expectedBeforeReturn = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -581,9 +568,8 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     _ = this is { Name: { } }
                 }
             }
-            """;
-
-        var expectedAfterReturn = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M()
@@ -594,13 +580,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     } }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expectedAfterReturn);
+            """);
     }
 
     [WpfFact]
@@ -615,7 +595,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
-        var expected = """
+        using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -623,13 +607,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     _ = this is { Name: () }
                 }
             }
-            """;
-
-        using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expected);
+            """);
     }
 
     [WpfFact]
@@ -644,7 +622,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
-        var expected = """
+        using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -652,13 +634,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     _ = this is { Name: { Length: (> 3) and () } }
                 }
             }
-            """;
-
-        using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expected);
+            """);
     }
 
     [WpfFact]
@@ -674,8 +650,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expectedBeforeReturn = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -684,9 +663,8 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     M();
                 }
             }
-            """;
-
-        var expectedAfterReturn = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M()
@@ -698,13 +676,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     M();
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expectedAfterReturn);
+            """);
     }
 
     [WpfFact]
@@ -720,8 +692,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expectedBeforeReturn = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -730,9 +705,8 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     M();
                 }
             }
-            """;
-
-        var expectedAfterReturn = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M()
@@ -744,13 +718,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     M();
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expectedAfterReturn);
+            """);
     }
 
     [WpfFact]
@@ -765,8 +733,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expectedBeforeReturn = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -774,9 +745,8 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     _ = this switch { }
                 }
             }
-            """;
-
-        var expectedAfterReturn = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M()
@@ -787,13 +757,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expectedAfterReturn);
+            """);
     }
 
     [WpfFact]
@@ -810,8 +774,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 };
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             using System.Collections.Generic;
 
             class C
@@ -824,12 +791,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 };
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -846,8 +808,16 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+        };
 
-        var expected = """
+        using var session = CreateSession(code, globalOptions);
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             using System.Collections.Generic;
 
             class C
@@ -859,17 +829,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
-        };
-
-        using var session = CreateSession(code, globalOptions);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -886,8 +846,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             using System.Collections.Generic;
 
             class C
@@ -900,12 +863,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -925,8 +883,16 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 public int bar;
             }
             """;
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+        };
 
-        var expected = """
+        using var session = CreateSession(code, globalOptions);
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 public void man()
@@ -941,17 +907,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
             {
                 public int bar;
             }
-            """;
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
-        };
-
-        using var session = CreateSession(code, globalOptions);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -971,8 +927,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 public int bar;
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 public void man()
@@ -988,12 +947,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
             {
                 public int bar;
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -1008,18 +962,6 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
-
-        var expected = """
-            class C
-            {
-                public void man()
-                {
-                    int[] arr = {
-
-                    }
-                }
-            }
-            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
@@ -1029,7 +971,17 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+        CheckReturn(session.Session, 12, """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = {
+
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -1044,8 +996,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 public void man()
@@ -1056,12 +1011,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -1076,18 +1026,6 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
-
-        var expected = """
-            class C
-            {
-                public void man()
-                {
-                    int[] arr = new[] {
-
-                    }
-                }
-            }
-            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
@@ -1097,7 +1035,17 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+        CheckReturn(session.Session, 12, """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new[] {
+
+                    }
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -1112,8 +1060,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 public void man()
@@ -1124,12 +1075,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -1144,8 +1090,15 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+        };
+        using var session = CreateSession(code, globalOptions);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 public void man()
@@ -1155,16 +1108,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
-        };
-        using var session = CreateSession(code, globalOptions);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
@@ -1179,8 +1123,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 public void man()
@@ -1191,12 +1138,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/3447")]
@@ -1210,24 +1152,6 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 $$
             }
             """;
-
-        var expected = """
-            class C
-            {
-                public void X()
-                {}
-            }
-            """;
-
-        var expectedAfterReturn = """
-            class C
-            {
-                public void X()
-                {
-
-                }
-            }
-            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
@@ -1238,9 +1162,23 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        Assert.Equal("""
+            class C
+            {
+                public void X()
+                {}
+            }
+            """, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-        CheckReturn(session.Session, 4, expectedAfterReturn);
+        CheckReturn(session.Session, 4, """
+            class C
+            {
+                public void X()
+                {
+
+                }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
@@ -1253,15 +1191,6 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
             $$
             }
             """;
-
-        var expected = """
-            namespace NS1
-            {
-                public class C1
-            { }
-            }
-            """;
-
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.None },
@@ -1271,7 +1200,13 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        Assert.Equal("""
+            namespace NS1
+            {
+                public class C1
+            { }
+            }
+            """, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
@@ -1284,25 +1219,6 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     $$
             }
             """;
-
-        var expected = """
-            namespace NS1
-            {
-                    public class C1
-                    { }
-            }
-            """;
-
-        var expectedAfterReturn = """
-            namespace NS1
-            {
-                    public class C1
-                    {
-
-                    }
-            }
-            """;
-
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
@@ -1312,9 +1228,23 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        Assert.Equal("""
+            namespace NS1
+            {
+                    public class C1
+                    { }
+            }
+            """, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-        CheckReturn(session.Session, 8, expectedAfterReturn);
+        CheckReturn(session.Session, 8, """
+            namespace NS1
+            {
+                    public class C1
+                    {
+
+                    }
+            }
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
@@ -1329,29 +1259,6 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
             }
             """;
-
-        var expected = """
-            namespace NS1
-            {
-                    public class C1
-                    { public class C2 { }
-
-                    }
-            }
-            """;
-
-        var expectedAfterReturn = """
-            namespace NS1
-            {
-                    public class C1
-                    { public class C2 {
-
-                    }
-
-                    }
-            }
-            """;
-
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
@@ -1361,9 +1268,27 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        Assert.Equal("""
+            namespace NS1
+            {
+                    public class C1
+                    { public class C2 { }
 
-        CheckReturn(session.Session, 8, expectedAfterReturn);
+                    }
+            }
+            """, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+
+        CheckReturn(session.Session, 8, """
+            namespace NS1
+            {
+                    public class C1
+                    { public class C2 {
+
+                    }
+
+                    }
+            }
+            """);
     }
 
     [WpfFact]
@@ -1378,8 +1303,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
 
-        var expected = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M()
@@ -1387,30 +1315,22 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     var x = new int[] {}
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expected);
+            """);
     }
 
     [WpfFact]
     public void DoesNotFormatOnReturnWithNonWhitespaceInBetween()
     {
         var code = @"class C $$";
-
-        var expected = """
-            class C { dd
-            }
-            """;
-
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
         CheckStart(session.Session);
         Type(session.Session, "dd");
-        CheckReturn(session.Session, 0, expected);
+        CheckReturn(session.Session, 0, """
+            class C { dd
+            }
+            """);
     }
 
     [WpfFact]
@@ -1425,7 +1345,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
-        var expectedAfterStart = """
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        Assert.Equal("""
             class C
             {
                 void M(string[] args)
@@ -1433,27 +1357,13 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     var s = $"{ args.Select(a => { })}"
                 }
             }
-            """;
-
-        using var session = CreateSession(code);
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        Assert.Equal(expectedAfterStart, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+            """, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
     }
 
     [WpfFact]
     public void CurlyBraceFormatting_DoesNotAddNewLineWhenAlreadyExists()
     {
         var code = @"class C $$";
-
-        var expected = """
-            class C
-            {
-
-            }
-            """;
-
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -1463,7 +1373,12 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         var buffer = session.Session.SubjectBuffer;
         buffer.Insert(10, Environment.NewLine);
 
-        CheckReturn(session.Session, 4, expected);
+        CheckReturn(session.Session, 4, """
+            class C
+            {
+
+            }
+            """);
     }
 
     [WpfFact]
@@ -1826,18 +1741,6 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
             $$
             """;
 
-        var expected = """
-            namespace NS1
-            {}
-            """;
-
-        var expectedAfterReturn = """
-            namespace NS1
-            {
-
-            }
-            """;
-
         // Those option ensures no additional formatting would happen around added braces, including indention of added newline
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
@@ -1849,9 +1752,17 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        Assert.Equal("""
+            namespace NS1
+            {}
+            """, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-        CheckReturn(session.Session, 0, expectedAfterReturn);
+        CheckReturn(session.Session, 0, """
+            namespace NS1
+            {
+
+            }
+            """);
     }
 
     [WpfFact]
@@ -1866,8 +1777,11 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                 }
             }
             """;
+        using var session = CreateSession(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+        Assert.NotNull(session);
 
-        var expectedBeforeReturn = """
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             namespace N
             {
                 static class C
@@ -1875,9 +1789,8 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     extension(string s) { }
                 }
             }
-            """;
-
-        var expectedAfterReturn = """
+            """);
+        CheckReturn(session.Session, 12, """
             namespace N
             {
                 static class C
@@ -1888,13 +1801,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
                     }
                 }
             }
-            """;
-        using var session = CreateSession(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
-        Assert.NotNull(session);
-
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expectedAfterReturn);
+            """);
     }
 
     internal static Holder CreateSession(

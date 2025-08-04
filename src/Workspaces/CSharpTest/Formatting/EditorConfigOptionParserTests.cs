@@ -37,7 +37,7 @@ public sealed class EditorConfigOptionParserTests
     InlineData("before_and_after", BinaryOperatorSpacingOptions.Single)]
     public void TestParseEditorConfigSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
     {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == expectedResult,
+        Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == (BinaryOperatorSpacingOptionsInternal)expectedResult,
                     $"Expected option {value} to be parsed as set.");
     }
 
@@ -47,7 +47,7 @@ public sealed class EditorConfigOptionParserTests
     InlineData("before_and_after,ignore")]
     public void TestParseEditorConfigSpacingAroundBinaryOperatorFalse(string value)
     {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptions.Single,
+        Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptionsInternal.Single,
                     $"Expected option {value} to be parsed as default option.");
     }
 
@@ -57,7 +57,7 @@ public sealed class EditorConfigOptionParserTests
     InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
     public void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
     {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == expectedValue,
+        Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == (LabelPositionOptionsInternal)expectedValue,
                     $"Expected option {value} to be parsed as set.");
     }
 
@@ -67,7 +67,7 @@ public sealed class EditorConfigOptionParserTests
     InlineData("one_less_thancurrent")]
     public void TestParseEditorConfigLabelPositioningFalse(string value)
     {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == LabelPositionOptions.NoIndent,
+        Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == LabelPositionOptionsInternal.NoIndent,
                     $"Expected option {value} to be parsed default");
     }
 

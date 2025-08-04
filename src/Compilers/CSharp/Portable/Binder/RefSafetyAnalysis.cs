@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and so the ref safety of the pattern is equivalent to a `Deconstruct(out var ...)` invocation
             // where "safe-context inference of declaration expressions" would have the same effect.
             if (node.DeconstructMethod is { } m &&
-                tryGetThisParameter(m)?.EffectiveScope == ScopedKind.None)
+                tryGetReceiverParameter(m)?.EffectiveScope == ScopedKind.None)
             {
                 using (new PatternInput(this, _localScopeDepth))
                 {
@@ -637,11 +637,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitRecursivePattern(node);
 
-            static ParameterSymbol? tryGetThisParameter(MethodSymbol method)
+            static ParameterSymbol? tryGetReceiverParameter(MethodSymbol method)
             {
-                if (method.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+                if (method.IsExtensionMethod)
                 {
                     return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
+                }
+                else if (method.GetIsNewExtensionMember())
+                {
+                    return method.ContainingType.ExtensionParameter;
                 }
 
                 return method.TryGetThisParameter(out var thisParameter) ? thisParameter : null;
@@ -747,6 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                    case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                         Debug.Assert(receiver != null);
                         if (receiver is null)
                         {

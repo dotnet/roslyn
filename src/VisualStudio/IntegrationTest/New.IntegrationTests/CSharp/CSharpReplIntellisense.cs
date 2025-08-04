@@ -32,7 +32,9 @@ public class CSharpReplIntellisense : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task VerifySharpRCompletionList()
     {
-        await TestServices.InteractiveWindow.InsertCodeAsync("#r \"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.InsertCodeAsync("""
+            #r "
+            """, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.InvokeCompletionListAsync(HangMitigatingCancellationToken);
         Assert.Contains("System", (await TestServices.InteractiveWindow.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(item => item.DisplayText));
     }
@@ -51,9 +53,11 @@ public class CSharpReplIntellisense : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task VerifyCompletionListForAmbiguousParsingCases()
     {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"class C { }
-public delegate R Del<T, R>(T arg);
-Del<C, System", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.InsertCodeAsync("""
+            class C { }
+            public delegate R Del<T, R>(T arg);
+            Del<C, System
+            """, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.OEM_PERIOD, HangMitigatingCancellationToken);
         Assert.Contains("ArgumentException", (await TestServices.InteractiveWindow.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(item => item.DisplayText));
     }
@@ -61,7 +65,9 @@ Del<C, System", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task VerifySharpLoadCompletionList()
     {
-        await TestServices.InteractiveWindow.InsertCodeAsync("#load \"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.InsertCodeAsync("""
+            #load "
+            """, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.InvokeCompletionListAsync(HangMitigatingCancellationToken);
         Assert.Contains("C:", (await TestServices.InteractiveWindow.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(item => item.DisplayText));
     }
@@ -90,7 +96,9 @@ Del<C, System", HangMitigatingCancellationToken);
             "c.csx",
             "int x = 2; class Complex { public int goo() { return 4; } }");
         temporaryTextFile.Create();
-        await TestServices.InteractiveWindow.SubmitTextAsync(string.Format("#load \"{0}\"", temporaryTextFile.FullName), HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.SubmitTextAsync(string.Format("""
+            #load "{0}"
+            """, temporaryTextFile.FullName), HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.InvokeCompletionListAsync(HangMitigatingCancellationToken);
         var completionItems = (await TestServices.InteractiveWindow.GetCompletionItemsAsync(HangMitigatingCancellationToken)).SelectAsArray(item => item.DisplayText);
         Assert.All(

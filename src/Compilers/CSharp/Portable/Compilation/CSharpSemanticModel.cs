@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -357,6 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((OperatorMemberCrefSyntax)crefSyntax).Parameters != null;
                 case SyntaxKind.ConversionOperatorMemberCref:
                     return ((ConversionOperatorMemberCrefSyntax)crefSyntax).Parameters != null;
+                case SyntaxKind.ExtensionMemberCref:
+                    return HasParameterList(((ExtensionMemberCrefSyntax)crefSyntax).Member);
             }
 
             return false;
@@ -379,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     LookupResultKind resultKind = LookupResultKind.Ambiguous;
 
-                    // The boundary between Ambiguous and OverloadResolutionFailure is let clear-cut for crefs.
+                    // The boundary between Ambiguous and OverloadResolutionFailure is less clear-cut for crefs.
                     // We'll say that overload resolution failed if the syntax has a parameter list and if
                     // all of the candidates have the same kind.
                     SymbolKind firstCandidateKind = symbols[0].Kind;
@@ -1687,7 +1690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0);
+                results.RemoveAll(static (symbol, _) => !symbol.CanBeReferencedByName, arg: 0);
 
             return results.ToImmutableAndFree();
         }
@@ -3369,7 +3372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyGroup:
                     symbols = GetPropertyGroupSemanticSymbols((BoundPropertyGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
                     break;
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle BoundPropertyAccess (which now may have a member group)
+                // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundPropertyAccess (which now may have a member group)
 
                 case BoundKind.BadExpression:
                     {

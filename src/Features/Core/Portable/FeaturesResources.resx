@@ -369,6 +369,18 @@
   <data name="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding or moving {0} of a COM interface requires restarting the application.</value>
   </data>
+  <data name="Changing_project_setting_0_from_1_to_2_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</value>
+  </data>
+  <data name="Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</value>
+  </data>
+  <data name="Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application" xml:space="preserve">
+    <value>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</value>
+  </data>
+  <data name="default" xml:space="preserve">
+    <value>default></value>
+  </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>
   </data>
@@ -922,12 +934,6 @@ This version used in: {2}</value>
   </data>
   <data name="Add_null_check" xml:space="preserve">
     <value>Add null check</value>
-  </data>
-  <data name="Add_string_IsNullOrEmpty_check" xml:space="preserve">
-    <value>Add 'string.IsNullOrEmpty' check</value>
-  </data>
-  <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
-    <value>Add 'string.IsNullOrWhiteSpace' check</value>
   </data>
   <data name="Create_and_assign_field_0" xml:space="preserve">
     <value>Create and assign field '{0}'</value>
@@ -2519,6 +2525,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="_0_may_be_null_here" xml:space="preserve">
     <value>'{0}' may be null here.</value>
   </data>
+  <data name="_0_is_not_nullable_aware" xml:space="preserve">
+    <value>'{0}' is not nullable aware.</value>
+  </data>
   <data name="ChangeSignature_NewParameterInferValue" xml:space="preserve">
     <value>&lt;infer&gt;</value>
   </data>
@@ -3228,5 +3237,20 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Multiple_handlers_found_for_message_0" xml:space="preserve">
     <value>Multiple handlers found for message {0}.</value>
+  </data>
+  <data name="Add_0_check" xml:space="preserve">
+    <value>Add '{0}' check</value>
+  </data>
+  <data name="Add_negative_value_check" xml:space="preserve">
+    <value>Add negative value check</value>
+  </data>
+  <data name="Add_negative_value_or_zero_check" xml:space="preserve">
+    <value>Add negative value or zero check</value>
+  </data>
+  <data name="_0_cannot_be_negative" xml:space="preserve">
+    <value>'{0}' cannot be negative</value>
+  </data>
+  <data name="_0_cannot_be_negative_or_zero" xml:space="preserve">
+    <value>'{0}' cannot be negative or zero</value>
   </data>
 </root>

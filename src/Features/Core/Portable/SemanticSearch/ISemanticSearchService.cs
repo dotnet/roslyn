@@ -5,7 +5,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
@@ -30,13 +29,11 @@ internal interface ISemanticSearchService : ILanguageService
     /// <param name="solution">The solution snapshot.</param>
     /// <param name="queryId">Id of a compiled query.</param>
     /// <param name="observer">Observer of the found symbols.</param>
-    /// <param name="classificationOptions">Options to use to classify the textual representation of the found symbols.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<ExecuteQueryResult> ExecuteQueryAsync(
         Solution solution,
         CompiledQueryId queryId,
         ISemanticSearchResultsObserver observer,
-        OptionsProvider<ClassificationOptions> classificationOptions,
         TraceSource traceSource,
         CancellationToken cancellationToken);
 

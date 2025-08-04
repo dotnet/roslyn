@@ -19,6 +19,7 @@ using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Progress;
@@ -184,10 +185,7 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
 
     private void UpdateAnalyzerContextMenu()
     {
-        if (_removeMenuItem != null)
-        {
-            _removeMenuItem.Enabled = _allowProjectSystemOperations;
-        }
+        _removeMenuItem?.Enabled = _allowProjectSystemOperations;
     }
 
     public IContextMenuController DiagnosticContextMenuController
@@ -265,8 +263,7 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
         _setSeverityHiddenMenuItem.Checked = false;
         _setSeverityNoneMenuItem.Checked = false;
 
-        var workspace = TryGetWorkspace() as VisualStudioWorkspace;
-        if (workspace == null)
+        if (TryGetWorkspace() is not VisualStudioWorkspace workspace)
         {
             return;
         }
@@ -369,9 +366,8 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
         if (_tracker.SelectedFolder != null &&
             _serviceProvider != null)
         {
-            var workspace = _tracker.SelectedFolder.Workspace as VisualStudioWorkspace;
             var projectId = _tracker.SelectedFolder.ProjectId;
-            if (workspace != null)
+            if (_tracker.SelectedFolder.Workspace is VisualStudioWorkspace workspace)
             {
                 var ruleSetFile = workspace.TryGetRuleSetPathForProject(projectId);
 
@@ -558,10 +554,7 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
             {
                 var codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
-                if (codeAnalysisRuleSetFileProperty != null)
-                {
-                    codeAnalysisRuleSetFileProperty.Value = fileName;
-                }
+                codeAnalysisRuleSetFileProperty?.Value = fileName;
             }
             catch (ArgumentException)
             {

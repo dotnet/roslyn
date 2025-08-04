@@ -21,6 +21,8 @@ of scope in the final design of the shipping feature.
     - [Pipeline model design](#pipeline-model-design)
     - [Use `ForAttributeWithMetadataName`](#use-forattributewithmetadataname)
     - [Use an indented text writer, not `SyntaxNode`s, for generation](#use-an-indented-text-writer-not-syntaxnodes-for-generation)
+    - [Put `Microsoft.CodeAnalysis.EmbeddedAttribute` on generated marker types](#put-microsoftcodeanalysisembeddedattribute-on-generated-marker-types)
+    - [Do not scan for types that indirectly implement interfaces, indirectly inherit from types, or are indirectly marked by an attribute from an interface or base type](#do-not-scan-for-types-that-indirectly-implement-interfaces-indirectly-inherit-from-types-or-are-indirectly-marked-by-an-attribute-from-an-interface-or-base-type)
   - [Designs](#designs)
     - [Generated class](#generated-class)
     - [Additional file transformation](#additional-file-transformation)
@@ -134,6 +136,27 @@ project, it will not include that type in lookup results. To ensure that `Micros
 
 Another option is to provide an assembly in your nuget package that defines your marker attributes, but this can be more difficult to author. We recommend the
 `EmbeddedAttribute` approach, unless you need to support versions of Roslyn lower than 4.14.
+
+### Do not scan for types that indirectly implement interfaces, indirectly inherit from types, or are indirectly marked by an attribute from an interface or base type
+
+Using an interface/base type marker can be a very tempting and natural fit for generators. However, scanning for these types of markers is _very_ expensive, and cannot
+be done incrementally. Doing so can have an outsized impact on IDE and command-line performance, even for fairly small consuming users. These scenarios are:
+
+* A user implements an interface on `BaseModelType`, and then the generator looks all derived types from `BaseModelType`. Because the generator cannot know ahead of time
+  what `BaseModelType` actually is, it means that the generator has to fetch `AllInterfaces` on every single type in the compilation so it can scan for the marker
+  interface. This will end up occurring either on every keystroke or every file save, depending on what mode the user is running generators in; either one is disastrous
+  for IDE performance, even when trying to optimize by scoping down the scanning to only types with a base list.
+* A user inherits from a generator-defined `BaseSerializerType`, and the generator looks for anything that inherits from that type, either directly or indirectly. Similar
+  to the above scenario, the generator will need to scan all types with a base type in the entire compilation for the inherited `BaseSerializerType`, which will heavily
+  impact IDE performance.
+* A generator looks among all base types/implemented interfaces for a type that is attributed with a generator's marker attribute. This is effectively either scenario 1
+  or 2, just with a different search criteria.
+* A generator leaves its marker attribute unsealed, and expects users to be able to derive their own attributes from that marker, as a source of parameter customization.
+  This has a couple of problems: first, every attributed type needs to be checked to see if the attribute inherits from the marker attribute. While not as performance
+  impacting as the first three scenarios, this isn't great for performance. Second, and more importantly, there is no good way to retrieve any customizations from the
+  inherited attribute. These attributes are not instantiated by the source generator, so any parameters passed to the `base()` constructor call or values that are assigned
+  to any properties of the base attribute are not visible to the generator. Prefer using FAWMN-driven development here, and using an analyzer to inform the user if they
+  need to inherit from some base class for your generator to work correctly.
 
 ## Designs
 

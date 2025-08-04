@@ -188,8 +188,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         ISymbol? oldSymbol,
         SyntaxNode? newNode,
         ISymbol? newSymbol,
-        SemanticModel? oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         Match<SyntaxNode> topMatch,
         IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
         SymbolInfoCache symbolCache,
@@ -202,16 +202,16 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         EditKind editKind,
         SyntaxNode? oldNode,
         SyntaxNode? newNode,
-        SemanticModel? oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         CancellationToken cancellationToken);
 
     private OneOrMany<(ISymbol? oldSymbol, ISymbol? newSymbol, EditKind editKind)> GetSymbolEdits(
         EditKind editKind,
         SyntaxNode? oldNode,
         SyntaxNode? newNode,
-        SemanticModel? oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         Match<SyntaxNode> topMatch,
         IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
         SymbolInfoCache symbolCache,
@@ -222,7 +222,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var symbols = GetEditedSymbols(editKind, oldNode, newNode, oldModel, newModel, cancellationToken);
         foreach (var (oldSymbol, newSymbol) in symbols)
         {
-            Debug.Assert(oldSymbol != null || newSymbol != null);
+            Contract.ThrowIfFalse(oldSymbol != null || newSymbol != null);
 
             // Top-level members may be matched by syntax even when their name and signature are different.
             // An update edit is created for these matches that usually produces an insert + delete semantic edits.
@@ -233,7 +233,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // Instead, a simple semantic update (or no edit at all if the body has not changed, other then trivia that can be expressed as a line delta) should be created.
             // When we detect this case we break the original update edit into two edits: delete and insert.
             // The logic in the analyzer then consolidates these edits into updates across partial type declarations if applicable.
-            if (editKind == EditKind.Update && GetSemanticallyMatchingNewSymbol(oldSymbol, newSymbol, newModel, symbolCache, cancellationToken) != null)
+            if (editKind == EditKind.Update && GetSemanticallyMatchingNewSymbol(oldSymbol, newSymbol, newModel.Compilation, symbolCache, cancellationToken) != null)
             {
                 AddSymbolEdits(ref result, EditKind.Delete, oldNode, oldSymbol, newNode: null, newSymbol: null, oldModel, newModel, topMatch, editMap, symbolCache, cancellationToken);
                 AddSymbolEdits(ref result, EditKind.Insert, oldNode: null, oldSymbol: null, newNode, newSymbol, oldModel, newModel, topMatch, editMap, symbolCache, cancellationToken);
@@ -251,11 +251,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             _ => OneOrMany.Create(result.ToImmutableAndClear())
         };
     }
-
-    /// <summary>
-    /// Enumerates all use sites of a specified variable within the specified syntax subtrees.
-    /// </summary>
-    protected abstract IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken);
 
     protected abstract bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod);
 
@@ -420,10 +415,10 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
-        SemanticModel oldModel,
+        DocumentSemanticModel oldModel,
         SyntaxNode newActiveStatement,
         DeclarationBody newBody,
-        SemanticModel newModel,
+        DocumentSemanticModel newModel,
         bool isNonLeaf,
         CancellationToken cancellationToken);
 
@@ -507,58 +502,53 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     #region Document Analysis 
 
     public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
+        DocumentId documentId,
         Project oldProject,
+        Project newProject,
         AsyncLazy<ActiveStatementsMap> lazyOldActiveStatementMap,
-        Document newDocument,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
         TraceLog log,
         CancellationToken cancellationToken)
     {
-        var filePath = newDocument.FilePath;
-
-        Debug.Assert(newDocument.State.SupportsEditAndContinue());
-        Debug.Assert(!newActiveStatementSpans.IsDefault);
-        Debug.Assert(newDocument.SupportsSyntaxTree);
-        Debug.Assert(newDocument.SupportsSemanticModel);
-        Debug.Assert(filePath != null);
+        Contract.ThrowIfFalse(oldProject.SupportsEditAndContinue());
+        Contract.ThrowIfFalse(newProject.SupportsEditAndContinue());
+        Contract.ThrowIfTrue(newActiveStatementSpans.IsDefault);
 
         // assume changes until we determine there are none so that EnC is blocked on unexpected exception:
         var hasChanges = true;
         var analysisStopwatch = SharedStopwatch.StartNew();
 
+        var (oldDocument, oldText) = await GetDocumentContentAsync(oldProject, documentId, cancellationToken).ConfigureAwait(false);
+        var (newDocument, newText) = await GetDocumentContentAsync(newProject, documentId, cancellationToken).ConfigureAwait(false);
+
+        var filePath = newDocument?.FilePath ?? oldDocument!.FilePath;
+        Contract.ThrowIfNull(filePath);
+
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            SyntaxTree? oldTree;
-            SyntaxNode oldRoot;
-            SourceText oldText;
+            Contract.ThrowIfFalse(newDocument == null || newDocument.State.SupportsEditAndContinue());
+            Contract.ThrowIfFalse(oldDocument == null || oldDocument.State.SupportsEditAndContinue());
+            Contract.ThrowIfFalse(oldDocument != null || newDocument != null);
 
-            var oldDocument = await oldProject.GetDocumentAsync(newDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            if (oldDocument != null)
-            {
-                oldTree = await oldDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                oldTree = null;
-                oldRoot = EmptyCompilationUnit;
-                oldText = s_emptySource;
-            }
-
-            var newTree = await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(newTree);
-
-            // Changes in parse options might change the meaning of the code even if nothing else changed.
-            // The IDE should disallow changing the options during debugging session. 
-            Debug.Assert(oldTree == null || oldTree.Options.Equals(newTree.Options));
-
-            var newRoot = await newTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             hasChanges = !oldText.ContentEquals(newText);
+
+            if (!hasChanges)
+            {
+                // The document might have been closed and reopened, which might have triggered analysis. 
+                // If the document is unchanged don't continue the analysis since 
+                // a) comparing texts is cheaper than diffing trees
+                // b) we need to ignore errors in unchanged documents
+
+                log.Write($"Document unchanged: '{filePath}'");
+                return DocumentAnalysisResults.Unchanged(documentId, filePath, analysisStopwatch.Elapsed);
+            }
+
+            var (oldRoot, newRoot) = await GetSyntaxRootsAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+            var oldTree = oldRoot.SyntaxTree;
+            var newTree = newRoot.SyntaxTree;
 
             _testFaultInjector?.Invoke(newRoot);
             cancellationToken.ThrowIfCancellationRequested();
@@ -571,18 +561,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                 // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                 log.Write($"Syntax errors found in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
-            }
-
-            if (!hasChanges)
-            {
-                // The document might have been closed and reopened, which might have triggered analysis. 
-                // If the document is unchanged don't continue the analysis since 
-                // a) comparing texts is cheaper than diffing trees
-                // b) we need to ignore errors in unchanged documents
-
-                log.Write($"Document unchanged: '{filePath}'");
-                return DocumentAnalysisResults.Unchanged(newDocument.Id, filePath, analysisStopwatch.Elapsed);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
             }
 
             // Disallow modification of a file with experimental features enabled.
@@ -590,7 +569,21 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (ExperimentalFeaturesEnabled(newTree))
             {
                 log.Write($"Experimental features enabled in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, span: default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            }
+
+            // Changes in parse options might change the meaning of the code even if nothing else changed.
+            // If we allowed changing parse options such as preprocessor directives, enabled features, or language version
+            // it would lead to degraded experience for the user -- the parts of the source file that haven't changed
+            // since the option changed would have different semantics than the parts that have changed.
+            //
+            // Skip further analysis of the document if we detect any such change (classified as rude edits) in parse options.
+            if (GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
+            {
+                log.Write($"Parse options differ for '{filePath}'");
+
+                // All rude edits related to project-level setting changes will be reported during delta emit.
+                return DocumentAnalysisResults.Blocked(documentId, filePath, rudeEdits: [], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             var capabilities = new EditAndContinueCapabilitiesGrantor(await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
@@ -599,7 +592,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // If the document has changed at all, lets make sure Edit and Continue is supported
             if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
             {
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             // We are in break state when there are no active statements.
@@ -635,17 +628,15 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var oldActiveStatements = (oldTree == null) ? [] :
-                oldActiveStatementMap.GetOldActiveStatements(this, oldTree, oldText, oldRoot, cancellationToken);
-
+            var oldActiveStatements = oldActiveStatementMap.GetOldActiveStatements(this, oldTree, oldText, oldRoot, cancellationToken);
             var newActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
             newActiveStatements.Count = oldActiveStatements.Length;
 
             var newExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<SourceFileSpan>>(oldActiveStatements.Length);
             newExceptionRegions.Count = oldActiveStatements.Length;
 
-            var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
-            var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var oldModel = await GetDocumentSemanticModelAsync(oldProject, oldDocument, oldTree, cancellationToken).ConfigureAwait(false);
+            var newModel = await GetDocumentSemanticModelAsync(newProject, newDocument, newTree, cancellationToken).ConfigureAwait(false);
 
             // Accumulates all active members as we discover them while analyzing both changed and unchanged member bodies.
             using var oldActiveMembers = new ActiveMembersBuilder(this, oldModel, newModel, cancellationToken);
@@ -688,7 +679,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             var hasBlockingRudeEdits = finalDiagnostics.HasBlockingRudeEdits();
 
             return new DocumentAnalysisResults(
-                newDocument.Id,
+                documentId,
                 filePath,
                 newActiveStatements.MoveToImmutable(),
                 finalDiagnostics,
@@ -699,7 +690,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 hasBlockingRudeEdits ? default : capabilities.GrantedCapabilities,
                 analysisStopwatch.Elapsed,
                 hasChanges: true,
-                hasSyntaxErrors: false,
+                analysisBlocked: false,
                 hasBlockingRudeEdits);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -709,11 +700,10 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // In such case we report a rude edit for the document. If the host is actually running out of memory,
             // it might throw another OOM here or later on.
             var diagnostic = (e is OutOfMemoryException)
-                ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: [newDocument.FilePath])
-                : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [newDocument.FilePath, e.ToString()]);
+                ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: [filePath])
+                : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [filePath, e.ToString()]);
 
-            // Report as "syntax error" - we can't analyze the document
-            return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            return DocumentAnalysisResults.Blocked(documentId, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
         }
 
         void LogRudeEdits(ImmutableArray<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
@@ -737,6 +727,61 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 log.Write($"Rude edit {diagnostic.Kind}:{diagnostic.SyntaxKind} '{filePath}' line {lineNumber}: '{lineText}'");
             }
         }
+    }
+
+    private static async ValueTask<(Document? document, SourceText text)> GetDocumentContentAsync(Project project, DocumentId documentId, CancellationToken cancellationToken)
+    {
+        SourceText text;
+
+        var document = await project.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+        if (document != null)
+        {
+            text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            text = s_emptySource;
+        }
+
+        return (document, text);
+    }
+
+    private async ValueTask<(SyntaxNode oldRoot, SyntaxNode newRoot)> GetSyntaxRootsAsync(Document? oldDocument, Document? newDocument, CancellationToken cancellationToken)
+    {
+        SyntaxNode? oldRoot = null;
+        SyntaxNode? newRoot = null;
+
+        if (oldDocument != null)
+        {
+            var tree = await oldDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            oldRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        if (newDocument != null)
+        {
+            var tree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            newRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        oldRoot ??= GetEmptyRoot(newRoot!.SyntaxTree.Options);
+        newRoot ??= GetEmptyRoot(oldRoot.SyntaxTree.Options);
+
+        return (oldRoot, newRoot);
+
+        SyntaxNode GetEmptyRoot(ParseOptions options)
+            // Need to do this to ensure the parse options of the tree are set correctly (see https://github.com/dotnet/roslyn/issues/78510)
+            => EmptyCompilationUnit.SyntaxTree.WithRootAndOptions(EmptyCompilationUnit, options).GetRoot(cancellationToken);
+    }
+
+    private static async ValueTask<DocumentSemanticModel> GetDocumentSemanticModelAsync(Project project, Document? document, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        if (document != null)
+        {
+            return new DocumentSemanticModel(await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+        }
+
+        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        return new DocumentSemanticModel(compilation, tree);
     }
 
     private void ReportTopLevelSyntacticRudeEdits(RudeEditDiagnosticsBuilder diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
@@ -778,6 +823,117 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         }
 
         return map;
+    }
+
+    protected static Diagnostic CreateProjectRudeEdit(ProjectSettingKind kind, string oldValue, string newValue)
+        => Diagnostic.Create(
+            EditAndContinueDiagnosticDescriptors.GetDescriptor(kind),
+            Location.None,
+            [kind.ToString(), oldValue, newValue]);
+
+    protected virtual IEnumerable<Diagnostic> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        if (!FeaturesEqual(oldOptions.Features, newOptions.Features))
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.Features, ToDisplay(oldOptions.Features), ToDisplay(newOptions.Features));
+        }
+
+        static string ToDisplay(IReadOnlyDictionary<string, string> features)
+            => string.Join(",", features.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}"));
+
+        static bool FeaturesEqual(IReadOnlyDictionary<string, string> features, IReadOnlyDictionary<string, string> other)
+        {
+            if (ReferenceEquals(features, other))
+            {
+                return true;
+            }
+
+            if (features.Count != other.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in features)
+            {
+                if (!other.TryGetValue(key, out var otherValue) || value != otherValue)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    protected static string DefaultProjectSettingValue
+        => $"<{FeaturesResources.@default}>";
+
+    protected virtual IEnumerable<Diagnostic> GetCompilationOptionsRudeEdits(CompilationOptions oldOptions, CompilationOptions newOptions)
+    {
+        if (oldOptions.CheckOverflow != newOptions.CheckOverflow)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.CheckForOverflowUnderflow, oldOptions.CheckOverflow.ToString(), newOptions.CheckOverflow.ToString());
+        }
+
+        if (oldOptions.OutputKind != newOptions.OutputKind)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.OutputType, ToProjectPropertyValue(oldOptions.OutputKind), ToProjectPropertyValue(newOptions.OutputKind));
+
+            static string ToProjectPropertyValue(OutputKind kind)
+                => kind switch
+                {
+                    OutputKind.ConsoleApplication => "Exe",
+                    OutputKind.WindowsApplication => "WinExe",
+                    OutputKind.DynamicallyLinkedLibrary => "Library",
+                    OutputKind.NetModule => "Module",
+                    OutputKind.WindowsRuntimeApplication => "AppContainerExe",
+                    OutputKind.WindowsRuntimeMetadata => "WinMDObj",
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
+        }
+
+        if (oldOptions.Platform != newOptions.Platform)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.Platform, oldOptions.Platform.ToString(), newOptions.Platform.ToString());
+        }
+
+        if (oldOptions.MainTypeName != newOptions.MainTypeName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.StartupObject, oldOptions.MainTypeName ?? DefaultProjectSettingValue, newOptions.MainTypeName ?? DefaultProjectSettingValue);
+        }
+
+        if (oldOptions.ModuleName != newOptions.ModuleName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.ModuleAssemblyName, oldOptions.ModuleName ?? DefaultProjectSettingValue, newOptions.ModuleName ?? DefaultProjectSettingValue);
+        }
+
+        if (oldOptions.OptimizationLevel != newOptions.OptimizationLevel)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.OptimizationLevel, oldOptions.OptimizationLevel.ToString(), newOptions.OptimizationLevel.ToString());
+        }
+    }
+
+    public IEnumerable<Diagnostic> GetProjectSettingRudeEdits(Project oldProject, Project newProject)
+    {
+        Contract.ThrowIfNull(oldProject.ParseOptions);
+        Contract.ThrowIfNull(newProject.ParseOptions);
+        Contract.ThrowIfNull(oldProject.CompilationOptions);
+        Contract.ThrowIfNull(newProject.CompilationOptions);
+
+        foreach (var rudeEdit in GetParseOptionsRudeEdits(oldProject.ParseOptions, newProject.ParseOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        foreach (var rudeEdit in GetCompilationOptionsRudeEdits(oldProject.CompilationOptions, newProject.CompilationOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        if (oldProject.AssemblyName != newProject.AssemblyName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.AssemblyName, oldProject.AssemblyName, newProject.AssemblyName);
+        }
     }
 
     #endregion
@@ -946,11 +1102,10 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         SyntaxNode? newDeclaration,
         MemberBody? oldMemberBody,
         MemberBody? newMemberBody,
-        SemanticModel? oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         ISymbol oldMember,
         ISymbol newMember,
-        Compilation oldCompilation,
         SourceText newText,
         Match<SyntaxNode> topMatch,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
@@ -1086,7 +1241,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
             ReportMemberOrLambdaBodyUpdateRudeEdits(
                 diagnosticContext,
-                oldCompilation,
+                oldModel.Compilation,
                 oldDeclaration,
                 oldMember,
                 oldMemberBody,
@@ -1121,7 +1276,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // Updating an entry point, a method marked with RestartRequiredOnMetadataUpdateAttribute,
             // a static constructor or a static member with an initializer will most likely have no effect,
             // unless the update is in a lambda body.
-            if (IsRestartRequired(oldMember, oldDeclaration, oldCompilation, newMember, newDeclaration, cancellationToken))
+            if (IsRestartRequired(oldMember, oldDeclaration, oldModel.Compilation, newMember, newDeclaration, cancellationToken))
             {
                 var oldTokens = oldMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
                 var newTokens = newMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
@@ -1213,7 +1368,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 {
                     Contract.ThrowIfNull(newStatementSyntax);
                     Contract.ThrowIfNull(newBody);
-                    Contract.ThrowIfNull(oldModel);
 
                     // The matching node doesn't produce sequence points.
                     // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
@@ -1588,7 +1742,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (activeNode.NewTrackedNode != null)
             {
                 lazyKnownMatches ??= [];
-                lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
+                lazyKnownMatches.Add(KeyValuePair.Create(activeNode.OldNode, activeNode.NewTrackedNode));
             }
         }
 
@@ -1846,10 +2000,10 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
-        SemanticModel oldModel,
+        DocumentSemanticModel oldModel,
         SyntaxNode newActiveStatement,
         SyntaxNode newEncompassingAncestor,
-        SemanticModel newModel,
+        DocumentSemanticModel newModel,
         Func<SyntaxNode, bool> nodeSelector,
         Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
         Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
@@ -1868,12 +2022,12 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         int matchCount;
         if (oldNodes != null)
         {
-            matchCount = MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap, getTypedNodes, comparer: areEquivalent, exactMatch: true, cancellationToken);
+            matchCount = MatchNodes(oldNodes, oldModel.RequiredModel, newNodes, newModel.RequiredModel, diagnostics, reverseMap, getTypedNodes, comparer: areEquivalent, exactMatch: true, cancellationToken);
 
             // Do another pass over the nodes to improve error messages.
             if (areSimilar != null && matchCount < Math.Min(oldNodes.Count, newNodes.Count))
             {
-                matchCount += MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap: null, getTypedNodes, comparer: areSimilar, exactMatch: false, cancellationToken);
+                matchCount += MatchNodes(oldNodes, oldModel.RequiredModel, newNodes, newModel.RequiredModel, diagnostics, reverseMap: null, getTypedNodes, comparer: areSimilar, exactMatch: false, cancellationToken);
             }
         }
         else
@@ -2523,8 +2677,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         IReadOnlyList<(SyntaxNode OldNode, SyntaxNode NewNode, TextSpan DiagnosticSpan)> triviaEdits,
         Project oldProject,
-        SemanticModel? oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         SourceText newText,
         RudeEditDiagnosticsBuilder diagnostics,
         ActiveMembersBuilder oldActiveMembers,
@@ -2553,8 +2707,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
         try
         {
-            var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var newCompilation = newModel.Compilation;
             var oldTree = editScript.Match.OldRoot.SyntaxTree;
             var newTree = editScript.Match.NewRoot.SyntaxTree;
 
@@ -2564,9 +2716,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
                 Debug.Assert(edit.OldNode is null || edit.NewNode is null || IsNamespaceDeclaration(edit.OldNode) == IsNamespaceDeclaration(edit.NewNode));
 
-                // We can ignore namespace nodes in newly added documents (old model is not available) since 
-                // all newly added types in these namespaces will have their own syntax edit.
-                var symbolEdits = oldModel != null && IsNamespaceDeclaration(edit.OldNode ?? edit.NewNode!)
+                var symbolEdits = IsNamespaceDeclaration(edit.OldNode ?? edit.NewNode!)
                     ? OneOrMany.Create(GetNamespaceSymbolEdits(oldModel, newModel, cancellationToken))
                     : GetSymbolEdits(edit.Kind, edit.OldNode, edit.NewNode, oldModel, newModel, editScript.Match, editMap, symbolCache, cancellationToken);
 
@@ -2584,8 +2734,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             continue;
                         }
 
-                        var oldSymbolInNewCompilation = symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                        var newSymbolInOldCompilation = symbolCache.GetKey(newSymbol, cancellationToken).Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                        var oldSymbolInNewCompilation = symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                        var newSymbolInOldCompilation = symbolCache.GetKey(newSymbol, cancellationToken).Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
 
                         if (oldSymbolInNewCompilation == null || newSymbolInOldCompilation == null)
                         {
@@ -2630,7 +2780,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     // Treat the edit as Insert/Delete. This may happen e.g. when all C# global statements are removed, the first one is added or they are moved to another file.
                     if (syntacticEditKind == EditKind.Update)
                     {
-                        if (oldSymbol == null || oldDeclaration == null || oldDeclaration != null && oldDeclaration.SyntaxTree != oldModel?.SyntaxTree)
+                        if (oldSymbol == null || oldDeclaration == null || oldDeclaration != null && oldDeclaration.SyntaxTree != oldModel.SyntaxTree)
                         {
                             syntacticEditKind = EditKind.Insert;
                         }
@@ -2653,8 +2803,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                         if (containingType != null && (syntacticEditKind != EditKind.Delete || newSymbol == null))
                         {
                             var containingTypeSymbolKey = symbolCache.GetKey(containingType, cancellationToken);
-                            oldContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                            newContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                            oldContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                            newContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
 
                             if (oldContainingType != null && newContainingType != null && IsReloadable(oldContainingType))
                             {
@@ -2716,7 +2866,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     {
                         case EditKind.Delete:
                             {
-                                Contract.ThrowIfNull(oldModel);
                                 Contract.ThrowIfNull(oldSymbol);
                                 Contract.ThrowIfNull(oldDeclaration);
 
@@ -2728,7 +2877,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     editKind = SemanticEditKind.Update;
 
                                     // Ignore the delete if there is going to be an insert corresponding to the new symbol that will create an update edit.
-                                    if (DeleteEditImpliesInsertEdit(oldSymbol, newSymbol, oldCompilation, cancellationToken))
+                                    if (DeleteEditImpliesInsertEdit(oldSymbol, newSymbol, oldModel.Compilation, cancellationToken))
                                     {
                                         // We need to update any active statements that are in the deleted member body.
                                         ReportDeletedMemberActiveStatementsRudeEdits();
@@ -2787,7 +2936,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                 // If so, skip the member deletion and only report the containing symbol deletion.
                                 var oldContainingType = oldSymbol.ContainingType;
                                 var containingTypeKey = symbolCache.GetKey(oldContainingType, cancellationToken);
-                                var newContainingType = (INamedTypeSymbol?)containingTypeKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                var newContainingType = (INamedTypeSymbol?)containingTypeKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
                                 if (newContainingType == null)
                                 {
                                     // If a type parameter is deleted from the parameter list of a type declaration, the symbol key won't be resolved (because the arities do not match).
@@ -2842,7 +2991,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                         var oldPrimaryConstructor = (IMethodSymbol)oldSymbol;
 
                                         // Deconstructor delete:
-                                        AddDeconstructorEdits(semanticEdits, oldPrimaryConstructor, otherConstructor: null, containingTypeKey, oldCompilation, newCompilation, isParameterDelete: true, cancellationToken);
+                                        AddDeconstructorEdits(semanticEdits, oldPrimaryConstructor, otherConstructor: null, containingTypeKey, oldModel.Compilation, newModel.Compilation, isParameterDelete: true, cancellationToken);
 
                                         // Synthesized method updates:
                                         AddSynthesizedRecordMethodUpdatesForPropertyChange(semanticEdits, newModel.Compilation, newContainingType, cancellationToken);
@@ -2865,7 +3014,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
                         case EditKind.Insert:
                             {
-                                Contract.ThrowIfNull(newModel);
                                 Contract.ThrowIfNull(newSymbol);
                                 Contract.ThrowIfNull(newDeclaration);
 
@@ -2913,7 +3061,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                         HasEdit(editMap, GetSymbolDeclarationSyntax(newAssociatedMember, cancellationToken), EditKind.Insert);
 
                                     var containingTypeKey = symbolCache.GetKey(newContainingType, cancellationToken);
-                                    oldContainingType = containingTypeKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
+                                    oldContainingType = containingTypeKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
 
                                     // Check rude edits for each member even if it is inserted into a new type.
                                     if (!hasAssociatedSymbolInsert && IsMember(newSymbol))
@@ -2954,7 +3102,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     // (PrintMembers print all properties and fields, Equals and GHC compare all data members, etc.)
                                     if (SymbolPresenceAffectsSynthesizedRecordMembers(newSymbol))
                                     {
-                                        AddSynthesizedRecordMethodUpdatesForPropertyChange(semanticEdits, newCompilation, newContainingType, cancellationToken);
+                                        AddSynthesizedRecordMethodUpdatesForPropertyChange(semanticEdits, newModel.Compilation, newContainingType, cancellationToken);
                                     }
 
                                     if (newSymbol is IParameterSymbol newParameter &&
@@ -3015,8 +3163,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             break;
 
                         case EditKind.Update:
-                            Contract.ThrowIfNull(oldModel);
-                            Contract.ThrowIfNull(newModel);
                             Contract.ThrowIfNull(oldSymbol);
                             Contract.ThrowIfNull(newSymbol);
 
@@ -3024,8 +3170,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             break;
 
                         case EditKind.Reorder:
-                            Contract.ThrowIfNull(oldModel);
-                            Contract.ThrowIfNull(newModel);
                             Contract.ThrowIfNull(oldSymbol);
                             Contract.ThrowIfNull(newSymbol);
 
@@ -3091,7 +3235,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
                         // The synthesized property replacing the deleted one will be an auto-property.
                         // If the accessor had body or the property changed accessibility then synthesized record members might be affected.
-                        AddSynthesizedRecordMethodUpdatesForPropertyChange(semanticEdits, newCompilation, newProperty.ContainingType, cancellationToken);
+                        AddSynthesizedRecordMethodUpdatesForPropertyChange(semanticEdits, newModel.Compilation, newProperty.ContainingType, cancellationToken);
 
                         // When a custom property w/o a backing field is replaced with synthesized in a type with explicit layout,
                         // the synthesized one adds a backing field, which changes the layout of the type.
@@ -3182,7 +3326,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             {
                                 // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
                                 var oldSyntaxModel = (oldDeclaration != null)
-                                    ? await oldProject.Solution.GetRequiredDocument(oldDeclaration.SyntaxTree).GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
+                                    ? new(await oldProject.Solution.GetRequiredDocument(oldDeclaration.SyntaxTree).GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false))
                                     : oldModel;
 
                                 AnalyzeChangedMemberBody(
@@ -3194,7 +3338,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     newModel,
                                     oldSymbol,
                                     newSymbol,
-                                    oldCompilation,
                                     newText,
                                     editScript.Match,
                                     oldActiveStatements,
@@ -3301,9 +3444,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // Trivia edits are generated for trivia that affect active statement positions.
             foreach (var (oldEditNode, newEditNode, diagnosticSpan) in triviaEdits)
             {
-                Contract.ThrowIfNull(oldModel);
-                Contract.ThrowIfNull(newModel);
-
                 var triviaSymbolEdits = GetSymbolEdits(EditKind.Update, oldEditNode, newEditNode, oldModel, newModel, editScript.Match, editMap, symbolCache, cancellationToken);
                 foreach (var edit in triviaSymbolEdits)
                 {
@@ -3416,7 +3556,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     instanceConstructorEdits,
                     editScript.Match,
                     oldModel,
-                    oldCompilation,
                     newModel,
                     isStatic: false,
                     semanticEdits,
@@ -3430,7 +3569,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     staticConstructorEdits,
                     editScript.Match,
                     oldModel,
-                    oldCompilation,
                     newModel,
                     isStatic: true,
                     semanticEdits,
@@ -3442,8 +3580,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             {
                 Contract.ThrowIfFalse(oldSymbol != null || newSymbol != null);
 
-                oldSymbol ??= Resolve(newSymbol!, symbolCache.GetKey(newSymbol!, cancellationToken), oldCompilation, cancellationToken);
-                newSymbol ??= Resolve(oldSymbol!, symbolCache.GetKey(oldSymbol!, cancellationToken), newCompilation, cancellationToken);
+                oldSymbol ??= Resolve(newSymbol!, symbolCache.GetKey(newSymbol!, cancellationToken), oldModel.Compilation, cancellationToken);
+                newSymbol ??= Resolve(oldSymbol!, symbolCache.GetKey(oldSymbol!, cancellationToken), newModel.Compilation, cancellationToken);
 
                 static ISymbol? Resolve(ISymbol symbol, SymbolKey symbolKey, Compilation compilation, CancellationToken cancellationToken)
                 {
@@ -3525,10 +3663,10 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static bool IsMemberOrDelegate(ISymbol symbol)
         => IsMember(symbol) || symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate };
 
-    protected static ISymbol? GetSemanticallyMatchingNewSymbol(ISymbol? oldSymbol, ISymbol? newSymbol, SemanticModel newModel, SymbolInfoCache symbolCache, CancellationToken cancellationToken)
+    protected static ISymbol? GetSemanticallyMatchingNewSymbol(ISymbol? oldSymbol, ISymbol? newSymbol, Compilation newCompilation, SymbolInfoCache symbolCache, CancellationToken cancellationToken)
         => oldSymbol != null && IsMember(oldSymbol) &&
            newSymbol != null && IsMember(newSymbol) &&
-           symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol is { } matchingNewSymbol &&
+           symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is { } matchingNewSymbol &&
            !matchingNewSymbol.IsSynthesized() &&
            matchingNewSymbol != newSymbol
            ? matchingNewSymbol
@@ -3846,8 +3984,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     }
 
     private ImmutableArray<(ISymbol? oldSymbol, ISymbol? newSymbol, EditKind editKind)> GetNamespaceSymbolEdits(
-        SemanticModel oldModel,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         CancellationToken cancellationToken)
     {
         using var _1 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol? newSymbol, EditKind editKind)>.GetInstance(out var builder);
@@ -3866,7 +4004,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var oldRoot = oldModel.SyntaxTree.GetRoot(cancellationToken);
         foreach (var oldTypeDeclaration in GetTopLevelTypeDeclarations(oldRoot))
         {
-            var oldType = (INamedTypeSymbol)GetRequiredDeclaredSymbol(oldModel, oldTypeDeclaration, cancellationToken);
+            var oldType = (INamedTypeSymbol)GetRequiredDeclaredSymbol(oldModel.RequiredModel, oldTypeDeclaration, cancellationToken);
             if (!processedTypes.Add(oldType))
             {
                 continue;
@@ -3897,7 +4035,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var newRoot = newModel.SyntaxTree.GetRoot(cancellationToken);
         foreach (var newTypeDeclaration in GetTopLevelTypeDeclarations(newRoot))
         {
-            var newType = (INamedTypeSymbol)GetRequiredDeclaredSymbol(newModel, newTypeDeclaration, cancellationToken);
+            var newType = (INamedTypeSymbol)GetRequiredDeclaredSymbol(newModel.RequiredModel, newTypeDeclaration, cancellationToken);
             if (!processedTypes.Add(newType))
             {
                 continue;
@@ -4523,7 +4661,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
     /// <summary>
     /// Semantic edits of members synthesized based on parameters that have no declaring syntax (<see cref="GetSymbolDeclarationSyntax(ISymbol, CancellationToken)"/> returns null)
-    /// and therefore not produced by <see cref="GetSymbolEdits(EditKind, SyntaxNode?, SyntaxNode?, SemanticModel?, SemanticModel, Match{SyntaxNode}, IReadOnlyDictionary{SyntaxNode, EditKind}, SymbolInfoCache, CancellationToken)"/>
+    /// and therefore not produced by <see cref="GetSymbolEdits(EditKind, SyntaxNode?, SyntaxNode?, DocumentSemanticModel, DocumentSemanticModel, Match{SyntaxNode}, IReadOnlyDictionary{SyntaxNode, EditKind}, SymbolInfoCache, CancellationToken)"/>
     /// </summary>
     private void AddSemanticEditsOriginatingFromParameterUpdate(
         ArrayBuilder<SemanticEditInfo> semanticEdits,
@@ -4897,11 +5035,11 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         ISymbol? oldSymbol,
         ISymbol? newSymbol,
         SyntaxNode? newNode,
-        SemanticModel newModel,
+        DocumentSemanticModel newModel,
         Match<SyntaxNode>? topMatch,
         TextSpan diagnosticSpan)
     {
-        public SemanticModel NewModel => newModel;
+        public DocumentSemanticModel NewModel => newModel;
 
         public ISymbol? OldSymbol
             => oldSymbol;
@@ -5104,7 +5242,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         ISymbol? oldSymbol,
         ISymbol? newSymbol,
         SyntaxNode? newNode,
-        SemanticModel newModel,
+        DocumentSemanticModel newModel,
         Match<SyntaxNode>? topMatch,
         TextSpan diagnosticSpan = default)
         => new(this, diagnostics, oldSymbol, newSymbol, newNode, newModel, topMatch, diagnosticSpan);
@@ -5174,7 +5312,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             && !@event.IsAbstract;
     }
 
-    private static bool HasExplicitOrSequentialLayout(INamedTypeSymbol type, SemanticModel model)
+    private static bool HasExplicitOrSequentialLayout(INamedTypeSymbol type, DocumentSemanticModel model)
     {
         if (type.TypeKind == TypeKind.Struct)
         {
@@ -5305,9 +5443,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     private void AddConstructorEdits(
         IReadOnlyDictionary<INamedTypeSymbol, MemberInitializationUpdates> updatedTypes,
         Match<SyntaxNode> topMatch,
-        SemanticModel? oldModel,
-        Compilation oldCompilation,
-        SemanticModel newModel,
+        DocumentSemanticModel oldModel,
+        DocumentSemanticModel newModel,
         bool isStatic,
         [Out] ArrayBuilder<SemanticEditInfo> semanticEdits,
         [Out] RudeEditDiagnosticsBuilder diagnostics,
@@ -5384,9 +5521,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
                     if (topMatch.TryGetOldNode(newDeclaration, out oldDeclaration))
                     {
-                        Contract.ThrowIfNull(oldModel);
-
-                        oldCtor = (IMethodSymbol)GetRequiredDeclaredSymbol(oldModel, oldDeclaration, cancellationToken);
+                        oldCtor = (IMethodSymbol)GetRequiredDeclaredSymbol(oldModel.RequiredModel, oldDeclaration, cancellationToken);
                         Contract.ThrowIfFalse(oldCtor is { MethodKind: MethodKind.Constructor or MethodKind.StaticConstructor });
 
                         hasSignatureChanges = !MemberOrDelegateSignaturesEquivalent(oldCtor, newCtor, exact: false);
@@ -5398,7 +5533,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     }
                     else
                     {
-                        var resolution = newCtorKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken);
+                        var resolution = newCtorKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken);
 
                         // There may be semantic errors in the compilation that result in multiple candidates.
                         // Pick the first candidate.
@@ -5486,7 +5621,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                         oldCtorIsPrimary != newCtorIsPrimary)
                     {
                         // Deconstructor:
-                        AddDeconstructorEdits(semanticEdits, oldCtor, newCtor, typeKey, oldCompilation, newModel.Compilation, isParameterDelete: newCtorIsPrimary, cancellationToken);
+                        AddDeconstructorEdits(semanticEdits, oldCtor, newCtor, typeKey, oldModel.Compilation, newModel.Compilation, isParameterDelete: newCtorIsPrimary, cancellationToken);
 
                         // Synthesized method updates:
                         AddSynthesizedRecordMethodUpdatesForPropertyChange(semanticEdits, newModel.Compilation, newCtor.ContainingType, cancellationToken);
@@ -5569,11 +5704,11 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     #region Lambdas and Closures
 
     private void ReportLambdaAndClosureRudeEdits(
-        SemanticModel? oldModel,
+        DocumentSemanticModel oldModel,
         ISymbol oldMember,
         MemberBody? oldMemberBody,
         SyntaxNode? oldDeclaration,
-        SemanticModel newModel,
+        DocumentSemanticModel newModel,
         ISymbol newMember,
         MemberBody? newMemberBody,
         SyntaxNode? newDeclaration,
@@ -5606,7 +5741,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
                 var lambdaBodyMap = newLambdaInfo.BodyMap;
 
-                Contract.ThrowIfNull(oldModel);
                 Contract.ThrowIfNull(oldDeclaration);
 
                 var oldLambda = oldLambdaBody.GetLambda();
@@ -5615,8 +5749,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 Debug.Assert(IsNestedFunction(newLambda) == IsNestedFunction(oldLambda));
                 var isNestedFunction = IsNestedFunction(newLambda);
 
-                var oldLambdaSymbol = isNestedFunction ? GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken) : null;
-                var newLambdaSymbol = isNestedFunction ? GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken) : null;
+                var oldLambdaSymbol = isNestedFunction ? GetLambdaExpressionSymbol(oldModel.RequiredModel, oldLambda, cancellationToken) : null;
+                var newLambdaSymbol = isNestedFunction ? GetLambdaExpressionSymbol(newModel.RequiredModel, newLambda, cancellationToken) : null;
 
                 var diagnosticContext = CreateDiagnosticContext(diagnostics, oldLambdaSymbol, newLambdaSymbol, newLambda, newModel, topMatch: null);
 
@@ -5670,7 +5804,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             .Any(oldContainingLambdaBody => activeOrMatchedLambdas.TryGetValue(oldContainingLambdaBody, out var info) && info.HasActiveStatement))
                     {
                         var oldTargetParameter = oldLambda.Parent != null
-                            ? (oldModel.GetOperation(oldLambda.Parent, cancellationToken) as IArgumentOperation)?.Parameter
+                            ? (oldModel.RequiredModel.GetOperation(oldLambda.Parent, cancellationToken) as IArgumentOperation)?.Parameter
                             : null;
 
                         if (oldTargetParameter != null && HasRestartRequiredAttribute(oldTargetParameter))
@@ -5697,9 +5831,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             ArrayBuilder<SyntaxNode>? lazyNewErroneousClauses = null;
             foreach (var (oldQueryClause, newQueryClause) in bodyMap.Forward)
             {
-                Debug.Assert(oldModel != null);
-
-                if (!QueryClauseLambdasTypeEquivalent(oldModel, oldQueryClause, newModel, newQueryClause, cancellationToken))
+                if (!QueryClauseLambdasTypeEquivalent(oldModel.RequiredModel, oldQueryClause, newModel.RequiredModel, newQueryClause, cancellationToken))
                 {
                     lazyNewErroneousClauses ??= ArrayBuilder<SyntaxNode>.GetInstance();
                     lazyNewErroneousClauses.Add(newQueryClause);
@@ -5874,8 +6006,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             var isLambdaCachedInField =
                 !inGenericLocalContext &&
                 !isLocalFunction &&
-                (GetAccessedCaptures(newLambdaBody1, newModel, newInLambdaCaptures, newCapturesIndex, newLiftingPrimaryConstructor).Equals(BitVector.Empty) ||
-                    newLambdaBody2 != null && GetAccessedCaptures(newLambdaBody2, newModel, newInLambdaCaptures, newCapturesIndex, newLiftingPrimaryConstructor).Equals(BitVector.Empty));
+                (GetAccessedCaptures(newLambdaBody1, newModel.RequiredModel, newInLambdaCaptures, newCapturesIndex, newLiftingPrimaryConstructor).Equals(BitVector.Empty) ||
+                    newLambdaBody2 != null && GetAccessedCaptures(newLambdaBody2, newModel.RequiredModel, newInLambdaCaptures, newCapturesIndex, newLiftingPrimaryConstructor).Equals(BitVector.Empty));
 
             if (isLambdaCachedInField)
             {
@@ -5980,7 +6112,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
     private void GetCapturedVariables(
         MemberBody? memberBody,
-        SemanticModel? model,
+        DocumentSemanticModel model,
         IMethodSymbol? liftingPrimaryConstructor,
         bool ignorePrimaryParameterCaptures,
         out bool hasLambdaBodies,
@@ -5995,8 +6127,6 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             primaryParametersCapturedViaThis = [];
             return;
         }
-
-        Debug.Assert(model != null);
 
         PooledDictionary<VariableCaptureKey, int>? inLambdaCapturesIndex = null;
         ArrayBuilder<(VariableCaptureKind kind, ISymbol symbol, ArrayBuilder<LambdaBody> capturingLambdas)>? inLambdaCaptures = null;
@@ -6013,7 +6143,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
             void AddCaptures(LambdaBody lambdaBody)
             {
-                var captures = lambdaBody.GetCapturedVariables(model);
+                var captures = lambdaBody.GetCapturedVariables(model.RequiredModel);
                 if (!captures.IsEmpty)
                 {
                     inLambdaCapturesIndex ??= PooledDictionary<VariableCaptureKey, int>.GetInstance();
@@ -6045,7 +6175,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         // only primary constructor parameters can be captured outside of lambda bodies:
         if (liftingPrimaryConstructor != null && !ignorePrimaryParameterCaptures)
         {
-            primaryParametersCapturedViaThis = memberBody.GetCapturedVariables(model).SelectAsArray(
+            primaryParametersCapturedViaThis = memberBody.GetCapturedVariables(model.RequiredModel).SelectAsArray(
                 predicate: (capture, liftingPrimaryConstructor) => capture.ContainingSymbol == liftingPrimaryConstructor,
                 selector: (capture, _) => (IParameterSymbol)capture,
                 liftingPrimaryConstructor);

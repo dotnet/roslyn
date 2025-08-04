@@ -4,12 +4,11 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Construction;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Roslyn.Utilities;
@@ -131,31 +130,6 @@ internal sealed class BuildHost : IBuildHost
     private void EnsureMSBuildLoaded(string projectFilePath)
     {
         Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
-    }
-
-    public ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath)
-    {
-        EnsureMSBuildLoaded(solutionFilePath);
-        return GetProjectsInSolutionCore(solutionFilePath);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this uses MSBuild types which are being loaded by the caller
-    private static ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolutionCore(string solutionFilePath)
-    {
-        // WARNING: do not use a lambda in this function, as it internally will be put in a class that contains other lambdas used in
-        // TryEnsureMSBuildLoaded; on Mono this causes type load errors.
-
-        var builder = ImmutableArray.CreateBuilder<(string ProjectPath, string ProjectGuid)>();
-
-        foreach (var project in SolutionFile.Parse(solutionFilePath).ProjectsInOrder)
-        {
-            if (project.ProjectType != SolutionProjectType.SolutionFolder)
-            {
-                builder.Add((project.AbsolutePath, project.ProjectGuid));
-            }
-        }
-
-        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
