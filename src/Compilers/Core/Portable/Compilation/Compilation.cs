@@ -3574,7 +3574,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
-                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMethodDefinitions())
+                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
                     {
                         builder.Free();
                     }
