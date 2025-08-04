@@ -341,31 +341,4 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     {
         return await testLspServer.ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(LSP.Methods.TextDocumentRenameName, renameParams, CancellationToken.None);
     }
-
-    [ExportWorkspaceService(typeof(ISourceGeneratedDocumentSpanMappingService))]
-    [Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class TestSourceGeneratedDocumentSpanMappingService() : ISourceGeneratedDocumentSpanMappingService
-    {
-        public bool DidMapSpans { get; private set; }
-
-        public bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
-        {
-            DidMapSpans = true;
-            Assert.True(document.IsRazorSourceGeneratedDocument());
-
-            return Task.FromResult(ImmutableArray<MappedSpanResult>.Empty);
-        }
-    }
 }
