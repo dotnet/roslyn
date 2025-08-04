@@ -193,9 +193,15 @@ internal sealed class ExportProviderBuilder
         //         TypeIdentityName: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
         //     but found 0.
         //        part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
+        //
+        //     Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch.CopilotSemanticSearchQueryExecutor.ctor(workspaceProvider): expected exactly 1 export matching constraints:
+        //         Contract name: Microsoft.CodeAnalysis.Host.IHostWorkspaceProvider
+        //         TypeIdentityName: Microsoft.CodeAnalysis.Host.IHostWorkspaceProvider
+        //     but found 0.
+        //        part definition Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch.CopilotSemanticSearchQueryExecutor
 
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
-        var expectedErroredParts = new string[] { "CSharpMapCodeService", "PythiaSignatureHelpProvider" };
+        var expectedErroredParts = new string[] { "CSharpMapCodeService", "PythiaSignatureHelpProvider", "CopilotSemanticSearchQueryExecutor" };
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErroredParts.Contains(part));
 
         if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
