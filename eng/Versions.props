@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
+  <Import Project="Version.Details.props" Condition="Exists('Version.Details.props')" />
   <!--
     Roslyn version
   -->
@@ -44,41 +45,7 @@
     <SystemThreadingTasksExtensionsVersion>4.6.0</SystemThreadingTasksExtensionsVersion>
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
   </PropertyGroup>
-  <!--
-    Versions managed by Arcade (see Versions.Details.xml)
-  -->
   <PropertyGroup>
-    <SystemCommandLineVersion>2.0.0-rc.1.25377.103</SystemCommandLineVersion>
-    <SystemCompositionVersion>9.0.0</SystemCompositionVersion>
-    <SystemConfigurationConfigurationManagerVersion>9.0.0</SystemConfigurationConfigurationManagerVersion>
-    <SystemDiagnosticsEventLogVersion>9.0.0</SystemDiagnosticsEventLogVersion>
-    <SystemCollectionsImmutableVersion>9.0.0</SystemCollectionsImmutableVersion>
-    <SystemComponentModelCompositionVersion>9.0.0</SystemComponentModelCompositionVersion>
-    <SystemDiagnosticsDiagnosticSourceVersion>9.0.0</SystemDiagnosticsDiagnosticSourceVersion>
-    <SystemIOHashingVersion>9.0.0</SystemIOHashingVersion>
-    <SystemIOPipelinesVersion>9.0.0</SystemIOPipelinesVersion>
-    <SystemReflectionMetadataVersion>9.0.0</SystemReflectionMetadataVersion>
-    <SystemResourcesExtensionsVersion>9.0.0</SystemResourcesExtensionsVersion>
-    <SystemSecurityCryptographyProtectedDataVersion>9.0.0</SystemSecurityCryptographyProtectedDataVersion>
-    <SystemSecurityPermissionsVersion>9.0.0</SystemSecurityPermissionsVersion>
-    <SystemTextEncodingsWebVersion>9.0.0</SystemTextEncodingsWebVersion>
-    <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild in VS (would lead to NGEN failures on insertion). -->
-    <SystemTextJsonVersion>9.0.0</SystemTextJsonVersion>
-    <SystemThreadingTasksDataflowVersion>9.0.0</SystemThreadingTasksDataflowVersion>
-    <SystemWindowsExtensionsVersion>9.0.0</SystemWindowsExtensionsVersion>
-    <MicrosoftBclAsyncInterfacesVersion>9.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>5.0.0-1.25277.114</MicrosoftCodeAnalysisAnalyzersVersion>
-    <MicrosoftCodeAnalysisNetAnalyzersVersion>10.0.0-preview.25375.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
-    <MicrosoftDiaSymReaderVersion>2.0.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftExtensionsConfigurationVersion>9.0.0</MicrosoftExtensionsConfigurationVersion>
-    <MicrosoftExtensionsDependencyInjectionVersion>9.0.0</MicrosoftExtensionsDependencyInjectionVersion>
-    <MicrosoftExtensionsFileSystemGlobbingVersion>8.0.0</MicrosoftExtensionsFileSystemGlobbingVersion>
-    <MicrosoftExtensionsLoggingVersion>9.0.0</MicrosoftExtensionsLoggingVersion>
-    <MicrosoftExtensionsLoggingAbstractionsVersion>9.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
-    <MicrosoftExtensionsLoggingConsoleVersion>9.0.0</MicrosoftExtensionsLoggingConsoleVersion>
-    <MicrosoftExtensionsOptionsConfigurationExtensionVersion>8.0.0</MicrosoftExtensionsOptionsConfigurationExtensionVersion>
-    <MicrosoftExtensionsOptionsVersion>9.0.0</MicrosoftExtensionsOptionsVersion>
-    <MicrosoftExtensionsPrimitivesVersion>9.0.0</MicrosoftExtensionsPrimitivesVersion>
     <MicrosoftVSSDKBuildToolsVersion>17.14.1043-preview2</MicrosoftVSSDKBuildToolsVersion>
     <vswhereVersion>3.1.7</vswhereVersion>
     <!--
@@ -88,9 +55,8 @@
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.865</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftIdentityModelJsonWebTokensVersion>6.34.0</MicrosoftIdentityModelJsonWebTokensVersion>
-    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
-    <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
+    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
   </PropertyGroup>
   <!--

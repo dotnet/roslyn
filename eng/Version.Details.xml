@@ -76,6 +76,7 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
+    <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild in VS (would lead to NGEN failures on insertion). -->
     <Dependency Name="System.Text.Json" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
