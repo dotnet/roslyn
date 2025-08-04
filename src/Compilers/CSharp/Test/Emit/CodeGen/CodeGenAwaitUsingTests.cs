@@ -1456,21 +1456,14 @@ class C : System.IAsyncDisposable
             var expectedOutput = "body DisposeAsync end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            // PROTOTYPE: Test dynamic
-            /*comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = """
-                    [Main]: Return value missing on the stack. { Offset = 0x29 }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
-                    """
-            });
-            verifier.VerifyIL("C.Main()", """
-                {
-                  // TODO: Add expected IL here after running test
-                }
-                """);*/
+            // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         await using (dynamic x = new C())
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "x = new C()").WithArguments("C.Main()").WithLocation(6, 30)
+            );
         }
 
         [Fact]
@@ -1500,21 +1493,13 @@ class C : System.IAsyncDisposable
             string expectedOutput = "body DisposeAsync end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            // PROTOTYPE: Test dynamic
-            /*comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = """
-                    [Main]: Return value missing on the stack. { Offset = 0x29 }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
-                    """
-            });
-            verifier.VerifyIL("C.Main()", """
-                {
-                  // TODO: Add expected IL here after running test
-                }
-                """);*/
+            // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         await using (dynamic x = new C())
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "x = new C()").WithArguments("C.Main()").WithLocation(6, 30)
+            );
         }
 
         [Fact]
@@ -2311,21 +2296,80 @@ class C : System.IAsyncDisposable
             string expectedOutput = "body DisposeAsync";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            // PROTOTYPE: Test runtime async with dynamic
-            /*comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            comp.VerifyDiagnostics();
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Main]: Return value missing on the stack. { Offset = 0x29 }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
+                    [Main]: Return value missing on the stack. { Offset = 0x86 }
                     """
             });
+
             verifier.VerifyIL("C.Main()", """
                 {
-                  // TODO: Add expected IL here after running test
+                  // Code size      137 (0x89)
+                  .maxstack  3
+                  .locals init (object V_0, //d
+                                System.IAsyncDisposable V_1,
+                                object V_2,
+                                int V_3)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>> C.<>o__0.<>p__0"
+                  IL_000b:  brtrue.s   IL_0031
+                  IL_000d:  ldc.i4.0
+                  IL_000e:  ldtoken    "System.IAsyncDisposable"
+                  IL_0013:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0018:  ldtoken    "C"
+                  IL_001d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0022:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_0027:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_002c:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>> C.<>o__0.<>p__0"
+                  IL_0031:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>> C.<>o__0.<>p__0"
+                  IL_0036:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>>.Target"
+                  IL_003b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>> C.<>o__0.<>p__0"
+                  IL_0040:  ldloc.0
+                  IL_0041:  callvirt   "System.IAsyncDisposable System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.IAsyncDisposable>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0046:  stloc.1
+                  IL_0047:  ldnull
+                  IL_0048:  stloc.2
+                  IL_0049:  ldc.i4.0
+                  IL_004a:  stloc.3
+                  .try
+                  {
+                    IL_004b:  ldstr      "body "
+                    IL_0050:  call       "void System.Console.Write(string)"
+                    IL_0055:  ldc.i4.1
+                    IL_0056:  stloc.3
+                    IL_0057:  leave.s    IL_005c
+                  }
+                  catch object
+                  {
+                    IL_0059:  stloc.2
+                    IL_005a:  leave.s    IL_005c
+                  }
+                  IL_005c:  ldloc.1
+                  IL_005d:  brfalse.s  IL_006a
+                  IL_005f:  ldloc.1
+                  IL_0060:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0065:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_006a:  ldloc.2
+                  IL_006b:  brfalse.s  IL_0082
+                  IL_006d:  ldloc.2
+                  IL_006e:  isinst     "System.Exception"
+                  IL_0073:  dup
+                  IL_0074:  brtrue.s   IL_0078
+                  IL_0076:  ldloc.2
+                  IL_0077:  throw
+                  IL_0078:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_007d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0082:  ldloc.3
+                  IL_0083:  ldc.i4.1
+                  IL_0084:  bne.un.s   IL_0087
+                  IL_0086:  ret
+                  IL_0087:  ldnull
+                  IL_0088:  throw
                 }
-                """);*/
+                """);
         }
 
         [Fact]

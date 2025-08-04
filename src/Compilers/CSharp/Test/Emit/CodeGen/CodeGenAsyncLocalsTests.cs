@@ -480,6 +480,13 @@ class Test
 42
 ";
             CompileAndVerify(source, expectedOutput: expected, references: new[] { CSharpRef });
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): error CS9328: Method 'Test.F(dynamic)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         return await t;
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await t").WithArguments("Test.F(dynamic)").WithLocation(9, 16)
+            );
         }
 
         [Fact]

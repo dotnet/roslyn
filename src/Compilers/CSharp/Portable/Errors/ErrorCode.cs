@@ -2421,6 +2421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator = 9324,
         ERR_InterpolatedStringHandlerArgumentDisallowed = 9325,
         ERR_MemberNameSameAsExtendedType = 9326,
+        ERR_UnsupportedFeatureInRuntimeAsync = 9328,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

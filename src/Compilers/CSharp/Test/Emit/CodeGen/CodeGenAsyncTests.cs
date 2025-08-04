@@ -2608,6 +2608,13 @@ class Test
     }
 }";
             CompileAndVerify(source, "42");
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): error CS9328: Method 'Test.F1(dynamic)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         return await d;
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await d").WithArguments("Test.F1(dynamic)").WithLocation(9, 16)
+            );
         }
 
         [Fact]
@@ -2805,6 +2812,112 @@ class Driver
         }
 
         [Fact]
+        public void Await40_WithTask()
+        {
+            var source = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C1
+{
+    public async Task<int> Method(int x)
+    {
+        await Task.Delay(1);
+        return x;
+    }
+}
+
+class C2
+{
+    public int Status;
+    public C2(int x = 5)
+    {
+        this.Status = x;
+    }
+
+    public C2(int x, int y)
+    {
+        this.Status = x + y;
+    }
+
+    public int Bar(int x)
+    {
+        return x;
+    }
+}
+
+class TestCase
+{
+    public async Task Run()
+    {
+        int tests = 0;
+
+        try
+        {
+            tests++;
+            dynamic c = new C1();
+            C2 cc = new C2(x: await c.Method(1));
+            if (cc.Status == 1)
+                Driver.Count++;
+
+            tests++;
+            dynamic f = (Func<Task<dynamic>>)(async () => { await Task.Delay(1); return 4; });
+            cc = new C2(await c.Method(2), await f());
+            if (cc.Status == 6)
+                Driver.Count++;
+
+            tests++;
+            var x = new C2(2).Bar(await c.Method(1));
+            if (cc.Status == 6 && x == 1)
+                Driver.Count++;
+        }
+        finally
+        {
+            Driver.Result = Driver.Count - tests;
+            //When test complete, set the flag.
+            Driver.CompletedSignal.Set();
+        }
+    }
+}
+
+class Driver
+{
+    public static int Result = -1;
+    public static int Count = 0;
+    public static AutoResetEvent CompletedSignal = new AutoResetEvent(false);
+    static void Main()
+    {
+        var t = new TestCase();
+        t.Run().Wait();
+
+        CompletedSignal.WaitOne();
+        // 0 - success
+        // 1 - failed (test completed)
+        // -1 - failed (test incomplete - deadlock, etc)
+        Console.WriteLine(Driver.Result);
+    }
+}";
+            CompileAndVerify(source, "0");
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (44,31): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             C2 cc = new C2(x: await c.Method(1));
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(1)").WithArguments("TestCase.Run()").WithLocation(44, 31),
+                // (50,25): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             cc = new C2(await c.Method(2), await f());
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(2)").WithArguments("TestCase.Run()").WithLocation(50, 25),
+                // (50,44): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             cc = new C2(await c.Method(2), await f());
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await f()").WithArguments("TestCase.Run()").WithLocation(50, 44),
+                // (55,35): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             var x = new C2(2).Bar(await c.Method(1));
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(1)").WithArguments("TestCase.Run()").WithLocation(55, 35)
+            );
+        }
+
+        [Fact]
         public void Await43()
         {
             var source = @"
@@ -2886,6 +2999,103 @@ class Driver
         }
 
         [Fact]
+        public void Await43_WithTask()
+        {
+            var source = @"
+using System.Threading;
+using System.Threading.Tasks;
+using System;
+
+struct MyClass
+{
+    public static Task operator *(MyClass c, int x)
+    {
+        return Task.Run(async delegate
+        {
+            await Task.Delay(1);
+            TestCase.Count++;
+        });
+    }
+
+    public static Task operator +(MyClass c, long x)
+    {
+        return Task.Run(async () =>
+        {
+            await Task.Delay(1);
+            TestCase.Count++;
+        });
+    }
+}
+
+class TestCase
+{
+    public static int Count = 0;
+    private int tests;
+    public async Task Run()
+    {
+        this.tests = 0;
+        dynamic dy = Task.Run<MyClass>(async () => { await Task.Delay(1); return new MyClass(); });
+
+        try
+        {
+            this.tests++;
+            await (await dy * 5);
+
+            this.tests++;
+            dynamic d = new MyClass();
+            dynamic dd = Task.Run<long>(async () => { await Task.Delay(1); return 1L; });
+            await (d + await dd);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Console.WriteLine(ex.StackTrace);
+        }
+        finally
+        {
+            Driver.Result = TestCase.Count - this.tests;
+            //When test complete, set the flag.
+            Driver.CompletedSignal.Set();
+        }
+    }
+}
+
+class Driver
+{
+    public static int Result = -1;
+    public static AutoResetEvent CompletedSignal = new AutoResetEvent(false);
+    static void Main()
+    {
+        var t = new TestCase();
+        t.Run().Wait();
+
+        CompletedSignal.WaitOne();
+        // 0 - success
+        // 1 - failed (test completed)
+        // -1 - failed (test incomplete - deadlock, etc)
+        Console.WriteLine(Driver.Result);
+    }
+}";
+            CompileAndVerify(source, "0");
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (39,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             await (await dy * 5);
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await (await dy * 5)").WithArguments("TestCase.Run()").WithLocation(39, 13),
+                // (39,20): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             await (await dy * 5);
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await dy").WithArguments("TestCase.Run()").WithLocation(39, 20),
+                // (44,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             await (d + await dd);
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await (d + await dd)").WithArguments("TestCase.Run()").WithLocation(44, 13),
+                // (44,24): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             await (d + await dd);
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await dd").WithArguments("TestCase.Run()").WithLocation(44, 24)
+            );
+        }
+
+        [Fact]
         public void Await44()
         {
             var source = @"
@@ -2949,6 +3159,79 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+        }
+
+        [Fact]
+        public void Await44_WithTask()
+        {
+            var source = @"
+using System.Threading;
+using System.Threading.Tasks;
+using System;
+
+class MyClass
+{
+    public static implicit operator Task(MyClass c)
+    {
+        return Task.Run(async delegate
+        {
+            await Task.Delay(1);
+            TestCase.Count++;
+        });
+    }
+}
+class TestCase
+{
+    public static int Count = 0;
+    private int tests;
+    public async Task Run()
+    {
+        this.tests = 0;
+        dynamic mc = new MyClass();
+
+        try
+        {
+            tests++;
+            Task t1 = mc;
+            await t1;
+
+            tests++;
+            dynamic t2 = (Task)mc;
+            await t2;
+        }
+        finally
+        {
+            Driver.Result = TestCase.Count - this.tests;
+            //When test complete, set the flag.
+            Driver.CompletedSignal.Set();
+        }
+    }
+}
+
+class Driver
+{
+    public static int Result = -1;
+    public static AutoResetEvent CompletedSignal = new AutoResetEvent(false);
+    static void Main()
+    {
+        var t = new TestCase();
+        t.Run().Wait();
+
+        CompletedSignal.WaitOne();
+        // 0 - success
+        // 1 - failed (test completed)
+        // -1 - failed (test incomplete - deadlock, etc)
+        Console.WriteLine(Driver.Result);
+    }
+}";
+            CompileAndVerify(source, "0");
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (34,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             await t2;
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await t2").WithArguments("TestCase.Run()").WithLocation(34, 13)
+            );
         }
 
         [Fact]
@@ -4520,6 +4803,77 @@ class Driver
 }";
             var expected = @"0";
             CompileAndVerify(source, expectedOutput: expected);
+        }
+
+        [WorkItem(640282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640282")]
+        [Fact]
+        public void CustomAsyncWithDynamic01_WithTask()
+        {
+            var source = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class MyTask
+{
+    public dynamic GetAwaiter()
+    {
+        return new MyTaskAwaiter<Action>();
+    }
+
+    public async Task Run<T>()
+    {
+        int tests = 0;
+
+        tests++;
+        dynamic myTask = new MyTask();
+        var x = await myTask;
+        if (x == 123) Driver.Count++;
+
+        Driver.Result = Driver.Count - tests;
+        //When test complete, set the flag.
+        Driver.CompletedSignal.Set();
+    }
+}
+class MyTaskAwaiter<U>
+{
+    public void OnCompleted(U continuationAction)
+    {
+    }
+
+    public int GetResult()
+    {
+        return 123;
+    }
+
+    public dynamic IsCompleted { get { return true; } }
+}
+class Driver
+{
+    public static int Result = -1;
+    public static int Count = 0;
+    public static AutoResetEvent CompletedSignal = new AutoResetEvent(false);
+    public static void Main()
+    {
+        new MyTask().Run<int>().Wait();
+
+        CompletedSignal.WaitOne();
+
+        // 0 - success
+        // 1 - failed (test completed)
+        // -1 - failed (test incomplete - deadlock, etc)
+        Console.WriteLine(Driver.Result);
+    }
+}";
+            var expected = @"0";
+            CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,17): error CS9328: Method 'MyTask.Run<T>()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         var x = await myTask;
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await myTask").WithArguments("MyTask.Run<T>()").WithLocation(19, 17)
+            );
         }
 
         [WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]

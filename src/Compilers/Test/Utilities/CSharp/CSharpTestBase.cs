@@ -1230,7 +1230,6 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 """;
         #endregion A string containing expression-tree dumping utilities
 
-        // PROTOTYPE: Finalize shape
         internal const string RuntimeAsyncAwaitHelpers = """
             namespace System.Runtime.CompilerServices
             {
