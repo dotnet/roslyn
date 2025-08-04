@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Completion;
@@ -35,11 +34,9 @@ internal sealed class CSharpContextProviderService : ICSharpCopilotContextProvid
 
     public async IAsyncEnumerable<IContextItem> GetContextItemsAsync(Document document, int position, IReadOnlyDictionary<string, object> activeExperiments, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var items = await ProducerConsumer<IContextItem>.RunParallelAsync(
-        source: this.Providers,
-        produceItems: static async (provider, callback, args, cancellationToken) =>
+        var queue = new AsyncQueue<IContextItem>();
+        var tasks = this.Providers.Select(provider => Task.Run(async () =>
         {
-            var (document, position, activeExperiments) = args;
             try
             {
                 await provider.ProvideContextItemsAsync(document, position, activeExperiments, ProvideItemsAsync, cancellationToken).ConfigureAwait(false);
@@ -47,23 +44,42 @@ internal sealed class CSharpContextProviderService : ICSharpCopilotContextProvid
             catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception, ErrorSeverity.General))
             {
             }
-
-            ValueTask ProvideItemsAsync(ImmutableArray<IContextItem> items, CancellationToken cancellationToken)
-            {
-                foreach (var item in items)
-                {
-                    callback(item);
-                }
-
-                return default;
-            }
         },
-        args: (document, position, activeExperiments),
-        cancellationToken).ConfigureAwait(false);
+        cancellationToken));
 
-        foreach (var item in items)
+        // Let all providers run in parallel in the background, so we can steam results as they come in.
+        // Complete the queue when all providers are done.
+        _ = Task.WhenAll(tasks)
+            .ContinueWith((_, __) => queue.Complete(),
+                          null,
+                          cancellationToken,
+                          TaskContinuationOptions.ExecuteSynchronously,
+                          TaskScheduler.Default);
+
+        while (true)
         {
+            IContextItem item;
+            try
+            {
+                item = await queue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Dequeue is cancelled because the queue is empty and completed, we can break out of the loop.
+                break;
+            }
+
             yield return item;
+        }
+
+        ValueTask ProvideItemsAsync(ImmutableArray<IContextItem> items, CancellationToken cancellationToken)
+        {
+            foreach (var item in items)
+            {
+                queue.Enqueue(item);
+            }
+
+            return default;
         }
     }
 }
