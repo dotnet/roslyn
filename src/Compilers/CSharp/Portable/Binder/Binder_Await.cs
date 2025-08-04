@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.HasDynamicType())
             {
-                // PROTOTYPE: Handle runtime async here
+                // https://github.com/dotnet/roslyn/issues/79762: Handle runtime async here
                 isDynamic = true;
                 return true;
             }

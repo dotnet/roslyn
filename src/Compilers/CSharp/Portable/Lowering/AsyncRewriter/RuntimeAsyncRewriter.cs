@@ -22,7 +22,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             return node;
         }
 
-        // PROTOTYPE: struct lifting
+        // https://github.com/dotnet/roslyn/issues/79763: struct lifting
         var rewriter = new RuntimeAsyncRewriter(new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
         var result = (BoundStatement)rewriter.Visit(node);
         return SpillSequenceSpiller.Rewrite(result, method, compilationState, diagnostics);
@@ -50,6 +50,18 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         Debug.Assert(nodeType is not null);
 
         var awaitableInfo = node.AwaitableInfo;
+
+        if (awaitableInfo.IsDynamic)
+        {
+            // https://github.com/dotnet/roslyn/issues/79762: await dynamic will need runtime checks, see AsyncMethodToStateMachine.GenerateAwaitOnCompletedDynamic
+            Debug.Assert(_factory.CurrentFunction is not null);
+            // Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+            _factory.Diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync,
+                node.Syntax.Location,
+                _factory.CurrentFunction);
+            return node;
+        }
+
         var runtimeAsyncAwaitCall = awaitableInfo.RuntimeAsyncAwaitCall;
         Debug.Assert(runtimeAsyncAwaitCall is not null);
         Debug.Assert(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder is not null);
@@ -84,8 +96,6 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         // if (!_tmp.IsCompleted)
         //    UnsafeAwaitAwaiter(_tmp) OR AwaitAwaiter(_tmp);
         // _tmp.GetResult()
-
-        // PROTOTYPE: await dynamic will need runtime checks, see AsyncMethodToStateMachine.GenerateAwaitOnCompletedDynamic
 
         var expr = VisitExpression(node.Expression);
 

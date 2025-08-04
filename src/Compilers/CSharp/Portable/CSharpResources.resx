@@ -8221,4 +8221,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MemberNameSameAsExtendedType" xml:space="preserve">
     <value>'{0}': extension member names cannot be the same as their extended type</value>
   </data>
+  <data name="ERR_UnsupportedFeatureInRuntimeAsync" xml:space="preserve">
+    <value>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</value>
+  </data>
 </root>

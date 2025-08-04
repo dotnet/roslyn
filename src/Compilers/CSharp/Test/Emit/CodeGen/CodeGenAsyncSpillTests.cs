@@ -5751,8 +5751,6 @@ class Driver
                 //         t.Run();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "t.Run()").WithLocation(61, 9)
             );
-
-            // PROTOTYPE: verify that this falls back to normal async codegen because of dynamic
         }
 
         [Fact]
@@ -6858,13 +6856,13 @@ class Driver
                 """);
         }
 
-        [Fact(Skip = "PROTOTYPE: dynamic support")]
+        [Fact]
         public void Async_StackSpill_Argument_Generic04()
         {
             var source = @"
 using System;
 using System.Threading.Tasks;
-public class mc<T>
+public class MC<T>
 {
     async public System.Threading.Tasks.Task<dynamic> Goo<V>(T t, V u) { await Task.Delay(1); return u; }
 }
@@ -6873,7 +6871,7 @@ class Test
 {
     static async Task<int> Goo()
     {
-        dynamic mc = new mc<string>();
+        dynamic mc = new MC<string>();
         var rez = await mc.Goo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return ""Test""; }))());
         if (rez == ""Test"")
             return 0;
@@ -6888,17 +6886,11 @@ class Test
             CompileAndVerify(source, "0", references: new[] { CSharpRef });
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
-            {
-                ILVerifyMessage = """
-                    ILVerify: Async_StackSpill_Argument_Generic040
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Test.G()", """
-                Baseline IL: Async_StackSpill_Argument_Generic041
-                """);
+            comp.VerifyEmitDiagnostics(
+                // (14,19): error CS9328: Method 'Test.Goo()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         var rez = await mc.Goo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return "Test"; }))());
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, @"await mc.Goo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return ""Test""; }))())").WithArguments("Test.Goo()").WithLocation(14, 19)
+            );
         }
 
         [Fact]

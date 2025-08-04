@@ -2104,10 +2104,13 @@ class C
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
-            comp.VerifyDiagnostics(
-                // (6,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
-                //         await foreach (var i in (dynamic)new C())
-                Diagnostic(ErrorCode.ERR_BadDynamicAwaitForEach, "(dynamic)new C()").WithLocation(6, 33));
+            // (6,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
+            //         await foreach (var i in (dynamic)new C())
+            DiagnosticDescription expected = Diagnostic(ErrorCode.ERR_BadDynamicAwaitForEach, "(dynamic)new C()").WithLocation(6, 33);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -11988,12 +11991,14 @@ public static class Extensions
 {
     public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
+            // (9,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
+            //         await foreach (var i in (dynamic)new C())
+            DiagnosticDescription expected = Diagnostic(ErrorCode.ERR_BadDynamicAwaitForEach, "(dynamic)new C()").WithLocation(9, 33);
             CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
-                .VerifyDiagnostics(
-                    // (9,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
-                    //         await foreach (var i in (dynamic)new C())
-                    Diagnostic(ErrorCode.ERR_BadDynamicAwaitForEach, "(dynamic)new C()").WithLocation(9, 33)
-                    );
+                .VerifyDiagnostics(expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
