@@ -710,11 +710,11 @@ public sealed class FindReferencesTests : TestBase
 
         // CRITICAL TEST: In "InnerC.Field = 5", InnerC should be READ (not written)
         // This is the key assertion - in a.b.c = 5, 'b' (InnerC) is read to access 'c' (Field)
-        Assert.True(innerCUsage.SymbolUsageInfo.IsReadFrom(), 
+        Assert.True(innerCUsage.SymbolUsageInfo.IsReadFrom(),
             "InnerC should be READ in 'InnerC.Field = 5'. " +
             $"The walk-up logic should not affect this. UsageInfo: {innerCUsage.SymbolUsageInfo}");
 
-        Assert.False(innerCUsage.SymbolUsageInfo.IsWrittenTo(), 
+        Assert.False(innerCUsage.SymbolUsageInfo.IsWrittenTo(),
             "InnerC should NOT be WRITTEN in 'InnerC.Field = 5'. " +
             $"Only Field should be written. UsageInfo: {innerCUsage.SymbolUsageInfo}");
 
@@ -727,7 +727,7 @@ public sealed class FindReferencesTests : TestBase
 
         var fieldUsage = fieldLocations.Single();
 
-        Assert.True(fieldUsage.SymbolUsageInfo.IsWrittenTo(), 
+        Assert.True(fieldUsage.SymbolUsageInfo.IsWrittenTo(),
             "Field should be WRITTEN in 'InnerC.Field = 5'. " +
             $"UsageInfo: {fieldUsage.SymbolUsageInfo}");
     }
