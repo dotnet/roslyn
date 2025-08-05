@@ -40,25 +40,8 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
     /// </summary>
     public void StartListening(Workspace workspace)
     {
-        _ = workspace.RegisterWorkspaceChangedHandler(Workspace_WorkspaceChanged);
-    }
-
-    private void Workspace_WorkspaceChanged(WorkspaceChangeEventArgs e)
-    {
-        if (e.Kind == WorkspaceChangeKind.SolutionAdded)
-        {
-            // Normally VS will load the language client when an editor window is created for one of our content types,
-            // but we want to load it as soon as a solution is loaded so workspace diagnostics work, and so 3rd parties
-            // like Razor can use dynamic registration.
-            LoadLanguageClient();
-        }
-        else if (e.Kind is WorkspaceChangeKind.SolutionRemoved)
-        {
-            // VS will unload the language client when the solution is closed, but sometimes its a little slow to do so,
-            // and we can end up trying to load it, above, before it has been asked to unload. We wait for the previous
-            // instance to shutdown when we load, but we have to ensure that it at least gets signaled to do so first.
-            UnloadLanguageClient();
-        }
+        // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
+        Load();
     }
 
     public void StopListening(Workspace workspace)
@@ -66,13 +49,14 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
         // Nothing to do here.  There's no concept of unloading an ILanguageClient.
     }
 
-    private void LoadLanguageClient()
+    private void Load()
     {
-        using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadLanguageClient));
+        using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(Load));
         LoadAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
 
         async Task LoadAsync()
         {
+
             // Explicitly switch to the bg so that if this causes any expensive work (like mef loads) it 
             // doesn't block the UI thread. Note, we always yield because sometimes our caller starts
             // on the threadpool thread but is indirectly blocked on by the UI thread.
@@ -85,14 +69,6 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
                 ContentTypeNames.FSharpContentType
             ]), _languageClient).ConfigureAwait(false);
         }
-    }
-
-    private void UnloadLanguageClient()
-    {
-        // We just want to signal that an unload should happen, in case the above call to Load comes in quick.
-        // We don't want to wait for it to complete, not do we care about errors that may occur during the unload.
-        // The language client/server does its own error reporting as necessary.
-        _languageClient.StopServerAsync().Forget();
     }
 
     /// <summary>
