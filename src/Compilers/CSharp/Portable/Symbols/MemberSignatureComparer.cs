@@ -440,7 +440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerDefaultValues: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
-
         /// <summary>
         /// This instance is used to determine if two extension blocks match in IL sense and thus are allowed to share a grouping type.
         /// It ignores parameter and type parameter names, parameter ref kind, C#-isms in type constraints, nullability and attributes.

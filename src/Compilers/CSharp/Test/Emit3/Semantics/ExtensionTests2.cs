@@ -27853,7 +27853,7 @@ public unsafe static class E
 public interface I<T> { }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
-        CompileAndVerify(comp).VerifyDiagnostics();
+        CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         var extension1 = (SourceNamedTypeSymbol)extensions[0];
@@ -27878,7 +27878,7 @@ public unsafe static class E
 public interface I<T> { }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
-        CompileAndVerify(comp).VerifyDiagnostics();
+        CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         var extension1 = (SourceNamedTypeSymbol)extensions[0];

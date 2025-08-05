@@ -1608,10 +1608,10 @@ public interface I<T> { }
             MetadataReference netmoduleRef = ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray()).GetReference(display: assemblyName + ".netmodule");
 
             var comp = CreateCompilation("", references: [netmoduleRef], targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, symbolValidator: validate);
+            CompileAndVerify(comp, symbolValidator: validate, verify: Verification.FailsPEVerify);
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, symbolValidator: validate);
+            CompileAndVerify(comp, symbolValidator: validate, verify: Verification.FailsPEVerify);
 
             static void validate(ModuleSymbol module)
             {
