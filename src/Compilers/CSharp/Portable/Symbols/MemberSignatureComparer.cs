@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerCallingConvention: true,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -91,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -112,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -129,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -146,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -163,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -180,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: false,
             considerDefaultValues: false,
@@ -198,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: false,
             considerDefaultValues: false,
@@ -214,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -231,6 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -248,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -265,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -283,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -300,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -319,6 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -335,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -353,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -370,6 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.RefMatchesOutInRefReadonly,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -386,6 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -403,6 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -419,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: true,
@@ -435,13 +457,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: false,
             considerDefaultValues: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
-        /// This instance is used to determine if two extension blocks match in IL sense and thus are allowed to share a grouping type.
+        /// This instance is used to determine if two source extension blocks match in IL sense and thus are allowed to share a grouping type.
         /// It ignores parameter and type parameter names, parameter ref kind, C#-isms in type constraints, nullability and attributes.
         /// </summary>
         public static readonly MemberSignatureComparer ExtensionILSignatureComparer = new MemberSignatureComparer(
@@ -452,13 +475,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.IgnoreRefKind,
             considerTypeParameterAndParameterNames: false,
+            considerScoped: false,
             considerAttributes: false,
             considerTypeParameters: true,
             considerDefaultValues: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
-        /// This instance is used to determine if two extension blocks match in C# sense and thus are allowed to share a marker type.
+        /// This instance is used to determine if two source extension blocks match in C# sense and thus are allowed to share a marker type.
         /// It considers parameter and type parameter names, type constraints, nullability and attributes.
         /// </summary>
         public static readonly MemberSignatureComparer ExtensionCSharpSignatureComparer = new MemberSignatureComparer(
@@ -469,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerTypeParameterAndParameterNames: true,
+            considerScoped: true,
             considerAttributes: true,
             considerTypeParameters: true,
             considerDefaultValues: false,
@@ -501,7 +526,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeCompareKind _typeComparison;
 
         // Compare parameter and type parameter names
-        private readonly bool _considerParameterNames;
+        private readonly bool _considerTypeParameterAndParameterNames;
+
+        // Compare declared scopedness of parameters (only valid on source symbols)
+        private readonly bool _considerScoped;
 
         // Compare attributes too.
         // Note: the order of named arguments is ignored
@@ -515,10 +543,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerCallingConvention,
             RefKindCompareMode refKindCompareMode,
             bool considerTypeParameterAndParameterNames,
+            bool considerScoped,
             bool considerAttributes,
             bool considerTypeParameters,
-            bool considerDefaultValues,
-            TypeCompareKind typeComparison)
+            bool considerDefaultValues, TypeCompareKind typeComparison)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
             Debug.Assert(!considerTypeConstraints || considerTypeParameters, "If you consider type constraints, you must also consider type parameters");
@@ -544,7 +572,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
             }
 
-            _considerParameterNames = considerTypeParameterAndParameterNames;
+            _considerTypeParameterAndParameterNames = considerTypeParameterAndParameterNames;
+            _considerScoped = considerScoped;
             _considerAttributes = considerAttributes;
         }
 
@@ -594,12 +623,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                     }
 
-                    if (member1.GetMemberArity() > 0 && (_considerParameterNames || _considerAttributes))
+                    if (member1.GetMemberArity() > 0 && (_considerTypeParameterAndParameterNames || _considerAttributes))
                     {
                         ImmutableArray<TypeParameterSymbol> typeParams1 = member1.GetMemberTypeParameters();
                         ImmutableArray<TypeParameterSymbol> typeParams2 = member2.GetMemberTypeParameters();
 
-                        if (_considerParameterNames && !haveSameTypeParameterNames(typeParams1, typeParams2))
+                        if (_considerTypeParameterAndParameterNames && !haveSameTypeParameterNames(typeParams1, typeParams2))
                         {
                             return false;
                         }
@@ -629,12 +658,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var params1 = getParametersIncludingParameterOfExtension(member1);
                     var params2 = getParametersIncludingParameterOfExtension(member2);
                     if (!HaveSameParameterTypes(params1.AsSpan(), typeMap1, params2.AsSpan(), typeMap2,
-                        _refKindCompareMode, considerDefaultValues: _considerDefaultValues, _typeComparison))
+                        _refKindCompareMode, considerDefaultValues: _considerDefaultValues, considerScoped: _considerScoped, _typeComparison))
                     {
                         return false;
                     }
 
-                    if (_considerParameterNames && !haveSameParameterNames(params1, params2))
+                    if (_considerTypeParameterAndParameterNames && !haveSameParameterNames(params1, params2))
                     {
                         return false;
                     }
@@ -1060,6 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap? typeMap2,
             RefKindCompareMode refKindCompareMode,
             bool considerDefaultValues,
+            bool considerScoped,
             TypeCompareKind typeComparison)
         {
             Debug.Assert(params1.Length == params2.Length);
@@ -1068,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < numParams; i++)
             {
-                if (!HaveSameParameterType(params1[i], typeMap1, params2[i], typeMap2, refKindCompareMode, considerDefaultValues, typeComparison))
+                if (!HaveSameParameterType(params1[i], typeMap1, params2[i], typeMap2, refKindCompareMode, considerDefaultValues, considerScoped, typeComparison))
                 {
                     return false;
                 }
@@ -1084,6 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap? typeMap2,
             RefKindCompareMode refKindCompareMode,
             bool considerDefaultValues,
+            bool considerScoped,
             TypeCompareKind typeComparison)
         {
             var type1 = SubstituteType(typeMap1, param1.TypeWithAnnotations);
@@ -1095,6 +1126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (considerDefaultValues && param1.ExplicitDefaultConstantValue != param2.ExplicitDefaultConstantValue)
+            {
+                return false;
+            }
+
+            if (considerScoped && param1.DeclaredScope != param2.DeclaredScope)
             {
                 return false;
             }

@@ -27916,5 +27916,29 @@ public static class E
         Assert.False(MemberSignatureComparer.ExtensionILSignatureComparer.Equals((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
         Assert.False(MemberSignatureComparer.ExtensionCSharpSignatureComparer.Equals(extension1, extension2));
     }
+
+    [Fact]
+    public void Grouping_67()
+    {
+        var src = """
+public static class E
+{
+    extension(scoped ref RS s) { }
+    extension(ref RS s) { }
+}
+
+public ref struct RS { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        var extension1 = (SourceNamedTypeSymbol)extensions[0];
+        var extension2 = (SourceNamedTypeSymbol)extensions[1];
+        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
+        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
+        Assert.True(MemberSignatureComparer.ExtensionILSignatureComparer.Equals((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        Assert.False(MemberSignatureComparer.ExtensionCSharpSignatureComparer.Equals(extension1, extension2));
+    }
 }
 

@@ -199,6 +199,7 @@ internal sealed class ModuleCancellationInstrumenter(
                         typeMap,
                         MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
                         considerDefaultValues: false,
+                        considerScoped: false,
                         TypeComparisonKind) &&
                     MemberSignatureComparer.HaveSameReturnTypes(
                         methodDefinition,

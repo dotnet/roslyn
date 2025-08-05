@@ -534,6 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             typeMap,
                             MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
                             considerDefaultValues: false,
+                            considerScoped: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
                         continue;
@@ -546,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             typeMap,
                             MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
                             considerDefaultValues: false,
+                            considerScoped: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
                         continue;
