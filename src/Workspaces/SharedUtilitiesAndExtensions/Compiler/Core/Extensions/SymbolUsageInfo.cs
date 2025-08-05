@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using static System.IO.Hashing.XxHashShared;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -139,7 +140,7 @@ internal readonly record struct SymbolUsageInfo
                     return Create(TypeOrNamespaceUsageInfo.ObjectCreation);
 
                 // Note: sizeof/typeof also return 'name', but are handled above in GetSymbolUsageInfo.
-                if (operation?.Parent is INameOfOperation)
+                if (IsInNameOfOperation(node))
                     return Create(ValueUsageInfo.Name);
 
                 if (node.IsPartOfStructuredTrivia())
@@ -183,6 +184,26 @@ internal readonly record struct SymbolUsageInfo
 
                 return SymbolUsageInfo.None;
             }
+        }
+
+        bool IsInNameOfOperation(SyntaxNode node)
+        {
+            // Walk up out of the member access expression. This way if we have something like
+            // nameof(C.Goo()), we ensure that operation.Parent is the INameOfOperation. 
+
+            while (syntaxFacts.IsMemberAccessExpression(node?.Parent))
+                node = node.Parent;
+
+            if (node is null)
+                return false;
+
+            var operation = semanticModel.GetOperation(node, cancellationToken);
+
+            // Note: sizeof/typeof also return 'name', but are handled in GetSymbolUsageInfo.
+            if (operation?.Parent is INameOfOperation)
+                return true;
+
+            return false;
         }
     }
 
