@@ -4068,6 +4068,633 @@ class Driver
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails);
             // PROTOTYPE: ILVerify is crashing with IndexOutOfRangeException when attempting to get messages.
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.<<Main>$>g__Run|0_0()", getIL());
+
+            string getIL() => (await1, await2, await3) switch
+            {
+                (false, false, false) => """
+                    {
+                      // Code size       23 (0x17)
+                      .maxstack  1
+                      .try
+                      {
+                        IL_0000:  newobj     "Exception1..ctor()"
+                        IL_0005:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0006:  pop
+                        .try
+                        {
+                          IL_0007:  newobj     "Exception2..ctor()"
+                          IL_000c:  throw
+                        }
+                        catch Exception2
+                        {
+                          IL_000d:  pop
+                          .try
+                          {
+                            IL_000e:  newobj     "Exception3..ctor()"
+                            IL_0013:  throw
+                          }
+                          catch Exception3
+                          {
+                            IL_0014:  pop
+                            IL_0015:  rethrow
+                          }
+                        }
+                      }
+                    }
+                    """,
+                (true, false, false) => """
+                    {
+                      // Code size       70 (0x46)
+                      .maxstack  2
+                      .locals init (int V_0,
+                                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                                    System.Runtime.CompilerServices.YieldAwaitable V_2)
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  stloc.0
+                      .try
+                      {
+                        IL_0002:  newobj     "Exception1..ctor()"
+                        IL_0007:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0008:  pop
+                        IL_0009:  ldc.i4.1
+                        IL_000a:  stloc.0
+                        IL_000b:  leave.s    IL_000d
+                      }
+                      IL_000d:  ldloc.0
+                      IL_000e:  ldc.i4.1
+                      IL_000f:  bne.un.s   IL_0046
+                      IL_0011:  nop
+                      .try
+                      {
+                        IL_0012:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_0017:  stloc.2
+                        IL_0018:  ldloca.s   V_2
+                        IL_001a:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_001f:  stloc.1
+                        IL_0020:  ldloca.s   V_1
+                        IL_0022:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_0027:  brtrue.s   IL_002f
+                        IL_0029:  ldloc.1
+                        IL_002a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_002f:  ldloca.s   V_1
+                        IL_0031:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_0036:  newobj     "Exception2..ctor()"
+                        IL_003b:  throw
+                      }
+                      catch Exception2
+                      {
+                        IL_003c:  pop
+                        .try
+                        {
+                          IL_003d:  newobj     "Exception3..ctor()"
+                          IL_0042:  throw
+                        }
+                        catch Exception3
+                        {
+                          IL_0043:  pop
+                          IL_0044:  rethrow
+                        }
+                      }
+                    }
+                    """,
+                (false, true, false) => """
+                    {
+                      // Code size       80 (0x50)
+                      .maxstack  2
+                      .locals init (int V_0,
+                                    int V_1,
+                                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                                    System.Runtime.CompilerServices.YieldAwaitable V_3)
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  stloc.0
+                      .try
+                      {
+                        IL_0002:  newobj     "Exception1..ctor()"
+                        IL_0007:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0008:  pop
+                        IL_0009:  ldc.i4.1
+                        IL_000a:  stloc.0
+                        IL_000b:  leave.s    IL_000d
+                      }
+                      IL_000d:  ldloc.0
+                      IL_000e:  ldc.i4.1
+                      IL_000f:  bne.un.s   IL_0050
+                      IL_0011:  ldc.i4.0
+                      IL_0012:  stloc.1
+                      .try
+                      {
+                        IL_0013:  newobj     "Exception2..ctor()"
+                        IL_0018:  throw
+                      }
+                      catch Exception2
+                      {
+                        IL_0019:  pop
+                        IL_001a:  ldc.i4.1
+                        IL_001b:  stloc.1
+                        IL_001c:  leave.s    IL_001e
+                      }
+                      IL_001e:  ldloc.1
+                      IL_001f:  ldc.i4.1
+                      IL_0020:  bne.un.s   IL_0050
+                      IL_0022:  nop
+                      .try
+                      {
+                        IL_0023:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_0028:  stloc.3
+                        IL_0029:  ldloca.s   V_3
+                        IL_002b:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_0030:  stloc.2
+                        IL_0031:  ldloca.s   V_2
+                        IL_0033:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_0038:  brtrue.s   IL_0040
+                        IL_003a:  ldloc.2
+                        IL_003b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_0040:  ldloca.s   V_2
+                        IL_0042:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_0047:  newobj     "Exception3..ctor()"
+                        IL_004c:  throw
+                      }
+                      catch Exception3
+                      {
+                        IL_004d:  pop
+                        IL_004e:  rethrow
+                      }
+                    }
+                    """,
+                (false, false, true) => """
+                    {
+                      // Code size      113 (0x71)
+                      .maxstack  2
+                      .locals init (int V_0,
+                                    int V_1,
+                                    object V_2,
+                                    int V_3,
+                                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_4,
+                                    System.Runtime.CompilerServices.YieldAwaitable V_5)
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  stloc.0
+                      .try
+                      {
+                        IL_0002:  newobj     "Exception1..ctor()"
+                        IL_0007:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0008:  pop
+                        IL_0009:  ldc.i4.1
+                        IL_000a:  stloc.0
+                        IL_000b:  leave.s    IL_000d
+                      }
+                      IL_000d:  ldloc.0
+                      IL_000e:  ldc.i4.1
+                      IL_000f:  bne.un.s   IL_0071
+                      IL_0011:  ldc.i4.0
+                      IL_0012:  stloc.1
+                      .try
+                      {
+                        IL_0013:  newobj     "Exception2..ctor()"
+                        IL_0018:  throw
+                      }
+                      catch Exception2
+                      {
+                        IL_0019:  pop
+                        IL_001a:  ldc.i4.1
+                        IL_001b:  stloc.1
+                        IL_001c:  leave.s    IL_001e
+                      }
+                      IL_001e:  ldloc.1
+                      IL_001f:  ldc.i4.1
+                      IL_0020:  bne.un.s   IL_0071
+                      IL_0022:  ldc.i4.0
+                      IL_0023:  stloc.3
+                      .try
+                      {
+                        IL_0024:  newobj     "Exception3..ctor()"
+                        IL_0029:  throw
+                      }
+                      catch Exception3
+                      {
+                        IL_002a:  stloc.2
+                        IL_002b:  ldc.i4.1
+                        IL_002c:  stloc.3
+                        IL_002d:  leave.s    IL_002f
+                      }
+                      IL_002f:  ldloc.3
+                      IL_0030:  ldc.i4.1
+                      IL_0031:  bne.un.s   IL_0071
+                      IL_0033:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                      IL_0038:  stloc.s    V_5
+                      IL_003a:  ldloca.s   V_5
+                      IL_003c:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                      IL_0041:  stloc.s    V_4
+                      IL_0043:  ldloca.s   V_4
+                      IL_0045:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                      IL_004a:  brtrue.s   IL_0053
+                      IL_004c:  ldloc.s    V_4
+                      IL_004e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                      IL_0053:  ldloca.s   V_4
+                      IL_0055:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                      IL_005a:  ldloc.2
+                      IL_005b:  isinst     "System.Exception"
+                      IL_0060:  dup
+                      IL_0061:  brtrue.s   IL_0065
+                      IL_0063:  ldloc.2
+                      IL_0064:  throw
+                      IL_0065:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_006a:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_006f:  br.s       IL_0071
+                    }
+                    """,
+                (true, true, false) => """
+                    {
+                      // Code size      116 (0x74)
+                      .maxstack  2
+                      .locals init (int V_0,
+                                    int V_1,
+                                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                                    System.Runtime.CompilerServices.YieldAwaitable V_3)
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  stloc.0
+                      .try
+                      {
+                        IL_0002:  newobj     "Exception1..ctor()"
+                        IL_0007:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0008:  pop
+                        IL_0009:  ldc.i4.1
+                        IL_000a:  stloc.0
+                        IL_000b:  leave.s    IL_000d
+                      }
+                      IL_000d:  ldloc.0
+                      IL_000e:  ldc.i4.1
+                      IL_000f:  bne.un.s   IL_0074
+                      IL_0011:  ldc.i4.0
+                      IL_0012:  stloc.1
+                      .try
+                      {
+                        IL_0013:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_0018:  stloc.3
+                        IL_0019:  ldloca.s   V_3
+                        IL_001b:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_0020:  stloc.2
+                        IL_0021:  ldloca.s   V_2
+                        IL_0023:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_0028:  brtrue.s   IL_0030
+                        IL_002a:  ldloc.2
+                        IL_002b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_0030:  ldloca.s   V_2
+                        IL_0032:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_0037:  newobj     "Exception2..ctor()"
+                        IL_003c:  throw
+                      }
+                      catch Exception2
+                      {
+                        IL_003d:  pop
+                        IL_003e:  ldc.i4.1
+                        IL_003f:  stloc.1
+                        IL_0040:  leave.s    IL_0042
+                      }
+                      IL_0042:  ldloc.1
+                      IL_0043:  ldc.i4.1
+                      IL_0044:  bne.un.s   IL_0074
+                      IL_0046:  nop
+                      .try
+                      {
+                        IL_0047:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_004c:  stloc.3
+                        IL_004d:  ldloca.s   V_3
+                        IL_004f:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_0054:  stloc.2
+                        IL_0055:  ldloca.s   V_2
+                        IL_0057:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_005c:  brtrue.s   IL_0064
+                        IL_005e:  ldloc.2
+                        IL_005f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_0064:  ldloca.s   V_2
+                        IL_0066:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_006b:  newobj     "Exception3..ctor()"
+                        IL_0070:  throw
+                      }
+                      catch Exception3
+                      {
+                        IL_0071:  pop
+                        IL_0072:  rethrow
+                      }
+                    }
+                    """,
+                (true, false, true) => """
+                    {
+                      // Code size      155 (0x9b)
+                      .maxstack  2
+                      .locals init (int V_0,
+                                    int V_1,
+                                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                                    System.Runtime.CompilerServices.YieldAwaitable V_3,
+                                    object V_4,
+                                    int V_5)
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  stloc.0
+                      .try
+                      {
+                        IL_0002:  newobj     "Exception1..ctor()"
+                        IL_0007:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0008:  pop
+                        IL_0009:  ldc.i4.1
+                        IL_000a:  stloc.0
+                        IL_000b:  leave.s    IL_000d
+                      }
+                      IL_000d:  ldloc.0
+                      IL_000e:  ldc.i4.1
+                      IL_000f:  bne.un     IL_009b
+                      IL_0014:  ldc.i4.0
+                      IL_0015:  stloc.1
+                      .try
+                      {
+                        IL_0016:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_001b:  stloc.3
+                        IL_001c:  ldloca.s   V_3
+                        IL_001e:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_0023:  stloc.2
+                        IL_0024:  ldloca.s   V_2
+                        IL_0026:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_002b:  brtrue.s   IL_0033
+                        IL_002d:  ldloc.2
+                        IL_002e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_0033:  ldloca.s   V_2
+                        IL_0035:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_003a:  newobj     "Exception2..ctor()"
+                        IL_003f:  throw
+                      }
+                      catch Exception2
+                      {
+                        IL_0040:  pop
+                        IL_0041:  ldc.i4.1
+                        IL_0042:  stloc.1
+                        IL_0043:  leave.s    IL_0045
+                      }
+                      IL_0045:  ldloc.1
+                      IL_0046:  ldc.i4.1
+                      IL_0047:  bne.un.s   IL_009b
+                      IL_0049:  ldc.i4.0
+                      IL_004a:  stloc.s    V_5
+                      .try
+                      {
+                        IL_004c:  newobj     "Exception3..ctor()"
+                        IL_0051:  throw
+                      }
+                      catch Exception3
+                      {
+                        IL_0052:  stloc.s    V_4
+                        IL_0054:  ldc.i4.1
+                        IL_0055:  stloc.s    V_5
+                        IL_0057:  leave.s    IL_0059
+                      }
+                      IL_0059:  ldloc.s    V_5
+                      IL_005b:  ldc.i4.1
+                      IL_005c:  bne.un.s   IL_009b
+                      IL_005e:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                      IL_0063:  stloc.3
+                      IL_0064:  ldloca.s   V_3
+                      IL_0066:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                      IL_006b:  stloc.2
+                      IL_006c:  ldloca.s   V_2
+                      IL_006e:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                      IL_0073:  brtrue.s   IL_007b
+                      IL_0075:  ldloc.2
+                      IL_0076:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                      IL_007b:  ldloca.s   V_2
+                      IL_007d:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                      IL_0082:  ldloc.s    V_4
+                      IL_0084:  isinst     "System.Exception"
+                      IL_0089:  dup
+                      IL_008a:  brtrue.s   IL_008f
+                      IL_008c:  ldloc.s    V_4
+                      IL_008e:  throw
+                      IL_008f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_0094:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_0099:  br.s       IL_009b
+                    }
+                    """,
+                (false, true, true) => """
+                    {
+                      // Code size      155 (0x9b)
+                      .maxstack  2
+                      .locals init (int V_0,
+                                    int V_1,
+                                    object V_2,
+                                    int V_3,
+                                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_4,
+                                    System.Runtime.CompilerServices.YieldAwaitable V_5)
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  stloc.0
+                      .try
+                      {
+                        IL_0002:  newobj     "Exception1..ctor()"
+                        IL_0007:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0008:  pop
+                        IL_0009:  ldc.i4.1
+                        IL_000a:  stloc.0
+                        IL_000b:  leave.s    IL_000d
+                      }
+                      IL_000d:  ldloc.0
+                      IL_000e:  ldc.i4.1
+                      IL_000f:  bne.un     IL_009b
+                      IL_0014:  ldc.i4.0
+                      IL_0015:  stloc.1
+                      .try
+                      {
+                        IL_0016:  newobj     "Exception2..ctor()"
+                        IL_001b:  throw
+                      }
+                      catch Exception2
+                      {
+                        IL_001c:  pop
+                        IL_001d:  ldc.i4.1
+                        IL_001e:  stloc.1
+                        IL_001f:  leave.s    IL_0021
+                      }
+                      IL_0021:  ldloc.1
+                      IL_0022:  ldc.i4.1
+                      IL_0023:  bne.un.s   IL_009b
+                      IL_0025:  ldc.i4.0
+                      IL_0026:  stloc.3
+                      .try
+                      {
+                        IL_0027:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_002c:  stloc.s    V_5
+                        IL_002e:  ldloca.s   V_5
+                        IL_0030:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_0035:  stloc.s    V_4
+                        IL_0037:  ldloca.s   V_4
+                        IL_0039:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_003e:  brtrue.s   IL_0047
+                        IL_0040:  ldloc.s    V_4
+                        IL_0042:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_0047:  ldloca.s   V_4
+                        IL_0049:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_004e:  newobj     "Exception3..ctor()"
+                        IL_0053:  throw
+                      }
+                      catch Exception3
+                      {
+                        IL_0054:  stloc.2
+                        IL_0055:  ldc.i4.1
+                        IL_0056:  stloc.3
+                        IL_0057:  leave.s    IL_0059
+                      }
+                      IL_0059:  ldloc.3
+                      IL_005a:  ldc.i4.1
+                      IL_005b:  bne.un.s   IL_009b
+                      IL_005d:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                      IL_0062:  stloc.s    V_5
+                      IL_0064:  ldloca.s   V_5
+                      IL_0066:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                      IL_006b:  stloc.s    V_4
+                      IL_006d:  ldloca.s   V_4
+                      IL_006f:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                      IL_0074:  brtrue.s   IL_007d
+                      IL_0076:  ldloc.s    V_4
+                      IL_0078:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                      IL_007d:  ldloca.s   V_4
+                      IL_007f:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                      IL_0084:  ldloc.2
+                      IL_0085:  isinst     "System.Exception"
+                      IL_008a:  dup
+                      IL_008b:  brtrue.s   IL_008f
+                      IL_008d:  ldloc.2
+                      IL_008e:  throw
+                      IL_008f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_0094:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_0099:  br.s       IL_009b
+                    }
+                    """,
+                (true, true, true) => """
+                    {
+                      // Code size      191 (0xbf)
+                      .maxstack  2
+                      .locals init (int V_0,
+                                    int V_1,
+                                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                                    System.Runtime.CompilerServices.YieldAwaitable V_3,
+                                    object V_4,
+                                    int V_5)
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  stloc.0
+                      .try
+                      {
+                        IL_0002:  newobj     "Exception1..ctor()"
+                        IL_0007:  throw
+                      }
+                      catch Exception1
+                      {
+                        IL_0008:  pop
+                        IL_0009:  ldc.i4.1
+                        IL_000a:  stloc.0
+                        IL_000b:  leave.s    IL_000d
+                      }
+                      IL_000d:  ldloc.0
+                      IL_000e:  ldc.i4.1
+                      IL_000f:  bne.un     IL_00bf
+                      IL_0014:  ldc.i4.0
+                      IL_0015:  stloc.1
+                      .try
+                      {
+                        IL_0016:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_001b:  stloc.3
+                        IL_001c:  ldloca.s   V_3
+                        IL_001e:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_0023:  stloc.2
+                        IL_0024:  ldloca.s   V_2
+                        IL_0026:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_002b:  brtrue.s   IL_0033
+                        IL_002d:  ldloc.2
+                        IL_002e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_0033:  ldloca.s   V_2
+                        IL_0035:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_003a:  newobj     "Exception2..ctor()"
+                        IL_003f:  throw
+                      }
+                      catch Exception2
+                      {
+                        IL_0040:  pop
+                        IL_0041:  ldc.i4.1
+                        IL_0042:  stloc.1
+                        IL_0043:  leave.s    IL_0045
+                      }
+                      IL_0045:  ldloc.1
+                      IL_0046:  ldc.i4.1
+                      IL_0047:  bne.un.s   IL_00bf
+                      IL_0049:  ldc.i4.0
+                      IL_004a:  stloc.s    V_5
+                      .try
+                      {
+                        IL_004c:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                        IL_0051:  stloc.3
+                        IL_0052:  ldloca.s   V_3
+                        IL_0054:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                        IL_0059:  stloc.2
+                        IL_005a:  ldloca.s   V_2
+                        IL_005c:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                        IL_0061:  brtrue.s   IL_0069
+                        IL_0063:  ldloc.2
+                        IL_0064:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                        IL_0069:  ldloca.s   V_2
+                        IL_006b:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                        IL_0070:  newobj     "Exception3..ctor()"
+                        IL_0075:  throw
+                      }
+                      catch Exception3
+                      {
+                        IL_0076:  stloc.s    V_4
+                        IL_0078:  ldc.i4.1
+                        IL_0079:  stloc.s    V_5
+                        IL_007b:  leave.s    IL_007d
+                      }
+                      IL_007d:  ldloc.s    V_5
+                      IL_007f:  ldc.i4.1
+                      IL_0080:  bne.un.s   IL_00bf
+                      IL_0082:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                      IL_0087:  stloc.3
+                      IL_0088:  ldloca.s   V_3
+                      IL_008a:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                      IL_008f:  stloc.2
+                      IL_0090:  ldloca.s   V_2
+                      IL_0092:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                      IL_0097:  brtrue.s   IL_009f
+                      IL_0099:  ldloc.2
+                      IL_009a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                      IL_009f:  ldloca.s   V_2
+                      IL_00a1:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                      IL_00a6:  ldloc.s    V_4
+                      IL_00a8:  isinst     "System.Exception"
+                      IL_00ad:  dup
+                      IL_00ae:  brtrue.s   IL_00b3
+                      IL_00b0:  ldloc.s    V_4
+                      IL_00b2:  throw
+                      IL_00b3:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_00b8:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_00bd:  br.s       IL_00bf
+                    }
+                    """,
+            };
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
