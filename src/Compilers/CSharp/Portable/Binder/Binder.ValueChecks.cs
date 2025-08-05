@@ -122,12 +122,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private struct MethodInvocationInfo
         {
+            public MethodInfo MethodInfo;
+            public ImmutableArray<ParameterSymbol> Parameters;
+            public BoundExpression? Receiver;
+            public ThreeState ReceiverIsSubjectToCloning;
+            public ImmutableArray<BoundExpression> ArgsOpt;
+            public ImmutableArray<RefKind> ArgumentRefKindsOpt;
+            public ImmutableArray<int> ArgsToParamsOpt;
+            public bool HasAnyErrors;
+
             public static MethodInvocationInfo FromCall(BoundCall call, BoundExpression? substitutedReceiver = null)
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(call.Method),
                     Parameters = call.Method.Parameters,
-                    ReceiverOpt = substitutedReceiver ?? call.ReceiverOpt,
+                    Receiver = substitutedReceiver ?? call.ReceiverOpt,
                     ReceiverIsSubjectToCloning = call.InitialBindingReceiverIsSubjectToCloning,
                     ArgsOpt = call.Arguments,
                     ArgumentRefKindsOpt = call.ArgumentRefKindsOpt,
@@ -141,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(methodSymbol),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = methodSymbol.Parameters,
                     ArgsOpt = ptrInvocation.Arguments,
@@ -155,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(indexerAccess),
-                    ReceiverOpt = substitutedReceiver ?? indexerAccess.ReceiverOpt,
+                    Receiver = substitutedReceiver ?? indexerAccess.ReceiverOpt,
                     ReceiverIsSubjectToCloning = indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     Parameters = indexerAccess.Indexer.Parameters,
                     ArgsOpt = indexerAccess.Arguments,
@@ -170,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(objectCreation.Constructor),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = objectCreation.Constructor.Parameters,
                     ArgsOpt = objectCreation.Arguments,
@@ -186,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(unaryOperator.MethodOpt),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = unaryOperator.MethodOpt.Parameters,
                     ArgsOpt = [unaryOperator.Operand],
@@ -202,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(binaryOperator.Method),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = binaryOperator.Method.Parameters,
                     ArgsOpt = [binaryOperator.Left, binaryOperator.Right],
@@ -216,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(logicalOperator.LogicalOperator),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = logicalOperator.LogicalOperator.Parameters,
                     ArgsOpt = [logicalOperator.Left, logicalOperator.Right],
@@ -229,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(operatorMethod),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = operatorMethod.Parameters,
                     ArgsOpt = [operand],
@@ -242,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(equivalentSignatureMethod),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = equivalentSignatureMethod.Parameters,
                     ArgsOpt = arguments,
@@ -257,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(incrementOperator.MethodOpt),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = incrementOperator.MethodOpt.Parameters,
                     ArgsOpt = [incrementOperator.Operand],
@@ -274,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(method),
-                    ReceiverOpt = method.IsStatic ? null : compoundOperator.Left,
+                    Receiver = method.IsStatic ? null : compoundOperator.Left,
                     ReceiverIsSubjectToCloning = method.IsStatic ? ThreeState.Unknown : ThreeState.False,
                     Parameters = method.Parameters,
                     ArgsOpt = method.IsStatic ? [compoundOperator.Left, compoundOperator.Right] : [compoundOperator.Right],
@@ -288,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(equivalentSignatureMethod),
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = equivalentSignatureMethod.Parameters,
                     ArgsOpt = arguments,
@@ -296,15 +305,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ArgsToParamsOpt = default,
                     HasAnyErrors = hasAnyErrors
                 };
-
-            public MethodInfo MethodInfo;
-            public ImmutableArray<ParameterSymbol> Parameters;
-            public BoundExpression? ReceiverOpt;
-            public ThreeState ReceiverIsSubjectToCloning;
-            public ImmutableArray<BoundExpression> ArgsOpt;
-            public ImmutableArray<RefKind> ArgumentRefKindsOpt;
-            public ImmutableArray<int> ArgsToParamsOpt;
-            public bool HasAnyErrors;
         }
 
         /// <summary>
@@ -2251,9 +2251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // check receiver if ref-like
-                if (methodInvocationInfo.MethodInfo.Method?.RequiresInstanceReceiver == true && methodInvocationInfo.ReceiverOpt?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
+                if (methodInvocationInfo.MethodInfo.Method?.RequiresInstanceReceiver == true && methodInvocationInfo.Receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                 {
-                    escapeScope = escapeScope.Intersect(GetValEscape(methodInvocationInfo.ReceiverOpt, localScopeDepth));
+                    escapeScope = escapeScope.Intersect(GetValEscape(methodInvocationInfo.Receiver, localScopeDepth));
                 }
 
                 return escapeScope;
@@ -2323,10 +2323,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(extensionParameter is not null);
             result.Parameters = methodInvocationInfo.Parameters.IsDefault ? [extensionParameter] : [extensionParameter, .. methodInvocationInfo.Parameters];
 
-            if (methodInvocationInfo.ReceiverOpt is not null)
+            if (methodInvocationInfo.Receiver is not null)
             {
-                result.ArgsOpt = methodInvocationInfo.ArgsOpt.IsDefault ? [methodInvocationInfo.ReceiverOpt] : [methodInvocationInfo.ReceiverOpt, .. methodInvocationInfo.ArgsOpt];
-                result.ReceiverOpt = null;
+                result.ArgsOpt = methodInvocationInfo.ArgsOpt.IsDefault ? [methodInvocationInfo.Receiver] : [methodInvocationInfo.Receiver, .. methodInvocationInfo.ArgsOpt];
+                result.Receiver = null;
             }
             else
             {
@@ -2382,9 +2382,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CheckInvocationEscapeWithUpdatedRules(syntax, in localMethodInvocationInfo, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape, symbolForReporting: methodInvocationInfo.MethodInfo.Symbol);
             }
 
-            return checkInvocationEscapeWithOldRules(syntax, localMethodInvocationInfo, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape, symbolForReporting: methodInvocationInfo.MethodInfo.Symbol);
+            return checkInvocationEscapeWithOldRules(syntax, in localMethodInvocationInfo, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape, symbolForReporting: methodInvocationInfo.MethodInfo.Symbol);
 
-            bool checkInvocationEscapeWithOldRules(SyntaxNode syntax, MethodInvocationInfo methodInvocationInfo,
+            bool checkInvocationEscapeWithOldRules(SyntaxNode syntax, ref readonly MethodInvocationInfo methodInvocationInfo,
                 bool checkingReceiver, SafeContext escapeFrom, SafeContext escapeTo,
                 BindingDiagnosticBag diagnostics, bool isRefEscape, Symbol symbolForReporting)
             {
@@ -2396,16 +2396,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var receiverlessMethodInvocationInfo = methodInvocationInfo with
                 {
-                    ReceiverOpt = null,
+                    Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown
                 };
 
                 var symbol = methodInvocationInfo.MethodInfo.Symbol;
-                if (!symbol.RequiresInstanceReceiver())
-                {
-                    // ignore receiver when symbol is static
-                    methodInvocationInfo = receiverlessMethodInvocationInfo;
-                }
 
                 var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
                 GetInvocationArgumentsForEscape(
@@ -2448,11 +2443,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     escapeArguments.Free();
                 }
 
-                // check receiver if ref-like
-                var receiver = methodInvocationInfo.ReceiverOpt;
-                if (receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
+                // ignore receiver when symbol is static
+                if (symbol.RequiresInstanceReceiver())
                 {
-                    return CheckValEscape(receiver.Syntax, receiver, escapeFrom, escapeTo, false, diagnostics);
+                    // check receiver if ref-like
+                    var receiver = methodInvocationInfo.Receiver;
+                    if (receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
+                    {
+                        return CheckValEscape(receiver.Syntax, receiver, escapeFrom, escapeTo, false, diagnostics);
+                    }
                 }
 
                 return true;
@@ -2499,7 +2498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For consistency with C#10 implementation, we don't report an additional error
                         // for the receiver. (In both implementations, the call to Check*Escape() above
                         // will have reported a specific escape error for the receiver though.)
-                        if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != methodInvocationInfo.ReceiverOpt && methodInvocationInfo.MethodInfo.Symbol is not SignatureOnlyMethodSymbol)
+                        if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != methodInvocationInfo.Receiver && methodInvocationInfo.MethodInfo.Symbol is not SignatureOnlyMethodSymbol)
                         {
                             ReportInvocationEscapeError(syntax, symbolForReporting, param, checkingReceiver, diagnostics);
                         }
@@ -2527,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MixableDestination>? mixableArguments,
             ArrayBuilder<EscapeArgument> escapeArguments)
         {
-            var receiver = methodInvocationInfo.ReceiverOpt;
+            var receiver = methodInvocationInfo.Receiver;
             if (receiver is { })
             {
                 Debug.Assert(receiver.Type is { });
@@ -2727,7 +2726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             GetEscapeValuesForUpdatedRules(
-                methodInvocationInfo,
+                in methodInvocationInfo,
                 ignoreArglistRefKinds,
                 mixableArguments: null,
                 escapeValues);
@@ -2764,7 +2763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (methodInvocationInfo.MethodInfo.UseUpdatedEscapeRules)
             {
                 GetEscapeValuesForUpdatedRules(
-                    methodInvocationInfo,
+                    in methodInvocationInfo,
                     ignoreArglistRefKinds,
                     mixableArguments,
                     escapeValues);
@@ -2793,20 +2792,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// result from this invocation. That is useful for MAMM analysis.
         /// </summary>
         private void GetEscapeValuesForUpdatedRules(
-            MethodInvocationInfo methodInvocationInfo,
+            ref readonly MethodInvocationInfo methodInvocationInfo,
             bool ignoreArglistRefKinds,
             ArrayBuilder<MixableDestination>? mixableArguments,
             ArrayBuilder<EscapeValue> escapeValues)
         {
+            var receiverlessInvocationInfo = methodInvocationInfo;
             if (!methodInvocationInfo.MethodInfo.Symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
-                methodInvocationInfo = methodInvocationInfo with { ReceiverOpt = null, ReceiverIsSubjectToCloning = ThreeState.Unknown };
+                receiverlessInvocationInfo = methodInvocationInfo with { Receiver = null, ReceiverIsSubjectToCloning = ThreeState.Unknown };
             }
 
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
-                in methodInvocationInfo,
+                in receiverlessInvocationInfo,
                 ignoreArglistRefKinds,
                 mixableArguments,
                 escapeArguments);
@@ -2866,7 +2866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!methodInvocationInfo.MethodInfo.Symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
-                adjustedMethodInvocationInfo = adjustedMethodInvocationInfo with { ReceiverOpt = null, ReceiverIsSubjectToCloning = ThreeState.Unknown };
+                adjustedMethodInvocationInfo = adjustedMethodInvocationInfo with { Receiver = null, ReceiverIsSubjectToCloning = ThreeState.Unknown };
             }
 
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
@@ -2960,7 +2960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool CheckInvocationArgMixing(
             SyntaxNode syntax,
-            in MethodInvocationInfo methodInvocationInfo,
+            ref readonly MethodInvocationInfo methodInvocationInfo,
             SafeContext localScopeDepth,
             Symbol symbolForReporting,
             BindingDiagnosticBag diagnostics)
@@ -2970,9 +2970,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CheckInvocationArgMixingWithUpdatedRules(syntax, in methodInvocationInfo, localScopeDepth, diagnostics, symbolForReporting);
             }
 
-            return checkInvocationArgMixingWithOldRules(syntax, methodInvocationInfo, localScopeDepth, diagnostics, symbolForReporting);
+            return checkInvocationArgMixingWithOldRules(syntax, in methodInvocationInfo, localScopeDepth, diagnostics, symbolForReporting);
 
-            bool checkInvocationArgMixingWithOldRules(SyntaxNode syntax, MethodInvocationInfo methodInvocationInfo,
+            bool checkInvocationArgMixingWithOldRules(SyntaxNode syntax, ref readonly MethodInvocationInfo methodInvocationInfo,
                 SafeContext localScopeDepth, BindingDiagnosticBag diagnostics, Symbol symbolForReporting)
             {
                 // SPEC:
@@ -2981,10 +2981,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // - no argument (including the receiver) may have a narrower safe-to-escape than E1.
 
                 var symbol = methodInvocationInfo.MethodInfo.Symbol;
+                var receiverlessInvocationInfo = methodInvocationInfo;
                 if (!symbol.RequiresInstanceReceiver())
                 {
                     // ignore receiver when symbol is static
-                    methodInvocationInfo = methodInvocationInfo with { ReceiverOpt = null, ReceiverIsSubjectToCloning = ThreeState.Unknown };
+                    receiverlessInvocationInfo = methodInvocationInfo with { Receiver = null, ReceiverIsSubjectToCloning = ThreeState.Unknown };
                 }
 
                 // widest possible escape via writeable ref-like receiver or ref/out argument.
@@ -2993,7 +2994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // collect all writeable ref-like arguments, including receiver
                 var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
                 GetInvocationArgumentsForEscape(
-                    in methodInvocationInfo,
+                    in receiverlessInvocationInfo,
                     ignoreArglistRefKinds: false,
                     mixableArguments: null,
                     escapeArguments);
@@ -3063,7 +3064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var mixableArguments = ArrayBuilder<MixableDestination>.GetInstance();
             var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
             GetEscapeValuesForUpdatedRules(
-                methodInvocationInfo,
+                in methodInvocationInfo,
                 ignoreArglistRefKinds: false,
                 mixableArguments,
                 escapeValues);
@@ -3703,7 +3704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new MethodInvocationInfo
                         {
                             MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
-                            ReceiverOpt = propertyAccess.ReceiverOpt,
+                            Receiver = propertyAccess.ReceiverOpt,
                             ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                             HasAnyErrors = propertyAccess.HasAnyErrors,
                         },
@@ -4030,7 +4031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new MethodInvocationInfo
                         {
                             MethodInfo = MethodInfo.Create(propertySymbol),
-                            ReceiverOpt = propertyAccess.ReceiverOpt,
+                            Receiver = propertyAccess.ReceiverOpt,
                             ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                             HasAnyErrors = propertyAccess.HasAnyErrors,
                         },
@@ -4331,7 +4332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new MethodInvocationInfo
                         {
                             MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
-                            ReceiverOpt = propertyAccess.ReceiverOpt,
+                            Receiver = propertyAccess.ReceiverOpt,
                             ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                             HasAnyErrors = propertyAccess.HasAnyErrors,
                         },
@@ -4715,7 +4716,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new MethodInvocationInfo
                     {
                         MethodInfo = methodInfo,
-                        ReceiverOpt = null,
+                        // This is calculating the actual receiver scope
+                        Receiver = null,
                         ReceiverIsSubjectToCloning = ThreeState.Unknown,
                         Parameters = methodInfo.Method.Parameters,
                         ArgsOpt = expr.Arguments,
@@ -5028,7 +5030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new MethodInvocationInfo
                         {
                             MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
-                            ReceiverOpt = propertyAccess.ReceiverOpt,
+                            Receiver = propertyAccess.ReceiverOpt,
                             ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                             HasAnyErrors = propertyAccess.HasAnyErrors,
                         },

@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    methodInvocationInfo,
+                    in methodInvocationInfo,
                     _localScopeDepth,
                     symbolForReporting: compoundMethod,
                     _diagnostics);
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override BoundNode? VisitCall(BoundCall node)
         {
             MethodInvocationInfo methodInvocationInfo = getInvocationInfo(node);
-            if (methodInvocationInfo.ReceiverOpt is BoundCall receiver1)
+            if (methodInvocationInfo.Receiver is BoundCall receiver1)
             {
                 var calls = ArrayBuilder<(BoundCall call, MethodInvocationInfo methodInvocationInfo)>.GetInstance();
 
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 node = receiver1;
                 methodInvocationInfo = getInvocationInfo(node);
-                while (methodInvocationInfo.ReceiverOpt is BoundCall receiver2)
+                while (methodInvocationInfo.Receiver is BoundCall receiver2)
                 {
                     BeforeVisitingSkippedBoundCallChildren(node);
                     calls.Push((node, methodInvocationInfo));
@@ -757,12 +757,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BeforeVisitingSkippedBoundCallChildren(node);
 
-                VisitReceiver(methodInvocationInfo);
+                VisitReceiver(in methodInvocationInfo);
 
                 var nodeAndInvocationInfo = (call: node, methodInvocationInfo);
                 do
                 {
-                    VisitArguments(nodeAndInvocationInfo.call, nodeAndInvocationInfo.methodInvocationInfo);
+                    VisitArguments(nodeAndInvocationInfo.call, in nodeAndInvocationInfo.methodInvocationInfo);
                 }
                 while (calls.TryPop(out nodeAndInvocationInfo!));
 
@@ -770,8 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitReceiver(methodInvocationInfo);
-                VisitArguments(node, methodInvocationInfo);
+                VisitReceiver(in methodInvocationInfo);
+                VisitArguments(node, in methodInvocationInfo);
             }
 
             return null;
@@ -789,11 +789,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
-        private void VisitReceiver(MethodInvocationInfo methodInvocationInfo)
+        private void VisitReceiver(ref readonly MethodInvocationInfo methodInvocationInfo)
         {
-            if (methodInvocationInfo.ReceiverOpt is not null)
+            if (methodInvocationInfo.Receiver is not null)
             {
-                Visit(methodInvocationInfo.ReceiverOpt);
+                Visit(methodInvocationInfo.Receiver);
             }
         }
 
@@ -802,17 +802,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
-        private void VisitArguments(BoundCall node, MethodInvocationInfo methodInvocationInfo)
+        private void VisitArguments(BoundCall node, ref readonly MethodInvocationInfo methodInvocationInfo)
         {
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
 
-            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.ReceiverOpt, methodInvocationInfo.ArgsOpt, node.Method.GetIsNewExtensionMember());
+            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Method.GetIsNewExtensionMember());
 
             if (!node.HasErrors)
             {
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    methodInvocationInfo,
+                    in methodInvocationInfo,
                     _localScopeDepth,
                     node.Method,
                     _diagnostics);
@@ -994,8 +994,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             var methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
-            Visit(methodInvocationInfo.ReceiverOpt);
-            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.ReceiverOpt, methodInvocationInfo.ArgsOpt, node.Indexer.GetIsNewExtensionMember());
+            Visit(methodInvocationInfo.Receiver);
+            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Indexer.GetIsNewExtensionMember());
 
             if (!node.HasErrors)
             {
@@ -1204,16 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out arguments, out refKinds);
 
                 collectionEscape = GetInvocationEscapeScope(
-                    new MethodInvocationInfo
-                    {
-                        MethodInfo = MethodInfo.Create(equivalentSignatureMethod),
-                        ReceiverOpt = null,
-                        ReceiverIsSubjectToCloning = ThreeState.Unknown,
-                        Parameters = equivalentSignatureMethod.Parameters,
-                        ArgsOpt = arguments,
-                        ArgumentRefKindsOpt = refKinds,
-                        HasAnyErrors = node.HasAnyErrors,
-                    },
+                    MethodInvocationInfo.FromInlineArrayConversion(equivalentSignatureMethod, arguments, refKinds, node.HasAnyErrors),
                     _localScopeDepth,
                     isRefEscape: false);
             }
