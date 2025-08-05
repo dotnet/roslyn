@@ -8,6 +8,16 @@
     <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
     <_BuildTaskAssemblyFile>$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll</_BuildTaskAssemblyFile>
     <_ApisDir>$(MSBuildThisFileDirectory)Apis\</_ApisDir>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies</PackageId>
+    <PackageDescription>
+      References assemblies for Roslyn semantic search queries.
+    </PackageDescription>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddGeneratedReferenceAssembliesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +29,6 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\Extensions\Microsoft.CodeAnalysis.SemanticSearch.Extensions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)ApiSet\*.txt" IsApiSet="true" />
@@ -40,13 +49,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <_InputReference Include="@(ReferencePath)"
+      <_InputReference Include="@(ReferencePath)" 
                        Condition="'%(ReferencePath.FrameworkReferenceName)' == 'Microsoft.NETCore.App' or 
                                   '%(ReferencePath.FileName)' == 'System.Collections.Immutable' or
                                   '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis' or
                                   '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.CSharp' or
-                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.VisualBasic' or
-                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.SemanticSearch.Extensions'" />
+                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.VisualBasic'" />
 
       <ApiSet Include="@(None)" Condition="'%(None.IsApiSet)' == 'true'" />
       <Apis Include="@(ApiSet->'$(_ApisDir)%(FileName)%(Extension)')" />
@@ -54,9 +62,7 @@
       <_InputFile Include="@(ApiSet)" />
       <_InputFile Include="@(_InputReference)" />
 
-      <_OutputRefAssembly Include="@(ApiSet->'$(_OutputDir)%(FileName).dll')" />
-
-      <_OutputFile Include="@(_OutputRefAssembly)" />
+      <_OutputFile Include="@(ApiSet->'$(_OutputDir)%(FileName).dll')" />
       <_OutputFile Include="@(Apis)" />
     </ItemGroup>
   </Target>
@@ -81,5 +87,13 @@
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputFile)" />
 
   <!-- Generates ref assemblies -->
-  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputRefAssembly)" />
+  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputFile)" />
+
+  <!-- Package reference assemblies under the tools directory. -->
+  <Target Name="_AddGeneratedReferenceAssembliesToPackage" DependsOnTargets="GenerateFilteredReferenceAssemblies">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(_OutputFile)" 
+                              PackagePath="tools/$(TargetFramework)/%(FileName)%(Extension)"/>
+    </ItemGroup>
+  </Target>
 </Project>
