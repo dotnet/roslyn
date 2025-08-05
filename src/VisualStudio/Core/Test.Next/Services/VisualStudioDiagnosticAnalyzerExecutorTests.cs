@@ -204,7 +204,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
         var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
 
         var runner = CreateAnalyzerRunner();
-        var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
+        var analyzers = analyzerReference.GetAnalyzers(project.Language).WhereAsArray(a => a.GetType() == analyzerType);
 
         var compilationWithAnalyzers = new CompilationWithAnalyzersPair(
             (await project.GetCompilationAsync()).WithAnalyzers(analyzers, project.AnalyzerOptions),
