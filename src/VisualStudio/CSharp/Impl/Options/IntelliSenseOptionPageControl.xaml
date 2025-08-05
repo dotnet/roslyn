@@ -80,7 +80,7 @@
 
                     <CheckBox x:Uid="Show_new_snippet_experience"
                                   x:Name="Show_new_snippet_experience"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_new_snippet_experience_experimental}" />
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_new_snippet_experience}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>
