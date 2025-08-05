@@ -3,87 +3,102 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 
 internal partial class WpfBackgroundWorkIndicatorFactory
 {
-    /// <summary>
-    /// Implementation of an <see cref="IUIThreadOperationScope"/> for the background work indicator. Allows for
-    /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
-    /// shown to the user.
-    /// </summary>
-    private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
+    private sealed partial class BackgroundWorkIndicatorContext
     {
-        private readonly BackgroundWorkIndicatorContext _context;
-
-        // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
-        // update the tooltip accordingly.
-
-        private string _description;
-        private ProgressInfo _progressInfo;
-
-        public IUIThreadOperationContext Context => _context;
-        public IProgress<ProgressInfo> Progress => this;
-
-        public BackgroundWorkIndicatorScope(
-            BackgroundWorkIndicatorContext indicator, string description)
-        {
-            _context = indicator;
-            _description = description;
-        }
-
         /// <summary>
-        /// Retrieves a threadsafe snapshot of our data for our owning context to use to build the tooltip ui.
+        /// Implementation of an <see cref="IUIThreadOperationScope"/> for the background work indicator. Allows for
+        /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
+        /// shown to the user.
         /// </summary>
-        public (string description, ProgressInfo progressInfo) ReadData_MustBeCalledUnderLock()
+        private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
         {
-            Contract.ThrowIfFalse(Monitor.IsEntered(_context.Gate));
-            return (_description, _progressInfo);
-        }
+            private readonly BackgroundWorkIndicatorContext _owner;
+            private readonly BackgroundWorkOperationScope _underlyingScope;
 
-        /// <summary>
-        /// On disposal, just remove ourselves from our parent context.  It will update the UI accordingly.
-        /// </summary>
-        void IDisposable.Dispose()
-            => _context.RemoveScope(this);
+            // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
+            // update the tooltip accordingly. Must hold _owner.ContextAndScopeDataMutationGate while reading/writing these.
 
-        bool IUIThreadOperationScope.AllowCancellation
-        {
-            get => true;
-            set { }
-        }
+            private string _currentDescription_OnlyAccessUnderLock = null!;
 
-        string IUIThreadOperationScope.Description
-        {
-            get
+            public ProgressInfo ProgressInfo_OnlyAccessUnderLock;
+
+            public BackgroundWorkIndicatorScope(
+                BackgroundWorkIndicatorContext owner,
+                BackgroundWorkOperationScope scope,
+                string initialDescription)
             {
-                lock (_context.Gate)
-                    return _description;
+                _owner = owner;
+                _underlyingScope = scope;
+
+                // Ensure we push through the initial description.
+                this.Description = initialDescription;
             }
-            set
+
+            public IUIThreadOperationContext Context => _owner;
+            public IProgress<ProgressInfo> Progress => this;
+
+            void IDisposable.Dispose()
             {
-                lock (_context.Gate)
+                // Clear out the underlying platform scope.
+                _underlyingScope.Dispose();
+
+                // Remove ourselves from our parent context as well. And ensure that any progress showing is updated accordingly.
+                _owner.RemoveScopeAndReportTotalProgress(this);
+            }
+
+            bool IUIThreadOperationScope.AllowCancellation
+            {
+                get => true;
+                set { }
+            }
+
+            public string Description
+            {
+                get
                 {
-                    _description = value;
+                    lock (_owner.ContextAndScopeDataMutationGate)
+                        return _currentDescription_OnlyAccessUnderLock;
                 }
 
-                // We changed.  Enqueue work to make sure the UI reflects this.
-                _context.EnqueueUIUpdate();
-            }
-        }
+                set
+                {
+                    lock (_owner.ContextAndScopeDataMutationGate)
+                    {
+                        // Nothing to do if the actual value didn't change.
+                        if (value == _currentDescription_OnlyAccessUnderLock)
+                            return;
 
-        void IProgress<ProgressInfo>.Report(ProgressInfo value)
-        {
-            lock (_context.Gate)
+                        _currentDescription_OnlyAccessUnderLock = value;
+                    }
+
+                    // Pass through the description to the underlying scope to update the UI.
+                    _underlyingScope.Description = value;
+                }
+            }
+
+            void IProgress<ProgressInfo>.Report(ProgressInfo value)
             {
-                _progressInfo = value;
-            }
+                lock (_owner.ContextAndScopeDataMutationGate)
+                {
+                    // Nothing to do if the actual value didn't change.
+                    if (value.TotalItems == ProgressInfo_OnlyAccessUnderLock.TotalItems &&
+                        value.CompletedItems == ProgressInfo_OnlyAccessUnderLock.CompletedItems)
+                    {
+                        return;
+                    }
 
-            // We changed.  Enqueue work to make sure the UI reflects this.
-            _context.EnqueueUIUpdate();
+                    ProgressInfo_OnlyAccessUnderLock = value;
+                }
+
+                // Now update the UI with the total progress so far of all the scopes.
+                _owner.ReportTotalProgress();
+            }
         }
     }
 }

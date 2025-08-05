@@ -18,9 +18,8 @@ public sealed class SwitchExpressionStructureTests : AbstractCSharpSyntaxNodeStr
     internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchExpressionStructureProvider();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69357")]
-    public async Task TestSwitchExpression1()
-    {
-        var code = """
+    public Task TestSwitchExpression1()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 void M(int i)
@@ -30,9 +29,6 @@ public sealed class SwitchExpressionStructureTests : AbstractCSharpSyntaxNodeStr
                     }|}|}
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

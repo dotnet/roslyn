@@ -31,11 +31,13 @@
       "Microsoft.Net.Compilers.Toolset.Arm64": "arcade",
       "Microsoft.Net.Compilers.Toolset.Framework": "arcade",
       "Microsoft.NETCore.Compilers": "arcade",
+      "Microsoft.CodeAnalysis.BuildClient": "arcade",
       "Microsoft.CodeAnalysis.Contracts": "arcade",
       "Microsoft.CodeAnalysis.Debugging": "arcade",
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
       "Microsoft.CodeAnalysis.Collections": "arcade",
       "Microsoft.CodeAnalysis.Threading": "arcade",
+      "Microsoft.CodeAnalysis.Extensions": "vs-impl",
       "Microsoft.CodeAnalysis.Features": "arcade",
       "Microsoft.CodeAnalysis.EditorFeatures": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Common": "vssdk",
@@ -174,14 +176,32 @@
       "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
     },
+    "release/dev-next": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Validation]",
+      "insertionCreateDraftPR": true
+    },
     "main": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
       "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
+    "main-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.15 P1]"
+      "insertionTitlePrefix": "[dNext]"
     }
   }
 }

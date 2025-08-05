@@ -40,10 +40,25 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">L'ultimo elemento di una classe di caratteri deve essere una sottrazione</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Aggiungi l'attributo 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_negative_value_check">
+        <source>Add negative value check</source>
+        <target state="new">Add negative value check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_negative_value_or_zero_check">
+        <source>Add negative value or zero check</source>
+        <target state="new">Add negative value or zero check</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
@@ -433,6 +448,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
         <source>Changing parameter types of {0} requires restarting the application.</source>
         <target state="translated">Se si modificano i tipi di parametro di {0}, è necessario riavviare l'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application">
+        <source>Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</source>
+        <target state="new">Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_setting_0_from_1_to_2_requires_restarting_the_application">
+        <source>Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</source>
+        <target state="new">Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
@@ -1333,6 +1358,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="translated">Rilevata probabile stringa JSON</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application">
+        <source>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</source>
+        <target state="new">Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties_not_allowed_in_an_array">
@@ -3165,6 +3195,16 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Basi di '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_cannot_be_negative">
+        <source>'{0}' cannot be negative</source>
+        <target state="new">'{0}' cannot be negative</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative_or_zero">
+        <source>'{0}' cannot be negative or zero</source>
+        <target state="new">'{0}' cannot be negative or zero</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}' non può essere null o vuoto.</target>
@@ -3233,6 +3273,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' non è Null in questo punto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_not_nullable_aware">
+        <source>'{0}' is not nullable aware.</source>
+        <target state="new">'{0}' is not nullable aware.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
@@ -3596,6 +3641,11 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
       <trans-unit id="day_of_the_week_full_description">
         <source>The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</source>
         <target state="translated">L'identificatore di formato personalizzato "dddd" (più qualsiasi numero di identificatori "d" aggiuntivi) rappresenta il nome esteso del giorno della settimana. Il nome localizzato del giorno della settimana viene recuperato dalla proprietà DateTimeFormatInfo.DayNames delle impostazioni cultura correnti o specificate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default">
+        <source>default&gt;</source>
+        <target state="new">default&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
@@ -4833,16 +4883,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="Add_null_check">
         <source>Add null check</source>
         <target state="translated">Aggiungi il controllo Null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Aggiungi il controllo 'string.IsNullOrEmpty'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Aggiungi il controllo 'string.IsNullOrWhiteSpace'</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

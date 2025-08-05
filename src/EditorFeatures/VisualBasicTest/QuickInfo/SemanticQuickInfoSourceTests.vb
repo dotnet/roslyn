@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.QuickInfo
 
@@ -2355,7 +2354,7 @@ class X
     end sub
 end class",
                 MainDescription("Operator String.=(a As String, b As String) As Boolean"),
-                SymbolGlyph(Glyph.Operator))
+                SymbolGlyph(Glyph.OperatorPublic))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29703")>

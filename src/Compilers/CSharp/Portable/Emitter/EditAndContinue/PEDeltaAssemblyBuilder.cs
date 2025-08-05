@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly SymbolChanges _changes;
         private readonly CSharpSymbolMatcher.DeepTranslator _deepTranslator;
         private readonly MethodSymbol? _predefinedHotReloadExceptionConstructor;
+        private readonly EmitDifferenceOptions _options;
 
         /// <summary>
         /// HotReloadException type. May be created even if not used. We might find out
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             SourceAssemblySymbol sourceAssembly,
             CSharpSymbolChanges changes,
             EmitOptions emitOptions,
+            EmitDifferenceOptions options,
             OutputKind outputKind,
             Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: [])
         {
             _changes = changes;
+            _options = options;
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.
             // When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -74,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override SymbolChanges? EncSymbolChanges => _changes;
         public override EmitBaseline PreviousGeneration => _changes.DefinitionMap.Baseline;
+        public override bool FieldRvaSupported => _options.EmitFieldRva;
 
         internal override Cci.ITypeReference EncTranslateLocalVariableType(TypeSymbol type, DiagnosticBag diagnostics)
         {
@@ -234,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
-            => GetTopLevelTypeDefinitionsCore(context);
+            => GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails: true);
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {

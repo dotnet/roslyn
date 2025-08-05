@@ -14,19 +14,22 @@ using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Helpers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.ReleaseTracking;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
+    using PooledFieldToCustomTagsConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, ImmutableArray<string>>;
+    using PooledFieldToResourceNameAndFileNameConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, (string nameOfResource, string resourceFileName)>;
     using PooledLocalizabeStringsConcurrentDictionary = PooledConcurrentDictionary<INamedTypeSymbol, PooledConcurrentSet<(IFieldSymbol field, IArgumentOperation argument)>>;
     using PooledResourcesDataValueConcurrentDictionary = PooledConcurrentDictionary<string, ImmutableDictionary<string, (string value, Location location)>>;
-    using PooledFieldToResourceNameAndFileNameConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, (string nameOfResource, string resourceFileName)>;
-    using PooledFieldToCustomTagsConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, ImmutableArray<string>>;
 
     /// <summary>
     /// RS1007 <inheritdoc cref="UseLocalizableStringsInDescriptorTitle"/>
@@ -677,8 +680,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             else
             {
                 var span = fixLocation.SourceSpan;
-                var locationInfo = $"{span.Start}{AdditionalDocumentLocationInfoSeparator}{span.Length}{AdditionalDocumentLocationInfoSeparator}{fixLocation.GetLineSpan().Path}";
-                properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, locationInfo);
+                properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, $"{span.Start}{AdditionalDocumentLocationInfoSeparator}{span.Length}{AdditionalDocumentLocationInfoSeparator}{fixLocation.GetLineSpan().Path}");
             }
 
             reportDiagnostic(argumentOperation.CreateDiagnostic(descriptor, additionalLocations, properties));
@@ -700,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            var parts = locationInfo.Split(new[] { AdditionalDocumentLocationInfoSeparator }, StringSplitOptions.None);
+            var parts = locationInfo.Split([AdditionalDocumentLocationInfoSeparator], StringSplitOptions.None);
             if (parts.Length != 3 ||
                 !int.TryParse(parts[0], out var spanSpart) ||
                 !int.TryParse(parts[1], out var spanLength))
@@ -979,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             Debug.Assert(ContainsLineReturn(s));
 
-            var parts = s.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var parts = s.Split(["\r\n", "\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
             if (!allowMultisentences)
             {
                 return parts[0];

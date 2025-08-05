@@ -229,11 +229,13 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     public void RangeToTextSpanLineEndOfDocumentWithEndOfLineChars()
     {
         var markup =
-@"void M()
-{
-    var x = 5;
-}
-"; // add additional end line 
+            """
+            void M()
+            {
+                var x = 5;
+            }
+
+            """; // add additional end line 
 
         var sourceText = SourceText.From(markup);
 
@@ -277,10 +279,12 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
          */
 
         var markup =
-@"void M()
-{
-    var x = 5;
-}";
+            """
+            void M()
+            {
+                var x = 5;
+            }
+            """;
         return markup;
     }
 
@@ -311,21 +315,20 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     [Theory, CombinatorialData]
     public async Task ProjectToProjectContext_MiscellaneousFilesWorkspace(bool mutatingLspWorkspace)
     {
-        var source = """
-            class A
-            {
-                void M()
-                {
-                }
-            }
-            """;
 
         // Create a server that supports LSP misc files.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
-        await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(looseFileUri, """
+            class A
+            {
+                void M()
+                {
+                }
+            }
+            """).ConfigureAwait(false);
 
         var document = await GetTextDocumentAsync(testLspServer, looseFileUri);
         Assert.NotNull(document);

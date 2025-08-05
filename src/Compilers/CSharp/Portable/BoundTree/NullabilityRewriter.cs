@@ -104,8 +104,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftChild,
                         right,
                         type!),
-                    // https://github.com/dotnet/roslyn/issues/35031: We'll need to update logical.LogicalOperator
-                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ConstrainedToTypeOpt, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type!),
+
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(
+                        logical.OperatorKind,
+                        GetUpdatedSymbol(logical, logical.LogicalOperator),
+                        logical.TrueOperator,
+                        logical.FalseOperator,
+                        logical.TrueFalseOperandPlaceholder,
+                        logical.TrueFalseOperandConversion,
+                        logical.ConstrainedToTypeOpt,
+                        logical.ResultKind,
+                        logical.OriginalUserDefinedOperatorsOpt,
+                        leftChild,
+                        right,
+                        type!),
                     _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
                 };
 
@@ -120,6 +132,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(currentBinary != null);
             return currentBinary!;
+        }
+
+        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = GetUpdatedArray(node, node.OriginalUserDefinedOperatorsOpt);
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
+            BoundExpression? leftConversion = node.LeftConversion;
+            BoundValuePlaceholder? finalPlaceholder = node.FinalPlaceholder;
+            BoundExpression? finalConversion = node.FinalConversion;
+            BoundCompoundAssignmentOperator updatedNode;
+
+            var op = node.Operator;
+
+            if (op.Method is not null)
+            {
+                op = new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, GetUpdatedSymbol(node, op.Method), op.ConstrainedToTypeOpt);
+            }
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, node.Type);
+            }
+            return updatedNode;
         }
 
         private T GetUpdatedSymbol<T>(BoundNode expr, T sym) where T : Symbol?

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,7 +22,6 @@ internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
     where TTag : ITag
 {
     private readonly EditorTestWorkspace _workspace;
-    private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
     private AbstractDiagnosticsTaggerProvider<TTag>? _taggerProvider;
@@ -33,7 +31,6 @@ internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
         IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null,
         bool createTaggerProvider = true)
     {
-        _threadingContext = workspace.GetService<IThreadingContext>();
         _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
         var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
@@ -58,7 +55,7 @@ internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
         {
             if (_taggerProvider == null)
             {
-                WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider, TTag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<,>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
                 if (typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                 {
@@ -76,14 +73,12 @@ internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
         }
     }
 
-    public async Task WaitForTags()
-    {
-        await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
+    public Task WaitForTags()
+        => _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
             _workspace,
             FeatureAttribute.Workspace,
             FeatureAttribute.SolutionCrawlerLegacy,
             FeatureAttribute.DiagnosticService,
             FeatureAttribute.ErrorSquiggles,
             FeatureAttribute.Classification);
-    }
 }

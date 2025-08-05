@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers
@@ -183,7 +184,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     if (attributeClass.Name == nameof(ExportAttribute))
                     {
-                        exportAttributeSymbol = attributeClass;
+                        exportAttributeSymbol = (INamedTypeSymbol)attributeClass;
                         break;
                     }
                 }

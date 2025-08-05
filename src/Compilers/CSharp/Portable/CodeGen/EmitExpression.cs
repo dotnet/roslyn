@@ -11,11 +11,11 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax);
             }
 
             EmitPopIfUnused(used);
@@ -1660,7 +1660,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(method.IsStatic);
 
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused));
+
             int stackBehavior = GetCallStackBehavior(method, arguments);
 
             if (method.IsAbstract || method.IsVirtual)
@@ -1689,6 +1695,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             AddressKind? addressKind;
             bool box;
             LocalDefinition tempOpt;
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
 
             if (receiverIsInstanceCall(call, out BoundCall nested))
             {
@@ -1755,6 +1763,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
 
                     emitArgumentsAndCallEpilogue(call, callKind, receiverUseKind);
+
+                    _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(call, used: true));
+
+                    countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
                     FreeOptTemp(tempOpt);
                     tempOpt = null;
 
@@ -1815,6 +1828,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             emitArgumentsAndCallEpilogue(call, callKind, useKind);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused));
+
             FreeOptTemp(tempOpt);
 
             return;
@@ -2382,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax);
             }
 
             if (expression.InitializerOpt != null)
@@ -2446,7 +2462,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // none of the above cases, so just create an instance
+
+                var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
                 EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
+
+                _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                    MightEscapeTemporaryRefs(expression, used));
 
                 var stackAdjustment = GetObjCreationStackBehavior(expression);
                 _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
@@ -2572,8 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool TryEmitAssignmentInPlace(BoundAssignmentOperator assignmentOperator, bool used)
         {
             // If the left hand is itself a ref, then we can't use in-place assignment
-            // because we need to spill the creation. This code can't be written in C#, but
-            // can be produced by lowering.
+            // because we need to spill the creation.
             if (assignmentOperator.IsRef)
             {
                 return false;
@@ -2704,7 +2725,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
             EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(objCreation, used));
+
             // -2 to adjust for consumed target address and not produced value.
             var stackAdjustment = GetObjCreationStackBehavior(objCreation) - 2;
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment);
@@ -3200,7 +3228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode);
             }
         }
 
@@ -3438,7 +3466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var constantValue = type.GetDefaultValue();
                     if (constantValue != null)
                     {
-                        _builder.EmitConstantValue(constantValue);
+                        _builder.EmitConstantValue(constantValue, syntaxNode);
                         return;
                     }
                 }
@@ -3474,44 +3502,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)
         {
-            if (used)  // unused constant has no side-effects
+            // unused constant has no side-effects
+            if (!used)
             {
-                // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
-                if (((object)type != null) && (type.TypeKind == TypeKind.TypeParameter) && constantValue.IsNull)
-                {
-                    EmitInitObj(type, used, syntaxNode);
-                }
-                else if (!TryEmitStringLiteralAsUtf8Encoded(constantValue, syntaxNode))
-                {
-                    _builder.EmitConstantValue(constantValue);
-                }
-            }
-        }
-
-        private bool TryEmitStringLiteralAsUtf8Encoded(ConstantValue constantValue, SyntaxNode syntaxNode)
-        {
-            // Emit long strings into data section so they don't overflow the UserString heap.
-            if (constantValue.IsString &&
-                constantValue.StringValue.Length > _module.Compilation.DataSectionStringLiteralThreshold)
-            {
-                if (Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode) == null |
-                    Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode) == null)
-                {
-                    return false;
-                }
-
-                Cci.IFieldReference field = _module.TryGetOrCreateFieldForStringValue(constantValue.StringValue, syntaxNode, _diagnostics.DiagnosticBag);
-                if (field == null)
-                {
-                    return false;
-                }
-
-                _builder.EmitOpCode(ILOpCode.Ldsfld);
-                _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
-                return true;
+                return;
             }
 
-            return false;
+            // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
+            if (type is { TypeKind: TypeKind.TypeParameter } && constantValue.IsNull)
+            {
+                EmitInitObj(type, used, syntaxNode);
+            }
+            else
+            {
+                _builder.EmitConstantValue(constantValue, syntaxNode);
+            }
         }
 
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
@@ -3588,7 +3593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.HoistedField is null)
             {
-                _builder.EmitIntConstant(node.Parameter.Ordinal); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Follow up
+                _builder.EmitIntConstant(node.Parameter.Ordinal); // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Follow up
             }
             else
             {
@@ -3602,7 +3607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var fieldRef = _module.Translate(field, syntax, _diagnostics.DiagnosticBag, needDeclaration: true);
 
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            _builder.EmitToken(fieldRef, syntax, _diagnostics.DiagnosticBag, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
+            _builder.EmitToken(fieldRef, syntax, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
@@ -3628,8 +3633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             _builder.EmitToken(
                 _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag),
-                node.Syntax,
-                _diagnostics.DiagnosticBag);
+                node.Syntax);
         }
 
         private void EmitThrowIfModuleCancellationRequested(SyntaxNode syntax)
@@ -3639,8 +3643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitOpCode(ILOpCode.Ldsflda);
             _builder.EmitToken(
                 _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
-                syntax,
-                _diagnostics.DiagnosticBag);
+                syntax);
 
             var throwMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_CancellationToken__ThrowIfCancellationRequested);
 
@@ -3650,8 +3653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitOpCode(ILOpCode.Call, -1);
             _builder.EmitToken(
                 _module.Translate(throwMethod, syntax, _diagnostics.DiagnosticBag),
-                syntax,
-                _diagnostics.DiagnosticBag);
+                syntax);
         }
 
         private void EmitModuleCancellationTokenLoad(SyntaxNode syntax)
@@ -3661,8 +3663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitOpCode(ILOpCode.Ldsfld);
             _builder.EmitToken(
                 _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
-                syntax,
-                _diagnostics.DiagnosticBag);
+                syntax);
         }
 
         private void EmitModuleVersionIdStringLoad()
@@ -3685,7 +3686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
         {
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax);
         }
 
         private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)
@@ -4053,7 +4054,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             FunctionPointerMethodSymbol method = ptrInvocation.FunctionPointer.Signature;
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
             EmitArguments(ptrInvocation.Arguments, method.Parameters, ptrInvocation.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(ptrInvocation, used: useKind != UseKind.Unused));
+
             var stackBehavior = GetCallStackBehavior(ptrInvocation.FunctionPointer.Signature, ptrInvocation.Arguments);
 
             if (temp is object)

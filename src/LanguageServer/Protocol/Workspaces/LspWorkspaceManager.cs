@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -153,7 +154,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         // Also remove it from our loose files or metadata workspace if it is still there.
-        _lspMiscellaneousFilesWorkspaceProvider?.TryRemoveMiscellaneousDocument(uri, removeFromMetadataWorkspace: true);
+        if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+        {
+            try
+            {
+                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: true).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                this._logger.LogException(ex);
+            }
+        }
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
@@ -247,14 +258,21 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogInformation($"{document.FilePath} found in workspace {workspaceKind}");
+                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}");
 
-                // As we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
+                // If we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
                 // if it happens to be in there as well.
-                if (workspace != _lspMiscellaneousFilesWorkspaceProvider?.Workspace)
+                if (_lspMiscellaneousFilesWorkspaceProvider is not null && !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(document, cancellationToken).ConfigureAwait(false))
                 {
-                    // Do not attempt to remove the file from the metadata workspace (the document is still open).
-                    _lspMiscellaneousFilesWorkspaceProvider?.TryRemoveMiscellaneousDocument(uri, removeFromMetadataWorkspace: false);
+                    try
+                    {
+                        // Do not attempt to remove the file from the metadata workspace (the document is still open).
+                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                    {
+                        _logger.LogException(ex);
+                    }
                 }
 
                 return (workspace, document.Project.Solution, document);
@@ -264,15 +282,22 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         // Depending on the host, this can be entirely normal (e.g. opening a loose file)
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.LogInformation($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
+        _logger.LogDebug($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it is open.
-        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
+        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument) && _lspMiscellaneousFilesWorkspaceProvider is not null)
         {
-            var miscDocument = _lspMiscellaneousFilesWorkspaceProvider?.AddMiscellaneousDocument(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger);
-            if (miscDocument is not null)
-                return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
+            try
+            {
+                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
+                if (miscDocument is not null)
+                    return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                _logger.LogException(ex);
+            }
         }
 
         return default;
@@ -541,7 +566,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         public Workspace? GetLspMiscellaneousFilesWorkspace()
         {
-            return _manager._lspMiscellaneousFilesWorkspaceProvider?.Workspace;
+            // For purposes of testing, we test against the implementation that is also a Workspace.
+            // TODO: once we also test the FileBasedPrograms implementation, we need to do something else here.
+            return _manager._lspMiscellaneousFilesWorkspaceProvider as Workspace;
         }
 
         public bool IsWorkspaceRegistered(Workspace workspace)

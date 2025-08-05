@@ -836,7 +836,8 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
                 return builder.ToString();
             }
-            else if (memberDeclaration is ExtensionDeclarationSyntax extensionDeclaration)
+#if !ROSLYN_4_12_OR_LOWER
+            else if (memberDeclaration is ExtensionBlockDeclarationSyntax extensionDeclaration)
             {
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
                 builder.Append("extension");
@@ -847,6 +848,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 AppendParameterList(builder, extensionDeclaration.ParameterList);
                 return builder.ToString();
             }
+#endif
             else
             {
                 Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
@@ -872,6 +874,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
             }
         }
 
+#if !ROSLYN_4_12_OR_LOWER
         void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
         {
             if (parameterList != null)
@@ -881,6 +884,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 builder.Append(')');
             }
         }
+#endif
     }
 
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)

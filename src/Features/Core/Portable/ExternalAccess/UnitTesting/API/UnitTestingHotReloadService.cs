@@ -6,9 +6,9 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -98,7 +98,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
             .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_solutionActiveStatementSpanProvider, cancellationToken)
             .ConfigureAwait(false);
 
-        if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        if (!results.ModuleUpdates.Updates.IsEmpty)
         {
             if (commitUpdates)
             {

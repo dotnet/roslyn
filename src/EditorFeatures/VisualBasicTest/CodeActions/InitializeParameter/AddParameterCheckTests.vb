@@ -4,7 +4,6 @@
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
@@ -109,7 +108,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]i as integer)
+    public sub new([||]i as DateTime)
     end sub
 end class")
         End Function

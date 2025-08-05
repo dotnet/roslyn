@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -1723,13 +1724,13 @@ internal partial class CSharpTypeInferenceService
             // then we can figure out what 'goo' should be based on teh await
             // context.
             var name = memberAccessExpression.Name.Identifier.Value;
-            if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
+            if (name.Equals(nameof(Task<>.ConfigureAwait)) &&
                 memberAccessExpression?.Parent is InvocationExpressionSyntax invocation &&
                 memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
             {
                 return InferTypes(invocation);
             }
-            else if (name.Equals(nameof(Task<int>.ContinueWith)))
+            else if (name.Equals(nameof(Task<>.ContinueWith)))
             {
                 // goo.ContinueWith(...)
                 // We want to infer Task<T>.  For now, we'll just do Task<object>,

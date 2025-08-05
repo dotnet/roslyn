@@ -182,19 +182,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal SyntaxTrivia LookupTrivia<TArg>(
-            char[] textBuffer,
-            int keyStart,
-            int keyLength,
+            ReadOnlySpan<char> textBuffer,
             int hashCode,
             Func<TArg, SyntaxTrivia> createTriviaFunction,
             TArg data)
         {
-            var value = TriviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var value = TriviaMap.FindItem(textBuffer, hashCode);
 
             if (value == null)
             {
                 value = createTriviaFunction(data);
-                TriviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                TriviaMap.AddItem(textBuffer, hashCode, value);
             }
 
             return value;
@@ -222,14 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
         internal SyntaxToken LookupToken<TArg>(
-            char[] textBuffer,
-            int keyStart,
-            int keyLength,
+            ReadOnlySpan<char> textBuffer,
             int hashCode,
             Func<TArg, SyntaxToken> createTokenFunction,
             TArg data)
         {
-            var value = TokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var value = TokenMap.FindItem(textBuffer, hashCode);
 
             if (value == null)
             {
@@ -237,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Miss();
 #endif
                 value = createTokenFunction(data);
-                TokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                TokenMap.AddItem(textBuffer, hashCode, value);
             }
             else
             {

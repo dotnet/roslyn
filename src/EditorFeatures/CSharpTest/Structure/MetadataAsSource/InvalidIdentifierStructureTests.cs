@@ -33,46 +33,34 @@ public sealed class InvalidIdentifierStructureTests : AbstractSyntaxStructurePro
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-    public async Task PrependedDollarSign()
-    {
-        var code = """
+    public Task PrependedDollarSign()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$class C{|textspan:
                 {
                     public void $Invoke();
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-    public async Task SymbolsAndPunctuation()
-    {
-        var code = """
+    public Task SymbolsAndPunctuation()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$class C{|textspan:
                 {
                     public void !#$%^&*(()_-+=|\}]{["':;?/>.<,~`();
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-    public async Task IdentifierThatLooksLikeCode()
-    {
-        var code = """
+    public Task IdentifierThatLooksLikeCode()
+        => VerifyBlockSpansAsync("""
                 {|hint1:$$class C{|textspan1:
                 {
                     public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
                 }|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

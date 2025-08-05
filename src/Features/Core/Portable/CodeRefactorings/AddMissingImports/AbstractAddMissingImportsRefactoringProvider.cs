@@ -31,21 +31,20 @@ internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefac
         // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
         var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         if (!pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
-        {
             return;
-        }
 
         // Check pasted text span for missing imports
         var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
-        var fixData = await addMissingImportsService.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        var fixData = await addMissingImportsService.AnalyzeAsync(
+            document, textSpan, cleanupDocument: true, cancellationToken).ConfigureAwait(false);
         if (fixData.IsDefaultOrEmpty)
             return;
 
         var addImportsCodeAction = CodeAction.Create(
             CodeActionTitle,
-            async (progressTracker, cancellationToken) =>
-                (await addMissingImportsService.AddMissingImportsAsync(document, fixData, progressTracker, cancellationToken).ConfigureAwait(false)).Project.Solution,
+            (progressTracker, cancellationToken) =>
+                addMissingImportsService.AddMissingImportsAsync(document, fixData, progressTracker, cancellationToken),
             CodeActionTitle);
 
         context.RegisterRefactoring(addImportsCodeAction, textSpan);

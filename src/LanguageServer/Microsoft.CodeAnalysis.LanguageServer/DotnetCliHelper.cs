@@ -5,6 +5,7 @@
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
@@ -68,14 +69,15 @@ internal sealed class DotnetCliHelper
         return dotnetSdkFolderPath;
     }
 
-    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput)
+    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput, bool keepStandardInputOpen = false)
     {
-        _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments {arguments}");
+        _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments '{string.Join(' ', arguments)}'");
 
         var startInfo = new ProcessStartInfo(_dotnetExecutablePath.Value)
         {
             CreateNoWindow = true,
             UseShellExecute = false,
+            RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
@@ -105,6 +107,9 @@ internal sealed class DotnetCliHelper
 
         var process = Process.Start(startInfo);
         Contract.ThrowIfNull(process, $"Unable to start dotnet CLI at {_dotnetExecutablePath.Value} with arguments {arguments} in directory {workingDirectory}");
+        if (!keepStandardInputOpen)
+            process.StandardInput.Close();
+
         return process;
     }
 

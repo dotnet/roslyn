@@ -27,22 +27,24 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
     public async Task TestFindAllReferencesAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    public int {|reference:someInt|} = 1;
-    void M()
-    {
-        var i = {|reference:someInt|} + 1;
-    }
-}
-class B
-{
-    int someInt = A.{|reference:someInt|} + 1;
-    void M2()
-    {
-        var j = someInt + A.{|caret:|}{|reference:someInt|};
-    }
-}";
+            """
+            class A
+            {
+                public int {|reference:someInt|} = 1;
+                void M()
+                {
+                    var i = {|reference:someInt|} + 1;
+                }
+            }
+            class B
+            {
+                int someInt = A.{|reference:someInt|} + 1;
+                void M2()
+                {
+                    var j = someInt + A.{|caret:|}{|reference:someInt|};
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -61,22 +63,24 @@ class B
     public async Task TestFindAllReferencesAsync_Streaming(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    public static int {|reference:someInt|} = 1;
-    void M()
-    {
-        var i = {|reference:someInt|} + 1;
-    }
-}
-class B
-{
-    int someInt = A.{|reference:someInt|} + 1;
-    void M2()
-    {
-        var j = someInt + A.{|caret:|}{|reference:someInt|};
-    }
-}";
+            """
+            class A
+            {
+                public static int {|reference:someInt|} = 1;
+                void M()
+                {
+                    var i = {|reference:someInt|} + 1;
+                }
+            }
+            class B
+            {
+                int someInt = A.{|reference:someInt|} + 1;
+                void M2()
+                {
+                    var j = someInt + A.{|caret:|}{|reference:someInt|};
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         using var progress = BufferedProgress.Create<object>(null);
@@ -101,22 +105,24 @@ class B
     public async Task TestFindAllReferencesAsync_Class(bool mutatingLspWorkspace)
     {
         var markup =
-@"class {|reference:A|}
-{
-    public static int someInt = 1;
-    void M()
-    {
-        var i = someInt + 1;
-    }
-}
-class B
-{
-    int someInt = {|reference:A|}.someInt + 1;
-    void M2()
-    {
-        var j = someInt + {|caret:|}{|reference:A|}.someInt;
-    }
-}";
+            """
+            class {|reference:A|}
+            {
+                public static int someInt = 1;
+                void M()
+                {
+                    var i = someInt + 1;
+                }
+            }
+            class B
+            {
+                int someInt = {|reference:A|}.someInt + 1;
+                void M2()
+                {
+                    var j = someInt + {|caret:|}{|reference:A|}.someInt;
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -140,22 +146,26 @@ class B
     public async Task TestFindAllReferencesAsync_MultipleDocuments(bool mutatingLspWorkspace)
     {
         var markups = new string[] {
-@"class A
-{
-    public static int {|reference:someInt|} = 1;
-    void M()
-    {
-        var i = {|reference:someInt|} + 1;
-    }
-}",
-@"class B
-{
-    int someInt = A.{|reference:someInt|} + 1;
-    void M2()
-    {
-        var j = someInt + A.{|caret:|}{|reference:someInt|};
-    }
-}"
+            """
+            class A
+            {
+                public static int {|reference:someInt|} = 1;
+                void M()
+                {
+                    var i = {|reference:someInt|} + 1;
+                }
+            }
+            """,
+            """
+            class B
+            {
+                int someInt = A.{|reference:someInt|} + 1;
+                void M2()
+                {
+                    var j = someInt + A.{|caret:|}{|reference:someInt|};
+                }
+            }
+            """
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
@@ -176,10 +186,12 @@ class B
     public async Task TestFindAllReferencesAsync_InvalidLocation(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    {|caret:|}
-}";
+            """
+            class A
+            {
+                {|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -190,15 +202,17 @@ class B
     public async Task TestFindAllReferencesMetadataDefinitionAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
+            """
+            using System;
 
-class A
-{
-    void M()
-    {
-        Console.{|caret:|}{|reference:WriteLine|}(""text"");
-    }
-}";
+            class A
+            {
+                void M()
+                {
+                    Console.{|caret:|}{|reference:WriteLine|}("text");
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -210,17 +224,18 @@ class A
     public async Task TestFindAllReferencesAsync_Namespace(bool mutatingLspWorkspace)
     {
         var markup =
-@"namespace {|caret:|}{|reference:N|}
-{
-    class C
-    {
-        void M()
-        {
-            var x = new {|reference:N|}.C();
-        }
-    }
-}
-";
+            """
+            namespace {|caret:|}{|reference:N|}
+            {
+                class C
+                {
+                    void M()
+                    {
+                        var x = new {|reference:N|}.C();
+                    }
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -236,18 +251,19 @@ class A
     public async Task TestFindAllReferencesAsync_Highlights(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System;
+            """
+            using System;
 
-class C
-{
-    void M()
-    {
-        var {|caret:|}{|reference:x|} = 1;
-        Console.WriteLine({|reference:x|});
-        {|reference:x|} = 2;
-    }
-}
-";
+            class C
+            {
+                void M()
+                {
+                    var {|caret:|}{|reference:x|} = 1;
+                    Console.WriteLine({|reference:x|});
+                    {|reference:x|} = 2;
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -258,8 +274,9 @@ class C
     public async Task TestFindAllReferencesAsync_StaticClassification(bool mutatingLspWorkspace)
     {
         var markup =
-@"static class {|caret:|}{|reference:C|} { }
-";
+            """
+            static class {|caret:|}{|reference:C|} { }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -298,6 +315,30 @@ class C
 
         // Do not assert the glyph
         AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFindReferencesAsync_UsingAlias(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using {|caret:MyType|} = System.{|reference:String|};
+
+            class SomeClassToExtract
+            {
+                void M()
+                {
+                    {|reference:MyType|} p;
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+        var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+        Assert.Equal(3, results.Length);
+        Assert.True(results[0].Location.DocumentUri.ToString().EndsWith("String.cs"));
+
+        AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Skip(1).Select(r => r.Location));
     }
 
     private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)

@@ -4,6 +4,7 @@
 
 Imports System.IO
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 Imports Microsoft.CodeAnalysis.Test.Utilities

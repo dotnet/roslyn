@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -58,7 +59,7 @@ internal partial class SuggestedActionWithNestedFlavors
                 //       Consider if there could be better UX/platform support for such flavored actions
                 //       where clicking on the hyperlink needs to bring up another unrelated UI.
 
-                var newSolution = await originalCodeAction.GetChangedSolutionInternalAsync(originalSolution, progress, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var newSolution = await originalCodeAction.GetChangedSolutionInternalAsync(originalSolution, progress, cancellationToken).ConfigureAwait(false);
                 if (newSolution == null)
                     return [];
 

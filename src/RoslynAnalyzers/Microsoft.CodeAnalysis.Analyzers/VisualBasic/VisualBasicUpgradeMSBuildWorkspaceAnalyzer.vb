@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Analyzer.Utilities.Extensions
-Imports Microsoft.CodeAnalysis.Analyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 

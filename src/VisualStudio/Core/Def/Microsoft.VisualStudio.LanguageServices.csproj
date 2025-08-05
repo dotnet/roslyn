@@ -54,7 +54,6 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
@@ -115,9 +114,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.Search" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.Common" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" />
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" />
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" />

@@ -31,7 +31,8 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj" PrivateAssets="All" Condition="'$(TargetFramework)' == 'net472'" />
     <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj" PrivateAssets="All"/>
 
     <ProjectReference Update="@(ProjectReference)"
@@ -54,16 +55,18 @@
       <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcore"/>
       <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcore/bincore"/>
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcore/bincore/runtimes"/>
-      <_File Include="@(DesktopCompilerArtifact)" Condition="'%(DesktopCompilerArtifact.NeededForBuildTask)' == 'true'" TargetDir="tasks/netcore/binfx"/>
-      <_File Include="@(DesktopCompilerResourceArtifact)" Condition="'%(DesktopCompilerResourceArtifact.NeededForBuildTask)' == 'true'" TargetDir="tasks/netcore/binfx"/>
+      <_File Include="@(BridgeCompilerArtifact)" TargetDir="tasks/netcore/binfx"/>
+      <_File Include="@(BridgeCompilerResourceArtifact)" TargetDir="tasks/netcore/binfx"/>
 
       <_FileWithPath Include="@(_File)" TargetPath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
 
       <TfmSpecificPackageFile Include="@(_FileWithPath)" PackagePath="%(_FileWithPath.TargetPath)" />
     </ItemGroup>
+  </Target>
 
-    <!-- Used for debugging parts of the toolset (e.g., build tasks).
-      Doesn't work in VS (where `<ProjectReference Targets="Publish" />` doesn't have any effect), hence we set `ContinueOnError="true"`. -->
+  <!-- Used to lay out all DLLs in one folder on disk via `dotnet build -p:InnerTargets=CopyFilesForDebugging`
+    so they can be then used for debugging parts of the toolset (e.g., build tasks). -->
+  <Target Name="CopyFilesForDebugging" DependsOnTargets="_GetFiles">
     <Copy SourceFiles="@(_FileWithPath)"
           DestinationFiles="$(BaseOutputPath)$(Configuration)\%(_FileWithPath.TargetPath)"
           SkipUnchangedFiles="true" />

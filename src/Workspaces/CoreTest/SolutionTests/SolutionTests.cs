@@ -1674,13 +1674,12 @@ public sealed class SolutionTests : TestBase
                         .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
 
         // any character is allowed
-        var projectName = "\0<>a/b/*";
 
         SolutionTestHelpers.TestProperty(
             solution,
             (s, value) => s.WithProjectName(projectId, value),
             s => s.GetRequiredProject(projectId).Name,
-            projectName,
+            "\0<>a/b/*",
             defaultThrows: true);
 
         Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectName(null!, "x"));
@@ -1802,12 +1801,16 @@ public sealed class SolutionTests : TestBase
 
     [Theory]
     [InlineData("#if DEBUG", false, LanguageNames.CSharp)]
-    [InlineData(@"#region ""goo""", true, LanguageNames.CSharp)]
+    [InlineData("""
+        #region "goo"
+        """, true, LanguageNames.CSharp)]
     [InlineData(@"#nullable enable", true, LanguageNames.CSharp)]
     [InlineData(@"#elif DEBUG", true, LanguageNames.CSharp)]
     [InlineData("// File", true, LanguageNames.CSharp)]
     [InlineData("#if DEBUG", false, LanguageNames.VisualBasic)]
-    [InlineData(@"#region ""goo""", true, LanguageNames.VisualBasic)]
+    [InlineData("""
+        #region "goo"
+        """, true, LanguageNames.VisualBasic)]
     [InlineData(@"#ElseIf DEBUG", true, LanguageNames.VisualBasic)]
     [InlineData("' File", true, LanguageNames.VisualBasic)]
     public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName)
@@ -2436,6 +2439,29 @@ public sealed class SolutionTests : TestBase
     }
 
     [Fact]
+    public async Task GetFirstRelatedDocumentIdWithDuplicatedDocuments()
+    {
+        using var workspace = CreateWorkspaceWithProjectAndDocuments();
+        var origSolution = workspace.CurrentSolution;
+        var project = origSolution.Projects.Single();
+
+        var origDocumentId = project.DocumentIds.Single();
+        var newDocumentId = DocumentId.CreateNewId(project.Id);
+
+        var document = project.GetRequiredDocument(origDocumentId);
+        var sourceText = await document.GetTextAsync();
+
+        var newSolution = origSolution.AddDocument(newDocumentId, document.Name, sourceText, filePath: document.FilePath!);
+
+        // Populate the SolutionState cache for this document id
+        _ = newSolution.GetRelatedDocumentIds(origDocumentId);
+
+        // Ensure a GetFirstRelatedDocumentId call with a poulated cache doesn't return newDocumentId
+        var relatedDocument = newSolution.GetFirstRelatedDocumentId(origDocumentId, relatedProjectIdHint: null);
+        Assert.Null(relatedDocument);
+    }
+
+    [Fact]
     public void AddDocument_SyntaxRoot()
     {
         var projectId = ProjectId.CreateNewId();
@@ -2478,7 +2504,7 @@ public sealed class SolutionTests : TestBase
         var filePath = Path.Combine(TempRoot.Root, "x.cs");
         var folders = new[] { "folder1", "folder2" };
 
-        var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: null, SourceHashAlgorithm.Sha1)).GetRoot();
+        var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: Encoding.ASCII, SourceHashAlgorithm.Sha1)).GetRoot();
         Assert.Equal(SourceHashAlgorithm.Sha1, root.SyntaxTree.GetText().ChecksumAlgorithm);
 
         var solution2 = solution.AddDocument(documentId, "name", root, folders, filePath);
@@ -2488,6 +2514,9 @@ public sealed class SolutionTests : TestBase
 
         // the checksum algorithm of the tree is ignored, instead the one set on the project is used:
         Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm);
+
+        // the encoding is preserved:
+        Assert.Equal(Encoding.ASCII, sourceText.Encoding);
 
         AssertEx.Equal(folders, document2.Folders);
         Assert.Equal(filePath, document2.FilePath);
@@ -2866,8 +2895,7 @@ public sealed class SolutionTests : TestBase
                     {
                         compilation.References.Single(r =>
                         {
-                            var cr = r as CompilationReference;
-                            return cr != null && cr.Compilation == compilationReference.Compilation;
+                            return r is CompilationReference cr && cr.Compilation == compilationReference.Compilation;
                         });
                     }
                 }
@@ -3626,14 +3654,16 @@ public sealed class SolutionTests : TestBase
         var pid = ProjectId.CreateNewId();
         var did = DocumentId.CreateNewId(pid);
 
-        var text = @"public class C {
-    public void Method1() {}
-    public void Method2() {}
-    public void Method3() {}
-    public void Method4() {}
-    public void Method5() {}
-    public void Method6() {}
-}";
+        var text = """
+            public class C {
+                public void Method1() {}
+                public void Method2() {}
+                public void Method3() {}
+                public void Method4() {}
+                public void Method5() {}
+                public void Method6() {}
+            }
+            """;
 
         using var workspace = CreateWorkspace();
         var sol = workspace.CurrentSolution
@@ -3650,20 +3680,22 @@ public sealed class SolutionTests : TestBase
         var pid = ProjectId.CreateNewId();
         var did = DocumentId.CreateNewId(pid);
 
-        var text = @"Public Class C
-    Sub Method1()
-    End Sub
-    Sub Method2()
-    End Sub
-    Sub Method3()
-    End Sub
-    Sub Method4()
-    End Sub
-    Sub Method5()
-    End Sub
-    Sub Method6()
-    End Sub
-End Class";
+        var text = """
+            Public Class C
+                Sub Method1()
+                End Sub
+                Sub Method2()
+                End Sub
+                Sub Method3()
+                End Sub
+                Sub Method4()
+                End Sub
+                Sub Method5()
+                End Sub
+                Sub Method6()
+                End Sub
+            End Class
+            """;
 
         using var workspace = CreateWorkspace();
         var sol = workspace.CurrentSolution
@@ -3937,24 +3969,25 @@ End Class";
         var did2 = DocumentId.CreateNewId(pid2);
         var did3 = DocumentId.CreateNewId(pid3);
 
-        var text1 = @"
-Public Class A
-End Class";
+        var text1 = """
+            Public Class A
+            End Class
+            """;
 
-        var text2 = @"
-Public Class B
-End Class
-";
+        var text2 = """
+            Public Class B
+            End Class
+            """;
 
-        var text3 = @"
-public class C : B {
-}
-";
+        var text3 = """
+            public class C : B {
+            }
+            """;
 
-        var text4 = @"
-public class C : A {
-}
-";
+        var text4 = """
+            public class C : A {
+            }
+            """;
 
         var solution = new AdhocWorkspace().CurrentSolution
             .AddProject(pid1, "GooA", "Goo.dll", LanguageNames.VisualBasic)
@@ -4587,26 +4620,16 @@ public class C : A {
         }
 
         solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
-
-        var text1 = "public class Test1 {}";
         var did1 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did1, "test1.cs", text1);
-
-        var text2 = "public class Test2 {}";
+        solution = solution.AddDocument(did1, "test1.cs", "public class Test1 {}");
         var did2 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did2, "test2.cs", text2);
-
-        var text3 = "public class Test3 {}";
+        solution = solution.AddDocument(did2, "test2.cs", "public class Test2 {}");
         var did3 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did3, "test3.cs", text3);
-
-        var text4 = "public class Test4 {}";
+        solution = solution.AddDocument(did3, "test3.cs", "public class Test3 {}");
         var did4 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did4, "test4.cs", text4);
-
-        var text5 = "public class Test5 {}";
+        solution = solution.AddDocument(did4, "test4.cs", "public class Test4 {}");
         var did5 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did5, "test5.cs", text5);
+        solution = solution.AddDocument(did5, "test5.cs", "public class Test5 {}");
 
         var oldVersion = GetVersion();
 
@@ -4651,26 +4674,16 @@ public class C : A {
         var pid = ProjectId.CreateNewId();
 
         solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
-
-        var text1 = "public class Test1 {}";
         var did1 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did1, "test1.cs", text1);
-
-        var text2 = "public class Test2 {}";
+        solution = solution.AddDocument(did1, "test1.cs", "public class Test1 {}");
         var did2 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did2, "test2.cs", text2);
-
-        var text3 = "public class Test3 {}";
+        solution = solution.AddDocument(did2, "test2.cs", "public class Test2 {}");
         var did3 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did3, "test3.cs", text3);
-
-        var text4 = "public class Test4 {}";
+        solution = solution.AddDocument(did3, "test3.cs", "public class Test3 {}");
         var did4 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did4, "test4.cs", text4);
-
-        var text5 = "public class Test5 {}";
+        solution = solution.AddDocument(did4, "test4.cs", "public class Test4 {}");
         var did5 = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did5, "test5.cs", text5);
+        solution = solution.AddDocument(did5, "test5.cs", "public class Test5 {}");
 
         solution = solution.RemoveDocument(did5);
 
@@ -4845,15 +4858,15 @@ public class C : A {
         solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
             .WithProjectMetadataReferences(projectId, [NetFramework.mscorlib])
             .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
-        var src = @"
-class C
-{
-    void M(C? c)
-    {
-        _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
-    }
-}";
-        solution = solution.AddDocument(sourceDocumentId, "Test.cs", src, filePath: @"Z:\Test.cs");
+        solution = solution.AddDocument(sourceDocumentId, "Test.cs", """
+            class C
+            {
+                void M(C? c)
+                {
+                    _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
+                }
+            }
+            """, filePath: @"Z:\Test.cs");
 
         var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
         var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();

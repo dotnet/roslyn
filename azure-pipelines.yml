@@ -55,10 +55,12 @@ variables:
       value: NetCore1ESPool-Internal
 
   - name: Vs2022PreviewQueueName
+    # As of 2025-06-12, the non-scouting queue does not have a new enough of an MSBuild to build Roslyn; use the scouting
+    # queue which is on 17.14. This likely can be removed by 2025-06-18 when the upgrade to 17.14 Preview 4 is scheduled to complete.
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022preview.amd64.open
+      value: windows.vs2022preview.scout.amd64.open
     ${{ else }}:
-      value: windows.vs2022preview.amd64
+      value: windows.vs2022preview.scout.amd64
 
   - name: Vs2022RegularQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -400,13 +402,19 @@ stages:
           configuration: Release
       - name: compilerChange
         value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      # Set NUGET_PACKAGES to fix issues with package Restore when building with `-ci`.
+      # Workaround for https://github.com/dotnet/arcade/issues/15970
+      - name: NUGET_PACKAGES
+        value: $(Build.SourcesDirectory)\.packages
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
 
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
+      # We additionally restore during the build because the Microsoft.DotNet.Build.Tasks.Feed package only restores when we pass `-publish`. See https://github.com/dotnet/arcade/blob/37ccfd66358af6a37a0ec385ec31d1d71bdd8723/src/Microsoft.DotNet.Arcade.Sdk/tools/Tools.proj#L61-L66
+      # Passing `-publish` during the restore step above fails due to no items needing published.
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
 
       # While this task is not executed in the official build, this serves as a PR check for whether symbol exclusions

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -112,7 +113,9 @@ internal abstract partial class AbstractRecommendationService<
 
             if (_context.IsEnumTypeMemberAccessContext)
             {
-                return symbol.Kind == SymbolKind.Field;
+                // Within an enum type, we can access fields of the enum, as well as static extensions on that type.
+                return symbol.Kind == SymbolKind.Field ||
+                     symbol is { IsStatic: true, ContainingType.IsExtension: true };
             }
 
             // In an expression or statement context, we don't want to display instance members declared in outer containing types.

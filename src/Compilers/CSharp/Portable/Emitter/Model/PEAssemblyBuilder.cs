@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </remarks>
         private readonly string _metadataName;
 #nullable enable
-        public PEAssemblyBuilderBase(
+        protected PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             OutputKind outputKind,
@@ -654,6 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+        public override bool FieldRvaSupported => true;
 
         public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
             => null;

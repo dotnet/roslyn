@@ -404,36 +404,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 static ParameterSymbol? makeExtensionParameter(PENamedTypeSymbol @this, ExtensionInfo uncommon)
                 {
-                    var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
+                    var methodSymbol = GetMarkerMethodSymbol(@this, uncommon);
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : do we want to tighten the flags check further? (require that type be sealed?)
                     if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
                         methodSymbol.ParameterCount != 1)
                     {
-                        return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        return null;
                     }
 
                     return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
                 }
+            }
+        }
 
-                static MethodSymbol getMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+        internal MethodSymbol? GetMarkerMethodSymbol()
+        {
+            if (!this.IsExtension)
+            {
+                return null;
+            }
+
+            var uncommon = GetUncommonProperties().lazyExtensionInfo;
+            return GetMarkerMethodSymbol(this, uncommon);
+        }
+
+        private static MethodSymbol GetMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+        {
+            Debug.Assert(!uncommon.MarkerMethod.IsNil);
+
+            foreach (var member in @this.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
+            {
+                if (member is PEMethodSymbol candidate && candidate.Handle == uncommon.MarkerMethod)
                 {
-                    Debug.Assert(!uncommon.MarkerMethod.IsNil);
-
-                    foreach (var member in @this.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
-                    {
-                        if (member is PEMethodSymbol candidate && candidate.Handle == uncommon.MarkerMethod)
-                        {
-                            return candidate;
-                        }
-                    }
-
-                    throw ExceptionUtilities.Unreachable();
+                    return candidate;
                 }
             }
+
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
@@ -444,12 +454,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (this.ContainingType is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                throw ExceptionUtilities.Unreachable();
             }
 
             if (!method.IsStatic && ExtensionParameter is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                return null;
             }
 
             var uncommon = GetUncommonProperties().lazyExtensionInfo;
@@ -463,26 +473,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             static MethodSymbol? findCorrespondingExtensionImplementationMethod(MethodSymbol method, PENamedTypeSymbol @this)
             {
-                Debug.Assert(@this.ExtensionParameter is not null);
-
                 foreach (var member in @this.ContainingType.GetMembers(method.Name))
                 {
                     if (member is not MethodSymbol { IsStatic: true } candidate)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue;
                     }
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider comparing accessibility as well
+                    if (candidate.DeclaredAccessibility != @this.DeclaredAccessibility)
+                    {
+                        continue;
+                    }
 
                     if (candidate.Arity != @this.Arity + method.Arity)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue;
                     }
 
                     int additionalParameterCount = method.IsStatic ? 0 : 1;
                     if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue;
                     }
 
                     ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
@@ -495,20 +506,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             typeMap,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue;
                     }
 
                     if (!method.IsStatic &&
                         !MemberSignatureComparer.HaveSameParameterType(
                             candidate.Parameters[0],
                             typeMap1: null,
-                            @this.ExtensionParameter,
+                            @this.ExtensionParameter!,
                             typeMap,
                             MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue;
                     }
 
                     if (!MemberSignatureComparer.HaveSameParameterTypes(
@@ -520,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue;
                     }
 
                     if (MemberSignatureComparer.HaveSameConstraints(
@@ -532,10 +543,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return candidate;
                     }
 
-                    break; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    break;
                 }
 
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                return null;
             }
         }
 
@@ -1991,7 +2002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                     }
                                     break;
 
-                                default:
+                                case SpecialType.System_Object:
                                     if (TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
                                     {
                                         // Extension
@@ -2023,6 +2034,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private MethodDefinitionHandle TryGetExtensionMarkerMethod()
         {
+            if (!this.HasSpecialName ||
+                !this.IsSealed ||
+                this.DeclaredAccessibility != Accessibility.Public ||
+                !this.InterfacesNoUseSiteDiagnostics().IsEmpty)
+            {
+                return default;
+            }
+
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
@@ -2040,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (!foundMarkerMethod.IsNil)
                         {
-                            return default; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                            return default;
                         }
 
                         foundMarkerMethod = methodHandle;

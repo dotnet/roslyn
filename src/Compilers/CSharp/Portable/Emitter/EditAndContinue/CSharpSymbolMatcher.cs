@@ -57,9 +57,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             // For simplicity, PID helpers and no-PIA embedded definitions are not reused across generations, so we don't map them here.
             // Instead, new ones are regenerated as needed.
-            Debug.Assert(definition is PrivateImplementationDetails or Cci.IEmbeddedDefinition);
+
+            Debug.Assert(
+                definition is Cci.IEmbeddedDefinition ||
+                isPrivateImplementationDetail(definition),
+                $"Unexpected definition of type: {definition.GetType()}");
 
             return null;
+
+            static bool isPrivateImplementationDetail(Cci.IDefinition definition)
+                => definition is PrivateImplementationDetails ||
+                   definition is Cci.ITypeDefinitionMember { ContainingTypeDefinition: var container } && isPrivateImplementationDetail(container);
         }
 
         public override Cci.INamespace? MapNamespace(Cci.INamespace @namespace)

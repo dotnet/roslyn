@@ -15,6 +15,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\VBCSharp\Dependencies</ExtensionInstallationFolder>
+    <DeployExtension>true</DeployExtension>
   </PropertyGroup>
   <ItemGroup>
     <!--
@@ -32,7 +33,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.Extensions.Options" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.Extensions.Primitives" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Buffers" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.CodeDom" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Collections.Immutable" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
@@ -49,12 +49,12 @@
     <PackageReference Include="System.Composition.Runtime" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     <PackageReference Include="System.Composition.TypedParts" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     
-    <PackageReference Include="System.Drawing.Common" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Diagnostics.EventLog" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.IO.Hashing" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.IO.Pipelines" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Memory" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.Numerics.Vectors" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Reflection.Metadata" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Resources.Extensions" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />

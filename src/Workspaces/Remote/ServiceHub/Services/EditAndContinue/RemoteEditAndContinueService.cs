@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
@@ -154,24 +153,9 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return new EmitSolutionUpdateResults.Data()
-                {
-                    ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
-                    Diagnostics = GetUnexpectedUpdateError(solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First(), e.Message),
-                    RudeEdits = [],
-                    SyntaxError = null,
-                    ProjectsToRebuild = [],
-                    ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
-                };
+                return EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjects);
             }
         }, cancellationToken);
-
-        static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Project project, string message)
-        {
-            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, [message]);
-            return [DiagnosticData.Create(diagnostic, project)];
-        }
     }
 
     /// <summary>

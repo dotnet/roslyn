@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
@@ -141,8 +140,7 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
         var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
 
         var switchLocation = diagnostic.AdditionalLocations[0];
-        var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSwitchSyntax;
-        if (switchNode == null)
+        if (switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) is not TSwitchSyntax switchNode)
             return;
 
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

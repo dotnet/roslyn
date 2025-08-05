@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
+        internal abstract bool HasSpecialNameAttribute { get; }
+
         /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
         /// listed in those attributes.
@@ -710,6 +712,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!this.GetIsNewExtensionMember());
+
                 if (this.IsPartialDefinition() &&
                     this.PartialImplementationPart is null)
                 {
@@ -828,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <exception cref="System.InvalidOperationException">If this is not a reduced extension method.</exception>
         /// <exception cref="System.ArgumentNullException">If <paramref name="reducedFromTypeParameter"/> is null.</exception>
         /// <exception cref="System.ArgumentException">If <paramref name="reducedFromTypeParameter"/> doesn't belong to the corresponding <see cref="ReducedFrom"/> method.</exception>
-        public virtual TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        public virtual TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             throw new InvalidOperationException();
         }
