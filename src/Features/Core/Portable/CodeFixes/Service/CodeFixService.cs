@@ -284,10 +284,6 @@ internal sealed partial class CodeFixService : ICodeFixService
         return spanToDiagnostics;
     }
 
-    public Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
-        TextDocument document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
-        => GetDocumentFixAllForIdInSpanAsync(document, range, diagnosticId, DiagnosticSeverity.Hidden, cancellationToken);
-
     public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
         TextDocument document, TextSpan range, string diagnosticId, DiagnosticSeverity minimumSeverity, CancellationToken cancellationToken)
     {
