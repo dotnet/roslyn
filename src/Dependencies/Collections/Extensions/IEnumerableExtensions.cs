@@ -330,8 +330,20 @@ namespace Roslyn.Utilities
 
             return source.Where((Func<T?, bool>)s_notNullTest)!;
         }
+
+        /// <summary>
+        /// Uses a builder to store results computed from <paramref name="source"/>.  If <paramref name="source"/> is
+        /// null, or definitely empty, this returns false, allowing the caller to immediately return <c>[]</c> without
+        /// further allocations.  If this returns true, then <paramref name="builder"/> will be set to an appropriate
+        /// builder to receive temporary values.
+        /// </summary>
+        /// <param name="useCountForBuilder">If the count of <paramref name="source"/> can be determined (and is non-zero),
+        /// if <paramref name="builder"/> should be initialized to that same count.  This should be passed true
+        /// for 'SelectAsArray' methods, and false for 'WhereAsArray' or 'SelectManyAsArray' methods (as the latter two
+        /// do not know how many items will be added to the builder).</param>
         private static bool TryGetBuilder<TSource, TResult>(
             [NotNullWhen(true)] IEnumerable<TSource>? source,
+            bool useCountForBuilder,
             [NotNullWhen(true)] out ArrayBuilder<TResult>? builder)
         {
             if (source is null)
@@ -349,8 +361,11 @@ namespace Roslyn.Utilities
                     return false;
                 }
 
-                builder = ArrayBuilder<TResult>.GetInstance(count);
-                return true;
+                if (useCountForBuilder)
+                {
+                    builder = ArrayBuilder<TResult>.GetInstance(count);
+                    return true;
+                }
             }
 #endif
 
@@ -360,7 +375,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<T> WhereAsArray<T>(this IEnumerable<T> values, Func<T, bool> predicate)
         {
-            if (!TryGetBuilder<T, T>(values, out var result))
+            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var result))
                 return [];
 
             foreach (var value in values)
@@ -374,7 +389,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<T> WhereAsArray<T, TArg>(this IEnumerable<T> values, Func<T, TArg, bool> predicate, TArg arg)
         {
-            if (!TryGetBuilder<T, T>(values, out var result))
+            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var result))
                 return [];
 
             foreach (var value in values)
@@ -391,7 +406,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, TResult> selector)
         {
-            if (!TryGetBuilder<TSource, TResult>(source, out var builder))
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: true, out var builder))
                 return [];
 
             builder.AddRange(source.Select(selector));
@@ -401,7 +416,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this IEnumerable<TItem>? source, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
         {
-            if (!TryGetBuilder<TItem, TResult>(source, out var builder))
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
                 return [];
 
             foreach (var item in source)
@@ -415,7 +430,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)
         {
-            if (!TryGetBuilder<TSource, TResult>(source, out var builder))
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: true, out var builder))
                 return [];
 
             var index = 0;
@@ -454,7 +469,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
         {
-            if (!TryGetBuilder<TSource, TResult>(source, out var builder))
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: false, out var builder))
                 return [];
 
             foreach (var item in source)
@@ -465,7 +480,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
         {
-            if (!TryGetBuilder<TItem, TResult>(source, out var builder))
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
                 return [];
 
             foreach (var item in source)
@@ -502,7 +517,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, OneOrMany<TResult>> selector)
         {
-            if (!TryGetBuilder<TSource, TResult>(source, out var builder))
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: false, out var builder))
                 return [];
 
             foreach (var item in source)
@@ -516,7 +531,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, ValueTask<TResult>> selector)
         {
-            if (!TryGetBuilder<TItem, TResult>(source, out var builder))
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
                 return [];
 
             foreach (var item in source)
@@ -530,7 +545,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
-            if (!TryGetBuilder<TItem, TResult>(source, out var builder))
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
                 return [];
 
             foreach (var item in source)
@@ -544,7 +559,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
-            if (!TryGetBuilder<TItem, TResult>(source, out var builder))
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
                 return [];
 
             foreach (var item in source)
@@ -555,7 +570,7 @@ namespace Roslyn.Utilities
 
         public static async ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<IEnumerable<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
         {
-            if (!TryGetBuilder<TItem, TResult>(source, out var builder))
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
                 return [];
 
             foreach (var item in source)
