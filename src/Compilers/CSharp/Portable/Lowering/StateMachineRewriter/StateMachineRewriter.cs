@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // fields for the captured variables of the method
-            var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics.DiagnosticBag);
+            var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, isRuntimeAsync: false, diagnostics.DiagnosticBag);
 
             if (diagnostics.HasAnyErrors())
             {

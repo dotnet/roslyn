@@ -23,6 +23,17 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         }
 
         // https://github.com/dotnet/roslyn/issues/79763: struct lifting
+        var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(compilationState.Compilation, method, node, isRuntimeAsync: true, diagnostics.DiagnosticBag);
+
+        if (variablesToHoist.Count > 0)
+        {
+            foreach (var variable in variablesToHoist)
+            {
+                // Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, variable.GetFirstLocation(), method);
+            }
+        }
+
         var rewriter = new RuntimeAsyncRewriter(new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
         var result = (BoundStatement)rewriter.Visit(node);
         return SpillSequenceSpiller.Rewrite(result, method, compilationState, diagnostics);
