@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx;
 internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
 {
     [ImportingConstructor]
-    [Obsolete("Do not call directly. Use dependency injection or MEF.", error: true)]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpMoveToResxCodeFixProvider() { }
 
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -366,10 +367,10 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         /// </summary>
         private readonly record struct ResxUpdateResult(bool IsSuccess, SourceText? UpdatedText, bool RequiresUpdate)
         {
-            public static ResxUpdateResult Success(SourceText? updatedText, bool requiresUpdate) 
+            public static ResxUpdateResult Success(SourceText? updatedText, bool requiresUpdate)
                 => new(true, updatedText, requiresUpdate);
 
-            public static ResxUpdateResult Failed() 
+            public static ResxUpdateResult Failed()
                 => new(false, null, false);
         }
 
