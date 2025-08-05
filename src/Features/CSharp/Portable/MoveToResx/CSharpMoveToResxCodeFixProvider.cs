@@ -110,7 +110,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
 
         var words = new List<string>();
         var stringBuilder = new StringBuilder();
-        foreach (char c in value)
+        foreach (var c in value)
         {
             if (char.IsLetterOrDigit(c))
             {
@@ -126,7 +126,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             words.Add(stringBuilder.ToString().ToLowerInvariant());
 
         using var _ = PooledStringBuilder.GetInstance(out var keyBuilder);
-        for (int i = 0; i < words.Count; i++)
+        for (var i = 0; i < words.Count; i++)
         {
             var word = words[i];
             if (i == 0)
@@ -236,7 +236,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                 return Task.FromResult(ResxUpdateResult.Failed());
             }
 
-            bool requiresUpdate = false;
+            var requiresUpdate = false;
 
             foreach (var operation in resourceOperations)
             {
@@ -306,7 +306,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
 
             foreach (var operation in replacementOperations)
             {
-                string resourceAccessString = !string.IsNullOrEmpty(defaultNamespace)
+                var resourceAccessString = !string.IsNullOrEmpty(defaultNamespace)
                     ? $"{defaultNamespace}.{resourceClass}.{operation.ResourceKey}"
                     : $"{resourceClass}.{operation.ResourceKey}";
 
