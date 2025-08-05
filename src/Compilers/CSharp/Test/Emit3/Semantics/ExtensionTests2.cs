@@ -27521,7 +27521,6 @@ public interface I { }
             () => Assert.True(MemberSignatureComparer.ExtensionILSignatureComparer.Equals((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1])),
             () => Assert.False(MemberSignatureComparer.ExtensionCSharpSignatureComparer.Equals(extension1, extension2))
         );
-        // TODO2 verify nullability of constraint after round-tripping in metadata
     }
 
     [Fact]

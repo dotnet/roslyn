@@ -7,8 +7,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -119,16 +119,28 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(TypedConstant x, TypedConstant y)
             {
-                if (x.Kind == TypedConstantKind.Type && y.Kind == TypedConstantKind.Type)
-                {
-                    return x.Value is ISymbol xType && y.Value is ISymbol yType && xType.Equals(yType, SymbolEqualityComparer.IgnoreAll);
-                }
+                bool result = equals(x, y);
+                Debug.Assert(!result || GetHashCode(x) == GetHashCode(y), "If TypedConstants are equal, their hashes must be equal.");
+                return result;
 
-                return x.Equals(y);
+                static bool equals(TypedConstant x, TypedConstant y)
+                {
+                    if (x.Kind == TypedConstantKind.Type && y.Kind == TypedConstantKind.Type)
+                    {
+                        return x.ValueInternal is ISymbolInternal xType && y.ValueInternal is ISymbolInternal yType && xType.Equals(yType, TypeCompareKind.AllIgnoreOptions);
+                    }
+
+                    return x.Equals(y);
+                }
             }
 
             public int GetHashCode(TypedConstant obj)
             {
+                if (obj.Kind == TypedConstantKind.Type)
+                {
+                    return SymbolEqualityComparer.IgnoreAll.GetHashCode(obj.Value as ISymbol);
+                }
+
                 return obj.GetHashCode();
             }
         }
@@ -143,12 +155,15 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(KeyValuePair<string, TypedConstant> pair1, KeyValuePair<string, TypedConstant> pair2)
             {
-                return pair1.Key == pair2.Key && TypedConstantComparer.IgnoreAll.Equals(pair1.Value, pair2.Value);
+                bool equals = pair1.Key == pair2.Key && TypedConstantComparer.IgnoreAll.Equals(pair1.Value, pair2.Value);
+                Debug.Assert(!equals || GetHashCode(pair1) == GetHashCode(pair2), "If named arguments are equal, their hashes must be equal.");
+                return equals;
             }
 
-            public int GetHashCode([DisallowNull] KeyValuePair<string, TypedConstant> pair)
+            public int GetHashCode(KeyValuePair<string, TypedConstant> pair)
             {
-                return pair.GetHashCode();
+                int hash = pair.Key.GetHashCode();
+                return Hash.Combine(TypedConstantComparer.IgnoreAll.GetHashCode(pair.Value), hash);
             }
         }
     }

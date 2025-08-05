@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ImmutableArray<TypeParameterSymbol> typeParams1 = member1.GetMemberTypeParameters();
                         ImmutableArray<TypeParameterSymbol> typeParams2 = member2.GetMemberTypeParameters();
 
-                        if (_considerParameterNames && typeParams1.Length > 0 && !haveSameTypeParameterNames(typeParams1, typeParams2))
+                        if (_considerParameterNames && !haveSameTypeParameterNames(typeParams1, typeParams2))
                         {
                             return false;
                         }
