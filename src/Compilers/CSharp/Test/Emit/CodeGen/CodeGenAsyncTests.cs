@@ -15,14 +15,14 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-// PROTOTYPE: Verify execution of runtime async methods
-// PROTOTYPE: ILVerify for runtime async?
+// https://github.com/dotnet/roslyn/issues/79791: Verify execution of runtime async methods
+// https://github.com/dotnet/runtime/issues/118042: ILVerify for runtime async?
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
-        // PROTOTYPE: Use the real value when possible
+        // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
         private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)0x2000;
         private static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             return ExecutionConditionUtil.IsMonoOrCoreClr
                 ? isRuntimeAsync
-                    // PROTOTYPE: Verify runtime async output
+                    // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
                     ? null
                     : output
                 : null;

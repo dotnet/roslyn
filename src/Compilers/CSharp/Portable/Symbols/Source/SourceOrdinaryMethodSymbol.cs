@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (IsAsync)
                 {
-                    // PROTOTYPE: Need more dedicated debug information testing when runtime async is enabled.
+                    // https://github.com/dotnet/roslyn/issues/79793: Need more dedicated debug information testing when runtime async is enabled.
                     return DeclaringCompilation.IsRuntimeAsyncEnabledIn(this);
                 }
 
