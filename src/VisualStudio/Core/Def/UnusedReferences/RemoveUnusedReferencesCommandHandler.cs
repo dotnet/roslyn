@@ -196,8 +196,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         });
 
         var referenceUpdates = unusedReferences
-            .Select(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference))
-            .ToImmutableArray();
+            .SelectAsArray(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference));
 
         return referenceUpdates;
     }

@@ -488,8 +488,7 @@ internal sealed class NavigateToSearcher
             .GetDependencySets(cancellationToken)
             .SelectAsArray(projectIdSet =>
                 projectIdSet.Where(id => allProjectIdSet.Contains(id))
-                            .Select(id => _solution.GetRequiredProject(id))
-                            .ToImmutableArray());
+                            .SelectAsArray(id => _solution.GetRequiredProject(id)));
 
         Contract.ThrowIfFalse(orderedProjects.SelectMany(s => s).Count() == filteredProjects.SelectMany(s => s).Count());
 

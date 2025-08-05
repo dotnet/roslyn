@@ -665,7 +665,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
                 var fromProject = projectNameToTestHostProject[fromName];
                 var toProject = projectNameToTestHostProject[toName];
 
-                var aliases = projectReference.Attributes(AliasAttributeName).Select(a => a.Value).ToImmutableArray();
+                var aliases = projectReference.Attributes(AliasAttributeName).SelectAsArray(a => a.Value);
 
                 OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default));
             }

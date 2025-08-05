@@ -354,8 +354,7 @@ internal sealed partial class InlineRenameSession
                 _conflictResolutionRenameTrackingSpans.Clear();
 
                 var documentReplacements = documents
-                    .Select(document => (document, conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None).ToImmutableArray()))
-                    .ToImmutableArray();
+                    .SelectAsArray(document => (document, conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None).ToImmutableArray()));
 
                 var firstDocumentReplacements = documentReplacements.FirstOrDefault(d => !d.Item2.IsEmpty);
                 var bufferContainsLinkedDocuments = documentReplacements.Length > 1 && firstDocumentReplacements.document != null;

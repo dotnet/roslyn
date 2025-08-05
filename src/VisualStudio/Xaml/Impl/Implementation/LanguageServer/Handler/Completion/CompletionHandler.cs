@@ -139,7 +139,7 @@ internal sealed class CompletionHandler : ILspServiceDocumentRequestHandler<Comp
 
         var xamlCommitCharacters = completionItem.XamlCommitCharacters.Value;
 
-        var commitCharacters = xamlCommitCharacters.Characters.Select(c => new VSInternalCommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) }).ToImmutableArray();
+        var commitCharacters = xamlCommitCharacters.Characters.SelectAsArray(c => new VSInternalCommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) });
         commitCharactersCache.Add(completionItem.Kind, commitCharacters);
         return commitCharacters.ToArray();
     }
