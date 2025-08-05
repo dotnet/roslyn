@@ -373,12 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 // The diagnostics that would be produced here will already have been captured and returned.
-                // PROTOTYPE: handle the runtime case
                 var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
 
                 Debug.Assert(
                     ReturnType.IsVoidType() ||
                     ReturnType.SpecialType == SpecialType.System_Int32);
+                Debug.Assert(!compilation.IsRuntimeAsyncEnabledIn(this));
             }
 
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!initializer.ReturnType.IsDynamic());
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, receiverIsSubjectToCloning: ThreeState.False, initializer);
                 BoundExpression getAwaiterGetResultCall;
-                // PROTOTYPE: handle the runtime case
+                Debug.Assert(!compilation.IsRuntimeAsyncEnabledIn(this));
                 if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, runtimeAsyncAwaitCall: out _, syntax, diagnostics))
                 {
                     return new BoundBlock(
