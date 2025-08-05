@@ -487,7 +487,7 @@ internal sealed class NavigateToSearcher
             .GetProjectDependencyGraph()
             .GetDependencySets(cancellationToken)
             .SelectAsArray(projectIdSet =>
-                projectIdSet                            .SelectAsArray(id => allProjectIdSet.Contains(id), id => _solution.GetRequiredProject(id)));
+                projectIdSet.SelectAsArray(id => allProjectIdSet.Contains(id), id => _solution.GetRequiredProject(id)));
 
         Contract.ThrowIfFalse(orderedProjects.SelectMany(s => s).Count() == filteredProjects.SelectMany(s => s).Count());
 
