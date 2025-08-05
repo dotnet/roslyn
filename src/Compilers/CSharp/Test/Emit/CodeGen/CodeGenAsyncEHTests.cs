@@ -4065,8 +4065,10 @@ class Driver
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails);
-            // PROTOTYPE: ILVerify is crashing with IndexOutOfRangeException when attempting to get messages.
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x1d }"
+            });
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.<<Main>$>g__Run|0_0()", getIL());
 
@@ -4108,7 +4110,7 @@ class Driver
                     """,
                 (true, false, false) => """
                     {
-                      // Code size       70 (0x46)
+                      // Code size       72 (0x48)
                       .maxstack  2
                       .locals init (int V_0,
                                     System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
@@ -4162,11 +4164,13 @@ class Driver
                           IL_0044:  rethrow
                         }
                       }
+                      IL_0046:  ldnull
+                      IL_0047:  throw
                     }
                     """,
                 (false, true, false) => """
                     {
-                      // Code size       80 (0x50)
+                      // Code size       82 (0x52)
                       .maxstack  2
                       .locals init (int V_0,
                                     int V_1,
@@ -4229,6 +4233,8 @@ class Driver
                         IL_004d:  pop
                         IL_004e:  rethrow
                       }
+                      IL_0050:  ldnull
+                      IL_0051:  throw
                     }
                     """,
                 (false, false, true) => """
@@ -4257,7 +4263,7 @@ class Driver
                       }
                       IL_000d:  ldloc.0
                       IL_000e:  ldc.i4.1
-                      IL_000f:  bne.un.s   IL_0071
+                      IL_000f:  bne.un.s   IL_006f
                       IL_0011:  ldc.i4.0
                       IL_0012:  stloc.1
                       .try
@@ -4274,7 +4280,7 @@ class Driver
                       }
                       IL_001e:  ldloc.1
                       IL_001f:  ldc.i4.1
-                      IL_0020:  bne.un.s   IL_0071
+                      IL_0020:  bne.un.s   IL_006f
                       IL_0022:  ldc.i4.0
                       IL_0023:  stloc.3
                       .try
@@ -4291,7 +4297,7 @@ class Driver
                       }
                       IL_002f:  ldloc.3
                       IL_0030:  ldc.i4.1
-                      IL_0031:  bne.un.s   IL_0071
+                      IL_0031:  bne.un.s   IL_006f
                       IL_0033:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
                       IL_0038:  stloc.s    V_5
                       IL_003a:  ldloca.s   V_5
@@ -4312,12 +4318,13 @@ class Driver
                       IL_0064:  throw
                       IL_0065:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                       IL_006a:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                      IL_006f:  br.s       IL_0071
+                      IL_006f:  ldnull
+                      IL_0070:  throw
                     }
                     """,
                 (true, true, false) => """
                     {
-                      // Code size      116 (0x74)
+                      // Code size      118 (0x76)
                       .maxstack  2
                       .locals init (int V_0,
                                     int V_1,
@@ -4392,6 +4399,8 @@ class Driver
                         IL_0071:  pop
                         IL_0072:  rethrow
                       }
+                      IL_0074:  ldnull
+                      IL_0075:  throw
                     }
                     """,
                 (true, false, true) => """
@@ -4420,7 +4429,7 @@ class Driver
                       }
                       IL_000d:  ldloc.0
                       IL_000e:  ldc.i4.1
-                      IL_000f:  bne.un     IL_009b
+                      IL_000f:  bne.un     IL_0099
                       IL_0014:  ldc.i4.0
                       IL_0015:  stloc.1
                       .try
@@ -4449,7 +4458,7 @@ class Driver
                       }
                       IL_0045:  ldloc.1
                       IL_0046:  ldc.i4.1
-                      IL_0047:  bne.un.s   IL_009b
+                      IL_0047:  bne.un.s   IL_0099
                       IL_0049:  ldc.i4.0
                       IL_004a:  stloc.s    V_5
                       .try
@@ -4466,7 +4475,7 @@ class Driver
                       }
                       IL_0059:  ldloc.s    V_5
                       IL_005b:  ldc.i4.1
-                      IL_005c:  bne.un.s   IL_009b
+                      IL_005c:  bne.un.s   IL_0099
                       IL_005e:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
                       IL_0063:  stloc.3
                       IL_0064:  ldloca.s   V_3
@@ -4487,7 +4496,8 @@ class Driver
                       IL_008e:  throw
                       IL_008f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                       IL_0094:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                      IL_0099:  br.s       IL_009b
+                      IL_0099:  ldnull
+                      IL_009a:  throw
                     }
                     """,
                 (false, true, true) => """
@@ -4516,7 +4526,7 @@ class Driver
                       }
                       IL_000d:  ldloc.0
                       IL_000e:  ldc.i4.1
-                      IL_000f:  bne.un     IL_009b
+                      IL_000f:  bne.un     IL_0099
                       IL_0014:  ldc.i4.0
                       IL_0015:  stloc.1
                       .try
@@ -4533,7 +4543,7 @@ class Driver
                       }
                       IL_0021:  ldloc.1
                       IL_0022:  ldc.i4.1
-                      IL_0023:  bne.un.s   IL_009b
+                      IL_0023:  bne.un.s   IL_0099
                       IL_0025:  ldc.i4.0
                       IL_0026:  stloc.3
                       .try
@@ -4562,7 +4572,7 @@ class Driver
                       }
                       IL_0059:  ldloc.3
                       IL_005a:  ldc.i4.1
-                      IL_005b:  bne.un.s   IL_009b
+                      IL_005b:  bne.un.s   IL_0099
                       IL_005d:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
                       IL_0062:  stloc.s    V_5
                       IL_0064:  ldloca.s   V_5
@@ -4583,7 +4593,8 @@ class Driver
                       IL_008e:  throw
                       IL_008f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                       IL_0094:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                      IL_0099:  br.s       IL_009b
+                      IL_0099:  ldnull
+                      IL_009a:  throw
                     }
                     """,
                 (true, true, true) => """
@@ -4612,7 +4623,7 @@ class Driver
                       }
                       IL_000d:  ldloc.0
                       IL_000e:  ldc.i4.1
-                      IL_000f:  bne.un     IL_00bf
+                      IL_000f:  bne.un     IL_00bd
                       IL_0014:  ldc.i4.0
                       IL_0015:  stloc.1
                       .try
@@ -4641,7 +4652,7 @@ class Driver
                       }
                       IL_0045:  ldloc.1
                       IL_0046:  ldc.i4.1
-                      IL_0047:  bne.un.s   IL_00bf
+                      IL_0047:  bne.un.s   IL_00bd
                       IL_0049:  ldc.i4.0
                       IL_004a:  stloc.s    V_5
                       .try
@@ -4670,7 +4681,7 @@ class Driver
                       }
                       IL_007d:  ldloc.s    V_5
                       IL_007f:  ldc.i4.1
-                      IL_0080:  bne.un.s   IL_00bf
+                      IL_0080:  bne.un.s   IL_00bd
                       IL_0082:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
                       IL_0087:  stloc.3
                       IL_0088:  ldloca.s   V_3
@@ -4691,7 +4702,8 @@ class Driver
                       IL_00b2:  throw
                       IL_00b3:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
                       IL_00b8:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                      IL_00bd:  br.s       IL_00bf
+                      IL_00bd:  ldnull
+                      IL_00be:  throw
                     }
                     """,
             };
@@ -4948,7 +4960,7 @@ class Driver
                 {
                     return """
                         {
-                          // Code size       69 (0x45)
+                          // Code size       71 (0x47)
                           .maxstack  2
                           .locals init (int V_0,
                                         System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
@@ -5001,6 +5013,8 @@ class Driver
                               IL_0043:  rethrow
                             }
                           }
+                          IL_0045:  ldnull
+                          IL_0046:  throw
                         }
                         """;
                 }

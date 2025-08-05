@@ -564,6 +564,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         handlers.ToImmutableAndFree()),
                     _F.HiddenSequencePoint(),
                     _F.Label(handledLabel));
+
+                // It's possible that all catches end in rethrows, and the method ends after them. In such scenarios,
+                // after the above switch will be "reachable", but have no statements to execute. In practice such code
+                // in unreachable, but this is the halting problem. To ensure we have valid IL, we append a final throw
+                // to the method, and if further basic block optimization determines that it's unreachable, then it'll be
+                // trimmed.
+                _needsFinalThrow = true;
             }
 
             _currentAwaitCatchFrame = origAwaitCatchFrame;

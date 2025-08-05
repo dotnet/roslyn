@@ -11792,7 +11792,8 @@ static class C
     IL_01a0:  ldarg.0
     IL_01a1:  ldnull
     IL_01a2:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
-    IL_01a7:  leave.s    IL_01c1
+    IL_01a7:  ldnull
+    IL_01a8:  throw
   }
   catch System.Exception
   {
@@ -12168,7 +12169,8 @@ static class C
     IL_01d6:  ldarg.0
     IL_01d7:  ldnull
     IL_01d8:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
-    IL_01dd:  leave.s    IL_01f9
+    IL_01dd:  ldnull
+    IL_01de:  throw
   }
   catch System.Exception
   {
