@@ -375,16 +375,16 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<T> WhereAsArray<T>(this IEnumerable<T> values, Func<T, bool> predicate)
         {
-            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var result))
+            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var builder))
                 return [];
 
             foreach (var value in values)
             {
                 if (predicate(value))
-                    result.Add(value);
+                    builder.Add(value);
             }
 
-            return result.ToImmutableAndFree();
+            return builder.ToImmutableAndFree();
         }
 
         public static ImmutableArray<T> WhereAsArray<T, TArg>(this IEnumerable<T> values, Func<T, TArg, bool> predicate, TArg arg)
