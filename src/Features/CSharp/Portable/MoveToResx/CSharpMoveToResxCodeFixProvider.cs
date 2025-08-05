@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -40,7 +41,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
     {
         var diagnostic = context.Diagnostics[0];
         var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        var node = root.FindNode(diagnostic.Location.SourceSpan) as LiteralExpressionSyntax;
+        var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) as LiteralExpressionSyntax;
         if (node is null)
             return;
 
@@ -49,7 +50,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "No .resx file found. Please create a .resx file in your project or folder.",
+                    title: CSharpFeaturesResources.No_resx_file_found_Please_create_a_resx_file_in_your_project_or_folder,
                     createChangedDocument: c => Task.FromResult(context.Document), // No-op
                     equivalenceKey: "NoResxFileFound"),
                 diagnostic);
@@ -59,7 +60,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         var nestedActions = allResx
             .Select(resx =>
             {
-                var resxName = Path.GetFileName(resx.FilePath) ?? "Unnamed Resource";
+                var resxName = Path.GetFileName(resx.FilePath) ?? CSharpFeaturesResources.Unnamed_Resource;
                 return CodeAction.Create(
                     title: resxName,
                     createChangedSolution: c => MoveStringToResxAndReplaceLiteralAsync(context.Document, node, resx, c),
@@ -69,7 +70,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
 
         context.RegisterCodeFix(
             CodeAction.Create(
-                "Move string to .resx resource",
+                CSharpFeaturesResources.Move_string_to_resx_resource,
                 nestedActions,
                 isInlinable: false),
             diagnostic);
@@ -101,11 +102,17 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             return document.Project.Solution;
         }
 
+        // Ensure we have a valid root element
+        if (xdoc.Root == null)
+        {
+            return document.Project.Solution;
+        }
+
         var value = stringLiteral.Token.ValueText;
         var name = ToDeterministicResourceKey(value);
 
         // Check if the value already exists in the .resx file (regardless of name)
-        var existingDataElement = xdoc.Root.Elements("data")
+        var existingDataElement = xdoc.Root?.Elements("data")
             .FirstOrDefault(e => e.Element("value")?.Value == value);
 
         bool resxNeedsUpdate = false;
@@ -113,13 +120,14 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         if (existingDataElement is not null)
         {
             // Use the existing name and do NOT update the .resx
-            name = (string)existingDataElement.Attribute("name");
+            var nameAttribute = existingDataElement.Attribute("name");
+            name = nameAttribute?.Value ?? name;
         }
         else
         {
             resxNeedsUpdate = true;
-            var dataElement = xdoc.Root.Elements("data")
-                .FirstOrDefault(e => (string)e.Attribute("name") == name);
+            var dataElement = xdoc.Root?.Elements("data")
+                .FirstOrDefault(e => (string?)e.Attribute("name") == name);
 
             if (dataElement is null)
             {
@@ -127,22 +135,26 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                     new XAttribute("name", name),
                     new XAttribute(XNamespace.Xml + "space", "preserve"),
                     new XElement("value", value));
-                xdoc.Root.Add(dataElement);
+                xdoc.Root?.Add(dataElement);
             }
             else
             {
                 // If the key exists but with a different value, update it
                 if (dataElement.Element("value")?.Value != value)
                 {
-                    dataElement.Element("value")!.Value = value;
+                    var valueElement = dataElement.Element("value");
+                    if (valueElement != null)
+                    {
+                        valueElement.Value = value;
+                    }
                 }
             }
         }
 
         var resourceClass = Path.GetFileNameWithoutExtension(resxFile.Name);
-        var ns = document.Project.DefaultNamespace;
-        string resourceAccessString = !string.IsNullOrEmpty(ns)
-            ? $"{ns}.{resourceClass}.{name}"
+        var defaultNamespace = document.Project.DefaultNamespace;
+        string resourceAccessString = !string.IsNullOrEmpty(defaultNamespace)
+            ? $"{defaultNamespace}.{resourceClass}.{name}"
             : $"{resourceClass}.{name}";
 
         var resourceAccess = SyntaxFactory.ParseExpression(resourceAccessString).WithTriviaFrom(stringLiteral);
@@ -174,39 +186,60 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         return newSolution;
     }
 
-    private static string ToDeterministicResourceKey(string value, int maxWords = 6)
+    private static string ToDeterministicResourceKey(string value, int maxLength = 60)
     {
         if (string.IsNullOrWhiteSpace(value))
             return "emptyString";
 
         var words = new List<string>();
-        var sb = new StringBuilder();
+        var stringBuilder = new StringBuilder();
         foreach (char c in value)
         {
             if (char.IsLetterOrDigit(c))
             {
-                sb.Append(c);
+                stringBuilder.Append(c);
             }
-            else if (sb.Length > 0)
+            else if (stringBuilder.Length > 0)
             {
-                words.Add(sb.ToString().ToLowerInvariant());
-                sb.Clear();
+                words.Add(stringBuilder.ToString().ToLowerInvariant());
+                stringBuilder.Clear();
             }
         }
-        if (sb.Length > 0)
-            words.Add(sb.ToString().ToLowerInvariant());
+        if (stringBuilder.Length > 0)
+            words.Add(stringBuilder.ToString().ToLowerInvariant());
 
-        if (words.Count > maxWords)
-            words = words.Take(maxWords).ToList();
-
-        var keyBuilder = new StringBuilder();
+        using var _ = PooledStringBuilder.GetInstance(out var keyBuilder);
         for (int i = 0; i < words.Count; i++)
         {
             var word = words[i];
             if (i == 0)
+            {
+                // Check if adding the first word would exceed maxLength
+                if (word.Length > maxLength)
+                {
+                    keyBuilder.Append(word.Substring(0, maxLength));
+                    break;
+                }
                 keyBuilder.Append(word);
+            }
             else if (word.Length > 0)
-                keyBuilder.Append(char.ToUpperInvariant(word[0]) + word.Substring(1));
+            {
+                var capitalizedWord = char.ToUpperInvariant(word[0]) + word.Substring(1);
+
+                // Check if adding this word would exceed maxLength
+                if (keyBuilder.Length + capitalizedWord.Length > maxLength)
+                {
+                    // Add as much of the word as possible without exceeding maxLength
+                    var remainingLength = maxLength - keyBuilder.Length;
+                    if (remainingLength > 0)
+                    {
+                        keyBuilder.Append(capitalizedWord.Substring(0, remainingLength));
+                    }
+                    break;
+                }
+
+                keyBuilder.Append(capitalizedWord);
+            }
         }
 
         var key = keyBuilder.ToString();
@@ -242,13 +275,13 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             var resx = allResx.First();
 
             return CodeAction.Create(
-                "Move all strings to .resx resource",
+                CSharpFeaturesResources.Move_all_strings_to_resx_resource,
                 async ct =>
                 {
                     // Collect all string literals and their values first
                     var root = await document.GetRequiredSyntaxRootAsync(ct).ConfigureAwait(false);
                     var literalsToFix = new List<(LiteralExpressionSyntax literal, string value, string resourceKey)>();
-                    
+
                     foreach (var diagnostic in diagnostics)
                     {
                         var node = root?.FindNode(diagnostic.Location.SourceSpan) as LiteralExpressionSyntax;
@@ -267,7 +300,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                     var currentSolution = project.Solution;
                     var currentResx = resx;
                     var resxSourceText = await currentResx.GetTextAsync(ct).ConfigureAwait(false);
-                    
+
                     XDocument xdoc;
                     try
                     {
@@ -279,7 +312,13 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                         // Return the original solution unchanged
                         return project.Solution;
                     }
-                    
+
+                    // Ensure we have a valid root element
+                    if (xdoc.Root == null)
+                    {
+                        return project.Solution;
+                    }
+
                     bool resxNeedsUpdate = false;
 
                     // Collect all the resource keys we need to add
@@ -299,14 +338,15 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                         if (existingDataElement is not null)
                         {
                             // Use the existing name
-                            var existingName = (string)existingDataElement.Attribute("name");
+                            var nameAttribute = existingDataElement.Attribute("name");
+                            var existingName = nameAttribute?.Value ?? resourceKey;
                             resourceKeysToUse[literal] = existingName;
                         }
                         else
                         {
                             // Check if this resource key already exists with a different value
                             var existingKeyElement = xdoc.Root.Elements("data")
-                                .FirstOrDefault(e => (string)e.Attribute("name") == resourceKey);
+                                .FirstOrDefault(e => (string?)e.Attribute("name") == resourceKey);
 
                             if (existingKeyElement is null)
                             {
@@ -318,7 +358,11 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                             else
                             {
                                 // Key exists but with different value, update it
-                                existingKeyElement.Element("value")!.Value = value;
+                                var valueElement = existingKeyElement.Element("value");
+                                if (valueElement != null)
+                                {
+                                    valueElement.Value = value;
+                                }
                                 resourceKeysToUse[literal] = resourceKey;
                                 resxNeedsUpdate = true;
                             }
