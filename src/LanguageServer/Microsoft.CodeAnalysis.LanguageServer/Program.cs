@@ -103,7 +103,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var cacheDirectory = Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, "cache");
 
-    using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
+    using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(AppContext.BaseDirectory, extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
 
     // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
     // 'automatic' for now.
