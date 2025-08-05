@@ -83,107 +83,23 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
     }
 
     private static async Task<Solution> MoveStringToResxAndReplaceLiteralAsync(
-    Document document,
-    LiteralExpressionSyntax stringLiteral,
-    TextDocument resxFile,
-    CancellationToken cancellationToken)
+        Document document,
+        LiteralExpressionSyntax stringLiteral,
+        TextDocument resxFile,
+        CancellationToken cancellationToken)
     {
-        var resxSourceText = await resxFile.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        
-        XDocument xdoc;
-        try
-        {
-            xdoc = XDocument.Parse(resxSourceText.ToString());
-        }
-        catch (System.Xml.XmlException)
-        {
-            // If the resx file is malformed, we can't safely modify it
-            // Return the original solution unchanged
-            return document.Project.Solution;
-        }
-
-        // Ensure we have a valid root element
-        if (xdoc.Root == null)
-        {
-            return document.Project.Solution;
-        }
-
         var value = stringLiteral.Token.ValueText;
-        var name = ToDeterministicResourceKey(value);
+        var resourceKey = ToDeterministicResourceKey(value);
 
-        // Check if the value already exists in the .resx file (regardless of name)
-        var existingDataElement = xdoc.Root?.Elements("data")
-            .FirstOrDefault(e => e.Element("value")?.Value == value);
+        var resourceOperation = new ResourceOperation(value, resourceKey);
+        var replacementOperation = new ReplacementOperation(stringLiteral, resourceKey);
 
-        bool resxNeedsUpdate = false;
-
-        if (existingDataElement is not null)
-        {
-            // Use the existing name and do NOT update the .resx
-            var nameAttribute = existingDataElement.Attribute("name");
-            name = nameAttribute?.Value ?? name;
-        }
-        else
-        {
-            resxNeedsUpdate = true;
-            var dataElement = xdoc.Root?.Elements("data")
-                .FirstOrDefault(e => (string?)e.Attribute("name") == name);
-
-            if (dataElement is null)
-            {
-                dataElement = new XElement("data",
-                    new XAttribute("name", name),
-                    new XAttribute(XNamespace.Xml + "space", "preserve"),
-                    new XElement("value", value));
-                xdoc.Root?.Add(dataElement);
-            }
-            else
-            {
-                // If the key exists but with a different value, update it
-                if (dataElement.Element("value")?.Value != value)
-                {
-                    var valueElement = dataElement.Element("value");
-                    if (valueElement != null)
-                    {
-                        valueElement.Value = value;
-                    }
-                }
-            }
-        }
-
-        var resourceClass = Path.GetFileNameWithoutExtension(resxFile.Name);
-        var defaultNamespace = document.Project.DefaultNamespace;
-        string resourceAccessString = !string.IsNullOrEmpty(defaultNamespace)
-            ? $"{defaultNamespace}.{resourceClass}.{name}"
-            : $"{resourceClass}.{name}";
-
-        var resourceAccess = SyntaxFactory.ParseExpression(resourceAccessString).WithTriviaFrom(stringLiteral);
-
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var newRoot = root.ReplaceNode(stringLiteral, resourceAccess);
-
-        Solution newSolution;
-        if (resxNeedsUpdate)
-        {
-            string updatedResxText;
-            using (var sw = new StringWriter())
-            {
-                xdoc.Save(sw);
-                updatedResxText = sw.ToString();
-            }
-
-            var newResxSourceText = SourceText.From(updatedResxText, resxSourceText.Encoding);
-            newSolution = document.Project.Solution
-                .WithAdditionalDocumentText(resxFile.Id, newResxSourceText)
-                .WithDocumentSyntaxRoot(document.Id, newRoot);
-        }
-        else
-        {
-            newSolution = document.Project.Solution
-                .WithDocumentSyntaxRoot(document.Id, newRoot);
-        }
-
-        return newSolution;
+        return await ResxResourceManager.UpdateResxAndDocumentAsync(
+            document,
+            resxFile,
+            [resourceOperation],
+            [replacementOperation],
+            cancellationToken).ConfigureAwait(false);
     }
 
     private static string ToDeterministicResourceKey(string value, int maxLength = 60)
@@ -251,6 +167,218 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         return key;
     }
 
+    /// <summary>
+    /// Represents a resource operation to be performed on a resx file.
+    /// </summary>
+    private readonly record struct ResourceOperation(string Value, string Key);
+
+    /// <summary>
+    /// Represents a replacement operation to be performed on source code.
+    /// </summary>
+    private readonly record struct ReplacementOperation(LiteralExpressionSyntax Literal, string ResourceKey);
+
+    /// <summary>
+    /// Manages operations on resx files and coordinates solution updates.
+    /// </summary>
+    private static class ResxResourceManager
+    {
+        /// <summary>
+        /// Updates a resx file with multiple resource operations and performs corresponding replacements in the document.
+        /// </summary>
+        public static async Task<Solution> UpdateResxAndDocumentAsync(
+            Document document,
+            TextDocument resxFile,
+            IReadOnlyList<ResourceOperation> resourceOperations,
+            IReadOnlyList<ReplacementOperation> replacementOperations,
+            CancellationToken cancellationToken)
+        {
+            var resxSourceText = await resxFile.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var resxResult = await UpdateResxFileAsync(resxSourceText, resourceOperations, cancellationToken).ConfigureAwait(false);
+            if (!resxResult.IsSuccess)
+            {
+                return document.Project.Solution;
+            }
+
+            var documentResult = await UpdateDocumentAsync(document, resxFile, replacementOperations, cancellationToken).ConfigureAwait(false);
+
+            return await CreateUpdatedSolutionAsync(
+                document.Project.Solution,
+                document.Id,
+                resxFile.Id,
+                documentResult.UpdatedRoot,
+                resxResult.UpdatedText,
+                resxResult.RequiresUpdate,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Updates the resx file content with the specified resource operations.
+        /// </summary>
+        private static Task<ResxUpdateResult> UpdateResxFileAsync(
+            SourceText resxSourceText,
+            IReadOnlyList<ResourceOperation> resourceOperations,
+            CancellationToken cancellationToken)
+        {
+            XDocument xdoc;
+            try
+            {
+                xdoc = XDocument.Parse(resxSourceText.ToString());
+            }
+            catch (System.Xml.XmlException)
+            {
+                return Task.FromResult(ResxUpdateResult.Failed());
+            }
+
+            if (xdoc.Root == null)
+            {
+                return Task.FromResult(ResxUpdateResult.Failed());
+            }
+
+            bool requiresUpdate = false;
+
+            foreach (var operation in resourceOperations)
+            {
+                // Check if the value already exists in the .resx file
+                var existingDataElement = xdoc.Root.Elements("data")
+                    .FirstOrDefault(e => e.Element("value")?.Value == operation.Value);
+
+                if (existingDataElement is null)
+                {
+                    requiresUpdate = true;
+                    var dataElement = xdoc.Root.Elements("data")
+                        .FirstOrDefault(e => (string?)e.Attribute("name") == operation.Key);
+
+                    if (dataElement is null)
+                    {
+                        dataElement = new XElement("data",
+                            new XAttribute("name", operation.Key),
+                            new XAttribute(XNamespace.Xml + "space", "preserve"),
+                            new XElement("value", operation.Value));
+                        xdoc.Root.Add(dataElement);
+                    }
+                    else
+                    {
+                        // If the key exists but with a different value, update it
+                        var valueElement = dataElement.Element("value");
+                        if (valueElement?.Value != operation.Value)
+                        {
+                            if (valueElement != null)
+                            {
+                                valueElement.Value = operation.Value;
+                            }
+                        }
+                    }
+                }
+            }
+
+            SourceText? updatedText = null;
+            if (requiresUpdate)
+            {
+                string updatedResxText;
+                using (var sw = new StringWriter())
+                {
+                    xdoc.Save(sw);
+                    updatedResxText = sw.ToString();
+                }
+                updatedText = SourceText.From(updatedResxText, resxSourceText.Encoding);
+            }
+
+            return Task.FromResult(ResxUpdateResult.Success(updatedText, requiresUpdate));
+        }
+
+        /// <summary>
+        /// Updates the document by replacing string literals with resource access expressions.
+        /// </summary>
+        private static async Task<DocumentUpdateResult> UpdateDocumentAsync(
+            Document document,
+            TextDocument resxFile,
+            IReadOnlyList<ReplacementOperation> replacementOperations,
+            CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var resourceClass = Path.GetFileNameWithoutExtension(resxFile.Name);
+            var defaultNamespace = document.Project.DefaultNamespace;
+
+            // Create replacement map
+            var replacementMap = new Dictionary<LiteralExpressionSyntax, SyntaxNode>();
+
+            foreach (var operation in replacementOperations)
+            {
+                string resourceAccessString = !string.IsNullOrEmpty(defaultNamespace)
+                    ? $"{defaultNamespace}.{resourceClass}.{operation.ResourceKey}"
+                    : $"{resourceClass}.{operation.ResourceKey}";
+
+                var resourceAccess = SyntaxFactory.ParseExpression(resourceAccessString)
+                    .WithTriviaFrom(operation.Literal);
+
+                replacementMap[operation.Literal] = resourceAccess;
+            }
+
+            var newRoot = root.ReplaceNodes(replacementMap.Keys, (original, rewritten) => replacementMap[original]);
+
+            return new DocumentUpdateResult(newRoot);
+        }
+
+        /// <summary>
+        /// Creates the updated solution with both document and resx file changes.
+        /// </summary>
+        private static Task<Solution> CreateUpdatedSolutionAsync(
+            Solution solution,
+            DocumentId documentId,
+            DocumentId resxFileId,
+            SyntaxNode updatedRoot,
+            SourceText? updatedResxText,
+            bool resxRequiresUpdate,
+            CancellationToken cancellationToken)
+        {
+            var newSolution = solution.WithDocumentSyntaxRoot(documentId, updatedRoot);
+
+            if (resxRequiresUpdate && updatedResxText != null)
+            {
+                newSolution = newSolution.WithAdditionalDocumentText(resxFileId, updatedResxText);
+            }
+
+            return Task.FromResult(newSolution);
+        }
+
+        /// <summary>
+        /// Gets the actual resource key to use for a given operation, considering existing resources.
+        /// </summary>
+        public static string GetActualResourceKey(XDocument xdoc, ResourceOperation operation)
+        {
+            // Check if the value already exists in the .resx file
+            var existingDataElement = xdoc.Root?.Elements("data")
+                .FirstOrDefault(e => e.Element("value")?.Value == operation.Value);
+
+            if (existingDataElement is not null)
+            {
+                // Use the existing name
+                var nameAttribute = existingDataElement.Attribute("name");
+                return nameAttribute?.Value ?? operation.Key;
+            }
+
+            return operation.Key;
+        }
+
+        /// <summary>
+        /// Result of updating a resx file.
+        /// </summary>
+        private readonly record struct ResxUpdateResult(bool IsSuccess, SourceText? UpdatedText, bool RequiresUpdate)
+        {
+            public static ResxUpdateResult Success(SourceText? updatedText, bool requiresUpdate) 
+                => new(true, updatedText, requiresUpdate);
+
+            public static ResxUpdateResult Failed() 
+                => new(false, null, false);
+        }
+
+        /// <summary>
+        /// Result of updating a document.
+        /// </summary>
+        private readonly record struct DocumentUpdateResult(SyntaxNode UpdatedRoot);
+    }
+
     private class CSharpMoveToResxFixAllProvider : FixAllProvider
     {
         public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
@@ -278,29 +406,13 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                 CSharpFeaturesResources.Move_all_strings_to_resx_resource,
                 async ct =>
                 {
-                    // Collect all string literals and their values first
+                    // Collect all string literals and their operations
                     var root = await document.GetRequiredSyntaxRootAsync(ct).ConfigureAwait(false);
-                    var literalsToFix = new List<(LiteralExpressionSyntax literal, string value, string resourceKey)>();
+                    var resourceOperations = new List<ResourceOperation>();
+                    var replacementOperations = new List<ReplacementOperation>();
 
-                    foreach (var diagnostic in diagnostics)
-                    {
-                        var node = root?.FindNode(diagnostic.Location.SourceSpan) as LiteralExpressionSyntax;
-                        if (node is not null)
-                        {
-                            var value = node.Token.ValueText;
-                            var resourceKey = ToDeterministicResourceKey(value);
-                            literalsToFix.Add((node, value, resourceKey));
-                        }
-                    }
-
-                    if (literalsToFix.Count == 0)
-                        return project.Solution;
-
-                    // Process resx file once to add all needed entries
-                    var currentSolution = project.Solution;
-                    var currentResx = resx;
-                    var resxSourceText = await currentResx.GetTextAsync(ct).ConfigureAwait(false);
-
+                    // First pass: collect all operations and determine actual resource keys
+                    var resxSourceText = await resx.GetTextAsync(ct).ConfigureAwait(false);
                     XDocument xdoc;
                     try
                     {
@@ -308,114 +420,40 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                     }
                     catch (System.Xml.XmlException)
                     {
-                        // If the resx file is malformed, we can't safely modify it
-                        // Return the original solution unchanged
                         return project.Solution;
                     }
 
-                    // Ensure we have a valid root element
                     if (xdoc.Root == null)
                     {
                         return project.Solution;
                     }
 
-                    bool resxNeedsUpdate = false;
-
-                    // Collect all the resource keys we need to add
-                    var resourcesToAdd = new Dictionary<string, string>();
-                    var resourceKeysToUse = new Dictionary<LiteralExpressionSyntax, string>();
-
-                    foreach (var literalInfo in literalsToFix)
+                    foreach (var diagnostic in diagnostics)
                     {
-                        var literal = literalInfo.literal;
-                        var value = literalInfo.value;
-                        var resourceKey = literalInfo.resourceKey;
-
-                        // Check if the value already exists in the .resx file
-                        var existingDataElement = xdoc.Root.Elements("data")
-                            .FirstOrDefault(e => e.Element("value")?.Value == value);
-
-                        if (existingDataElement is not null)
+                        var node = root?.FindNode(diagnostic.Location.SourceSpan) as LiteralExpressionSyntax;
+                        if (node is not null)
                         {
-                            // Use the existing name
-                            var nameAttribute = existingDataElement.Attribute("name");
-                            var existingName = nameAttribute?.Value ?? resourceKey;
-                            resourceKeysToUse[literal] = existingName;
-                        }
-                        else
-                        {
-                            // Check if this resource key already exists with a different value
-                            var existingKeyElement = xdoc.Root.Elements("data")
-                                .FirstOrDefault(e => (string?)e.Attribute("name") == resourceKey);
+                            var value = node.Token.ValueText;
+                            var proposedKey = ToDeterministicResourceKey(value);
+                            var resourceOperation = new ResourceOperation(value, proposedKey);
 
-                            if (existingKeyElement is null)
-                            {
-                                // New resource entry needed
-                                resourcesToAdd[resourceKey] = value;
-                                resourceKeysToUse[literal] = resourceKey;
-                                resxNeedsUpdate = true;
-                            }
-                            else
-                            {
-                                // Key exists but with different value, update it
-                                var valueElement = existingKeyElement.Element("value");
-                                if (valueElement != null)
-                                {
-                                    valueElement.Value = value;
-                                }
-                                resourceKeysToUse[literal] = resourceKey;
-                                resxNeedsUpdate = true;
-                            }
+                            // Get the actual key that will be used (may be existing key if value already exists)
+                            var actualKey = ResxResourceManager.GetActualResourceKey(xdoc, resourceOperation);
+
+                            resourceOperations.Add(new ResourceOperation(value, actualKey));
+                            replacementOperations.Add(new ReplacementOperation(node, actualKey));
                         }
                     }
 
-                    // Add new resource entries to resx
-                    foreach (var kvp in resourcesToAdd)
-                    {
-                        var key = kvp.Key;
-                        var value = kvp.Value;
-                        var dataElement = new XElement("data",
-                            new XAttribute("name", key),
-                            new XAttribute(XNamespace.Xml + "space", "preserve"),
-                            new XElement("value", value));
-                        xdoc.Root.Add(dataElement);
-                    }
+                    if (resourceOperations.Count == 0)
+                        return project.Solution;
 
-                    // Update resx file if needed
-                    if (resxNeedsUpdate)
-                    {
-                        string updatedResxText;
-                        using (var sw = new StringWriter())
-                        {
-                            xdoc.Save(sw);
-                            updatedResxText = sw.ToString();
-                        }
-
-                        var newResxSourceText = SourceText.From(updatedResxText, resxSourceText.Encoding);
-                        currentSolution = currentSolution.WithAdditionalDocumentText(currentResx.Id, newResxSourceText);
-                    }
-
-                    // Replace all string literals with resource access
-                    var currentDocument = currentSolution.GetDocument(document.Id)!;
-                    var currentRoot = await currentDocument.GetSyntaxRootAsync(ct).ConfigureAwait(false);
-
-                    var resourceClass = Path.GetFileNameWithoutExtension(currentResx.Name);
-                    var ns = currentDocument.Project.DefaultNamespace;
-
-                    // Use ReplaceNodes (plural) to replace all nodes at once
-                    var newRoot = currentRoot.ReplaceNodes(
-                        resourceKeysToUse.Keys,
-                        (originalNode, rewrittenNode) =>
-                        {
-                            var resourceKey = resourceKeysToUse[originalNode];
-                            string resourceAccessString = !string.IsNullOrEmpty(ns)
-                                ? $"{ns}.{resourceClass}.{resourceKey}"
-                                : $"{resourceClass}.{resourceKey}";
-
-                            return SyntaxFactory.ParseExpression(resourceAccessString).WithTriviaFrom(originalNode);
-                        });
-
-                    return currentSolution.WithDocumentSyntaxRoot(currentDocument.Id, newRoot);
+                    return await ResxResourceManager.UpdateResxAndDocumentAsync(
+                        document,
+                        resx,
+                        resourceOperations,
+                        replacementOperations,
+                        ct).ConfigureAwait(false);
                 },
                 nameof(CSharpMoveToResxFixAllProvider));
         }
