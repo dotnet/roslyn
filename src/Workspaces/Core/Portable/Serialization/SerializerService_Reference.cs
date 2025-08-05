@@ -168,7 +168,11 @@ internal partial class SerializerService
                 // Rehydrate the analyzer file reference with the simple shared shadow copy loader.  Note: we won't
                 // actually use this instance we create.  Instead, the caller will use create an IsolatedAssemblyReferenceSet
                 // from these to ensure that all the types can be safely loaded into their own ALC.
+#if NET
+                return new AnalyzerFileReference(reader.ReadRequiredString(), _analyzerLoaderProvider.FailingLoader);
+#else
                 return new AnalyzerFileReference(reader.ReadRequiredString(), _analyzerLoaderProvider.SharedShadowCopyLoader);
+#endif
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();

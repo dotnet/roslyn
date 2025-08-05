@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Reflection;
+
 
 #if NET
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,14 +20,23 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
-    IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
-
 #if NET
+
+    /// <summary>
+    /// This loader will throw if it is asked to load a reference
+    /// </summary>
+    IAnalyzerAssemblyLoader FailingLoader { get; }
+
     /// <summary>
     /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
     /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
     /// </summary>
     IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader();
+
+#else
+
+    IAnalyzerAssemblyLoader SharedShadowCopyLoader { get; }
+
 #endif
 }
 
@@ -36,17 +47,28 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
 #if NET
-    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+    private sealed class NoLoadLoader : IAnalyzerAssemblyLoader
+    {
+        public static readonly NoLoadLoader Instance = new();
+
+        public void AddDependencyLocation(string fullPath)
+        {
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     private readonly ImmutableArray<IAnalyzerAssemblyResolver> _assemblyResolvers;
 
     public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers)
     {
         _assemblyResolvers = [.. assemblyResolvers];
-        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
     }
 
-    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
-        => _shadowCopyLoader.Value;
+    public IAnalyzerAssemblyLoader FailingLoader => NoLoadLoader.Instance;
 
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
@@ -54,20 +76,19 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
                 pathResolvers: default,
                 _assemblyResolvers));
 #else
-    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+
+    private readonly IAnalyzerAssemblyLoaderInternal _shadowCopyLoader;
 
     public AbstractAnalyzerAssemblyLoaderProvider()
     {
-        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
-    }
-
-    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
-        => _shadowCopyLoader.Value;
-
-    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-        => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
+        _shadowCopyLoader = WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
                 pathResolvers: default));
+    }
+
+    public IAnalyzerAssemblyLoader SharedShadowCopyLoader
+        => _shadowCopyLoader;
+
 #endif
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
