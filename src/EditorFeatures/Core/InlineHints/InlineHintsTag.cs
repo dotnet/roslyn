@@ -109,7 +109,13 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         IClassificationFormatMap formatMap,
         bool classify)
     {
-        var element = CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify);
+        var element = CreateElement(
+            hint.DisplayParts,
+            textView,
+            format,
+            formatMap,
+            taggerProvider.TypeMap,
+            classify);
 
         return new InlineHintsTag(
             element,
@@ -182,11 +188,13 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
 
         block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-        // Encapsulates the TextBlock within a border. Gets foreground/background colors from the options menu.
-        // If the tag is started or followed by a space, we trim that off but represent the space as buffer on the
-        // left or right side.
+        // Convert padding values from character count to actual pixel widths
+        // This ensures proper spacing around the inline hint based on trimmed whitespace
         var left = leftPadding * textViewLine.VirtualSpaceWidth;
         var right = rightPadding * textViewLine.VirtualSpaceWidth;
+
+        // Align hint width with the editor's character grid to prevent visual artifacts/alignment issues
+        // Convert to character units, round to nearest whole character, then back to pixels
         var width = Math.Round((block.DesiredSize.Width / textViewLine.VirtualSpaceWidth) + 0.5) * textViewLine.VirtualSpaceWidth;
 
         var border = new Border
