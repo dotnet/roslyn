@@ -18,7 +18,7 @@ internal abstract class AbstractBraceCompletionServiceFactory(
     string languageName) : IBraceCompletionServiceFactory
 {
     private readonly ImmutableArray<IBraceCompletionService> _braceCompletionServices =
-        braceCompletionServices.Where(s => s.Metadata.Language == languageName).SelectAsArray(s => s.Value);
+        braceCompletionServices.SelectAsArray(s => s.Metadata.Language == languageName, s => s.Value);
 
     public IBraceCompletionService? TryGetService(ParsedDocument document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
     {

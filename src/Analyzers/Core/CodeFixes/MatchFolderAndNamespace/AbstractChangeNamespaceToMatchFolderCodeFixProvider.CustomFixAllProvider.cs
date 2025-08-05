@@ -76,8 +76,7 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
             // the tree won't be the same.
             var documentIdToDiagnosticsMap = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceTree)
-                .Where(group => group.Key is not null)
-                .SelectAsArray(group => (id: solution.GetRequiredDocument(group.Key!).Id, diagnostics: group.ToImmutableArray()));
+                .SelectAsArray(group => group.Key is not null, group => (id: solution.GetRequiredDocument(group.Key!).Id, diagnostics: group.ToImmutableArray()));
 
             var newSolution = solution;
 

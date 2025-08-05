@@ -256,8 +256,7 @@ public sealed class UnifiedSettingsTests
     private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
     {
         var properties = jsonDocument!.Root["properties"]!.AsObject()
-            .Where(jsonObject => jsonObject.Key.StartsWith(prefix))
-            .SelectAsArray(jsonObject => jsonObject.Value);
+            .SelectAsArray(jsonObject => jsonObject.Key.StartsWith(prefix), jsonObject => jsonObject.Value);
         Assert.Equal(expectedOptionToSettings.Length, properties.Length);
         foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(expectedOptionToSettings, (actual, expected) => (actual, expected)))
         {

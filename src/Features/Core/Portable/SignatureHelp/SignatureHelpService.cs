@@ -31,8 +31,7 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
     {
         return _providersByLanguage.GetOrAdd(language, language =>
             _allProviders
-                .Where(p => p.Metadata.Language == language)
-                .SelectAsArray(p => p.Value));
+                .SelectAsArray(p => p.Metadata.Language == language, p => p.Value));
     }
 
     /// <summary>

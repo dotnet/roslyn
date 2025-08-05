@@ -198,8 +198,7 @@ internal sealed partial class SolutionExplorerInProcess
 
         var project = await GetProjectAsync(projectName, cancellationToken);
         var references = ((VSProject)project.Object).References.Cast<Reference>()
-            .Where(x => x.SourceProject == null)
-            .SelectAsArray(x => (x.Name, x.Version, x.PublicKeyToken));
+            .SelectAsArray(x => x.SourceProject == null, x => (x.Name, x.Version, x.PublicKeyToken));
         return references;
     }
 

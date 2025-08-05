@@ -160,8 +160,7 @@ internal abstract class ProjectFile : IProjectFile
         var targetFrameworkVersion = project.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
 
         var docs = project.GetDocuments()
-            .Where(IsNotTemporaryGeneratedFile)
-            .SelectAsArray(MakeDocumentFileInfo);
+            .SelectAsArray(IsNotTemporaryGeneratedFile, MakeDocumentFileInfo);
 
         var additionalDocs = project.GetAdditionalFiles()
             .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
