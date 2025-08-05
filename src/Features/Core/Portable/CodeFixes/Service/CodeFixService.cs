@@ -709,7 +709,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     private async IAsyncEnumerable<CodeFixCollection> StreamConfigurationFixesAsync(
         TextDocument document,
         TextSpan diagnosticsSpan,
-        IEnumerable<DiagnosticData> diagnostics,
+        List<DiagnosticData> diagnostics,
         PooledHashSet<string> registeredConfigurationFixTitles,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -744,7 +744,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     private async Task<CodeFixCollection?> TryGetFixesOrConfigurationsAsync<TCodeFixProvider>(
         TextDocument textDocument,
         TextSpan fixesSpan,
-        IEnumerable<DiagnosticData> diagnosticsWithSameSpan,
+        List<DiagnosticData> diagnosticsWithSameSpan,
         bool fixAllForInSpan,
         TCodeFixProvider fixer,
         Func<Diagnostic, bool> hasFix,
