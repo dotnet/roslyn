@@ -4652,6 +4652,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // only possible in error cases (if possible at all)
                     return localScopeDepth;
 
+                case BoundKind.ArgList:
+                    // Only possible in error scenarios in runtime async (arglist operators are disallowed in runtime async methods)
+                    return localScopeDepth;
+
                 case BoundKind.ConvertedSwitchExpression:
                 case BoundKind.UnconvertedSwitchExpression:
                     var switchExpr = (BoundSwitchExpression)expr;

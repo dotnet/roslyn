@@ -6178,12 +6178,11 @@ class Driver
                 """);
         }
 
-        [Fact(Skip = "PROTOTYPE: arglist")]
+        [Fact]
         public void SpillArglist()
         {
             var source = @"
 using System;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6243,17 +6242,14 @@ class Driver
             CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            {
-                ILVerifyMessage = """
-                    ILVerify: SpillArglist0
-                    """
-            });
-
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("TestCase.Run()", """
-                Baseline IL: SpillArglist1
-                """);
+            comp.VerifyDiagnostics(
+                // (14,17): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //             Bar(__arglist(One(), await Two()));
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "__arglist(One(), await Two())").WithArguments("TestCase.Run()").WithLocation(14, 17),
+                // (48,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         tc.Run();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "tc.Run()").WithLocation(48, 9)
+            );
         }
 
         [Fact]
