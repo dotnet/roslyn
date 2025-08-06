@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // to the VB version.
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+        // separate pool for assembly symbols as these collections commonly exceed ArrayBuilder's size threshold
+        private static readonly ObjectPool<List<AssemblySymbol>> s_symbolPool = new ObjectPool<List<AssemblySymbol>>(() => new List<AssemblySymbol>());
+
         /// <summary>
         /// The system assembly, which provides primitive types like Object, String, etc., e.g. mscorlib.dll. 
         /// The value is provided by ReferenceManager and must not be modified. For SourceAssemblySymbol, non-missing 
@@ -940,12 +943,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this is SourceAssemblySymbol,
                 "Never include references for a non-source assembly, because they don't know about aliases.");
 
-            var assemblies = ArrayBuilder<AssemblySymbol>.GetInstance();
+            var assemblies = s_symbolPool.Allocate();
 
             // ignore reference aliases if searching for a type from a specific assembly:
             if (assemblyOpt != null)
             {
-                assemblies.AddRange(DeclaringCompilation.GetBoundReferenceManager().ReferencedAssemblies);
+                foreach (var assembly in DeclaringCompilation.GetBoundReferenceManager().ReferencedAssemblies)
+                {
+                    assemblies.Add(assembly);
+                }
             }
             else
             {
@@ -1007,7 +1013,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = candidate;
             }
 
-            assemblies.Free();
+            assemblies.Clear();
+            s_symbolPool.Free(assemblies);
             Debug.Assert(result?.IsErrorType() != true);
             return result;
 

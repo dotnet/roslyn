@@ -1321,13 +1321,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   2) /r:Goo=A.dll /r:B.dll -> B
         ///   3) /r:Goo=A.dll /r:A.dll -> A
         /// </summary>
-        internal void GetUnaliasedReferencedAssemblies(ArrayBuilder<AssemblySymbol> assemblies)
+        internal void GetUnaliasedReferencedAssemblies(List<AssemblySymbol> assemblies)
         {
             var referenceManager = GetBoundReferenceManager();
 
             int length = referenceManager.ReferencedAssemblies.Length;
-
-            assemblies.EnsureCapacity(assemblies.Count + length);
 
             for (int i = 0; i < length; i++)
             {
