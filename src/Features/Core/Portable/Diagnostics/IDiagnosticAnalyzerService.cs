@@ -99,7 +99,10 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     ImmutableDictionary<string, DiagnosticDescriptor> TryGetDiagnosticDescriptors(
         Solution solution, ImmutableArray<string> diagnosticIds);
 
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
     ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Solution solution);
+
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
     ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project);
 }
 
