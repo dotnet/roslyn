@@ -71,6 +71,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
     {
         if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
                 or "IDE1007"
+                or "IDE0360" // Documentation for this diagnostic is coming soon.
                 or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
                 or "IDE0005_gen" // this diagnostic is hidden and not configurable.
                 or "RE0001"
@@ -498,6 +499,9 @@ Actual: {editorConfigString}
             # IDE0350
             dotnet_diagnostic.IDE0350.severity = %value%
 
+            # IDE0360
+            dotnet_diagnostic.IDE0360.severity = %value%
+
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -917,6 +921,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             ("IDE0330", "csharp_prefer_system_threading_lock", "true"),
             ("IDE0340", "csharp_style_prefer_unbound_generic_type_in_nameof", "true"),
             ("IDE0350", "csharp_style_prefer_implicitly_typed_lambda_expression", "true"),
+            ("IDE0360", null, null),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),
