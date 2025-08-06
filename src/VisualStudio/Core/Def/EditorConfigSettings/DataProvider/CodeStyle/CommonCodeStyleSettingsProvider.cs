@@ -24,7 +24,7 @@ internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<Cod
     }
 
     protected override Task UpdateOptionsAsync(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var qualifySettings = GetQualifyCodeStyleOptions(options, SettingsUpdater);
         AddRange(qualifySettings);
