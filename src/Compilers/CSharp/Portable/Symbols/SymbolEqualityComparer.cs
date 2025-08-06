@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return AllIgnoreOptions;
             }
-            else if (comparison == TypeCompareKind.AllIgnoreOptionsPlusNullableWithUnknownMatchesAny)
+            else if (comparison == TypeCompareKind.AllIgnoreOptionsPlusNullableWithObliviousMatchesAny)
             {
                 return AllIgnoreOptionsPlusNullableWithUnknownMatchesAny;
             }

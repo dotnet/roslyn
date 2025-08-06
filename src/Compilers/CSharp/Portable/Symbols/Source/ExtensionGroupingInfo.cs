@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
@@ -79,11 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     bool groupingNamesMatch = type1.ComputeExtensionGroupingRawName() == type2.ComputeExtensionGroupingRawName();
-                    Debug.Assert(groupingNamesMatch || !MemberSignatureComparer.ExtensionILSignatureComparer.Equals(type1, type2),
+                    Debug.Assert(groupingNamesMatch || !HaveSameILSignature(type1, type2),
                             "If the IL-level comparer considers two extensions equal, then they must have the same grouping name.");
 
                     bool markerNamesMatch = type1.ComputeExtensionMarkerRawName() == type2.ComputeExtensionMarkerRawName();
-                    Debug.Assert(markerNamesMatch || !MemberSignatureComparer.ExtensionCSharpSignatureComparer.Equals(type1, type2),
+                    Debug.Assert(markerNamesMatch || !HaveSameCSharpSignature(type1, type2),
                             "If the C#-level comparer considers two extensions equal, then they must have the same marker name.");
 
                     Debug.Assert(groupingNamesMatch || !markerNamesMatch, "If the marker names are equal, then the grouping names must also be equal.");
@@ -219,6 +220,145 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static bool HaveSameILSignature(SourceNamedTypeSymbol extension1, SourceNamedTypeSymbol extension2)
+        {
+            Debug.Assert(extension1.IsExtension);
+            Debug.Assert(extension2.IsExtension);
+
+            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
+            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
+            if (extension1.Arity != extension2.Arity)
+            {
+                return false;
+            }
+
+            if (extension1.Arity > 0
+                && !MemberSignatureComparer.HaveSameConstraints(extension1.TypeParameters, typeMap1, extension2.TypeParameters, typeMap2, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            ParameterSymbol? parameter1 = extension1.ExtensionParameter;
+            ParameterSymbol? parameter2 = extension2.ExtensionParameter;
+            if (parameter1 is null || parameter2 is null)
+            {
+                return parameter1 is null && parameter2 is null;
+            }
+
+            if (!MemberSignatureComparer.HaveSameParameterType(parameter1, typeMap1, parameter2, typeMap2,
+                refKindCompareMode: MemberSignatureComparer.RefKindCompareMode.IgnoreRefKind,
+                considerDefaultValues: false, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool HaveSameCSharpSignature(SourceNamedTypeSymbol extension1, SourceNamedTypeSymbol extension2)
+        {
+            Debug.Assert(extension1.IsExtension);
+            Debug.Assert(extension2.IsExtension);
+
+            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
+            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
+            if (extension1.Arity != extension2.Arity)
+            {
+                return false;
+            }
+
+            if (extension1.Arity > 0)
+            {
+                ImmutableArray<TypeParameterSymbol> typeParams1 = extension1.TypeParameters;
+                ImmutableArray<TypeParameterSymbol> typeParams2 = extension2.TypeParameters;
+
+                if (!typeParams1.SequenceEqual(typeParams2, (p1, p2) => p1.Name == p2.Name))
+                {
+                    return false;
+                }
+
+                if (!typeParams1.SequenceEqual(typeParams2, (p1, p2) => hasSameAttributes(p1.GetAttributes(), p2.GetAttributes())))
+                {
+                    return false;
+                }
+
+                if (!MemberSignatureComparer.HaveSameConstraints(typeParams1, typeMap1, typeParams2, typeMap2, TypeCompareKind.ConsiderEverything))
+                {
+                    return false;
+                }
+            }
+
+            ParameterSymbol? parameter1 = extension1.ExtensionParameter;
+            ParameterSymbol? parameter2 = extension2.ExtensionParameter;
+            if (parameter1 is null || parameter2 is null)
+            {
+                return parameter1 is null && parameter2 is null;
+            }
+
+            if (!MemberSignatureComparer.HaveSameParameterType(parameter1, typeMap1, parameter2, typeMap2,
+                refKindCompareMode: MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                considerDefaultValues: false, TypeCompareKind.ConsiderEverything))
+            {
+                return false;
+            }
+
+            if (parameter1.DeclaredScope != parameter2.DeclaredScope)
+            {
+                return false;
+            }
+
+            if (parameter1.Name != parameter2.Name)
+            {
+                return false;
+            }
+
+            if (!hasSameAttributes(parameter1.GetAttributes(), parameter2.GetAttributes()))
+            {
+                return false;
+            }
+
+            return true;
+
+            static bool hasSameAttributes(ImmutableArray<CSharpAttributeData> attributes1, ImmutableArray<CSharpAttributeData> attributes2)
+            {
+                if (attributes1.IsEmpty && attributes2.IsEmpty)
+                {
+                    return true;
+                }
+
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : optimization, consider using a pool
+                var comparer = CommonAttributeDataComparer.InstanceIgnoringNamedArgumentOrder;
+                var counts = new Dictionary<CSharpAttributeData, int>(comparer);
+
+                foreach (var attribute in attributes1)
+                {
+                    if (attribute.IsConditionallyOmitted)
+                    {
+                        continue;
+                    }
+
+                    counts[attribute] = counts.TryGetValue(attribute, out var foundCount) ? foundCount + 1 : 1;
+                }
+
+                foreach (var attribute in attributes2)
+                {
+                    if (attribute.IsConditionallyOmitted)
+                    {
+                        continue;
+                    }
+
+                    if (!counts.TryGetValue(attribute, out var foundCount) || foundCount == 0)
+                    {
+                        return false;
+                    }
+
+                    counts[attribute] = foundCount - 1;
+                }
+
+                return counts.Values.All(c => c == 0);
+            }
+        }
+
         /// <summary>
         /// Reports diagnostic when:
         /// two extension blocks grouped into a single grouping type have different IL-level signatures, or
@@ -231,12 +371,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (ExtensionGroupingType groupingType in _lazyGroupingTypes)
             {
-                checkCollisions(enumerateExtensionsInGrouping(groupingType), MemberSignatureComparer.ExtensionILSignatureComparer, ref alreadyReportedExtensions, diagnostics);
+                checkCollisions(enumerateExtensionsInGrouping(groupingType), HaveSameILSignature, ref alreadyReportedExtensions, diagnostics);
             }
 
             foreach (ImmutableArray<SourceNamedTypeSymbol> mergedBlocks in EnumerateMergedExtensionBlocks())
             {
-                checkCollisions(mergedBlocks, MemberSignatureComparer.ExtensionCSharpSignatureComparer, ref alreadyReportedExtensions, diagnostics);
+                checkCollisions(mergedBlocks, HaveSameCSharpSignature, ref alreadyReportedExtensions, diagnostics);
             }
 
             alreadyReportedExtensions?.Free();
@@ -253,7 +393,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static void checkCollisions(IEnumerable<SourceNamedTypeSymbol> extensions, MemberSignatureComparer comparer, ref PooledHashSet<SourceNamedTypeSymbol>? alreadyReportedExtensions, BindingDiagnosticBag diagnostics)
+            static void checkCollisions(IEnumerable<SourceNamedTypeSymbol> extensions, Func<SourceNamedTypeSymbol, SourceNamedTypeSymbol, bool> compare,
+                ref PooledHashSet<SourceNamedTypeSymbol>? alreadyReportedExtensions, BindingDiagnosticBag diagnostics)
             {
                 SourceNamedTypeSymbol? first = null;
 
@@ -268,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (!comparer.Equals(first, extension))
+                    if (!compare(first, extension))
                     {
                         alreadyReportedExtensions ??= PooledHashSet<SourceNamedTypeSymbol>.GetInstance();
                         if (alreadyReportedExtensions.Add(extension))

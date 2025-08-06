@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         // we could emit signatures overloaded on this distinction, because we must encode the type of ref in a modreq on the appropriate
         // parameter in metadata, which would change the type. However, this would be inconsistent with how ref vs out vs in works on
         // top-level signatures today, so we disallow it in source.
-        FunctionPointerRefMatchesOutInRefReadonly = 64,
+        FunctionPointerRefOutInRefReadonlyMatch = 64,
 
         AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions | IgnoreNativeIntegers,
@@ -39,6 +39,6 @@ namespace Microsoft.CodeAnalysis
 
         CLRSignatureCompareOptions = TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds,
 
-        AllIgnoreOptionsPlusNullableWithUnknownMatchesAny = TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes),
+        AllIgnoreOptionsPlusNullableWithObliviousMatchesAny = TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes),
     }
 }
