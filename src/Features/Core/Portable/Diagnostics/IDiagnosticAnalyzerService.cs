@@ -17,7 +17,10 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <summary>
     /// Provides and caches analyzer information.
     /// </summary>
-    DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
+    // DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
+
+    public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(
+        Project project, AnalyzerReference analyzerReference);
 
     /// <summary>
     /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.

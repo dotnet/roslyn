@@ -134,6 +134,16 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     public TestAccessor GetTestAccessor()
         => new(this);
 
+    public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(Project project, AnalyzerReference analyzerReference)
+    {
+        // TODO(cyrusn): Remote this to OOP.
+        var descriptors = analyzerReference
+            .GetAnalyzers(project.Language)
+            .SelectManyAsArray(a => this.AnalyzerInfoCache.GetDiagnosticDescriptors(a));
+
+        return descriptors;
+    }
+
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
