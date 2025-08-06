@@ -23,32 +23,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 
-internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
+internal sealed class ProjectExternalErrorReporter(
+    ProjectId projectId,
+    Guid projectHierarchyGuid,
+    string errorCodePrefix,
+    string language,
+    VisualStudioWorkspaceImpl workspace) : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
 {
     internal static readonly ImmutableArray<string> CustomTags = [WellKnownDiagnosticTags.Telemetry];
     internal static readonly ImmutableArray<string> CompilerDiagnosticCustomTags = [WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry];
 
-    private readonly ProjectId _projectId;
+    private readonly ProjectId _projectId = projectId;
 
     /// <summary>
     /// Passed to the error reporting service to allow current project error list filters to work.
     /// </summary>
-    private readonly Guid _projectHierarchyGuid;
-    private readonly string _errorCodePrefix;
-    private readonly string _language;
+    private readonly Guid _projectHierarchyGuid = projectHierarchyGuid;
+    private readonly string _errorCodePrefix = errorCodePrefix;
+    private readonly string _language = language;
 
-    private readonly VisualStudioWorkspaceImpl _workspace;
-
-    // private DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _workspace.ExternalErrorDiagnosticUpdateSource.AnalyzerInfoCache;
-
-    public ProjectExternalErrorReporter(ProjectId projectId, Guid projectHierarchyGuid, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
-    {
-        _projectId = projectId;
-        _projectHierarchyGuid = projectHierarchyGuid;
-        _errorCodePrefix = errorCodePrefix;
-        _language = language;
-        _workspace = workspace;
-    }
+    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
 
     private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
 
