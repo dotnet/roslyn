@@ -300,17 +300,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class TestDiagnosticAnalyzerService
             Implements IDiagnosticAnalyzerService
 
-            Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
+            ' Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
 
             Public Sub New()
-                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
+                '   _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
             End Sub
 
-            Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
-                Get
-                    Return _analyzerInfoCache
-                End Get
-            End Property
+            'Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
+            '    Get
+            '        Return _analyzerInfoCache
+            '    End Get
+            'End Property
 
             Public Sub RequestDiagnosticRefresh() Implements IDiagnosticAnalyzerService.RequestDiagnosticRefresh
             End Sub
@@ -328,6 +328,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Function
 
             Public Function ForceAnalyzeProjectAsync(project As Project, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.ForceAnalyzeProjectAsync
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetDiagnosticDescriptors(solution As Solution, analyzerReference As AnalyzerReference, language As String) As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetDiagnosticDescriptors(solution As Solution, analyzerReference As AnalyzerReference) As ImmutableDictionary(Of ImmutableArray(Of String), ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function TryGetDiagnosticDescriptors(solution As Solution, diagnosticIds As ImmutableArray(Of String)) As ImmutableDictionary(Of String, DiagnosticDescriptor) Implements IDiagnosticAnalyzerService.TryGetDiagnosticDescriptors
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetDiagnosticDescriptorsPerReference(solution As Solution) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptorsPerReference
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetDiagnosticDescriptorsPerReference(project As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptorsPerReference
                 Throw New NotImplementedException()
             End Function
         End Class

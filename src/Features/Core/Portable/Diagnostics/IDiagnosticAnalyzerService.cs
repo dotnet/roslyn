@@ -103,6 +103,9 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     ImmutableDictionary<string, DiagnosticDescriptor> TryGetDiagnosticDescriptors(
         Solution solution, ImmutableArray<string> diagnosticIds);
+
+    ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Solution solution);
+    ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project);
 }
 
 internal static class IDiagnosticAnalyzerServiceExtensions

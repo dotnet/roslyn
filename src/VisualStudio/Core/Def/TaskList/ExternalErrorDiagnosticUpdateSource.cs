@@ -314,22 +314,16 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         lock (_gate)
         {
-            if (_stateDoNotAccessDirectly == null)
-            {
-                // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
-                // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
-                // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution);
-            }
-
+            // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
+            // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
+            // between build and diagnostic service, but this at least make us to consistent inside of our code.
+            _stateDoNotAccessDirectly ??= new InProgressState(_workspace.CurrentSolution);
             return _stateDoNotAccessDirectly;
         }
     }
 
-    private sealed class InProgressState
+    private sealed class InProgressState(Solution solution)
     {
-        private readonly ExternalErrorDiagnosticUpdateSource _owner;
-
         /// <summary>
         /// Map from project ID to all the possible analyzer diagnostic IDs that can be reported in the project.
         /// </summary>
@@ -338,13 +332,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         /// </remarks>
         private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = [];
 
-        public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
-        {
-            _owner = owner;
-            Solution = solution;
-        }
-
-        public Solution Solution { get; }
+        public Solution Solution { get; } = solution;
 
         public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
             => GetOrCreateSupportedDiagnosticIds(projectId).Contains(id);
@@ -386,7 +374,8 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
                 // set ids set
                 var builder = ImmutableHashSet.CreateBuilder<string>();
-                var descriptorMap = Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(_owner.AnalyzerInfoCache, project);
+                var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var descriptorMap = service.GetDiagnosticDescriptorsPerReference(project);
                 builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
 
                 return builder.ToImmutable();

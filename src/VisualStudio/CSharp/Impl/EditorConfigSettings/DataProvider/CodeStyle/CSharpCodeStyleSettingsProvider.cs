@@ -25,7 +25,8 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override void UpdateOptions(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
     {
         var varSettings = GetVarCodeStyleOptions(options, SettingsUpdater);
         AddRange(varSettings);

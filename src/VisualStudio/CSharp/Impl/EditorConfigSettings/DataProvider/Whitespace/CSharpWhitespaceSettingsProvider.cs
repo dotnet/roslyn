@@ -25,7 +25,8 @@ internal sealed class CSharpWhitespaceSettingsProvider : SettingsProviderBase<Se
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override void UpdateOptions(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
     {
         var spacingOptions = GetSpacingOptions(options, SettingsUpdater);
         AddRange(spacingOptions.ToImmutableArray());

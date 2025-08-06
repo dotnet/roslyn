@@ -183,6 +183,12 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return builder.ToImmutable();
     }
 
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Solution solution)
+        => solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache);
+
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project)
+        => project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
+
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
     {
         public static readonly DiagnosticAnalyzerComparer Instance = new();
