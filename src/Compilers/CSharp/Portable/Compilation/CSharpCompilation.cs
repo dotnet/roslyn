@@ -318,8 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsRuntimeAsyncEnabledIn(Symbol? symbol)
         {
-            // PROTOTYPE: EE tests fail this assert, handle and test
-            //Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
             if (!Assembly.RuntimeSupportsAsyncMethods)
             {
                 return false;
@@ -329,6 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
+
+            Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
 
             var methodReturn = method.ReturnType.OriginalDefinition;
             if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
