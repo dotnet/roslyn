@@ -47,7 +47,7 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         Solution solution, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions, CancellationToken cancellationToken)
     {
         var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var map = await service.GetDiagnosticDescriptorsAsync(
+        var map = await service.GetLanguageKeyedDiagnosticDescriptorsAsync(
             solution, analyzerReference, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<AnalyzerSetting>.GetInstance(out var allSettings);

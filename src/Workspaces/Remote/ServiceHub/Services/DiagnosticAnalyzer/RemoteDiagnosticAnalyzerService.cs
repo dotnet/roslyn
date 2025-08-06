@@ -139,19 +139,49 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
     public ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(
         Checksum solutionChecksum,
+        ProjectId projectId,
         string analyzerReferenceFullPath,
         string language,
         CancellationToken cancellationToken)
     {
-        throw new System.NotImplementedException();
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var project = solution.GetRequiredProject(projectId);
+                var analyzerReference = project.AnalyzerReferences
+                    .First(r => r.FullPath == analyzerReferenceFullPath);
+
+                var descriptors = await service.GetDiagnosticDescriptorsAsync(
+                    solution, projectId, analyzerReference, language, cancellationToken).ConfigureAwait(false);
+                return descriptors.SelectAsArray(DiagnosticDescriptorData.Create);
+            },
+            cancellationToken);
     }
 
-    public ValueTask<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsAsync(
+    public ValueTask<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
         Checksum solutionChecksum,
+        ProjectId projectId,
         string analyzerReferenceFullPath,
         CancellationToken cancellationToken)
     {
-        throw new System.NotImplementedException();
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var project = solution.GetRequiredProject(projectId);
+                var analyzerReference = project.AnalyzerReferences
+                    .First(r => r.FullPath == analyzerReferenceFullPath);
+
+                var map = await service.GetLanguageKeyedDiagnosticDescriptorsAsync(
+                    solution, projectId, analyzerReference, cancellationToken).ConfigureAwait(false);
+                return map.ToImmutableDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.SelectAsArray(DiagnosticDescriptorData.Create));
+            },
+            cancellationToken);
     }
 
     public ValueTask<ImmutableDictionary<string, DiagnosticDescriptorData>> TryGetDiagnosticDescriptorsAsync(

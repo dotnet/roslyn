@@ -138,7 +138,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     }
 
     public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
-        Solution solution, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
     {
         // Attempt to compute this OOP.
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
@@ -147,7 +147,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         {
             var descriptors = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticDescriptorData>>(
                 solution,
-                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsAsync(solution, analyzerFileReference.FullPath, language, cancellationToken),
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsAsync(solution, projectId, analyzerFileReference.FullPath, language, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             if (!descriptors.HasValue)
                 return [];
@@ -161,8 +161,8 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
     }
 
-    public async Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsAsync(
-        Solution solution, AnalyzerReference analyzerReference, CancellationToken cancellationToken)
+    public async Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client is not null &&
@@ -170,7 +170,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         {
             var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>>(
                 solution,
-                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsAsync(solution, analyzerFileReference.FullPath, cancellationToken),
+                (service, solution, cancellationToken) => service.GetLanguageKeyedDiagnosticDescriptorsAsync(solution, projectId, analyzerFileReference.FullPath, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!map.HasValue)
