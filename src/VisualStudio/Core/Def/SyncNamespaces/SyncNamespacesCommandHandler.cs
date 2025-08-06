@@ -104,8 +104,7 @@ internal sealed class SyncNamespacesCommandHandler
         {
             // The solution node is selected, so collect all the C# projects for update.
             var projects = _workspace.CurrentSolution.Projects
-                .Where(project => project.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase))
-                .ToImmutableArray();
+                .WhereAsArray(project => project.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
 
             SyncNamespaces(projects);
         }

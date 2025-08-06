@@ -65,6 +65,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\VisualBasicSimplifyInterpolationCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyObjectCreation\VisualBasicSimplifyObjectCreationCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\VisualBasicUnsealClassCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\VisualBasicUseAutoPropertyCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\VisualBasicUseCompoundAssignmentCodeFixProvider.vb" />

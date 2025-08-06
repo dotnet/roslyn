@@ -4,10 +4,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.SemanticSearch;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -45,6 +46,15 @@ internal sealed class RemoteSemanticSearchService(
 
         public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
             => callback.InvokeAsync((callback, cancellationToken) => callback.OnUserCodeExceptionAsync(callbackId, exception, cancellationToken), cancellationToken);
+
+        public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+            => callback.InvokeAsync((callback, cancellationToken) => callback.OnDocumentUpdatedAsync(callbackId, documentId, changes, cancellationToken), cancellationToken);
+
+        public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+            => callback.InvokeAsync((callback, cancellationToken) => callback.OnLogMessageAsync(callbackId, message, cancellationToken), cancellationToken);
+
+        public ValueTask OnTextFileUpdatedAsync(string filePath, string? newContent, CancellationToken cancellationToken)
+            => callback.InvokeAsync((callback, cancellationToken) => callback.OnTextFileUpdatedAsync(callbackId, filePath, newContent, cancellationToken), cancellationToken);
     }
 
     /// <summary>
@@ -52,6 +62,7 @@ internal sealed class RemoteSemanticSearchService(
     /// </summary>
     public ValueTask<CompileQueryResult> CompileQueryAsync(
         string query,
+        string? targetLanguage,
         string referenceAssembliesDir,
         CancellationToken cancellationToken)
     {
@@ -59,7 +70,7 @@ internal sealed class RemoteSemanticSearchService(
         {
             var services = GetWorkspaceServices();
             var service = GetRequiredService<ISemanticSearchQueryService>();
-            var result = service.CompileQuery(services, query, referenceAssembliesDir, TraceLogger, cancellationToken);
+            var result = service.CompileQuery(services, query, targetLanguage, referenceAssembliesDir, TraceLogger, cancellationToken);
 
             return ValueTask.FromResult(result);
         }, cancellationToken);
@@ -86,6 +97,7 @@ internal sealed class RemoteSemanticSearchService(
         Checksum solutionChecksum,
         RemoteServiceCallbackId callbackId,
         CompiledQueryId queryId,
+        QueryExecutionOptions options,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -93,7 +105,7 @@ internal sealed class RemoteSemanticSearchService(
             var service = GetRequiredService<ISemanticSearchQueryService>();
             var clientCallbacks = new ClientCallbacks(callback, callbackId);
 
-            return await service.ExecuteQueryAsync(solution, queryId, observer: clientCallbacks, TraceLogger, cancellationToken).ConfigureAwait(false);
+            return await service.ExecuteQueryAsync(solution, queryId, observer: clientCallbacks, options, TraceLogger, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }

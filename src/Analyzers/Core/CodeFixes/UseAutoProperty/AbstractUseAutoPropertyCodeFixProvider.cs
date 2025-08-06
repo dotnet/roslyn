@@ -58,6 +58,8 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
     public sealed override FixAllProvider GetFixAllProvider()
         => new UseAutoPropertyFixAllProvider((TProvider)this);
 
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
+
     protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
     protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
     protected abstract TPropertyDeclaration RewriteFieldReferencesInProperty(
@@ -88,7 +90,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Default;
 
-            context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
+            context.RegisterCodeFix(CodeAction.Create(
                     AnalyzersResources.Use_auto_property,
                     cancellationToken => ProcessResultAsync(solution, solution, diagnostic, cancellationToken),
                     equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
@@ -131,15 +133,15 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         var project = fieldDocument.Project;
         var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        var fieldLocations = await SymbolFinder.FindReferencesAsync(
-            field, currentSolution, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+        var fieldLocations = (await SymbolFinder.FindReferencesAsync(
+            field, currentSolution, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
 
         var declarator = (TVariableDeclarator)field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
         var propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
 
         // First, create the updated property we want to replace the old property with
-        var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(
-            field, fieldLocations, propertyDeclaration, cancellationToken);
+        var isWrittenToOutsideOfConstructor = await IsWrittenToOutsideOfConstructorOrPropertyAsync(
+            field, fieldLocations, propertyDeclaration, cancellationToken).ConfigureAwait(false);
 
         if (!isTrivialGetAccessor ||
             (property.SetMethod != null && !isTrivialSetAccessor))
@@ -416,6 +418,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         return false;
     }
 
+#pragma warning disable CA1822 // Mark members as static
     private async Task<SyntaxNode> FormatAsync(
         Document document,
         SyntaxNode finalPropertyDeclaration,
@@ -426,18 +429,19 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         if (!formattingRules.IsDefault)
         {
             var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-            document = await Formatter.FormatAsync(
+            document = await this.SyntaxFormatting.FormatAsync(
                 document, SpecializedFormattingAnnotation, options, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
         var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var cleanedDocument = await CodeAction.CleanupSyntaxAsync(
+        var cleanedDocument = await CodeCleanupHelpers.CleanupSyntaxAsync(
             document, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
 
         return await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
     }
+#pragma warning restore CA1822 // Mark members as static
 
-    private static bool IsWrittenToOutsideOfConstructorOrProperty(
+    private static async ValueTask<bool> IsWrittenToOutsideOfConstructorOrPropertyAsync(
         IFieldSymbol field,
         ImmutableArray<ReferencedSymbol> referencedSymbols,
         TPropertyDeclaration propertyDeclaration,
@@ -453,19 +457,27 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             .Select(d => (d.SyntaxTree.FilePath, d.Span))
             .ToSet();
 
-        foreach (var referencedSymbol in referencedSymbols)
+        foreach (var group in referencedSymbols.SelectMany(r => r.Locations).GroupBy(loc => loc.Document))
         {
-            foreach (var location in referencedSymbol.LocationsArray)
+            var document = group.Key;
+            var lazySemanticModel = AsyncLazy.Create(
+                async cancellationToken => await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+
+            foreach (var location in group)
             {
-                if (IsWrittenToOutsideOfConstructorOrProperty(location, propertyDeclaration, constructorSpans, cancellationToken))
+                if (await IsWrittenToOutsideOfConstructorOrPropertyAsync(
+                        lazySemanticModel, location, propertyDeclaration, constructorSpans, cancellationToken).ConfigureAwait(false))
+                {
                     return true;
+                }
             }
         }
 
         return false;
     }
 
-    private static bool IsWrittenToOutsideOfConstructorOrProperty(
+    private static async ValueTask<bool> IsWrittenToOutsideOfConstructorOrPropertyAsync(
+        AsyncLazy<SemanticModel> lazySemanticModel,
         ReferenceLocation location,
         TPropertyDeclaration propertyDeclaration,
         ISet<(string filePath, TextSpan span)> constructorSpans,
@@ -473,11 +485,11 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // We don't need a setter if we're not writing to this field.
-        if (!location.IsWrittenTo)
+        if (location.IsImplicit)
             return false;
 
-        if (location.IsImplicit)
+        // We don't need a setter if we're not writing to this field.
+        if (!await IsWrittenToAsync(location).ConfigureAwait(false))
             return false;
 
         var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -502,5 +514,20 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         // We do need a setter
         return true;
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        async ValueTask<bool> IsWrittenToAsync(ReferenceLocation loc)
+        {
+#if !CODE_STYLE
+            return loc.IsWrittenTo;
+#else
+            var semanticFacts = loc.Document.GetRequiredLanguageService<ISemanticFactsService>();
+            var semanticModel = await lazySemanticModel.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var usage = SymbolUsageInfo.GetSymbolUsageInfo(
+                semanticFacts, semanticModel, loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken), cancellationToken);
+            return usage.IsWrittenTo();
+#endif
+        }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 }

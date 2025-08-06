@@ -43,7 +43,10 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
         // Shutting down is not cancellable.
         var cancellationToken = CancellationToken.None;
 
-        var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations().SingleOrDefault(w => w.Kind == WorkspaceKind.Host);
+        // HACK: we're doing FirstOrDefault rather than SingleOrDefault because right now in unit tests we might have more than one. Tests that derive from
+        // AbstractLanguageServerProtocolTests create a TestLspWorkspace, even if the ExportProvider already has some other workspace registered.
+        // Since we're only using this as a proxy to fetch a workspace service that won't differ between the workspaces, we can pick any of them.
+        var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations().FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
         if (hostWorkspace is not null)
         {
             var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();

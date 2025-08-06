@@ -711,7 +711,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.NotNull(completionResult.ItemDefaults.Data);
         Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
 
-        var myClassItems = completionResult.Items.Where(i => i.Label == "MyClass").ToImmutableArray();
+        var myClassItems = completionResult.Items.WhereAsArray(i => i.Label == "MyClass");
         var itemFromNS1 = myClassItems.Single(i => i.LabelDetails?.Description == "Namespace1");
         var itemFromNS2 = myClassItems.Single(i => i.LabelDetails?.Description == "Namespace2");
 

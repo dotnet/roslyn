@@ -4,10 +4,15 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -21,6 +26,8 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     public GoToDefinitionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
+
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(TestSourceGeneratedDocumentSpanMappingService));
 
     [Theory, CombinatorialData]
     public async Task TestGotoDefinitionAsync(bool mutatingLspWorkspace)
@@ -329,6 +336,42 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         Assert.True(results.Single().DocumentUri.GetRequiredParsedUri().OriginalString.EndsWith("String.cs"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_WithRazorSourceGeneratedFile(bool mutatingLspWorkspace)
+    {
+        var generatedMarkup = """
+            public class B
+            {
+                public void {|definition:M|}()
+                {
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            public class A
+            {
+                public void M()
+                {
+                    new B().{|caret:M|}();
+                }
+            }
+            """, mutatingLspWorkspace);
+
+        TestFileMarkupParser.GetSpans(generatedMarkup, out var generatedCode, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+        var generatedSourceText = SourceText.From(generatedCode);
+
+        var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", generatedCode));
+        var workspace = testLspServer.TestWorkspace;
+        var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
+        workspace.TryApplyChanges(project.Solution);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.True(results.Single().DocumentUri.GetRequiredParsedUri().LocalPath.EndsWith("generated_file.cs"));
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        Assert.True(service.DidMapSpans);
     }
 
     private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)

@@ -17,14 +17,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixesAndRefactorings;
 
 [ExportLanguageService(typeof(IFixAllSpanMappingService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpFixAllSpanMappingService : AbstractFixAllSpanMappingService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpFixAllSpanMappingService() : AbstractFixAllSpanMappingService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpFixAllSpanMappingService()
-    {
-    }
-
     protected override async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
         Document document, TextSpan span, CancellationToken cancellationToken)
     {

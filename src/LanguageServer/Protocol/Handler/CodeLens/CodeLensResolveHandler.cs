@@ -33,9 +33,14 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLens request)
         => GetCodeLensResolveData(request).TextDocument;
 
-    public async Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
+    public Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
+        return ResolveCodeLensAsync(request, document, cancellationToken);
+    }
+
+    internal static async Task<LSP.CodeLens> ResolveCodeLensAsync(LSP.CodeLens request, Document document, CancellationToken cancellationToken)
+    {
         var currentDocumentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
         var resolveData = GetCodeLensResolveData(request);
 

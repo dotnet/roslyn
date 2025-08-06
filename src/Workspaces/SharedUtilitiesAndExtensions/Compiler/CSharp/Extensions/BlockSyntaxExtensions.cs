@@ -50,8 +50,8 @@ internal static class BlockSyntaxExtensions
         // contains an expression-statement or throw-statement.
         bool HasAcceptableDirectiveShape(StatementSyntax statement, SyntaxToken closeBrace)
         {
-            var leadingDirectives = statement.GetLeadingTrivia().Where(IsAnyCodeDirective).ToImmutableArray();
-            var closeBraceLeadingDirectives = block.CloseBraceToken.LeadingTrivia.Where(IsAnyCodeDirective).ToImmutableArray();
+            var leadingDirectives = statement.GetLeadingTrivia().WhereAsArray(IsAnyCodeDirective);
+            var closeBraceLeadingDirectives = block.CloseBraceToken.LeadingTrivia.WhereAsArray(IsAnyCodeDirective);
 
             if (leadingDirectives.Length == 0)
             {

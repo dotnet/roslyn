@@ -139,8 +139,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
             // If we are removing, then that is a change or if we are newly marking a reference as TreatAsUsed,
             // then that is a change.
             var referenceChanges = referenceUpdates
-                .Where(update => update.Action != UpdateAction.TreatAsUsed || !update.ReferenceInfo.TreatAsUsed)
-                .ToImmutableArray();
+                .WhereAsArray(update => update.Action != UpdateAction.TreatAsUsed || !update.ReferenceInfo.TreatAsUsed);
 
             // If there are no changes, then we can return
             if (referenceChanges.IsEmpty)
@@ -196,8 +195,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         });
 
         var referenceUpdates = unusedReferences
-            .Select(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference))
-            .ToImmutableArray();
+            .SelectAsArray(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference));
 
         return referenceUpdates;
     }
