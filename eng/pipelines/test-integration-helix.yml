@@ -115,7 +115,7 @@ stages:
           ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ testParameters.oop64bit }} LspEditor_${{ testParameters.lspEditor }} $(Build.BuildNumber)'
           publishLocation: Container
         continueOnError: true
-        condition: not(succeeded())
+        condition: always()
     
       - task: PublishBuildArtifacts@1
         displayName: Publish Logs
@@ -124,4 +124,4 @@ stages:
           ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ testParameters.oop64bit }} LspEditor_${{ testParameters.lspEditor }} $(Build.BuildNumber)'
           publishLocation: Container
         continueOnError: true
-        condition: not(succeeded())
+        condition: always()
