@@ -15,10 +15,23 @@ internal interface IRemoteDiagnosticAnalyzerService
     ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
     ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
     ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken);
+
     ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(
-        Checksum solutionChecksum, string analyzerReferenceFullPath, CancellationToken cancellationToken);
+        Checksum solutionChecksum, string analyzerReferenceFullPath, string language, CancellationToken cancellationToken);
     ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
+
+    ValueTask<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsAsync(
+       Checksum solutionChecksum, string analyzerReferenceFullPath, CancellationToken cancellationToken);
+
+    ValueTask<ImmutableDictionary<string, DiagnosticDescriptorData>> TryGetDiagnosticDescriptorsAsync(
+        Checksum solutionChecksum, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
+
+    ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Checksum solutionChecksum, CancellationToken cancellationToken);
+
+    ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 }
 
 [DataContract]
