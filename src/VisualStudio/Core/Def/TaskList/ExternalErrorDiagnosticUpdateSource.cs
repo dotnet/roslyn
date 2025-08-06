@@ -198,7 +198,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             var path = group.Key;
             var pathAsUri = ProtocolConversions.CreateAbsoluteUri(path);
 
-            var convertedDiagnostics = group.Select(d => CreateDiagnostic(projectId, projectHierarchyGuid, d, state.Solution)).ToImmutableArray();
+            var convertedDiagnostics = group.SelectAsArray(d => CreateDiagnostic(projectId, projectHierarchyGuid, d, state.Solution));
             if (convertedDiagnostics.Any())
             {
                 var collection = new DiagnosticCollection(pathAsUri, documentVersionNumber: -1, diagnostics: convertedDiagnostics);

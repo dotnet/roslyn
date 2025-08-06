@@ -290,11 +290,11 @@ internal sealed class UnifiedSuggestedActionsSource
         {
             var actions = map[groupKey];
 
-            var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction)).ToImmutableArray();
+            var nonSuppressionActions = actions.WhereAsArray(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction));
             AddUnifiedSuggestedActionsSet(originalSolution, text, nonSuppressionActions, groupKey, nonSuppressionSets);
 
-            var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
-                !IsBulkConfigurationAction(a.OriginalCodeAction)).ToImmutableArray();
+            var suppressionActions = actions.WhereAsArray(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
+                !IsBulkConfigurationAction(a.OriginalCodeAction));
             AddUnifiedSuggestedActionsSet(originalSolution, text, suppressionActions, groupKey, suppressionSets);
 
             bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
