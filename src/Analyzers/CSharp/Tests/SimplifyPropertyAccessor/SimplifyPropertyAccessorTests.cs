@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.SimplifyPropertyAccessor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -251,6 +249,24 @@ public sealed class SimplifyPropertyAccessorTests
                 {
                     get => {|CS0103:field|};
                     set => {|CS0103:field|} = value;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NotOnPropertyLikeEventAccessor()
+    {
+        // 'field' keyword? Never heard of that thing...
+        await TestAsync("""
+            using System;
+
+            class C
+            {
+                public event EventHandler Tested
+                {
+                    add => {|CS0201:{|CS0103:field|}|};
+                    remove => {|CS0103:field|} = value;
                 }
             }
             """);
