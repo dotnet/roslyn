@@ -5,7 +5,7 @@ namespace Xunit.Threading
 {
     using System;
     using System.ComponentModel;
-    using Microsoft.Win32;
+    using System.Linq;
     using Xunit.Abstractions;
     using Xunit.Harness;
     using Xunit.Sdk;
@@ -102,46 +102,44 @@ namespace Xunit.Threading
 
         internal static bool IsInstalled(VisualStudioVersion visualStudioVersion)
         {
-            string dteKey;
+            int majorVersion;
 
             switch (visualStudioVersion)
             {
             case VisualStudioVersion.VS2012:
-                dteKey = "VisualStudio.DTE.11.0";
+                majorVersion = 11;
                 break;
 
             case VisualStudioVersion.VS2013:
-                dteKey = "VisualStudio.DTE.12.0";
+                majorVersion = 12;
                 break;
 
             case VisualStudioVersion.VS2015:
-                dteKey = "VisualStudio.DTE.14.0";
+                majorVersion = 14;
                 break;
 
             case VisualStudioVersion.VS2017:
-                dteKey = "VisualStudio.DTE.15.0";
+                majorVersion = 15;
                 break;
 
             case VisualStudioVersion.VS2019:
-                dteKey = "VisualStudio.DTE.16.0";
+                majorVersion = 16;
                 break;
 
             case VisualStudioVersion.VS2022:
-                dteKey = "VisualStudio.DTE.17.0";
+                majorVersion = 17;
                 break;
 
             case VisualStudioVersion.VS18:
-                dteKey = "VisualStudio.DTE.18.0";
+                majorVersion = 18;
                 break;
 
             default:
                 throw new ArgumentException();
             }
 
-            using (var key = Registry.ClassesRoot.OpenSubKey(dteKey))
-            {
-                return key != null;
-            }
+            var instances = VisualStudioInstanceFactory.EnumerateVisualStudioInstances();
+            return instances.Any(i => i.Item2.Major == majorVersion);
         }
     }
 }
