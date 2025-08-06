@@ -325,6 +325,57 @@ public sealed class SimplifyPropertyAccessorTests
     }
 
     [Fact]
+    public async Task PartialPropertyImplementation_BothAccessors1_DifferentFiles()
+    {
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public partial int Prop { get; set; }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public partial int Prop
+                        {
+                            {|IDE0360:get => field;|}
+                            {|IDE0360:set { field = value; }|}
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public partial int Prop { get; set; }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public partial int Prop
+                        {
+                            get;
+                            set { field = value; }
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task PartialPropertyImplementation_BothAccessors2()
     {
         await new VerifyCS.Test
@@ -353,6 +404,59 @@ public sealed class SimplifyPropertyAccessorTests
                     }
                 }
                 """,
+            LanguageVersion = LanguageVersion.Preview,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck | CodeFixTestBehaviors.FixOne,
+            DiagnosticSelector = diagnostics => diagnostics[1],
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task PartialPropertyImplementation_BothAccessors2_DifferentFiles()
+    {
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public partial int Prop { get; set; }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public partial int Prop
+                        {
+                            {|IDE0360:get => field;|}
+                            {|IDE0360:set { field = value; }|}
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public partial int Prop { get; set; }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public partial int Prop
+                        {
+                            get => field;
+                            set;
+                        }
+                    }
+                    """
+                }
+            },
             LanguageVersion = LanguageVersion.Preview,
             CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck | CodeFixTestBehaviors.FixOne,
             DiagnosticSelector = diagnostics => diagnostics[1],
