@@ -9826,7 +9826,7 @@ class Program
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable1StructAwaitable2");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("StructAwaitable1StructAwaitable2", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """

@@ -1825,7 +1825,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             return compilation;
         }
 
-        private static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
+        protected static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
         {
             bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
 
