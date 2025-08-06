@@ -705,7 +705,6 @@
     <!-- Refers to the runtime async helper call we use for awaiting. Either this is an instance of a BoundCall of an AsyncHelpers.Await method, and 
          GetAwaiter, IsCompleted, and GetResult are null, or this is an instance of a AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter BoundCall, and the other
          fields are not null. -->
-    <!-- PROTOTYPE: Look at consumers of this API and see if we can assert that this is null when it should be -->
     <Field Name="RuntimeAsyncAwaitCall" Type="BoundCall?" Null="allow"/>
     <!-- Never null when RuntimeAsyncAwaitCall is not null -->
     <Field Name="RuntimeAsyncAwaitCallPlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow"/>
