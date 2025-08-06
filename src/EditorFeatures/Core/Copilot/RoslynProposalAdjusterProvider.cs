@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Copilot;
 
 // The entire AdjusterProvider api is marked as obsolete since this is a preview API.  So we do the same here as well.
+[Export(typeof(ProposalAdjusterProviderBase))]
 [Obsolete("This is a preview api and subject to change")]
 [ContentType(ContentTypeNames.CSharpContentType)]
 [ContentType(ContentTypeNames.VisualBasicContentType)]
