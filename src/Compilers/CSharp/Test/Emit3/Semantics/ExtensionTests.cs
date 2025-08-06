@@ -43123,17 +43123,187 @@ static class E
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
-        // https://github.com/dotnet/roslyn/issues/79654 missing warning on s.RefReceiverProperty = x;
         comp.VerifyEmitDiagnostics(
-            // (23,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s.Property = x;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(23, 22),
+            // (26,9): error CS8350: This combination of arguments to 'E.extension(ref S).RefReceiverProperty.set' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         s.RefReceiverProperty = x;
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "s.RefReceiverProperty = x").WithArguments("E.extension(ref S).RefReceiverProperty.set", "value").WithLocation(26, 9),
+            // (26,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s.RefReceiverProperty = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 33),
             // (27,9): error CS8350: This combination of arguments to 'E.set_RefReceiverProperty(ref S, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
             //         E.set_RefReceiverProperty(ref s, x);
             Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_RefReceiverProperty(ref s, x)").WithArguments("E.set_RefReceiverProperty(ref S, S)", "value").WithLocation(27, 9),
             // (27,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         E.set_RefReceiverProperty(ref s, x);
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 42)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_PropertyAccess_07()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public ref S Property { get => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public ref S RefReceiverProperty { get => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s.Property = x;
+        E.get_Property(s) = x;
+
+        s.RefReceiverProperty = x;
+        E.get_RefReceiverProperty(ref s) = x;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (23,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s.Property = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(23, 22),
+            // (24,29): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_Property(s) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 29),
+            // (26,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s.RefReceiverProperty = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 33),
+            // (27,44): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_RefReceiverProperty(ref s) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 44)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_IndexerAccess_01()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public S this[int i] { get => throw null!; set => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public S this[double d] { get => throw null!; set => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s[0] = x;
+        E.set_Item(s, 0, x);
+
+        s[1.0] = x;
+        E.set_Item(ref s, 1.0, x);
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (12,18): error CS9282: This member is not allowed in an extension block
+            //         public S this[int i] { get => throw null!; set => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 18),
+            // (17,18): error CS9282: This member is not allowed in an extension block
+            //         public S this[double d] { get => throw null!; set => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 18),
+            // (23,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[0]").WithArguments("S").WithLocation(23, 9),
+            // (26,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[1.0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(26, 9),
+            // (27,9): error CS8350: This combination of arguments to 'E.set_Item(ref S, double, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         E.set_Item(ref s, 1.0, x);
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref s, 1.0, x)").WithArguments("E.set_Item(ref S, double, S)", "value").WithLocation(27, 9),
+            // (27,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.set_Item(ref s, 1.0, x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 32)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_IndexerAccess_02()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public ref S this[int i] { get => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public ref S this[double d] { get => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s[0] = x;
+        E.get_Item(s, 0) = x;
+
+        s[1.0] = x;
+        E.get_Item(ref s, 1.0) = x;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (12,22): error CS9282: This member is not allowed in an extension block
+            //         public ref S this[int i] { get => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 22),
+            // (17,22): error CS9282: This member is not allowed in an extension block
+            //         public ref S this[double d] { get => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 22),
+            // (23,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[0]").WithArguments("S").WithLocation(23, 9),
+            // (24,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_Item(s, 0) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 28),
+            // (26,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[1.0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(26, 9),
+            // (27,34): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_Item(ref s, 1.0) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 34)
         );
     }
 
