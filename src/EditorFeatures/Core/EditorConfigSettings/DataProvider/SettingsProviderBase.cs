@@ -35,7 +35,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
     public readonly IGlobalOptionService GlobalOptions;
 
     protected abstract Task UpdateOptionsAsync(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken);
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken);
 
     protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
     {
@@ -74,7 +74,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             editorConfigFileName: FileName);
 
         // TODO(cyrusn): Do we need to track this work in some way?
-        _ = UpdateOptionsAsync(options, solution, projects, cancellationToken)
+        _ = UpdateOptionsAsync(options, projects, cancellationToken)
             .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 

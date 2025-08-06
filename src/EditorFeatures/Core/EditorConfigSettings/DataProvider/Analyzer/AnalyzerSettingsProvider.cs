@@ -32,23 +32,34 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
     }
 
     protected override async Task UpdateOptionsAsync(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var analyzerReferences = RoslynEnumerableExtensions.DistinctBy(projectsInScope.SelectMany(p => p.AnalyzerReferences), a => a.Id).ToImmutableArray();
+        using var _ = PooledDictionary<AnalyzerReference, Project>.GetInstance(out var analyzerReferenceToSomeReferencingProject);
+
+        foreach (var project in projectsInScope)
+        {
+            foreach (var analyzerReference in project.AnalyzerReferences)
+                analyzerReferenceToSomeReferencingProject[analyzerReference] = project;
+
+        }
+
         foreach (var analyzerReference in analyzerReferences)
         {
+            var someReferencingProject = analyzerReferenceToSomeReferencingProject[analyzerReference];
             var configSettings = await GetSettingsAsync(
-                solution, analyzerReference, options.EditorConfigOptions, cancellationToken).ConfigureAwait(false);
+                someReferencingProject, analyzerReference, options.EditorConfigOptions, cancellationToken).ConfigureAwait(false);
             AddRange(configSettings);
         }
     }
 
     private async Task<ImmutableArray<AnalyzerSetting>> GetSettingsAsync(
-        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions, CancellationToken cancellationToken)
+        Project someReferencingProject, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions, CancellationToken cancellationToken)
     {
+        var solution = someReferencingProject.Solution;
         var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var map = await service.GetLanguageKeyedDiagnosticDescriptorsAsync(
-            solution, projectId, analyzerReference, cancellationToken).ConfigureAwait(false);
+            solution, someReferencingProject.Id, analyzerReference, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<AnalyzerSetting>.GetInstance(out var allSettings);
 
