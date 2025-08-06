@@ -27078,7 +27078,6 @@ static class E
         var extension2 = (SourceNamedTypeSymbol)extensions[1];
         Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
         Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        // TODO2
         // Note: the extension grouping raw name doesn't account for variance, but the IL-level comparer considers it.
         // Consider ignoring variance in IL-level comparison too, to reduce a cascading diagnostic in this error scenario.
         Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
