@@ -179,6 +179,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             // in tests), we'll just fall back to loading these in process.
             if (analyzerReference is AnalyzerFileReference analyzerFileReference)
             {
+                var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client is not null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
