@@ -335,7 +335,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         /// <remarks>
         /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
         /// </remarks>
-        private readonly ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> _allDiagnosticIdMap = ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>>.Empty;
+        private ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> _allDiagnosticIdMap = ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>>.Empty;
 
         public Solution Solution { get; } = solution;
 
@@ -350,7 +350,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
             AsyncLazy<ImmutableHashSet<string>> GetLazyIdsSlow()
             {
-                return _allDiagnosticIdMap.GetOrAdd(projectId, projectId => AsyncLazy.Create(async cancellationToken =>
+                return ImmutableInterlocked.GetOrAdd(ref _allDiagnosticIdMap, projectId, projectId => AsyncLazy.Create(async cancellationToken =>
                 {
                     var project = Solution.GetProject(projectId);
                     if (project == null)
