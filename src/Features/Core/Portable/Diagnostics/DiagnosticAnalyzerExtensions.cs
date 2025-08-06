@@ -64,7 +64,6 @@ internal static class DiagnosticAnalyzerExtensions
         AnalyzerReference analyzerReference)
     {
         var diagnosticAnalyzerService = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-
-        return diagnosticAnalyzerService.GetDiagnosticDescriptors(project, analyzerReference);
+        return diagnosticAnalyzerService.GetDiagnosticDescriptors(project.Solution, analyzerReference, project.Language);
     }
 }

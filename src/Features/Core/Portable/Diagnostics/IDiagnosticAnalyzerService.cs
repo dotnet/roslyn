@@ -19,8 +19,17 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     // DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
-    public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(
-        Project project, AnalyzerReference analyzerReference);
+    ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(
+        Solution solution, AnalyzerReference analyzerReference, string language);
+
+    /// <summary>
+    /// Returns all the descriptors for all <see cref="DiagnosticAnalyzer"/>s defined within <paramref name="analyzerReference"/>.
+    /// The results are returned in a dictionary where the key is an <see cref="ImmutableArray{T}"/> of languages that descriptor
+    /// is defined for.  This can be <c>[<see cref="LanguageNames.CSharp"/>]</c>, <c>[<see cref="LanguageNames.VisualBasic"/>]</c>,
+    /// or an array containing both languages if the descriptor is defined for both languages.
+    /// </summary>
+    ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(
+        Solution solution, AnalyzerReference analyzerReference);
 
     /// <summary>
     /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.

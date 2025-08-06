@@ -23,7 +23,8 @@ internal sealed class NamingStyleSettingsProvider : SettingsProviderBase<NamingS
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override void UpdateOptions(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
     {
         options.GetInitialLocationAndValue<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var location, out var namingPreferences);
 

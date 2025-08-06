@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -134,14 +136,58 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     public TestAccessor GetTestAccessor()
         => new(this);
 
-    public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(Project project, AnalyzerReference analyzerReference)
+    public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(Solution solution, AnalyzerReference analyzerReference, string language)
     {
         // TODO(cyrusn): Remote this to OOP.
         var descriptors = analyzerReference
-            .GetAnalyzers(project.Language)
-            .SelectManyAsArray(a => this.AnalyzerInfoCache.GetDiagnosticDescriptors(a));
+            .GetAnalyzers(language)
+            .SelectManyAsArray(this.AnalyzerInfoCache.GetDiagnosticDescriptors);
 
         return descriptors;
+    }
+
+    private static readonly ImmutableArray<string> s_csharpLanguageArray = [LanguageNames.CSharp];
+    private static readonly ImmutableArray<string> s_visualBasicLanguageArray = [LanguageNames.VisualBasic];
+    private static readonly ImmutableArray<string> s_csharpAndVisualBasicLanguageArray = [.. s_csharpLanguageArray, .. s_visualBasicLanguageArray];
+
+    public ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(
+        Solution solution, AnalyzerReference analyzerReference)
+    {
+        var mapBuilder = ImmutableDictionary.CreateBuilder<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>();
+
+        var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
+        var visualBasicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
+
+        var dotnetAnalyzers = csharpAnalyzers.Intersect(visualBasicAnalyzers, DiagnosticAnalyzerComparer.Instance).ToImmutableArray();
+        csharpAnalyzers = [.. csharpAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
+        visualBasicAnalyzers = [.. visualBasicAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
+
+        mapBuilder.Add(s_csharpLanguageArray, GetDiagnosticDescriptors(csharpAnalyzers));
+        mapBuilder.Add(s_visualBasicLanguageArray, GetDiagnosticDescriptors(visualBasicAnalyzers));
+        mapBuilder.Add(s_csharpAndVisualBasicLanguageArray, GetDiagnosticDescriptors(dotnetAnalyzers));
+
+        return mapBuilder.ToImmutable();
+
+        ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(ImmutableArray<DiagnosticAnalyzer> analyzers)
+            => analyzers.SelectManyAsArray(this.AnalyzerInfoCache.GetDiagnosticDescriptors);
+    }
+
+    private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
+    {
+        public static readonly DiagnosticAnalyzerComparer Instance = new();
+
+        public bool Equals(DiagnosticAnalyzer? x, DiagnosticAnalyzer? y)
+        {
+            if (x is null && y is null)
+                return true;
+
+            if (x is null || y is null)
+                return false;
+
+            return x.GetAnalyzerIdAndVersion().GetHashCode() == y.GetAnalyzerIdAndVersion().GetHashCode();
+        }
+
+        public int GetHashCode(DiagnosticAnalyzer obj) => obj.GetAnalyzerIdAndVersion().GetHashCode();
     }
 
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
