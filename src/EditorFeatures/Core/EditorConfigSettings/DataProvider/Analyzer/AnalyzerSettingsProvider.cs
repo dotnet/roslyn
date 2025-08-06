@@ -64,7 +64,7 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
                 {
                     LanguageNames.CSharp => Language.CSharp,
                     LanguageNames.VisualBasic => Language.VisualBasic,
-                    _ => throw new ArgumentException($"Unsupported language: {languages[0]}")
+                    _ => throw new ArgumentException($"Unsupported language: {languageString}")
                 };
             }
 
