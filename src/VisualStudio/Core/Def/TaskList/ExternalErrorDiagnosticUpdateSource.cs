@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -122,8 +123,14 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     /// for the given <paramref name="projectId"/> during the current build in progress.
     /// This API is only intended to be invoked from <see cref="ProjectExternalErrorReporter"/> while a build is in progress.
     /// </summary>
-    public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
-        => GetBuildInProgressState()?.IsSupportedDiagnosticId(projectId, id) ?? false;
+    public async Task<bool> IsSupportedDiagnosticIdAsync(ProjectId projectId, string id, CancellationToken cancellationToken)
+    {
+        var state = GetBuildInProgressState();
+        if (state is null)
+            return false;
+
+        return await state.IsSupportedDiagnosticIdAsync(projectId, id, cancellationToken).ConfigureAwait(false);
+    }
 
     public void ClearErrors(ProjectId projectId)
     {
@@ -328,56 +335,84 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         /// <remarks>
         /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
         /// </remarks>
-        private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = [];
+        private readonly ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> _allDiagnosticIdMap = ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>>.Empty;
 
         public Solution Solution { get; } = solution;
 
-        public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
-            => GetOrCreateSupportedDiagnosticIds(projectId).Contains(id);
-
-        private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
-            ProjectId projectId,
-            Dictionary<ProjectId, ImmutableHashSet<string>> diagnosticIdMap,
-            Func<ImmutableHashSet<string>> computeDiagnosticIds)
+        public async Task<bool> IsSupportedDiagnosticIdAsync(ProjectId projectId, string id, CancellationToken cancellationToken)
         {
-            lock (diagnosticIdMap)
+            var lazyIds = _allDiagnosticIdMap.TryGetValue(projectId, out var temp)
+                ? temp
+                : GetLazyIdsSlow();
+
+            var ids = await lazyIds.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return ids.Contains(id);
+
+            AsyncLazy<ImmutableHashSet<string>> GetLazyIdsSlow()
             {
-                if (diagnosticIdMap.TryGetValue(projectId, out var ids))
+                return _allDiagnosticIdMap.GetOrAdd(projectId, projectId => AsyncLazy.Create(async cancellationToken =>
                 {
-                    return ids;
-                }
-            }
+                    var project = Solution.GetProject(projectId);
+                    if (project == null)
+                    {
+                        // projectId no longer exist
+                        return [];
+                    }
 
-            var computedIds = computeDiagnosticIds();
+                    // set ids set
+                    var builder = ImmutableHashSet.CreateBuilder<string>();
+                    var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                    var descriptorMap = await service.GetDiagnosticDescriptorsPerReferenceAsync(project, cancellationToken).ConfigureAwait(false);
+                    builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
 
-            lock (diagnosticIdMap)
-            {
-                diagnosticIdMap[projectId] = computedIds;
-                return computedIds;
+                    return builder.ToImmutable();
+                }));
             }
         }
 
-        private ImmutableHashSet<string> GetOrCreateSupportedDiagnosticIds(ProjectId projectId)
-        {
-            return GetOrCreateDiagnosticIds(projectId, _allDiagnosticIdMap, ComputeSupportedDiagnosticIds);
+        //private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
+        //    ProjectId projectId,
+        //    Dictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> diagnosticIdMap,
+        //    Func<AsyncLazy<ImmutableHashSet<string>>> computeDiagnosticIds)
+        //{
+        //    lock (diagnosticIdMap)
+        //    {
+        //        if (diagnosticIdMap.TryGetValue(projectId, out var ids))
+        //        {
+        //            return ids;
+        //        }
+        //    }
 
-            ImmutableHashSet<string> ComputeSupportedDiagnosticIds()
-            {
-                var project = Solution.GetProject(projectId);
-                if (project == null)
-                {
-                    // projectId no longer exist
-                    return [];
-                }
+        //    var computedIds = computeDiagnosticIds();
 
-                // set ids set
-                var builder = ImmutableHashSet.CreateBuilder<string>();
-                var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                var descriptorMap = service.GetDiagnosticDescriptorsPerReference(project);
-                builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
+        //    lock (diagnosticIdMap)
+        //    {
+        //        diagnosticIdMap[projectId] = computedIds;
+        //        return computedIds;
+        //    }
+        //}
 
-                return builder.ToImmutable();
-            }
-        }
+        //private ImmutableHashSet<string> GetOrCreateSupportedDiagnosticIds(ProjectId projectId)
+        //{
+        //    return GetOrCreateDiagnosticIds(projectId, _allDiagnosticIdMap, ComputeSupportedDiagnosticIds);
+
+        //    ImmutableHashSet<string> ComputeSupportedDiagnosticIds()
+        //    {
+        //        var project = Solution.GetProject(projectId);
+        //        if (project == null)
+        //        {
+        //            // projectId no longer exist
+        //            return [];
+        //        }
+
+        //        // set ids set
+        //        var builder = ImmutableHashSet.CreateBuilder<string>();
+        //        var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        //        var descriptorMap = service.GetDiagnosticDescriptorsPerReference(project);
+        //        builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
+
+        //        return builder.ToImmutable();
+        //    }
+        //}
     }
 }

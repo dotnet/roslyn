@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -33,7 +34,8 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
     protected readonly Workspace Workspace;
     public readonly IGlobalOptionService GlobalOptions;
 
-    protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope);
+    protected abstract Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken);
 
     protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
     {
@@ -60,7 +62,8 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             return;
         }
 
-        var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
+        var cancellationToken = CancellationToken.None;
+        var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, cancellationToken);
         var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
 
         // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
@@ -70,7 +73,9 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             language: LanguageNames.CSharp,
             editorConfigFileName: FileName);
 
-        UpdateOptions(options, solution, projects);
+        // TODO(cyrusn): Do we need to track this work in some way?
+        _ = UpdateOptionsAsync(options, solution, projects, cancellationToken)
+            .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)

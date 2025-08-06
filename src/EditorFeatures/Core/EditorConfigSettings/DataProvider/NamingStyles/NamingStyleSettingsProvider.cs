@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -23,8 +25,8 @@ internal sealed class NamingStyleSettingsProvider : SettingsProviderBase<NamingS
         Update();
     }
 
-    protected override void UpdateOptions(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         options.GetInitialLocationAndValue<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var location, out var namingPreferences);
 
@@ -33,5 +35,6 @@ internal sealed class NamingStyleSettingsProvider : SettingsProviderBase<NamingS
         var namingStyles = namingPreferences.Rules.NamingRules.Select(namingRule => new NamingStyleSetting(namingRule, allStyles, SettingsUpdater, fileName));
 
         AddRange(namingStyles);
+        return Task.CompletedTask;
     }
 }

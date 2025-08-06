@@ -129,12 +129,10 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var analyzerReference = project.AnalyzerReferences
                     .First(r => r.FullPath == analyzerReferenceFullPath);
 
-                var descriptors = project.GetDiagnosticDescriptorsAsync(analyzerReference).ConfigureAwait(false);
-                var descriptors = project
-                    .GetDiagnosticDescriptors(analyzerReference)
-                    .SelectAsArray(DiagnosticDescriptorData.Create);
+                var descriptors = await project.GetDiagnosticDescriptorsAsync(analyzerReference, cancellationToken).ConfigureAwait(false);
+                var descriptorData = descriptors.SelectAsArray(DiagnosticDescriptorData.Create);
 
-                return ValueTask.FromResult(descriptors);
+                return descriptorData;
             },
             cancellationToken);
     }

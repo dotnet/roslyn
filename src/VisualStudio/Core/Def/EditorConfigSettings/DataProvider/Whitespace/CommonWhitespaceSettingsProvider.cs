@@ -4,6 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -21,11 +23,13 @@ internal sealed class CommonWhitespaceSettingsProvider : SettingsProviderBase<Se
         Update();
     }
 
-    protected override void UpdateOptions(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var defaultOptions = GetDefaultOptions(options, SettingsUpdater);
         AddRange(defaultOptions);
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<Setting> GetDefaultOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

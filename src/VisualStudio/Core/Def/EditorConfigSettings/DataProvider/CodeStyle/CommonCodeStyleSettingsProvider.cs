@@ -4,6 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -21,8 +23,8 @@ internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<Cod
         Update();
     }
 
-    protected override void UpdateOptions(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var qualifySettings = GetQualifyCodeStyleOptions(options, SettingsUpdater);
         AddRange(qualifySettings);
@@ -52,6 +54,8 @@ internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<Cod
 
         var experimentalSettings = GetExperimentalCodeStyleOptions(options, SettingsUpdater);
         AddRange(experimentalSettings);
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<CodeStyleSetting> GetQualifyCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

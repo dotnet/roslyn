@@ -57,7 +57,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
 
-    private bool CanHandle(string errorId)
+    private async Task<bool> CanHandleAsync(string errorId, CancellationToken cancellationToken)
     {
         // make sure we have error id, otherwise, we simple don't support
         // this error
@@ -74,7 +74,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             return true;
         }
 
-        return DiagnosticProvider.IsSupportedDiagnosticId(_projectId, errorId);
+        return await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
+            _projectId, errorId, cancellationToken).ConfigureAwait(false);
     }
 
     private static ImmutableArray<ExternalError> GetExternalErrors(IVsEnumExternalErrors pErrors)
@@ -122,7 +123,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         var errorIds = allErrors.Select(e => e.iErrorID).Distinct().Select(GetErrorId).ToImmutableArray();
         var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
-            solution, errorIds).ConfigureAwait(false);
+            solution, errorIds, cancellationToken).ConfigureAwait(false);
 
         foreach (var error in allErrors)
         {
@@ -302,7 +303,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         {
             var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
-                solution, [bstrErrorId]).ConfigureAwait(false);
+                solution, [bstrErrorId], cancellationToken).ConfigureAwait(false);
 
             var diagnostic = await GetDiagnosticDataAsync(
                 project,
