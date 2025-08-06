@@ -20,7 +20,11 @@ internal static class OnAutoInsert
     public static Task<VSInternalDocumentOnAutoInsertResponseItem?> GetOnAutoInsertResponseAsync(Document document, LinePosition linePosition, string character, FormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
-        var services = document.Project.Solution.Services.ExportProvider.GetExports<IBraceCompletionService, LanguageMetadata>().SelectAsArray(s => s.Metadata.Language == LanguageNames.CSharp, s => s.Value);
+        var services = document.Project.Solution.Services.ExportProvider
+            .GetExports<IBraceCompletionService, LanguageMetadata>()
+            .SelectAsArray(
+                predicate: s => s.Metadata.Language == LanguageNames.CSharp,
+                selector: s => s.Value);
 
         return OnAutoInsertHandler.GetOnAutoInsertResponseAsync(globalOptions, services, document, linePosition, character, formattingOptions, isRazorRequest: true, cancellationToken);
     }

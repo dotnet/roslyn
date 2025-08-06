@@ -197,8 +197,9 @@ internal sealed partial class SolutionExplorerInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var project = await GetProjectAsync(projectName, cancellationToken);
-        var references = ((VSProject)project.Object).References.Cast<Reference>()
-            .SelectAsArray(x => x.SourceProject == null, x => (x.Name, x.Version, x.PublicKeyToken));
+        var references = ((VSProject)project.Object).References.Cast<Reference>().SelectAsArray(
+            predicate: x => x.SourceProject == null,
+            selector: x => (x.Name, x.Version, x.PublicKeyToken));
         return references;
     }
 

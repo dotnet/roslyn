@@ -159,8 +159,9 @@ internal abstract class ProjectFile : IProjectFile
 
         var targetFrameworkVersion = project.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
 
-        var docs = project.GetDocuments()
-            .SelectAsArray(IsNotTemporaryGeneratedFile, MakeDocumentFileInfo);
+        var docs = project.GetDocuments().SelectAsArray(
+            predicate: IsNotTemporaryGeneratedFile,
+            selector: MakeDocumentFileInfo);
 
         var additionalDocs = project.GetAdditionalFiles()
             .SelectAsArray(MakeNonSourceFileDocumentFileInfo);

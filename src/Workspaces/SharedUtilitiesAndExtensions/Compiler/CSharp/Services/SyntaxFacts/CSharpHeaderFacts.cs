@@ -75,7 +75,9 @@ internal class CSharpHeaderFacts : AbstractHeaderFacts
     {
         var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(root, position, out localDeclaration);
         return node != null && IsOnHeader(root, position, node, node, holes: node.Declaration.Variables
-            .SelectAsArray(v => v.Initializer != null, initializedV => initializedV.Initializer!.Value));
+            .SelectAsArray(
+                predicate: v => v.Initializer != null,
+                selector: initializedV => initializedV.Initializer!.Value));
     }
 
     public override bool IsOnIfStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? ifStatement)

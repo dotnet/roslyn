@@ -45,10 +45,14 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
     }
 
     public ImmutableArray<string> GetDocumentSourceProviderNames(ClientCapabilities clientCapabilities)
-        => _nameToDocumentProviderMap.SelectAsArray(kvp => kvp.Value.IsEnabled(clientCapabilities), kvp => kvp.Key);
+        => _nameToDocumentProviderMap.SelectAsArray(
+            predicate: kvp => kvp.Value.IsEnabled(clientCapabilities),
+            selector: kvp => kvp.Key);
 
     public ImmutableArray<string> GetWorkspaceSourceProviderNames(ClientCapabilities clientCapabilities)
-        => _nameToWorkspaceProviderMap.SelectAsArray(kvp => kvp.Value.IsEnabled(clientCapabilities), kvp => kvp.Key);
+        => _nameToWorkspaceProviderMap.SelectAsArray(
+            predicate: kvp => kvp.Value.IsEnabled(clientCapabilities),
+            selector: kvp => kvp.Key);
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken)
         => CreateDiagnosticSourcesAsync(context, providerName, _nameToDocumentProviderMap, isDocument: true, cancellationToken);
