@@ -14,11 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IDiagnosticAnalyzerService : IWorkspaceService
 {
-    /// <summary>
-    /// Provides and caches analyzer information.
-    /// </summary>
-    // DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
-
     ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(
         Solution solution, AnalyzerReference analyzerReference, string language);
 
