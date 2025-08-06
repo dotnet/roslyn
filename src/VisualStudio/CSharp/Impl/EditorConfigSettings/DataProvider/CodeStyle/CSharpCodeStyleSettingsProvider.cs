@@ -59,6 +59,8 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
 
         var unusedValueSettings = GetUnusedValueCodeStyleOptions(options, SettingsUpdater);
         AddRange(unusedValueSettings);
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<CodeStyleSetting> GetVarCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
