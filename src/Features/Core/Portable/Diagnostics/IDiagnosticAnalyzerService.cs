@@ -97,6 +97,12 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Given a list of errors ids (like CS1234), attempts to find an associated descriptor for each id.
+    /// </summary>
+    ImmutableDictionary<string, DiagnosticDescriptor> TryGetDiagnosticDescriptors(
+        Solution solution, ImmutableArray<string> diagnosticIds);
 }
 
 internal static class IDiagnosticAnalyzerServiceExtensions

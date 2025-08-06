@@ -171,6 +171,18 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             => analyzers.SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
     }
 
+    public ImmutableDictionary<string, DiagnosticDescriptor> TryGetDiagnosticDescriptors(Solution solution, ImmutableArray<string> diagnosticIds)
+    {
+        var builder = ImmutableDictionary.CreateBuilder<string, DiagnosticDescriptor>();
+        foreach (var diagnosticId in diagnosticIds)
+        {
+            if (this._analyzerInfoCache.TryGetDescriptorForDiagnosticId(diagnosticId, out var descriptor))
+                builder[diagnosticId] = descriptor;
+        }
+
+        return builder.ToImmutable();
+    }
+
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
     {
         public static readonly DiagnosticAnalyzerComparer Instance = new();

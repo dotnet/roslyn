@@ -39,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly CancellationToken _disposalToken;
+    public readonly IAsynchronousOperationListener Listener;
+    public readonly CancellationToken DisposalToken;
     private readonly IServiceBroker _serviceBroker;
 
     /// <summary>
@@ -69,16 +69,16 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
         IThreadingContext threadingContext)
     {
-        _disposalToken = threadingContext.DisposalToken;
+        DisposalToken = threadingContext.DisposalToken;
         _workspace = workspace;
-        _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
+        Listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
 
         _serviceBroker = serviceBroker;
         _taskQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
             TimeSpan.Zero,
             processBatchAsync: ProcessTaskQueueItemsAsync,
-            _listener,
-            _disposalToken
+            Listener,
+            DisposalToken
         );
 
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
