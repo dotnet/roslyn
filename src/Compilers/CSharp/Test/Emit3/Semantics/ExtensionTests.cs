@@ -43087,6 +43087,56 @@ static class E
         comp.VerifyEmitDiagnostics();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_PropertyAccess_06()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public S Property { get => throw null!; set => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public S RefReceiverProperty { get => throw null!; set => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s.Property = x;
+        E.set_Property(s, x);
+
+        s.RefReceiverProperty = x;
+        E.set_RefReceiverProperty(ref s, x);
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        // https://github.com/dotnet/roslyn/issues/79654 missing warning on s.RefReceiverProperty = x;
+        comp.VerifyEmitDiagnostics(
+            // (23,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s.Property = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(23, 22),
+            // (27,9): error CS8350: This combination of arguments to 'E.set_RefReceiverProperty(ref S, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         E.set_RefReceiverProperty(ref s, x);
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_RefReceiverProperty(ref s, x)").WithArguments("E.set_RefReceiverProperty(ref S, S)", "value").WithLocation(27, 9),
+            // (27,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.set_RefReceiverProperty(ref s, x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 42)
+        );
+    }
+
     [Fact]
     public void Nullability_Invocation_01()
     {
