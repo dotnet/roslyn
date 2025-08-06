@@ -22566,7 +22566,7 @@ static class E
             // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
             //     extension<in T>(T t)
             Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 15),
-            // (7,5): error CS9326: This extension block collides with another extension block. They have different signatures, but result in the same grouping type identifier.
+            // (7,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(T t)
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(7, 5),
             // (9,21): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
@@ -22577,7 +22577,8 @@ static class E
             Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(12, 27),
             // (13,24): error CS0111: Type 'E' already defines a member called 'M2' with the same parameter types
             //     public static void M2<T>(this T t) { }
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "E").WithLocation(13, 24));
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "E").WithLocation(13, 24)
+            );
     }
 
     [Fact]
@@ -25901,7 +25902,7 @@ public class BAttribute : System.Attribute { }
     [Fact]
     public void Grouping_09()
     {
-        // attribute on parameter vs. different attribute
+        // different attribute values on parameter
         var src = """
 public static class E
 {
@@ -26097,7 +26098,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension([A2] int) { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26375,7 +26376,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension(A2)
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5),
             // (14,28): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
@@ -26415,7 +26416,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension(A2) { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
     }
@@ -26440,7 +26441,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(T) where T : A2 { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26469,7 +26470,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T, U>(T) where T : A2 where U : T { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26500,7 +26501,7 @@ public interface I { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(T) where T : I, A2 { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26531,7 +26532,7 @@ public interface I { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(T) where T : I, A2 { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26560,7 +26561,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension(ref A2 a) { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26604,7 +26605,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension(ref A2 a)
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5),
             // (14,28): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
@@ -26635,7 +26636,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension(I<A2> a) { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26671,7 +26672,7 @@ public static class E
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(int i) where T : I<A2> { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26709,7 +26710,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(int i) where T : I<A2> { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26754,7 +26755,7 @@ public class AAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(int i) where T : I<A2> { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26891,7 +26892,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(int i) where T : I<A2> { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -26938,7 +26939,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(int i) where T : I<A2> { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
@@ -27069,7 +27070,7 @@ static class E
             // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
             //     extension<out T>(int) { }
             Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(3, 15),
-            // (4,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            // (4,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.
             //     extension<T>(int) { }
             Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(4, 5));
 
@@ -27645,6 +27646,25 @@ public static class E1<T1>
             // (5,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //         extension((T1, T2)) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void Grouping_73()
+    {
+        var src = """
+public static class E
+{
+    extension(object) { }
+    extension(dynamic) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
+            //     extension(dynamic) { }
+            Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(4, 15));
+
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 }
 

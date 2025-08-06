@@ -8219,6 +8219,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Interpolated string handler arguments are not allowed in this context.</value>
   </data>
   <data name="ERR_ExtensionBlockCollision" xml:space="preserve">
-    <value>This extension block collides with another extension block. They result in conflicting content-based type names in metadata.</value>
+    <value>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</value>
   </data>
 </root>

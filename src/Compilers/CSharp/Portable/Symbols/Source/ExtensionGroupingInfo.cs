@@ -290,16 +290,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterSymbol? parameter1 = extension1.ExtensionParameter;
             ParameterSymbol? parameter2 = extension2.ExtensionParameter;
-            if (parameter1 is null || parameter2 is null)
+            if (parameter1 is null)
             {
-                return parameter1 is null && parameter2 is null;
+                return parameter2 is null;
             }
-
-            if (!MemberSignatureComparer.HaveSameParameterType(parameter1, typeMap1, parameter2, typeMap2,
-                refKindCompareMode: MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
-                considerDefaultValues: false, TypeCompareKind.ConsiderEverything))
+            else if (parameter2 is null)
             {
-                return false;
+                return parameter1 is null;
             }
 
             if (parameter1.DeclaredScope != parameter2.DeclaredScope)
@@ -308,6 +305,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (parameter1.Name != parameter2.Name)
+            {
+                return false;
+            }
+
+            if (!MemberSignatureComparer.HaveSameParameterType(parameter1, typeMap1, parameter2, typeMap2,
+                refKindCompareMode: MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                considerDefaultValues: false, TypeCompareKind.ConsiderEverything))
             {
                 return false;
             }

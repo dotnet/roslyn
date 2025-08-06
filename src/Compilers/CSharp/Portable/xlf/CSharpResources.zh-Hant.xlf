@@ -813,8 +813,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionBlockCollision">
-        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata.</source>
-        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata.</target>
+        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
+        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
