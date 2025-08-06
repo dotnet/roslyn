@@ -13,11 +13,13 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRemoteDiagnosticAnalyzerService
+internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteDiagnosticAnalyzerService
 {
     internal sealed class Factory : FactoryBase<IRemoteDiagnosticAnalyzerService>
     {
@@ -26,11 +28,6 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
     }
 
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
-
-    public RemoteDiagnosticAnalyzerService(in ServiceConstructionArguments arguments)
-        : base(arguments)
-    {
-    }
 
     /// <summary>
     /// Calculate diagnostics. this works differently than other ones such as todo comments or designer attribute scanner
@@ -79,9 +76,9 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
         }
     }
 
-    public async ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
     {
-        return await RunWithSolutionAsync(
+        return RunWithSolutionAsync(
             solutionChecksum,
             async solution =>
             {
@@ -98,7 +95,7 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                 }
 
                 return builder.ToImmutableAndClear();
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
     }
 
     public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
@@ -120,5 +117,27 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
 
             return default;
         }, cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var analyzerReference = project.AnalyzerReferences
+                    .First(r => r.FullPath == analyzerReferenceFullPath);
+
+                var diagnosticAnalyzerService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+                var descriptors = analyzerReference
+                    .GetAnalyzers(project.Language)
+                    .SelectMany(a => diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
+                    .SelectAsArray(d => DiagnosticDescriptorData.Create(d));
+
+                return ValueTask.FromResult(descriptors);
+            },
+            cancellationToken);
     }
 }
