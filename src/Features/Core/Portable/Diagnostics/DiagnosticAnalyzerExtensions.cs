@@ -58,4 +58,17 @@ internal static class DiagnosticAnalyzerExtensions
 
     public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
         => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
+
+    public static ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(
+        this Project project,
+        AnalyzerReference analyzerReference)
+    {
+        var diagnosticAnalyzerService = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        var descriptors = analyzerReference
+            .GetAnalyzers(project.Language)
+            .SelectManyAsArray(a => diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a));
+
+        return descriptors;
+    }
 }
