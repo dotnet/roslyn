@@ -44,11 +44,11 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
     }
 
     private async Task<ImmutableArray<AnalyzerSetting>> GetSettingsAsync(
-        Solution solution, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions, CancellationToken cancellationToken)
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions, CancellationToken cancellationToken)
     {
         var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var map = await service.GetLanguageKeyedDiagnosticDescriptorsAsync(
-            solution, analyzerReference, cancellationToken).ConfigureAwait(false);
+            solution, projectId, analyzerReference, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<AnalyzerSetting>.GetInstance(out var allSettings);
 
