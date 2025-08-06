@@ -194,10 +194,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             }
 
             // Otherwise, do the work in process.
-            var diagnosticAnalyzerService = this.Workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-            return analyzerReference
-                .GetAnalyzers(project.Language)
-                .SelectManyAsArray(a => diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a));
+            return project.GetDiagnosticDescriptors(analyzerReference);
         }
 
         async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync()
