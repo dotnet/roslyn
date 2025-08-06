@@ -25630,10 +25630,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -25646,6 +25643,17 @@ public static class E
                 "TypeDefinition:<Marker>$1F33B79C79D1C037CA6976EB16158758"
                 ], reader.DumpNestedTypes(e.Handle));
         }
+    }
+
+    private static void VerifyCollisions(CSharpCompilation comp, bool groupingMatch, bool markerMatch)
+    {
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        var extension1 = (SourceNamedTypeSymbol)extensions[0];
+        var extension2 = (SourceNamedTypeSymbol)extensions[1];
+        Assert.Equal(groupingMatch, extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
+        Assert.Equal(markerMatch, extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
+        Assert.Equal(groupingMatch, ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
+        Assert.Equal(markerMatch, ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
     }
 
     [Fact]
@@ -25674,10 +25682,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -25712,10 +25717,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -25751,10 +25753,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -25790,10 +25789,7 @@ public class AAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -25829,10 +25825,7 @@ public class AAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
 
         static void validate(ModuleSymbol module)
         {
@@ -25865,14 +25858,7 @@ public class AAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -25897,10 +25883,7 @@ public class BAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -25939,10 +25922,7 @@ public class AAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -25983,10 +25963,7 @@ public class AAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -26008,14 +25985,8 @@ public class AAttribute : System.Attribute { }
         var src = """
 public static class E
 {
-    extension([A(1), A(2)] int)
-    {
-        public static void M1() { }
-    }
-    extension([A(2), A(1)] int)
-    {
-        public static void M2() { }
-    }
+    extension([A(1), A(2)] int) { }
+    extension([A(2), A(1)] int) { }
 }
 
 [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
@@ -26026,14 +25997,7 @@ public class AAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -26073,14 +26037,8 @@ public class AAttribute : System.Attribute
         var src = """
 public static class E
 {
-    extension([A(P1 = 0, P2 = 0)] int)
-    {
-        public static void M1() { }
-    }
-    extension([A(P2 = 0, P1 = 0)] int)
-    {
-        public static void M2() { }
-    }
+    extension([A(P1 = 0, P2 = 0)] int) { }
+    extension([A(P2 = 0, P1 = 0)] int) { }
 }
 
 public class AAttribute : System.Attribute
@@ -26091,14 +26049,7 @@ public class AAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -26108,14 +26059,8 @@ public class AAttribute : System.Attribute
         var src = """
 public static class E
 {
-    extension([A(i1: 0, i2: 0)] int)
-    {
-        public static void M1() { }
-    }
-    extension([A(i2: 0, i1: 0)] int)
-    {
-        public static void M2() { }
-    }
+    extension([A(i1: 0, i2: 0)] int) { }
+    extension([A(i2: 0, i1: 0)] int) { }
 }
 
 public class AAttribute : System.Attribute
@@ -26125,14 +26070,7 @@ public class AAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -26153,21 +26091,15 @@ using A2 = alias2::AAttribute;
 
 public static class E
 {
-    extension([A1] int)
-    {
-        public static void M1() { }
-    }
-    extension([A2] int)
-    {
-        public static void M2() { }
-    }
+    extension([A1] int) { }
+    extension([A2] int) { }
 }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
-            //     extension([A2] int)
-            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5));
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            //     extension([A2] int) { }
+            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
@@ -26195,10 +26127,7 @@ public class AAttribute : System.Attribute { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -26235,10 +26164,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -26273,10 +26199,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -26311,10 +26234,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
 
         static void validate(ModuleSymbol module)
         {
@@ -26348,10 +26268,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         static void validate(ModuleSymbol module)
         {
@@ -26386,10 +26303,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, symbolValidator: validate).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
 
         static void validate(ModuleSymbol module)
         {
@@ -26416,14 +26330,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -26439,14 +26346,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -26509,21 +26409,15 @@ using A2 = alias2::A;
 
 public static class E
 {
-    extension(A1)
-    {
-        public static void M1() { }
-    }
-    extension(A2)
-    {
-        public static void M2() { }
-    }
+    extension(A1) { }
+    extension(A2) { }
 }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
-            //     extension(A2)
-            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5));
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            //     extension(A2) { }
+            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
     }
 
     [Fact]
@@ -26540,21 +26434,15 @@ using A2 = alias2::A;
 
 public static class E
 {
-    extension<T>(T) where T : A1
-    {
-        public static void M1() { }
-    }
-    extension<T>(T) where T : A2
-    {
-        public static void M2() { }
-    }
+    extension<T>(T) where T : A1 { }
+    extension<T>(T) where T : A2 { }
 }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
-            //     extension<T>(T) where T : A2
-            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5));
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            //     extension<T>(T) where T : A2 { }
+            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.False(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
@@ -26575,21 +26463,15 @@ using A2 = alias2::A;
 
 public static class E
 {
-    extension<T, U>(T) where T : A1 where U : T
-    {
-        public static void M1() { }
-    }
-    extension<T, U>(T) where T : A2 where U : T
-    {
-        public static void M2() { }
-    }
+    extension<T, U>(T) where T : A1 where U : T { }
+    extension<T, U>(T) where T : A2 where U : T { }
 }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
-            //     extension<T, U>(T) where T : A2 where U : T
-            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5));
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            //     extension<T, U>(T) where T : A2 where U : T { }
+            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.False(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
@@ -26610,23 +26492,17 @@ using A2 = alias2::A;
 
 public static class E
 {
-    extension<T>(T) where T : I, A1
-    {
-        public static void M1() { }
-    }
-    extension<T>(T) where T : I, A2
-    {
-        public static void M2() { }
-    }
+    extension<T>(T) where T : I, A1 { }
+    extension<T>(T) where T : I, A2 { }
 }
 
 public interface I { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
-            //     extension<T>(T) where T : I, A2
-            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5));
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            //     extension<T>(T) where T : I, A2 { }
+            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.False(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
@@ -26647,23 +26523,17 @@ using A2 = alias2::A;
 
 public static class E
 {
-    extension<T>(T) where T : A1, I
-    {
-        public static void M1() { }
-    }
-    extension<T>(T) where T : I, A2
-    {
-        public static void M2() { }
-    }
+    extension<T>(T) where T : A1, I { }
+    extension<T>(T) where T : I, A2 { }
 }
 
 public interface I { }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
-            //     extension<T>(T) where T : I, A2
-            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5));
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            //     extension<T>(T) where T : I, A2 { }
+            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.False(ExtensionGroupingInfo.HaveSameILSignature((SourceNamedTypeSymbol)extensions[0], (SourceNamedTypeSymbol)extensions[1]));
@@ -26684,21 +26554,15 @@ using A2 = alias2::A;
 
 public static class E
 {
-    extension(A1 a)
-    {
-        public static void M() { }
-    }
-    extension(ref A2 a)
-    {
-        public static void M2() { }
-    }
+    extension(A1 a) { }
+    extension(ref A2 a) { }
 }
 """;
         var comp = CreateCompilation(src, references: [libComp1.EmitToImageReference().WithAliases(["alias1"]), libComp2.EmitToImageReference().WithAliases(["alias2"])]);
         comp.VerifyEmitDiagnostics(
-            // (12,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
-            //     extension(ref A2 a)
-            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(12, 5));
+            // (9,5): error CS9326: This extension block collides with another extension block. They result in conflicting content-based type names in metadata.
+            //     extension(ref A2 a) { }
+            Diagnostic(ErrorCode.ERR_ExtensionBlockCollision, "extension").WithLocation(9, 5));
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         var extension1 = (SourceNamedTypeSymbol)extensions[0];
@@ -26996,16 +26860,7 @@ public class AAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.Multiple(
-            () => Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName()),
-            () => Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName()),
-            () => Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2)),
-            () => Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2))
-        );
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -27115,14 +26970,7 @@ unsafe static class E
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27138,14 +26986,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27161,14 +27002,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27184,14 +27018,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27207,14 +27034,7 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27230,14 +27050,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27265,6 +27078,7 @@ static class E
         var extension2 = (SourceNamedTypeSymbol)extensions[1];
         Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
         Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
+        // TODO2
         // Note: the extension grouping raw name doesn't account for variance, but the IL-level comparer considers it.
         // Consider ignoring variance in IL-level comparison too, to reduce a cascading diagnostic in this error scenario.
         Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
@@ -27278,10 +27092,7 @@ static class E
         var src = """
 public static partial class E
 {
-    extension([A] int)
-    {
-        public static void M1() { }
-    }
+    extension([A] int) { }
 }
 """;
         var defineTestDirective = """
@@ -27292,10 +27103,7 @@ public static partial class E
         var src2 = """
 public static partial class E
 {
-    extension([A] int)
-    {
-        public static void M2() { }
-    }
+    extension([A] int) { }
 }
 """;
         var src3 = """
@@ -27305,30 +27113,12 @@ public class AAttribute : System.Attribute { }
         // attribute excluded
         var comp = CreateCompilation([src, src2, src3]);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.Equal("extension(System.Int32)", extension1.ComputeExtensionMarkerRawName());
-        Assert.Equal("extension(System.Int32)", extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
 
         // attribute included by condition
         comp = CreateCompilation([src, defineTestDirective + src2, src3]);
         comp.VerifyEmitDiagnostics();
-
-        extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        extension1 = (SourceNamedTypeSymbol)extensions[0];
-        extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.Equal("extension(System.Int32)", extension1.ComputeExtensionMarkerRawName());
-        AssertEx.Equal("extension([AAttribute/*()*/] System.Int32)", extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -27338,14 +27128,8 @@ public class AAttribute : System.Attribute { }
         var src = """
 public static partial class E
 {
-    extension([A] int)
-    {
-        public static void M1() { }
-    }
-    extension(int)
-    {
-        public static void M2() { }
-    }
+    extension([A] int) { }
+    extension(int) { }
 }
 
 [System.Diagnostics.Conditional("TEST")]
@@ -27360,32 +27144,12 @@ public class AAttribute : System.Attribute { }
         // attribute excluded
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.Multiple(
-            () => Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName()),
-            () => Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName()),
-            () => AssertEx.Equal("extension(System.Int32)", extension1.ComputeExtensionMarkerRawName()),
-            () => Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2)),
-            () => Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2))
-        );
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
 
         // attribute included by condition
         comp = CreateCompilation(defineTestDirective + src);
         comp.VerifyEmitDiagnostics();
-
-        extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        extension1 = (SourceNamedTypeSymbol)extensions[0];
-        extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.Multiple(
-            () => Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName()),
-            () => Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName()),
-            () => AssertEx.Equal("extension([AAttribute/*()*/] System.Int32)", extension1.ComputeExtensionMarkerRawName()),
-            () => Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2)),
-            () => Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2))
-        );
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -27418,30 +27182,16 @@ public class BAttribute : System.Attribute { }
         // attribute excluded
         var comp = CreateCompilation([src, src2, src3]);
         comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.Equal("extension([BAttribute/*()*/] System.Int32)", extension1.ComputeExtensionMarkerRawName());
-        Assert.Equal("extension([BAttribute/*()*/] System.Int32)", extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
 
         // attribute included by condition
         comp = CreateCompilation([src, defineTestDirective + src2, src3]);
         comp.VerifyEmitDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
-        extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        extension1 = (SourceNamedTypeSymbol)extensions[0];
-        extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.Equal("extension([BAttribute/*()*/] System.Int32)", extension1.ComputeExtensionMarkerRawName());
-        AssertEx.Equal("extension([AAttribute/*()*/] [BAttribute/*()*/] System.Int32)", extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        Assert.Equal("extension([BAttribute/*()*/] System.Int32)", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension([AAttribute/*()*/] [BAttribute/*()*/] System.Int32)", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName());
     }
 
     [Fact]
@@ -27461,6 +27211,7 @@ public interface I { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         var extension1 = (SourceNamedTypeSymbol)extensions[0];
@@ -27469,14 +27220,9 @@ public interface I { }
         Assert.Multiple(
             () => Assert.Equal("extension<(I)>(System.Int32)", extension1.ComputeExtensionGroupingRawName()),
             () => Assert.Equal("extension<(I)>(System.Int32)", extension2.ComputeExtensionGroupingRawName()),
-            () => Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName()),
 
             () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I", extension1.ComputeExtensionMarkerRawName()),
-            () => Assert.Equal("extension<T>(System.Int32) where T : maybenull, I", extension2.ComputeExtensionMarkerRawName()),
-            () => Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName()),
-
-            () => Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2)),
-            () => Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2))
+            () => Assert.Equal("extension<T>(System.Int32) where T : maybenull, I", extension2.ComputeExtensionMarkerRawName())
         );
     }
 
@@ -27505,20 +27251,12 @@ public interface I { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-
         Assert.Multiple(
-            () => Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName()),
-
-            () => Assert.Equal("extension<T>(System.Int32) where T : maybenull, I", extension1.ComputeExtensionMarkerRawName()),
-            () => Assert.Equal("extension<T>(System.Int32) where T : I", extension2.ComputeExtensionMarkerRawName()),
-            () => Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName()),
-
-            () => Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2)),
-            () => Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2))
+            () => Assert.Equal("extension<T>(System.Int32) where T : maybenull, I", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => Assert.Equal("extension<T>(System.Int32) where T : I", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
         );
     }
 
@@ -27540,20 +27278,12 @@ public interface I2 { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-
         Assert.Multiple(
-            () => Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName()),
-
-            () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I1, I2", extension1.ComputeExtensionMarkerRawName()),
-            () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I1, I2", extension2.ComputeExtensionMarkerRawName()),
-            () => Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName()),
-
-            () => Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2)),
-            () => Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2))
+            () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I1, I2", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I1, I2", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
         );
     }
 
@@ -27574,14 +27304,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -27611,14 +27334,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -27630,26 +27346,15 @@ public interface I<T> { }
 
 public static partial class E
 {
-    extension<T>(int) where T : I<(int a, int b)>
-    {
-    }
-    extension<T>(int) where T : I<(int, int)>
-    {
-    }
+    extension<T>(int) where T : I<(int a, int b)> { }
+    extension<T>(int) where T : I<(int, int)> { }
 }
 
 public interface I<T> { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -27668,14 +27373,7 @@ public interface I2 { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -27694,14 +27392,7 @@ public interface I2 { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -27724,13 +27415,7 @@ public static class E
             //     extension(__arglist) { }
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(4, 15));
 
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -27750,13 +27435,7 @@ public static class E
             //     extension(__arglist) { }
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15));
 
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27779,13 +27458,7 @@ public static class E
             //     extension(int i = 1) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "int i = 1").WithLocation(4, 15));
 
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.True(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 
     [Fact]
@@ -27804,13 +27477,7 @@ public static class E
             //     extension<T, T>(int) { }
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(4, 18));
 
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27828,14 +27495,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27853,14 +27513,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27878,14 +27531,7 @@ public interface I<T> { }
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27907,13 +27553,7 @@ public static class E
             //     extension(error2) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "error2").WithArguments("error2").WithLocation(4, 15));
 
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.False(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.False(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        VerifyCollisions(comp, groupingMatch: false, markerMatch: false);
     }
 
     [Fact]
@@ -27929,15 +27569,8 @@ public static class E
 public ref struct RS { }
 """;
         var comp = CreateCompilation(src);
-        //comp.VerifyEmitDiagnostics();
-
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(extension1.ComputeExtensionGroupingRawName() == extension2.ComputeExtensionGroupingRawName());
-        Assert.False(extension1.ComputeExtensionMarkerRawName() == extension2.ComputeExtensionMarkerRawName());
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.False(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+        comp.VerifyEmitDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
     }
 
     [Fact]
@@ -27952,12 +27585,67 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
+    }
 
-        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
-        var extension1 = (SourceNamedTypeSymbol)extensions[0];
-        var extension2 = (SourceNamedTypeSymbol)extensions[1];
-        Assert.True(ExtensionGroupingInfo.HaveSameILSignature(extension1, extension2));
-        Assert.True(ExtensionGroupingInfo.HaveSameCSharpSignature(extension1, extension2));
+    [Fact]
+    public void Grouping_69()
+    {
+        var src = """
+public static class E<T>
+{
+    extension(T) { }
+    extension(T) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(T) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(4, 5),
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(T) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+    }
+
+    [Fact]
+    public void Grouping_70()
+    {
+        var src = """
+extension<T>(T) { }
+extension<T>(T) { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(T) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1),
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(T) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Grouping_72()
+    {
+        var src = """
+public static class E1<T1>
+{
+    public static class E2<T2>
+    {
+        extension((T1, T2)) { }
+        extension((T1, T2)) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //         extension((T1, T2)) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(6, 9),
+            // (5,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //         extension((T1, T2)) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 9));
     }
 }
 
