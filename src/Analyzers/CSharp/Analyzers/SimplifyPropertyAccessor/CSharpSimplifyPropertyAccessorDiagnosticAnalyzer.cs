@@ -27,26 +27,23 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
         => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-    {
-        context.RegisterSyntaxNodeAction(AnalyzeAccessorList, SyntaxKind.AccessorList);
-    }
+        => context.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);
 
-    private void AnalyzeAccessorList(SyntaxNodeAnalysisContext context)
+    private void AnalyzePropertyDeclaration(SyntaxNodeAnalysisContext context)
     {
         var option = context.GetCSharpAnalyzerOptions().PreferSimplePropertyAccessors;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var accessorList = (AccessorListSyntax)context.Node;
-        var accessors = accessorList.Accessors;
+        var propertyDeclaration = (PropertyDeclarationSyntax)context.Node;
 
-        if (!accessorList.Parent.IsKind(SyntaxKind.PropertyDeclaration) ||
+        if (propertyDeclaration.AccessorList is not { } accessorList ||
             !IsValidAccessorList(accessorList))
         {
             return;
         }
 
-        foreach (var accessor in accessors)
+        foreach (var accessor in accessorList.Accessors)
         {
             // get { return field; }
             // get => field;
