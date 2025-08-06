@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -136,15 +137,28 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return _incrementalAnalyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
     }
 
-    public Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
+    public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
     {
-        // TODO(cyrusn): Remote this to OOP.
-        var descriptors = analyzerReference
+        // Attempt to compute this OOP.
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null &&
+            analyzerReference is AnalyzerFileReference analyzerFileReference)
+        {
+            var descriptors = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticDescriptorData>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsAsync(solution, analyzerFileReference.FullPath, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!descriptors.HasValue)
+                return [];
+
+            return descriptors.Value.SelectAsArray(d => d.ToDiagnosticDescriptor());
+        }
+
+        // Otherwise, fallback to computing in proc.
+        return analyzerReference
             .GetAnalyzers(language)
             .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
-
-        return Task.FromResult(descriptors);
     }
 
     public Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsAsync(
