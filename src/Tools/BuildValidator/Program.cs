@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
@@ -373,7 +374,7 @@ namespace BuildValidator
             var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUtf8), new { documents = (Dictionary<string, string>?)null })?.documents
                 ?? throw new InvalidOperationException("Failed to deserialize source links.");
 
-            var sourceLinks = documents.Select(makeSourceLink).ToImmutableArray();
+            var sourceLinks = documents.SelectAsArray(makeSourceLink);
 
             if (sourceLinks.IsDefault)
             {
