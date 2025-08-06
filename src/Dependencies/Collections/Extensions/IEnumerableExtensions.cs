@@ -416,7 +416,7 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this IEnumerable<TItem>? source, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
         {
-            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
                 return [];
 
             foreach (var item in source)
