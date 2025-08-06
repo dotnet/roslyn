@@ -50,8 +50,8 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         : base(adornment,
                removalCallback: null,
                topSpace: null,
-               baseline: CalculateBaseline(format, adornment),
-               textHeight: null,
+               baseline: (format.FontRenderingEmSize * 0.75) / format.Typeface.FontFamily.Baseline,
+               textHeight: format.FontRenderingEmSize * 0.75,
                bottomSpace: null,
                PositionAffinity.Predecessor,
                hint.Ranking)
@@ -71,27 +71,6 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         {
             adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
         }
-    }
-
-    /// <summary>
-    /// Calculates the baseline for proper vertical alignment of the inline hint
-    /// </summary>
-    private static double CalculateBaseline(TextFormattingRunProperties format, FrameworkElement adornment)
-    {
-        // Calculate the baseline offset to align the inline hint with the text baseline
-        var fontBaseline = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
-        var adornmentHeight = adornment.DesiredSize.Height;
-
-        // If adornment hasn't been measured yet, use a reasonable default
-        if (adornmentHeight == 0)
-        {
-            adornmentHeight = format.FontRenderingEmSize * 0.75; // 75% of the line height
-        }
-
-        // The baseline should position the inline hint so its center aligns with the middle of the text
-        // We want to move it up just enough to center it vertically on the line
-        // Using a smaller offset to avoid pushing it too far up
-        return fontBaseline - (adornmentHeight / 2) + (format.FontRenderingEmSize * 0.25);
     }
 
     /// <summary>
@@ -153,7 +132,9 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         ClassificationTypeMap typeMap,
         bool classify)
     {
+        // If we have an inline hint then we should have at least one line of text in the view.
         var textViewLine = textView.TextViewLines.WpfTextViewLines[0];
+        var characterWidth = textViewLine.VirtualSpaceWidth;
 
         // Constructs the hint block which gets assigned parameter name and FontStyles according to the options
         // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
@@ -190,12 +171,12 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
 
         // Convert padding values from character count to actual pixel widths
         // This ensures proper spacing around the inline hint based on trimmed whitespace
-        var left = leftPadding * textViewLine.VirtualSpaceWidth;
-        var right = rightPadding * textViewLine.VirtualSpaceWidth;
+        var left = leftPadding * characterWidth;
+        var right = rightPadding * characterWidth;
 
         // Align hint width with the editor's character grid to prevent visual artifacts/alignment issues
         // Convert to character units, round to nearest whole character, then back to pixels
-        var width = Math.Round((block.DesiredSize.Width / textViewLine.VirtualSpaceWidth) + 0.5) * textViewLine.VirtualSpaceWidth;
+        var width = Math.Ceiling(block.DesiredSize.Width / characterWidth) * characterWidth;
 
         var border = new Border
         {
@@ -207,21 +188,13 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
             Width = width,
         };
 
-        var stackPanel = new StackPanel
-        {
-            Height = block.DesiredSize.Height,
-            VerticalAlignment = VerticalAlignment.Center,
-            Orientation = Orientation.Horizontal
-        };
-
-        stackPanel.Children.Add(border);
         // Need to set these properties to avoid unnecessary reformatting because some dependency properties
         // affect layout
-        TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
-        TextOptions.SetTextHintingMode(stackPanel, TextOptions.GetTextHintingMode(textView.VisualElement));
-        TextOptions.SetTextRenderingMode(stackPanel, TextOptions.GetTextRenderingMode(textView.VisualElement));
+        TextOptions.SetTextFormattingMode(block, TextOptions.GetTextFormattingMode(textView.VisualElement));
+        TextOptions.SetTextHintingMode(block, TextOptions.GetTextHintingMode(textView.VisualElement));
+        TextOptions.SetTextRenderingMode(block, TextOptions.GetTextRenderingMode(textView.VisualElement));
 
-        return stackPanel;
+        return border;
     }
 
     private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
