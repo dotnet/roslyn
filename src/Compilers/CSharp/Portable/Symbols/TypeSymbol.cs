@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // all directly implemented interfaces, their bases and all interfaces to the bases of the type recursively
             internal ImmutableArray<NamedTypeSymbol> allInterfaces;
 
+            internal ImmutableArray<INamedTypeSymbol> allInterfacesPublicSymbols;
+
             /// <summary>
             /// <see cref="TypeSymbol.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics"/>
             /// </summary>
@@ -87,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal bool IsDefaultValue()
             {
                 return allInterfaces.IsDefault &&
+                    allInterfacesPublicSymbols.IsDefault &&
                     interfacesAndTheirBaseInterfaces == null &&
                     _implementationForInterfaceMemberMap == null &&
                     explicitInterfaceImplementationMap == null &&
@@ -208,6 +211,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<INamedTypeSymbol> AllInterfacesPublicSymbolsNoUseSiteDiagnostics
+        {
+            get
+            {
+                return GetAllInterfacesPublicSymbols();
+            }
+        }
+
         internal ImmutableArray<NamedTypeSymbol> AllInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = AllInterfacesNoUseSiteDiagnostics;
@@ -322,12 +333,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
+            return GetAllInterfaces(info);
+        }
+
+        private ImmutableArray<NamedTypeSymbol> GetAllInterfaces(InterfaceInfo info)
+        {
             if (info.allInterfaces.IsDefault)
             {
                 ImmutableInterlocked.InterlockedInitialize(ref info.allInterfaces, MakeAllInterfaces());
             }
 
             return info.allInterfaces;
+        }
+
+        private ImmutableArray<INamedTypeSymbol> GetAllInterfacesPublicSymbols()
+        {
+            var info = this.GetInterfaceInfo();
+            if (info == s_noInterfaces)
+            {
+                return ImmutableArray<INamedTypeSymbol>.Empty;
+            }
+
+            if (info.allInterfacesPublicSymbols.IsDefault)
+            {
+                var allInterfaces = GetAllInterfaces(info);
+
+                ImmutableInterlocked.InterlockedInitialize(ref info.allInterfacesPublicSymbols, allInterfaces.GetPublicSymbols());
+            }
+
+            return info.allInterfacesPublicSymbols;
         }
 
         /// Produce all implemented interfaces in topologically sorted order. We use
