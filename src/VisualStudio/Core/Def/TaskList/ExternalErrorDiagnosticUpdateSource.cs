@@ -108,7 +108,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             await workItem(cancellationToken).ConfigureAwait(false);
     }
 
-    public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => this._workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>().AnalyzerInfoCache;
+    // public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => this._workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>().AnalyzerInfoCache;
 
     public void Dispose()
     {

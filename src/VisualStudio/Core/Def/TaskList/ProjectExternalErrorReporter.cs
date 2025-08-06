@@ -39,7 +39,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     private readonly VisualStudioWorkspaceImpl _workspace;
 
-    private DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _workspace.ExternalErrorDiagnosticUpdateSource.AnalyzerInfoCache;
+    // private DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _workspace.ExternalErrorDiagnosticUpdateSource.AnalyzerInfoCache;
 
     public ProjectExternalErrorReporter(ProjectId projectId, Guid projectHierarchyGuid, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
     {
