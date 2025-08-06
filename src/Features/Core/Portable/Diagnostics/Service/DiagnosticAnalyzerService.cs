@@ -267,7 +267,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
                 kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
         }
 
-        return project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache);
+        return project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
     }
 
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
