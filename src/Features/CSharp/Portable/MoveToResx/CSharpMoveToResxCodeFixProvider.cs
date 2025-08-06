@@ -221,6 +221,9 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             IReadOnlyList<ResourceOperation> resourceOperations,
             CancellationToken cancellationToken)
         {
+            // Check for cancellation before starting XML parsing
+            cancellationToken.ThrowIfCancellationRequested();
+
             XDocument xdoc;
             try
             {
@@ -240,6 +243,9 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
 
             foreach (var operation in resourceOperations)
             {
+                // Check for cancellation during the loop
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Check if the value already exists in the .resx file
                 var existingDataElement = xdoc.Root.Elements("data")
                     .FirstOrDefault(e => e.Element("value")?.Value == operation.Value);
@@ -276,6 +282,9 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             SourceText? updatedText = null;
             if (requiresUpdate)
             {
+                // Check for cancellation before generating the updated text
+                cancellationToken.ThrowIfCancellationRequested();
+
                 string updatedResxText;
                 using (var sw = new StringWriter())
                 {
@@ -333,6 +342,9 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             bool resxRequiresUpdate,
             CancellationToken cancellationToken)
         {
+            // Check for cancellation before creating the updated solution
+            cancellationToken.ThrowIfCancellationRequested();
+
             var newSolution = solution.WithDocumentSyntaxRoot(documentId, updatedRoot);
 
             if (resxRequiresUpdate && updatedResxText != null)
