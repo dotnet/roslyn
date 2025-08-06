@@ -45,13 +45,16 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 {
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
 
-    public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
+    private static readonly ImmutableArray<string> s_csharpLanguageArray = [LanguageNames.CSharp];
+    private static readonly ImmutableArray<string> s_visualBasicLanguageArray = [LanguageNames.VisualBasic];
+    private static readonly ImmutableArray<string> s_csharpAndVisualBasicLanguageArray = [.. s_csharpLanguageArray, .. s_visualBasicLanguageArray];
 
     public IAsynchronousOperationListener Listener { get; }
     private IGlobalOptionService GlobalOptions { get; }
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticIncrementalAnalyzer _incrementalAnalyzer;
+    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -60,11 +63,11 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         IAsynchronousOperationListenerProvider? listenerProvider,
         Workspace workspace)
     {
-        AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
+        _analyzerInfoCache = globalCache.AnalyzerInfoCache;
         Listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
+        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, _analyzerInfoCache, this.GlobalOptions);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {
@@ -141,14 +144,10 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         // TODO(cyrusn): Remote this to OOP.
         var descriptors = analyzerReference
             .GetAnalyzers(language)
-            .SelectManyAsArray(this.AnalyzerInfoCache.GetDiagnosticDescriptors);
+            .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
 
         return descriptors;
     }
-
-    private static readonly ImmutableArray<string> s_csharpLanguageArray = [LanguageNames.CSharp];
-    private static readonly ImmutableArray<string> s_visualBasicLanguageArray = [LanguageNames.VisualBasic];
-    private static readonly ImmutableArray<string> s_csharpAndVisualBasicLanguageArray = [.. s_csharpLanguageArray, .. s_visualBasicLanguageArray];
 
     public ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(
         Solution solution, AnalyzerReference analyzerReference)
@@ -169,7 +168,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return mapBuilder.ToImmutable();
 
         ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(ImmutableArray<DiagnosticAnalyzer> analyzers)
-            => analyzers.SelectManyAsArray(this.AnalyzerInfoCache.GetDiagnosticDescriptors);
+            => analyzers.SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
     }
 
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
