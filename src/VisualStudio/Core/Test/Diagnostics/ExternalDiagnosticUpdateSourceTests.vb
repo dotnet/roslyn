@@ -300,18 +300,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class TestDiagnosticAnalyzerService
             Implements IDiagnosticAnalyzerService
 
-            ' Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
-
-            Public Sub New()
-                '   _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
-            End Sub
-
-            'Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
-            '    Get
-            '        Return _analyzerInfoCache
-            '    End Get
-            'End Property
-
             Public Sub RequestDiagnosticRefresh() Implements IDiagnosticAnalyzerService.RequestDiagnosticRefresh
             End Sub
 
