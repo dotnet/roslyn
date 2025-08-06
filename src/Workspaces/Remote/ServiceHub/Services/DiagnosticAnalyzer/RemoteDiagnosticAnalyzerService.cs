@@ -123,12 +123,13 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
     {
         return RunWithSolutionAsync(
             solutionChecksum,
-            solution =>
+            async solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
                 var analyzerReference = project.AnalyzerReferences
                     .First(r => r.FullPath == analyzerReferenceFullPath);
 
+                var descriptors = project.GetDiagnosticDescriptorsAsync(analyzerReference).ConfigureAwait(false);
                 var descriptors = project
                     .GetDiagnosticDescriptors(analyzerReference)
                     .SelectAsArray(DiagnosticDescriptorData.Create);

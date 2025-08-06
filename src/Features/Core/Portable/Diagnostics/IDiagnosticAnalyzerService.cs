@@ -14,18 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IDiagnosticAnalyzerService : IWorkspaceService
 {
-    ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(
-        Solution solution, AnalyzerReference analyzerReference, string language);
-
-    /// <summary>
-    /// Returns all the descriptors for all <see cref="DiagnosticAnalyzer"/>s defined within <paramref name="analyzerReference"/>.
-    /// The results are returned in a dictionary where the key is an <see cref="ImmutableArray{T}"/> of languages that descriptor
-    /// is defined for.  This can be <c>[<see cref="LanguageNames.CSharp"/>]</c>, <c>[<see cref="LanguageNames.VisualBasic"/>]</c>,
-    /// or an array containing both languages if the descriptor is defined for both languages.
-    /// </summary>
-    ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(
-        Solution solution, AnalyzerReference analyzerReference);
-
     /// <summary>
     /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.
     /// </summary>
@@ -93,17 +81,31 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
+    Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
+        Solution solution, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns all the descriptors for all <see cref="DiagnosticAnalyzer"/>s defined within <paramref name="analyzerReference"/>.
+    /// The results are returned in a dictionary where the key is an <see cref="ImmutableArray{T}"/> of languages that descriptor
+    /// is defined for.  This can be <c>[<see cref="LanguageNames.CSharp"/>]</c>, <c>[<see cref="LanguageNames.VisualBasic"/>]</c>,
+    /// or an array containing both languages if the descriptor is defined for both languages.
+    /// </summary>
+    Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsAsync(
+        Solution solution, AnalyzerReference analyzerReference, CancellationToken cancellationToken);
+
     /// <summary>
     /// Given a list of errors ids (like CS1234), attempts to find an associated descriptor for each id.
     /// </summary>
-    ImmutableDictionary<string, DiagnosticDescriptor> TryGetDiagnosticDescriptors(
-        Solution solution, ImmutableArray<string> diagnosticIds);
+    Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
+        Solution solution, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
-    ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Solution solution);
+    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Solution solution, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
-    ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project);
+    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Project project, CancellationToken cancellationToken);
 }
 
 internal static class IDiagnosticAnalyzerServiceExtensions

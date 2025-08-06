@@ -121,7 +121,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         var solution = project.Solution;
         var errorIds = allErrors.Select(e => e.iErrorID).Distinct().Select(GetErrorId).ToImmutableArray();
         var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var errorIdToDescriptor = diagnosticService.TryGetDiagnosticDescriptors(solution, errorIds);
+        var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
+            solution, errorIds).ConfigureAwait(false);
 
         foreach (var error in allErrors)
         {
@@ -300,7 +301,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         async Task AddNewErrorsAsync()
         {
             var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-            var errorIdToDescriptor = diagnosticService.TryGetDiagnosticDescriptors(solution, [bstrErrorId]);
+            var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
+                solution, [bstrErrorId]).ConfigureAwait(false);
 
             var diagnostic = await GetDiagnosticDataAsync(
                 project,
