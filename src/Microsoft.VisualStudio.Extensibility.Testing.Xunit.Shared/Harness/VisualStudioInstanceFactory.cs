@@ -179,7 +179,7 @@ namespace Xunit.Harness
             }
         }
 
-        private static IEnumerable<Tuple<string, Version, ImmutableHashSet<string>, InstanceState>> EnumerateVisualStudioInstances()
+        internal static IEnumerable<Tuple<string, Version, ImmutableHashSet<string>, InstanceState>> EnumerateVisualStudioInstances()
         {
             foreach (var result in EnumerateVisualStudioInstancesInRegistry())
             {
