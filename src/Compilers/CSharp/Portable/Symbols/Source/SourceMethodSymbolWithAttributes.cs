@@ -652,7 +652,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.RuntimeAsyncMethodGenerationAttribute))
             {
-                // PROTOTYPE: Validate langversion? Validate previewness of the runtime feature flag?
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().RuntimeAsyncMethodGenerationSetting =
                     attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean)
                         ? ThreeState.True

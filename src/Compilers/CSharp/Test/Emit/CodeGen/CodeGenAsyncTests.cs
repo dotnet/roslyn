@@ -48,7 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            return CreateCompilation(source, options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.Net100);
+            parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
+            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
+            if (options == null)
+            {
+                options = CheckForTopLevelStatements(syntaxTrees);
+                options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
+            }
+
+            return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
@@ -9233,7 +9241,7 @@ class Test1
                 }
                 """);
 
-            comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe.WithDebugPlusMode(true));
+            comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe.WithDebugPlusMode(true).WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
             verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
@@ -9339,7 +9347,7 @@ class Test1
                 }
                 """);
 
-            comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe.WithDebugPlusMode(true));
+            comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe.WithDebugPlusMode(true).WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
             verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
@@ -9555,6 +9563,55 @@ class Test1
                   IL_002b:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void ExperimentalDiagnosticsReportedOnAsyncHelpers()
+        {
+            var code = """
+                using System.Threading.Tasks;
+
+                await Task.CompletedTask;
+                await Task.CompletedTask.ConfigureAwait(false);
+                await Task.FromResult(1);
+                await Task.FromResult(1).ConfigureAwait(false);
+                await default(ValueTask);
+                await default(ValueTask).ConfigureAwait(false);
+                await new ValueTask<int>(1);
+                await new ValueTask<int>(1).ConfigureAwait(false);
+                await Task.Yield();
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (3,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await Task.CompletedTask;
+                Diagnostic("SYSLIB5007", "Task.CompletedTask").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(3, 7).WithWarningAsError(true),
+                // (4,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await Task.CompletedTask.ConfigureAwait(false);
+                Diagnostic("SYSLIB5007", "Task.CompletedTask.ConfigureAwait(false)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(4, 7).WithWarningAsError(true),
+                // (5,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await Task.FromResult(1).ConfigureAwait(false);
+                Diagnostic("SYSLIB5007", "Task.FromResult(1)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(5, 7).WithWarningAsError(true),
+                // (6,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await Task.FromResult(1);
+                Diagnostic("SYSLIB5007", "Task.FromResult(1).ConfigureAwait(false)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(6, 7).WithWarningAsError(true),
+                // (7,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await default(ValueTask);
+                Diagnostic("SYSLIB5007", "default(ValueTask)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(7, 7).WithWarningAsError(true),
+                // (8,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await default(ValueTask).ConfigureAwait(false);
+                Diagnostic("SYSLIB5007", "default(ValueTask).ConfigureAwait(false)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(8, 7).WithWarningAsError(true),
+                // (9,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await new ValueTask<int>(1);
+                Diagnostic("SYSLIB5007", "new ValueTask<int>(1)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(9, 7).WithWarningAsError(true),
+                // (10,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await new ValueTask<int>(1).ConfigureAwait(false);
+                Diagnostic("SYSLIB5007", "new ValueTask<int>(1).ConfigureAwait(false)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(10, 7).WithWarningAsError(true),
+                // (11,7): error SYSLIB5007: 'System.Runtime.CompilerServices.AsyncHelpers' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                // await Task.Yield();
+                Diagnostic("SYSLIB5007", "Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(11, 7).WithWarningAsError(true)
+            );
         }
     }
 }
