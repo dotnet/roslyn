@@ -193,7 +193,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             }
 
             // Otherwise, do the work in process.
-            return project.GetDiagnosticDescriptors(analyzerReference);
+            return await project.GetDiagnosticDescriptorsAsync(analyzerReference, cancellationToken).ConfigureAwait(false);
         }
 
         async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync()

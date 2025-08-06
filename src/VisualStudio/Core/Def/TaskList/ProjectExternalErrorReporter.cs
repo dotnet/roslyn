@@ -248,59 +248,58 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         int iEndColumn,
         string bstrFileName)
     {
-        // first we check whether given error is something we can take care.
-        if (!CanHandle(bstrErrorId))
-        {
-            // it is not, let project system take care.
-            throw new NotImplementedException();
-        }
-
-        if ((iEndLine >= 0 && iEndColumn >= 0) &&
-           ((iEndLine < iStartLine) ||
-            (iEndLine == iStartLine && iEndColumn < iStartColumn)))
-        {
-            throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
-        }
-
-        var severity = nPriority switch
-        {
-            VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
-            VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
-            VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
-            _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
-        };
-
-        DocumentId? documentId;
-        if (iStartLine < 0 || iStartColumn < 0)
-        {
-            documentId = null;
-            iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
-        }
-        else
-        {
-            documentId = TryGetDocumentId(bstrFileName);
-        }
-
-        if (iEndLine < 0)
-            iEndLine = iStartLine;
-        if (iEndColumn < 0)
-            iEndColumn = iStartColumn;
-
-        var solution = _workspace.CurrentSolution;
-        var project = solution.GetProject(_projectId);
-        if (project is null)
-            return;
-
-        // Then, jump to the background to actually process the errors.
         var token = this.DiagnosticProvider.Listener.BeginAsyncOperation(nameof(AddNewErrors));
         var cancellationToken = this.DiagnosticProvider.DisposalToken;
 
-        _ = AddNewErrorsAsync()
+        _ = ReportErrorAsync()
             .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
             .CompletesAsyncOperation(token);
 
-        async Task AddNewErrorsAsync()
+        async Task ReportErrorAsync()
         {
+            // first we check whether given error is something we can take care.
+            if (!await CanHandleAsync(bstrErrorId, cancellationToken).ConfigureAwait(false))
+            {
+                // it is not, let project system take care.
+                throw new NotImplementedException();
+            }
+
+            if ((iEndLine >= 0 && iEndColumn >= 0) &&
+               ((iEndLine < iStartLine) ||
+                (iEndLine == iStartLine && iEndColumn < iStartColumn)))
+            {
+                throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
+            }
+
+            var severity = nPriority switch
+            {
+                VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
+                VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
+                VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
+                _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
+            };
+
+            DocumentId? documentId;
+            if (iStartLine < 0 || iStartColumn < 0)
+            {
+                documentId = null;
+                iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
+            }
+            else
+            {
+                documentId = TryGetDocumentId(bstrFileName);
+            }
+
+            if (iEndLine < 0)
+                iEndLine = iStartLine;
+            if (iEndColumn < 0)
+                iEndColumn = iStartColumn;
+
+            var solution = _workspace.CurrentSolution;
+            var project = solution.GetProject(_projectId);
+            if (project is null)
+                return;
+
             var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
                 solution, [bstrErrorId], cancellationToken).ConfigureAwait(false);

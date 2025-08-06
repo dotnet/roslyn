@@ -4,6 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -25,8 +27,8 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
         Update();
     }
 
-    protected override void UpdateOptions(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var varSettings = GetVarCodeStyleOptions(options, SettingsUpdater);
         AddRange(varSettings);

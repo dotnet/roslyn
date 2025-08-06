@@ -5,6 +5,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
@@ -25,8 +27,8 @@ internal sealed class CSharpWhitespaceSettingsProvider : SettingsProviderBase<Se
         Update();
     }
 
-    protected override void UpdateOptions(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var spacingOptions = GetSpacingOptions(options, SettingsUpdater);
         AddRange(spacingOptions.ToImmutableArray());
