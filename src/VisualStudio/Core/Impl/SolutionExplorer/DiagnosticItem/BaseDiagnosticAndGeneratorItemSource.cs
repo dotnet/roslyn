@@ -116,7 +116,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         }
 
         // Currently only project analyzers show in Solution Explorer, so isHostAnalyzer is always false.
-        var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference, isHostAnalyzer: false);
+        var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference);
         var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
             project, analyzerReference).ConfigureAwait(false);
 
@@ -143,8 +143,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
         ImmutableArray<BaseItem> GenerateDiagnosticItems(
             Project project,
-            AnalyzerReference analyzerReference,
-            bool isHostAnalyzer)
+            AnalyzerReference analyzerReference)
         {
             var generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
             var specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
@@ -160,7 +159,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(
                         project.CompilationOptions!,
-                        isHostAnalyzer ? analyzerConfigOptions?.ConfigOptionsWithFallback : analyzerConfigOptions?.ConfigOptionsWithoutFallback,
+                        analyzerConfigOptions?.ConfigOptionsWithoutFallback,
                         analyzerConfigOptions?.TreeOptions);
                     return (BaseItem)new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 });
