@@ -115,7 +115,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             return;
         }
 
-        // Currently only project analyzers show in Solution Explorer, so isHostAnalyzer is always false.
         var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference);
         var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
             project, analyzerReference).ConfigureAwait(false);
@@ -180,7 +179,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             // in tests), we'll just fall back to loading these in process.
             if (analyzerReference is AnalyzerFileReference analyzerFileReference)
             {
-                var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client is not null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
