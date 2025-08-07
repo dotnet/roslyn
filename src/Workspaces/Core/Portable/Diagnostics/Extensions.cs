@@ -128,6 +128,13 @@ internal static partial class Extensions
         var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
         foreach (var analyzer in projectAnalyzers.ConcatFast(hostAnalyzers))
         {
+            if (builder.ContainsKey(analyzer))
+            {
+                // If we already have a result for this analyzer, we had a duplicate. We already processed the results
+                // for this so no reason to process it a second time.
+                continue;
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (skippedAnalyzersInfo.SkippedAnalyzers.Contains(analyzer))
