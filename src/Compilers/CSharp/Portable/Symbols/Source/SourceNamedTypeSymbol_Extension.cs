@@ -626,19 +626,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Append("struct");
                     needComma = true;
                 }
-                else
+                else if (typeParam.HasNotNullConstraint)
                 {
-                    switch (typeParam.IsNotNullable)
-                    {
-                        case true:
-                            builder.Append("notnull");
-                            needComma = true;
-                            break;
-                        case false:
-                            builder.Append("maybenull");
-                            needComma = true;
-                            break;
-                    }
+                    builder.Append("notnull");
+                    needComma = true;
                 }
 
                 if (typeParam.ConstraintTypesNoUseSiteDiagnostics.Length > 0)
@@ -670,13 +661,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendTypeConstraints(TypeParameterSymbol typeParam, StringBuilder builder, ref bool needComma)
             {
-                ImmutableArray<TypeWithAnnotations> constraintTypes = typeParam.ConstraintTypesNoUseSiteDiagnostics;
-                var typeConstraintsBuilder = ArrayBuilder<string>.GetInstance(constraintTypes.Length);
-                for (int i = 0; i < constraintTypes.Length; i++)
+                ImmutableArray<TypeWithAnnotations> contraintTypes = typeParam.ConstraintTypesNoUseSiteDiagnostics;
+                var typeConstraintsBuilder = ArrayBuilder<string>.GetInstance(contraintTypes.Length);
+                for (int i = 0; i < contraintTypes.Length; i++)
                 {
                     var stringBuilder = PooledStringBuilder.GetInstance();
-                    appendType(constraintTypes[i].Type, stringBuilder.Builder);
-                    Debug.Assert(constraintTypes[i].CustomModifiers.IsEmpty);
+                    appendTypeWithAnnotation(contraintTypes[i], stringBuilder.Builder);
                     typeConstraintsBuilder.Add(stringBuilder.ToStringAndFree());
                 }
 

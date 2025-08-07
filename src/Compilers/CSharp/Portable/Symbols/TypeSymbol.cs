@@ -2140,7 +2140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // error on B if the match to I.M is in a base class.)
                         diagnostics.Add(ErrorCode.ERR_ImplBadConstraints, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl), typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
                     }
-                    else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeCompareKind.AllIgnoreOptionsPlusNullableWithObliviousMatchesAny))
+                    else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                     {
                         diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl),
                                         typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);

@@ -605,14 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int arity = typeParameters1.Length;
             for (int i = 0; i < arity; i++)
             {
-                TypeParameterSymbol typeParameter1 = typeParameters1[i];
-                TypeParameterSymbol typeParameter2 = typeParameters2[i];
-                if (!HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, typeComparison))
-                {
-                    return false;
-                }
-                else if ((typeComparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0
-                    && !HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, typeComparison))
+                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2, typeComparison))
                 {
                     return false;
                 }
@@ -665,38 +658,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AreConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
         }
 
-        public static bool HaveSameNullabilityInConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, TypeCompareKind typeComparison)
+        public static bool HaveSameNullabilityInConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2)
         {
-            if (!typeParameter1.IsValueType
-                && !hasSameTopLevelNullability(typeParameter1, typeParameter2, typeComparison))
-            {
-                return false;
-            }
-
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.Create(typeComparison));
-
-            static bool hasSameTopLevelNullability(TypeParameterSymbol typeParameter1, TypeParameterSymbol typeParameter2, TypeCompareKind typeComparison)
+            if (!typeParameter1.IsValueType)
             {
                 bool? isNotNullable1 = typeParameter1.IsNotNullable;
                 bool? isNotNullable2 = typeParameter2.IsNotNullable;
-
-                bool isOblivious1 = !isNotNullable1.HasValue;
-                bool isOblivious2 = !isNotNullable2.HasValue;
-                if (isOblivious1 || isOblivious2)
+                if (isNotNullable1.HasValue && isNotNullable2.HasValue &&
+                    isNotNullable1.GetValueOrDefault() != isNotNullable2.GetValueOrDefault())
                 {
-                    if ((typeComparison & TypeCompareKind.ObliviousNullableModifierMatchesAny) != 0)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return isOblivious1 && isOblivious2;
-                    }
+                    return false;
                 }
-
-                Debug.Assert(isNotNullable1.HasValue && isNotNullable2.HasValue);
-                return isNotNullable1.GetValueOrDefault() == isNotNullable2.GetValueOrDefault();
             }
+
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.AllIgnoreOptionsPlusNullableWithUnknownMatchesAny);
         }
 
         /// <summary>
@@ -834,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static TypeWithAnnotations SubstituteType(TypeMap? typeMap, TypeWithAnnotations typeSymbol)
+        internal static TypeWithAnnotations SubstituteType(TypeMap? typeMap, TypeWithAnnotations typeSymbol)
         {
             return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
         }

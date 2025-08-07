@@ -260,14 +260,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(extension1.IsExtension);
             Debug.Assert(extension2.IsExtension);
 
-            if (extension1.Arity != extension2.Arity)
+            int arity1 = extension1.Arity;
+            if (arity1 != extension2.Arity)
             {
                 return false;
             }
 
             TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
             TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
-            if (extension1.Arity > 0)
+            if (arity1 > 0)
             {
                 ImmutableArray<TypeParameterSymbol> typeParams1 = extension1.TypeParameters;
                 ImmutableArray<TypeParameterSymbol> typeParams2 = extension2.TypeParameters;
@@ -282,9 +283,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if (!MemberSignatureComparer.HaveSameConstraints(typeParams1, typeMap1, typeParams2, typeMap2, TypeCompareKind.ConsiderEverything))
+                for (int i = 0; i < arity1; i++)
                 {
-                    return false;
+                    if (!haveSameConstraints(typeParams1[i], typeMap1, typeParams2[i], typeMap2))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -360,6 +364,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return counts.Values.All(c => c == 0);
+            }
+
+            static bool haveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2)
+            {
+                if ((typeParameter1.HasConstructorConstraint != typeParameter2.HasConstructorConstraint) ||
+                    (typeParameter1.HasReferenceTypeConstraint != typeParameter2.HasReferenceTypeConstraint) ||
+                    (typeParameter1.HasValueTypeConstraint != typeParameter2.HasValueTypeConstraint) ||
+                    (typeParameter1.AllowsRefLikeType != typeParameter2.AllowsRefLikeType) ||
+                    (typeParameter1.HasUnmanagedTypeConstraint != typeParameter2.HasUnmanagedTypeConstraint) ||
+                    (typeParameter1.Variance != typeParameter2.Variance) ||
+                    (typeParameter1.HasNotNullConstraint != typeParameter2.HasNotNullConstraint))
+                {
+                    return false;
+                }
+
+                return haveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2);
+            }
+
+            static bool haveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2)
+            {
+                // Since the purpose is to ensure that we can safely round-trip metadata
+                // and since top-level nullability is encoded per type constraint
+                // we need to check nullability (including top-level nullability) per type constraint.
+
+                ImmutableArray<TypeWithAnnotations> constraintTypes1 = typeParameter1.ConstraintTypesNoUseSiteDiagnostics;
+                ImmutableArray<TypeWithAnnotations> constraintTypes2 = typeParameter2.ConstraintTypesNoUseSiteDiagnostics;
+
+                if (constraintTypes1.IsEmpty && constraintTypes2.IsEmpty)
+                {
+                    return true;
+                }
+
+                var comparer = TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer;
+                var substitutedTypes1 = new HashSet<TypeWithAnnotations>(comparer);
+                var substitutedTypes2 = new HashSet<TypeWithAnnotations>(comparer);
+
+                substituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
+                substituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
+
+                return areConstraintTypesSubset(substitutedTypes1, substitutedTypes2, typeParameter2) &&
+                    areConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
+            }
+
+            static bool areConstraintTypesSubset(HashSet<TypeWithAnnotations> constraintTypes1, HashSet<TypeWithAnnotations> constraintTypes2, TypeParameterSymbol typeParameter2)
+            {
+                foreach (TypeWithAnnotations constraintType in constraintTypes1)
+                {
+                    if (!constraintTypes2.Contains(constraintType))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            static void substituteConstraintTypes(ImmutableArray<TypeWithAnnotations> types, TypeMap? typeMap, HashSet<TypeWithAnnotations> result)
+            {
+                foreach (TypeWithAnnotations type in types)
+                {
+                    result.Add(MemberSignatureComparer.SubstituteType(typeMap, type));
+                }
             }
         }
 

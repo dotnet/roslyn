@@ -23157,25 +23157,25 @@ interface I { }
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<(I), (I), (I)>(System.Int32)", extension.ComputeExtensionGroupingRawName());
-        AssertEx.Equal("extension<T1, T2, T3>(System.Int32) where T1 : notnull, I where T2 : maybenull, I where T3 : I", extension.ComputeExtensionMarkerRawName());
+        AssertEx.Equal("extension<T1, T2, T3>(System.Int32) where T1 : I! where T2 : I? where T3 : I", extension.ComputeExtensionMarkerRawName());
 
         verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+    extends [netstandard]System.Object
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$0AD8C3962A3C5E6BFA97E099F6F428C4'<(I) $T0, (I) $T1, (I) $T2>
-        extends [mscorlib]System.Object
+        extends [netstandard]System.Object
     {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<Marker>$A642A5031DDFF45A5478C1824AC1E939'<(I) T1, (I) T2, (I) T3>
-            extends [mscorlib]System.Object
+        .class nested public auto ansi abstract sealed specialname '<Marker>$5B198AEBE2F597134BE1E94D84704187'<(I) T1, (I) T2, (I) T3>
+            extends [netstandard]System.Object
         {
             .param constraint T1, I
                 .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
@@ -23191,15 +23191,15 @@ interface I { }
                     int32 ''
                 ) cil managed 
             {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x208e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
-            } // end of method '<Marker>$A642A5031DDFF45A5478C1824AC1E939'::'<Extension>$'
-        } // end of class <Marker>$A642A5031DDFF45A5478C1824AC1E939
+            } // end of method '<Marker>$5B198AEBE2F597134BE1E94D84704187'::'<Extension>$'
+        } // end of class <Marker>$5B198AEBE2F597134BE1E94D84704187
     } // end of class <Extension>$0AD8C3962A3C5E6BFA97E099F6F428C4
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
@@ -27221,8 +27221,8 @@ public interface I { }
             () => Assert.Equal("extension<(I)>(System.Int32)", extension1.ComputeExtensionGroupingRawName()),
             () => Assert.Equal("extension<(I)>(System.Int32)", extension2.ComputeExtensionGroupingRawName()),
 
-            () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I", extension1.ComputeExtensionMarkerRawName()),
-            () => Assert.Equal("extension<T>(System.Int32) where T : maybenull, I", extension2.ComputeExtensionMarkerRawName())
+            () => Assert.Equal("extension<T>(System.Int32) where T : I!", extension1.ComputeExtensionMarkerRawName()),
+            () => Assert.Equal("extension<T>(System.Int32) where T : I?", extension2.ComputeExtensionMarkerRawName())
         );
     }
 
@@ -27255,7 +27255,7 @@ public interface I { }
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.Multiple(
-            () => Assert.Equal("extension<T>(System.Int32) where T : maybenull, I", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => Assert.Equal("extension<T>(System.Int32) where T : I?", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
             () => Assert.Equal("extension<T>(System.Int32) where T : I", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
         );
     }
@@ -27278,17 +27278,56 @@ public interface I2 { }
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
-        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.Multiple(
-            () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I1, I2", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
-            () => Assert.Equal("extension<T>(System.Int32) where T : notnull, I1, I2", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+            () => Assert.Equal("extension<T>(System.Int32) where T : I1?, I2!", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => Assert.Equal("extension<T>(System.Int32) where T : I1!, I2?", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
         );
     }
 
     [Fact]
     public void Grouping_54()
+    {
+        // difference in nullability in constraints: type constraints with different nullabilities
+        var src = """
+#nullable enable
+
+public static partial class E
+{
+    extension<T>(int) where T : I1, 
+#nullable disable
+        I2
+#nullable enable
+    {
+    }
+
+    extension<T>(int) where T : 
+#nullable disable
+        I1
+#nullable enable
+        , I2
+    {
+    }
+}
+
+public interface I1 { }
+public interface I2 { }
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
+
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        Assert.Multiple(
+            () => Assert.Equal("extension<T>(System.Int32) where T : I1!, I2", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => Assert.Equal("extension<T>(System.Int32) where T : I1, I2!", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+        );
+    }
+
+    [Fact]
+    public void Grouping_55()
     {
         // difference in nested nullability in constraints: annotated vs. unannotated
         var src = """
@@ -27308,13 +27347,13 @@ public interface I<T> { }
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.Multiple(
-            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object!>", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
-            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object?>", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : I<System.Object!>!", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : I<System.Object?>!", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
         );
     }
 
     [Fact]
-    public void Grouping_55()
+    public void Grouping_56()
     {
         // difference in nested nullability in constraints: annotated vs. oblivious
         var src = """
@@ -27344,13 +27383,13 @@ public interface I<T> { }
 
         var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
         Assert.Multiple(
-            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object?>", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
-            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object>", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : I<System.Object?>!", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : I<System.Object>!", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
         );
     }
 
     [Fact]
-    public void Grouping_56()
+    public void Grouping_57()
     {
         // difference in nested tuple names in constraints
         var src = """
@@ -27370,7 +27409,7 @@ public interface I<T> { }
     }
 
     [Fact]
-    public void Grouping_57()
+    public void Grouping_58()
     {
         // order of constraints
         var src = """
@@ -27389,7 +27428,7 @@ public interface I2 { }
     }
 
     [Fact]
-    public void Grouping_58()
+    public void Grouping_59()
     {
         // order of constraints
         var src = """
@@ -27408,7 +27447,7 @@ public interface I2 { }
     }
 
     [Fact]
-    public void Grouping_59()
+    public void Grouping_60()
     {
         // arglist
         var src = """
@@ -27431,7 +27470,7 @@ public static class E
     }
 
     [Fact]
-    public void Grouping_60()
+    public void Grouping_61()
     {
         // arglist vs. not
         var src = """
@@ -27451,7 +27490,7 @@ public static class E
     }
 
     [Fact]
-    public void Grouping_61()
+    public void Grouping_62()
     {
         // default value
         var src = """
@@ -27474,7 +27513,7 @@ public static class E
     }
 
     [Fact]
-    public void Grouping_62()
+    public void Grouping_63()
     {
         var src = """
 public static class E
@@ -27493,7 +27532,7 @@ public static class E
     }
 
     [Fact]
-    public void Grouping_63()
+    public void Grouping_64()
     {
         // function pointer in constraints: ref vs. ref readonly
         var src = """
@@ -27511,7 +27550,7 @@ public interface I<T> { }
     }
 
     [Fact]
-    public void Grouping_64()
+    public void Grouping_65()
     {
         // function pointer in constraints: ref vs. out
         var src = """
@@ -27529,7 +27568,7 @@ public interface I<T> { }
     }
 
     [Fact]
-    public void Grouping_65()
+    public void Grouping_66()
     {
         // function pointer in constraints: calling convention difference
         var src = """
@@ -27547,7 +27586,7 @@ public interface I<T> { }
     }
 
     [Fact]
-    public void Grouping_66()
+    public void Grouping_67()
     {
         var src = """
 public static class E
@@ -27569,7 +27608,7 @@ public static class E
     }
 
     [Fact]
-    public void Grouping_67()
+    public void Grouping_68()
     {
         var src = """
 public static class E
@@ -27586,7 +27625,7 @@ public ref struct RS { }
     }
 
     [Fact]
-    public void Grouping_68()
+    public void Grouping_69()
     {
         var src = """
 public static class E
@@ -27601,7 +27640,7 @@ public static class E
     }
 
     [Fact]
-    public void Grouping_69()
+    public void Grouping_70()
     {
         var src = """
 public static class E<T>
@@ -27621,7 +27660,7 @@ public static class E<T>
     }
 
     [Fact]
-    public void Grouping_70()
+    public void Grouping_71()
     {
         var src = """
 extension<T>(T) { }
@@ -27677,6 +27716,75 @@ public static class E
             Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(4, 15));
 
         VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
+    }
+
+    [Fact]
+    public void Grouping_74()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int) where T : I { }
+    extension<T>(int) where T : I, I { }
+}
+
+public interface I { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,36): error CS0405: Duplicate constraint 'I' for type parameter 'T'
+            //     extension<T>(int) where T : I, I { }
+            Diagnostic(ErrorCode.ERR_DuplicateBound, "I").WithArguments("I", "T").WithLocation(4, 36));
+
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
+
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        Assert.Multiple(
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : I", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : I", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+        );
+    }
+
+    [Fact]
+    public void Grouping_75()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int) where T : System.Object { }
+    extension<T>(int) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,33): error CS0702: Constraint cannot be special class 'object'
+            //     extension<T>(int) where T : System.Object { }
+            Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(3, 33));
+
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
+
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        Assert.Multiple(
+            () => AssertEx.Equal("extension<T>(System.Int32)", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => AssertEx.Equal("extension<T>(System.Int32)", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+        );
+    }
+
+    [Fact]
+    public void Grouping_76()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int) where T : I<T> { }
+    extension<T>(int) where T : I<T> { }
+}
+
+public interface I<T> { }
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
     }
 }
 
