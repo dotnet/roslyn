@@ -347,7 +347,6 @@ public sealed partial class InitializeMemberFromPrimaryConstructorParameterTests
             {
                 public string S { get; } = s;
             }
-
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19956")]
@@ -361,7 +360,6 @@ public sealed partial class InitializeMemberFromPrimaryConstructorParameterTests
             {
                 private readonly string s = s;
             }
-
             """,
             index: 1);
 

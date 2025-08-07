@@ -19,8 +19,6 @@ internal static partial class EditAndContinueDiagnosticSource
 {
     private sealed class ProjectSource(Project project, ImmutableArray<DiagnosticData> diagnostics) : AbstractProjectDiagnosticSource(project)
     {
-        public override bool IsLiveSource()
-            => true;
 
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
             => Task.FromResult(diagnostics);
@@ -28,8 +26,6 @@ internal static partial class EditAndContinueDiagnosticSource
 
     private sealed class ClosedDocumentSource(TextDocument document, ImmutableArray<DiagnosticData> diagnostics) : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        public override bool IsLiveSource()
-            => true;
 
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
             => Task.FromResult(diagnostics);

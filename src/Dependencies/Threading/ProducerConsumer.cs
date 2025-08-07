@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !MICROSOFT_CODEANALYSIS_THREADING_NO_CHANNELS
+
 #nullable enable
 
 using System;
@@ -263,7 +265,7 @@ internal static class ProducerConsumer<TItem>
                         outerArgs.produceItems(callback, outerArgs.args, cancellationToken),
                     consumeItems: async static (reader, args, cancellationToken) =>
                     {
-                        await foreach (var item in reader.ReadAllAsync(cancellationToken))
+                        await foreach (var item in reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
                             args.channel.Writer.TryWrite(item);
 
                         return default(VoidResult);
@@ -395,3 +397,5 @@ internal static class ProducerConsumer<TItem>
 
     #endregion
 }
+
+#endif

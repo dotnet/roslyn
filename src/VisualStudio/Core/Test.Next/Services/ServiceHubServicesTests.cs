@@ -47,7 +47,10 @@ public sealed partial class ServiceHubServicesTests
         Type[] additionalParts = null,
         Type[] additionalRemoteParts = null)
     {
-        var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
+        var workspace = new TestWorkspace(
+            composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess)
+                .AddParts(additionalParts)
+                .RemoveParts([typeof(Roslyn.Test.Utilities.TestWorkspaceConfigurationService)])); // We use a different implementation of the WorkspaceConfigurationService
 
         if (additionalRemoteParts != null)
         {

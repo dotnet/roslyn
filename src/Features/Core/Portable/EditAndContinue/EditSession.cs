@@ -916,7 +916,9 @@ internal sealed class EditSession
 
             if (partialTypeEdits.Any(static e => e.SyntaxMaps.HasMap))
             {
-                var newMaps = partialTypeEdits.Where(static edit => edit.SyntaxMaps.HasMap).SelectAsArray(static edit => edit.SyntaxMaps);
+                var newMaps = partialTypeEdits.SelectAsArray(
+                    predicate: static edit => edit.SyntaxMaps.HasMap,
+                    selector: static edit => edit.SyntaxMaps);
 
                 mergedMatchingNodes = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].MatchingNodes!(node);
                 mergedRuntimeRudeEdits = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].RuntimeRudeEdits?.Invoke(node);
@@ -957,7 +959,7 @@ internal sealed class EditSession
         Solution solution,
         ActiveStatementSpanProvider solutionActiveStatementSpanProvider,
         UpdateId updateId,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         CancellationToken cancellationToken)
     {
         var projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();

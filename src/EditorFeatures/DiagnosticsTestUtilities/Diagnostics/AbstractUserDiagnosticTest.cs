@@ -147,8 +147,7 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
             }
         }
 
-        var intersectingDiagnostics = diagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(span))
-                                                 .ToImmutableArray();
+        var intersectingDiagnostics = diagnostics.WhereAsArray(d => d.Location.SourceSpan.IntersectsWith(span));
 
         var fixes = new List<CodeFix>();
 

@@ -216,7 +216,13 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             };
         };
 
-        var updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        var runningProjectInfo = new DebuggerContracts.RunningProjectInfo()
+        {
+            ProjectInstanceId = new DebuggerContracts.ProjectInstanceId(project.FilePath, "net9.0"),
+            RestartAutomatically = false,
+        };
+
+        var updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
@@ -281,7 +287,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             };
         };
 
-        updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
@@ -389,15 +395,15 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         var (key, (documentState, version)) = sourceTextProvider.GetTestAccessor().GetDocumentsWithChangedLoaderByPath().Single();
         Assert.Equal(sourceFile.Path, key);
-        Assert.Equal(solution.WorkspaceVersion, version);
-        Assert.Equal(source1, (await documentState.GetTextAsync(CancellationToken.None)).ToString());
+        Assert.Equal(solution.SolutionStateContentVersion, version);
+        Assert.Equal(source1, documentState.GetTextSynchronously(CancellationToken.None).ToString());
 
         // check committed document status:
         var debuggingSession = service.GetTestAccessor().GetActiveDebuggingSessions().Single();
         var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document1, CancellationToken.None);
         var text = await document.GetTextAsync();
         Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
-        Assert.Equal(source1, (await document.GetTextAsync(CancellationToken.None)).ToString());
+        Assert.Equal(source1, document.GetTextSynchronously(CancellationToken.None).ToString());
 
         await languageService.EndSessionAsync(CancellationToken.None);
     }

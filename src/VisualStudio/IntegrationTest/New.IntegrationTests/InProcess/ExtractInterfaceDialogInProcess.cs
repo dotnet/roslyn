@@ -113,8 +113,7 @@ internal sealed partial class ExtractInterfaceDialogInProcess
         var listItems = Enumerable.Range(0, comListItems.Count).Select(comListItems.GetItemAt);
 
         return listItems.Cast<SymbolViewModel<ISymbol>>()
-            .Where(viewModel => viewModel.IsChecked)
-            .ToImmutableArray();
+            .WhereAsArray(viewModel => viewModel.IsChecked);
     }
 
     public Task ClickDeselectAllAsync(CancellationToken cancellationToken)

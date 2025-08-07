@@ -6997,6 +6997,104 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             MainDescription($"({FeaturesResources.parameter}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42543")]
+    public Task NullableParameterThatIsMaybeNull_Suppressed1()
+        => TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            #nullable enable
+
+            class X
+            {
+                void N(string? s)
+                {
+                    string s2 = $$s!;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string? s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42543")]
+    public Task NullableParameterThatIsMaybeNull_Suppressed2()
+        => TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            #nullable enable
+
+            class X
+            {
+                void N(string? s)
+                {
+                    string s2 = $$s!!;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string? s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66854")]
+    [InlineData("is null")]
+    [InlineData("is not null")]
+    [InlineData("is string")]
+    [InlineData("is string s")]
+    [InlineData("is object")]
+    [InlineData("is object s")]
+    [InlineData("is { }")]
+    [InlineData("is 0")]
+    [InlineData("== null")]
+    [InlineData("!= null")]
+    public Task NonNullValueCheckedAgainstNull_1(string test)
+        => TestWithOptionsAsync(TestOptions.Regular8,
+            $$"""
+            #nullable enable
+
+            public class Example
+            {
+                private void Main()
+                {
+                    var user = new object();
+
+                    if ($$user {{test}})
+                        throw new InvalidOperationException();
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) object? user"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "user")));
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66854")]
+    [InlineData("is null", true)]
+    [InlineData("is not null", true)]
+    [InlineData("is string", false)]
+    [InlineData("is string s", false)]
+    [InlineData("is object", true)]
+    [InlineData("is object s", false)]
+    [InlineData("is { }", true)]
+    [InlineData("is 0", false)]
+    [InlineData("== null", true)]
+    [InlineData("!= null", true)]
+    public Task NonNullValueCheckedAgainstNull_2(string test, bool expectNullable)
+        => TestWithOptionsAsync(TestOptions.Regular8,
+            $$"""
+            #nullable enable
+
+            public class Example
+            {
+                private void Main()
+                {
+                    var user = new object();
+
+                    if (user {{test}})
+                        Console.WriteLine();
+
+                    Console.WriteLine($$user);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) object? user"),
+            NullabilityAnalysis(expectNullable
+                ? string.Format(FeaturesResources._0_may_be_null_here, "user")
+                : string.Format(FeaturesResources._0_is_not_null_here, "user")));
+
     [Fact]
     public Task NullableParameterThatIsNotNull()
         => TestWithOptionsAsync(TestOptions.Regular8,
@@ -8269,6 +8367,56 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 summary for interface IGoo
 
                 List<string> y = null;
+                """));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53384")]
+    public Task TestDocumentationCData2()
+        => TestAsync("""
+            using I$$ = IGoo;
+            /// <summary>
+            /// summary for interface IGoo
+            /// <code><![CDATA[
+            /// void M()
+            /// {
+            ///     Console.WriteLine();
+            /// }
+            /// ]]></code>
+            /// </summary>
+            interface IGoo {  }
+            """,
+            MainDescription("interface IGoo"),
+            Documentation("""
+                summary for interface IGoo
+
+                void M()
+                {
+                    Console.WriteLine();
+                }
+                """));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53384")]
+    public Task TestDocumentationCData3()
+        => TestAsync("""
+            using I$$ = IGoo;
+            /// <summary>
+            /// summary for interface IGoo
+            /// <![CDATA[
+            /// void M()
+            /// {
+            ///     Console.WriteLine();
+            /// }
+            /// ]]>
+            /// </summary>
+            interface IGoo {  }
+            """,
+            MainDescription("interface IGoo"),
+            Documentation("""
+                summary for interface IGoo
+
+                void M()
+                {
+                    Console.WriteLine();
+                }
                 """));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37503")]
@@ -9815,4 +9963,231 @@ AnonymousTypes(
             }
             """,
             MainDescription($"Extensions.extension(System.String)"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment1()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Comment on i
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment on i"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment2()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Comment unrelated to i
+
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment3()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Multi
+                    // line
+                    // comment for i
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Multi line comment for i"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment4()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // Comment for i.  It is > 0
+                    int i;
+                    Console.WriteLine($$i);
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment for i. It is > 0"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
+    public Task TestLocalVariableComment5()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            // Comment for i.  It is > 0
+            int i;
+            Console.WriteLine($$i);
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment for i. It is > 0"));
+
+    [Fact]
+    public Task TestLocalVariableComment6()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            // <summary>Comment for i. 
+            // It is &gt; 0</summary>
+            int i;
+            Console.WriteLine($$i);
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) int i"),
+            Documentation("Comment for i. It is > 0"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
+    public Task TestLocalDeclarationNullable1()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            #nullable enable
+
+            class Program
+            {
+                static void Main()
+                {
+                    Program? first = null;
+                    var $$second = first;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) Program? second"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
+    public Task TestLocalDeclarationNullable1_A()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            #nullable enable
+
+            class Program
+            {
+                static void Main()
+                {
+                    Program? first = null;
+                    $$var second = first;
+                }
+            }
+            """,
+            MainDescription($"class Program?"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
+    public Task TestLocalDeclarationNullable2()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            #nullable enable
+
+            class Program
+            {
+                static void Main()
+                {
+                    Program? first = new();
+                    var $$second = first;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) Program? second"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "second")));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
+    public Task TestLocalDeclarationNullable2_A()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            #nullable enable
+
+            class Program
+            {
+                static void Main()
+                {
+                    Program? first = new();
+                    $$var second = first;
+                }
+            }
+            """,
+            MainDescription($"class Program?"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "second")));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
+    public Task TestLocalDeclarationNullable3()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            #nullable enable
+
+            class Program
+            {
+                static void Main()
+                {
+                    Program? first = new();
+                    var $$second = first?.ToString();
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) string? second"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/41245")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42897")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/63959")]
+    public Task TestLocalDeclarationNullable3_A()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            #nullable enable
+
+            class Program
+            {
+                static void Main()
+                {
+                    Program? first = new();
+                    $$var second = first?.ToString();
+                }
+            }
+            """,
+            MainDescription($"class System.String?"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
 }

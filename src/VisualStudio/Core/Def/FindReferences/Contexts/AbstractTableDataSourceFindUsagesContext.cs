@@ -507,7 +507,7 @@ internal partial class StreamingFindUsagesPresenter
         {
             try
             {
-                await foreach (var reference in references)
+                await foreach (var reference in references.ConfigureAwait(false))
                     await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
