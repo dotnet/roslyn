@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
     private sealed class CSharp14_Preview()
-        : CombinatorialValuesAttribute(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview);
+        : CombinatorialValuesAttribute(LanguageVersion.CSharp14, LanguageVersion.Preview);
 
     private sealed class CSharp13_CSharp14_Preview()
-        : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview);
+        : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersion.CSharp14, LanguageVersion.Preview);
 
     [Theory, CombinatorialData]
     public void Event_Tree([CSharp14_Preview] LanguageVersion langVersion)
