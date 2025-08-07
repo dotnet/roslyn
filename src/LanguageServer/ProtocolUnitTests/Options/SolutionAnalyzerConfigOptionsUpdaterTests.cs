@@ -24,7 +24,9 @@ public sealed class SolutionAnalyzerConfigOptionsUpdaterTests
     private static TestWorkspace CreateWorkspace()
     {
         var workspace = new LspTestWorkspace(LspTestCompositions.LanguageServerProtocol
-            .RemoveParts(typeof(MockFallbackAnalyzerConfigOptionsProvider)));
+            .RemoveParts(typeof(MockFallbackAnalyzerConfigOptionsProvider))
+            .ExportProviderFactory
+            .CreateExportProvider());
 
         var updater = (SolutionAnalyzerConfigOptionsUpdater)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is SolutionAnalyzerConfigOptionsUpdater).Value;
         var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();

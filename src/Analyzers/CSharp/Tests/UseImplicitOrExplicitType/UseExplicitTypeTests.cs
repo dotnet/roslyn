@@ -2653,7 +2653,9 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/24034")]
     public async Task WithNormalFuncSynthesizedLambdaType()
     {
         var before = """
@@ -2666,11 +2668,13 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             }
             """;
         var after = """
+            using System;
+
             class Program
             {
                 void Method()
                 {
-                    System.Func<int, string> x = (int i) => i.ToString();
+                    Func<int, string> x = (int i) => i.ToString();
                 }
             }
             """;
@@ -2723,4 +2727,21 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new(options: ExplicitTypeEverywhere()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74372")]
+    public Task TestAnonymousType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System.Linq;
+
+            public class Temp
+            {
+                public void temp()
+                {
+                    var y = new[] { new { t = 0 } }.ToList();
+
+                    y.ToDictionary(x => x.t, x => x).TryGetValue(0, out [|var|] y2);
+                }
+            }
+            """, new TestParameters(options: ExplicitTypeEverywhere()));
 }

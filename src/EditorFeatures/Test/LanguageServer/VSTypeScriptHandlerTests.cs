@@ -101,7 +101,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
 
     private async Task<VSTypeScriptTestLspServer> CreateTsTestLspServerAsync(string workspaceXml, InitializationOptions? options = null)
     {
-        var testWorkspace = CreateWorkspace(options, mutatingLspWorkspace: false, workspaceKind: null);
+        var testWorkspace = await CreateWorkspaceAsync(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
         return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);

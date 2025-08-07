@@ -167,7 +167,7 @@ internal sealed partial class FindReferencesSearchEngine
             using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var result);
 
             // Transform the individual finder-location objects to "group/symbol/location" tuples.
-            await foreach (var location in locations)
+            await foreach (var location in locations.ConfigureAwait(false))
                 result.Add((group, symbol, location.Location));
 
             return result.ToImmutableAndClear();

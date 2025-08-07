@@ -277,34 +277,6 @@ configuration:
       then:
       - closeIssue
 
-    - description: Add "untriaged" label on new issues
-      triggerOnOwnActions: false
-      if:
-      - payloadType: Issues
-      - not:
-          hasLabel:
-            label: untriaged
-      - and:
-          - isAction:
-              action: Opened
-      then:
-      - addLabel:
-          label: untriaged
-
-    - description: Remove "untriaged" label from issues when closed or added to a milestone
-      triggerOnOwnActions: false
-      if:
-      - payloadType: Issues
-      - or:
-        - isAction:
-            action: Closed
-        - isPartOfAnyMilestone
-      - hasLabel:
-          label: untriaged
-      then:
-      - removeLabel:
-          label: untriaged
-          
     - description: Add breaking change doc instructions to issue
       if:
       - payloadType: Issues

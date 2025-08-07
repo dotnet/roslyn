@@ -733,7 +733,7 @@
   <!-- Instrumentation info attached to BoundBlock -->
   <Node Name="BoundBlockInstrumentation" Base="BoundNode">
     <!-- Local variables with scope that cover the entire block including the instrumentation prologue and epilogue. -->
-    <Field Name="Locals" Type="OneOrMany&lt;LocalSymbol&gt;" Null="disallow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" Null="disallow"/>
     <!-- Optional prologue emitted in front of any instructions of the block, so that it always executes. -->
     <Field Name="Prologue" Type="BoundStatement?" Null="allow"/>
     <!--

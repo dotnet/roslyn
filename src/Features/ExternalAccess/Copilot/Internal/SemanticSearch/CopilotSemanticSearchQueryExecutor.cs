@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;
@@ -60,6 +61,15 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
 
             return ValueTask.CompletedTask;
         }
+
+        public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+            => throw new NotImplementedException(); // TODO
+
+        public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+            => ValueTask.CompletedTask; // TODO
+
+        public ValueTask OnTextFileUpdatedAsync(string filePath, string? newContent, CancellationToken cancellationToken)
+            => ValueTask.CompletedTask; // TODO
     }
 
     private readonly Workspace _workspace = workspaceProvider.Workspace;
@@ -73,11 +83,12 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
 
         try
         {
+            var services = _workspace.CurrentSolution.Services;
+
             var compileResult = await RemoteSemanticSearchServiceProxy.CompileQueryAsync(
-                _workspace.CurrentSolution.Services,
+                services,
                 query,
-                language: LanguageNames.CSharp,
-                SemanticSearchUtilities.ReferenceAssembliesDirectory,
+                targetLanguage: null,
                 cancellationSource.Token).ConfigureAwait(false);
 
             if (compileResult == null)
@@ -106,6 +117,7 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
                 _workspace.CurrentSolution,
                 compileResult.Value.QueryId,
                 observer,
+                new QueryExecutionOptions(),
                 cancellationSource.Token).ConfigureAwait(false);
 
             return new CopilotSemanticSearchQueryResults()
