@@ -1139,6 +1139,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cancellationToken)
         End Function
 
+        Friend Overrides Function FilterAndGetReportDiagnostic(diagnosticDescriptor As DiagnosticDescriptor, cancellationToken As CancellationToken) As ReportDiagnostic
+            Return VisualBasicDiagnosticFilter.FilterAndGetReportDiagnostic(
+                diagnosticDescriptor,
+                GeneralDiagnosticOption,
+                SpecificDiagnosticOptions,
+                SyntaxTreeOptionsProvider,
+                cancellationToken)
+        End Function
+
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         <EditorBrowsable(EditorBrowsableState.Never)>
         Public Sub New(
