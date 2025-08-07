@@ -32,6 +32,9 @@ internal interface ISemanticSearchResultsCommonObserver
 internal interface ISemanticSearchResultsObserver : ISemanticSearchResultsCommonObserver
 {
     ValueTask OnSymbolFoundAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken);
+    ValueTask OnSyntaxNodeFoundAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+    ValueTask OnLocationFoundAsync(Solution solution, Location location, CancellationToken cancellationToken);
+    ValueTask OnValueFoundAsync(Solution solution, object value, CancellationToken cancellationToken);
 }
 
 internal interface ISemanticSearchResultsDefinitionObserver : ISemanticSearchResultsCommonObserver
