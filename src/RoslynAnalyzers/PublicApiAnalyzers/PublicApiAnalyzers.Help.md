@@ -13,7 +13,7 @@ To get started with the Public API Analyzer:
 dotnet_public_api_analyzer.require_api_files = true
 ```
 
-See [Analyzer Configuration.md](https://github.com/dotnet/roslyn-analyzers/blob/main/docs/Analyzer%20Configuration.md) for more details on how to setup editorconfig based configuration.
+See [Configuration options for code analysis](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-options) for more details on how to setup editorconfig based configuration.
 
 ## Package version earlier than 3.3.x
 
