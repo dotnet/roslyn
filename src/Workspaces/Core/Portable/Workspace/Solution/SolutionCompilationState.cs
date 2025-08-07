@@ -1224,6 +1224,27 @@ internal sealed partial class SolutionCompilationState
             : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
     }
 
+    public SolutionCompilationState WithForceOnlyRequiredGenerators(ProjectId projectId)
+    {
+        if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
+        {
+            // we don't have a tracker for this yet, create one with the correct policy
+            tracker = RoslynImmutableInterlocked.GetOrAdd(
+                ref _projectIdToTrackerMap,
+                projectId,
+                static (id, solutionState) => CreateCompilationTracker(id, solutionState).WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy(),
+                SolutionState);
+        }
+        else
+        {
+            // we already have a tracker, so we want to transition to the requested state, and perform further work on the transitioned state
+            tracker = tracker.WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
+        }
+        Debug.Assert(tracker.GetCreationPolicy().GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateOnlyRequired);
+
+        return this;
+    }
+
     /// <summary>
     /// Returns the generated document states for source generated documents.
     /// </summary>
@@ -1591,9 +1612,9 @@ internal sealed partial class SolutionCompilationState
                     updatedIdToTrackerMapBuilder[projectId] = oldTracker;
                 }
 
-                // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
-                // perf hit on either of those at all for our clients.
-                var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
+                // Since we're freezing, set generators to run only required and skeletons to not be created.
+                // We don't want to take any perf hit on either of those at all for our clients.
+                var newTracker = oldTracker.WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
                 if (oldTracker == newTracker)
                     continue;
 

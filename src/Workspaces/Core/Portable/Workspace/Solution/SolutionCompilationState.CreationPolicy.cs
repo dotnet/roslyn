@@ -17,9 +17,13 @@ internal sealed partial class SolutionCompilationState
         Create,
 
         /// <summary>
-        /// Source generators should not run.  Whatever results were previously computed should be reused.
+        /// Source generators that are considered required should be run and produce results. Previously
+        /// computed results should be reused for other generators.
         /// </summary>
-        DoNotCreate,
+        /// <remarks>
+        /// Today the only required generator is Razor.
+        /// </remarks>
+        CreateOnlyRequired
     }
 
     /// <summary>
@@ -54,9 +58,11 @@ internal sealed partial class SolutionCompilationState
         public static readonly CreationPolicy Create = new(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create);
 
         /// <summary>
-        /// Do not create up to date source generator docs and do not create up to date skeleton references for P2P
-        /// references.  For both, use whatever has been generated most recently.
+        /// Create only the source generator documents considered to be required and do not create
+        /// up to date skeleton references for P2P references. For generators combine the newly generated 
+        /// required docs with whatever else was most recently generated. For skeleton references use 
+        /// whatever has been generated most recently.
         /// </summary>
-        public static readonly CreationPolicy DoNotCreate = new(GeneratedDocumentCreationPolicy.DoNotCreate, SkeletonReferenceCreationPolicy.DoNotCreate);
+        public static readonly CreationPolicy CreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferences = new(GeneratedDocumentCreationPolicy.CreateOnlyRequired, SkeletonReferenceCreationPolicy.DoNotCreate);
     }
 }
