@@ -239,10 +239,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(compilationOptions));
             }
 
-            // Create a dummy diagnostic to compute the effective diagnostic severity for given compilation options
-            // TODO: Once https://github.com/dotnet/roslyn/issues/3650 is fixed, we can avoid creating a no-location diagnostic here.
-            var effectiveDiagnostic = compilationOptions.FilterDiagnostic(Diagnostic.Create(this, Location.None), CancellationToken.None);
-            return effectiveDiagnostic != null ? MapSeverityToReport(effectiveDiagnostic.Severity) : ReportDiagnostic.Suppress;
+            return compilationOptions.FilterAndGetReportDiagnostic(this, CancellationToken.None);
         }
 
         // internal for testing purposes.

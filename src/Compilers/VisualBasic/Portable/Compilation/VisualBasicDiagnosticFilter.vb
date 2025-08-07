@@ -99,6 +99,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagnostic.WithReportDiagnostic(report)
         End Function
 
+        Public Shared Function FilterAndGetReportDiagnostic(
+            diagnosticDescriptor As DiagnosticDescriptor,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
+            syntaxTreeOptions As SyntaxTreeOptionsProvider,
+            cancellationToken As CancellationToken) As ReportDiagnostic
+
+            ' Diagnostic ids must be processed in case-insensitive fashion in VB.
+            Dim caseInsensitiveSpecificDiagnosticOptions =
+                ImmutableDictionary.Create(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer).AddRange(specificDiagnosticOptions)
+
+            ' Filter void diagnostics so that our callers don't have to perform resolution
+            ' (which might copy the list of diagnostics).
+            If diagnosticDescriptor.DefaultSeverity = InternalDiagnosticSeverity.Void Then
+                Return ReportDiagnostic.Suppress
+            End If
+
+            ' If diagnostic is not configurable, keep it as it is.
+            If diagnosticDescriptor.IsNotConfigurable Then
+                If diagnosticDescriptor.IsEnabledByDefault Then
+                    ' Enabled NotConfigurable should always be reported as it is.
+                    Return DiagnosticDescriptor.MapSeverityToReport(diagnosticDescriptor.DefaultSeverity)
+                Else
+                    ' Disabled NotConfigurable should never be reported.
+                    Return ReportDiagnostic.Suppress
+                End If
+            End If
+
+            Dim hasSourceSuppression As Boolean = False
+
+            Dim report = GetDiagnosticReport(
+                diagnosticDescriptor.DefaultSeverity,
+                diagnosticDescriptor.IsEnabledByDefault,
+                diagnosticDescriptor.Id,
+                Location.None,
+                diagnosticDescriptor.ImmutableCustomTags,
+                generalDiagnosticOption,
+                caseInsensitiveSpecificDiagnosticOptions,
+                syntaxTreeOptions,
+                cancellationToken,
+                hasSourceSuppression)
+
+            If report = ReportDiagnostic.Default Then
+                If hasSourceSuppression Then
+                    Return ReportDiagnostic.Suppress
+                Else
+                    Return DiagnosticDescriptor.MapSeverityToReport(diagnosticDescriptor.DefaultSeverity)
+                End If
+            End If
+
+            Return report
+        End Function
+
         ''' <summary>
         ''' Take a warning And return the final disposition of the given warning,
         ''' based on both command line options And pragmas. The diagnostic options

@@ -117,6 +117,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             return d.WithReportDiagnostic(reportAction);
         }
 
+        internal static ReportDiagnostic FilterAndGetReportDiagnostic(
+            DiagnosticDescriptor d,
+            int warningLevelOption,
+            NullableContextOptions nullableOption,
+            ReportDiagnostic generalDiagnosticOption,
+            IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
+            SyntaxTreeOptionsProvider? syntaxTreeOptions,
+            CancellationToken cancellationToken)
+        {
+            if (d == null)
+            {
+                return ReportDiagnostic.Suppress;
+            }
+            else if (d.IsNotConfigurable())
+            {
+                if (d.IsEnabledByDefault)
+                {
+                    // Enabled NotConfigurable should always be reported as it is.
+                    return DiagnosticDescriptor.MapSeverityToReport(d.DefaultSeverity);
+                }
+                else
+                {
+                    // Disabled NotConfigurable should never be reported.
+                    return ReportDiagnostic.Suppress;
+                }
+            }
+            else if (d.DefaultSeverity == InternalDiagnosticSeverity.Void)
+            {
+                return ReportDiagnostic.Suppress;
+            }
+
+            var reportAction = GetDiagnosticReport(
+                d.DefaultSeverity,
+                d.IsEnabledByDefault,
+                errorCode: 0,
+                d.Id,
+                diagnosticWarningLevel: d.DefaultSeverity == DiagnosticSeverity.Error ? 0 : 1,
+                Location.None,
+                d.ImmutableCustomTags,
+                warningLevelOption,
+                nullableOption,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                syntaxTreeOptions,
+                cancellationToken,
+                out var hasPragmaSuppression);
+
+            if (reportAction == ReportDiagnostic.Default)
+            {
+                return hasPragmaSuppression
+                    ? ReportDiagnostic.Suppress
+                    : DiagnosticDescriptor.MapSeverityToReport(d.DefaultSeverity);
+            }
+
+            return reportAction;
+        }
+
         /// <summary>
         /// Take a warning and return the final disposition of the given warning,
         /// based on both command line options and pragmas. The diagnostic options

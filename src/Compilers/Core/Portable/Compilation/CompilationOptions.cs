@@ -190,6 +190,11 @@ namespace Microsoft.CodeAnalysis
         internal abstract Diagnostic? FilterDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Determines a ReportDiagnostic for a DiagnosticDescriptor based on this compilation options.
+        /// </summary>
+        internal abstract ReportDiagnostic FilterAndGetReportDiagnostic(DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Warning report option for each warning.
         /// </summary>
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
