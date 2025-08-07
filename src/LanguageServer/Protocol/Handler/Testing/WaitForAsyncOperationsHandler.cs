@@ -1,10 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
 using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.TestHooks;
 /// This is useful in a few cases where the client makes requests to the server but does not wait for the processing to complete, for example
 ///     1.  Loading projects
 ///     2.  Reacting to LSP notifications (which are fire and forget)
-///     
+///
 /// This should generally only be used as a last resort when it is impossible for the client to wait specifically for a result it asked for.
 /// </summary>
 [ExportCSharpVisualBasicStatelessLspService(typeof(WaitForAsyncOperationsHandler)), Shared]
@@ -47,8 +48,6 @@ internal class WaitForAsyncOperationsHandler : ILspServiceRequestHandler<WaitFor
     }
 }
 
-[DataContract]
-internal record WaitForAsyncOperationsParams([property: DataMember(Name = "operations")] string[] Operations);
+internal record WaitForAsyncOperationsParams([property: JsonPropertyName("operations")] string[] Operations);
 
-[DataContract]
 internal record WaitForAsyncOperationsResponse();
