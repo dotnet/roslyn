@@ -2362,6 +2362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.declaration.ContainsExtensionDeclarations)
             {
                 checkMemberNameConflictsInExtensions(diagnostics);
+                this.GetExtensionGroupingInfo().CheckSignatureCollisions(diagnostics);
             }
 
             checkMemberNameConflicts(GetMembersByName(), GetTypeMembersDictionary(), GetMembersUnordered(), diagnostics);
@@ -6000,7 +6001,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_lazyExtensionGroupingInfo is null)
             {
-                // PROTOTYPE: Find the right place and perform checks for conflicting declarations getting into the same group or marker, and reporting appropriate errors.
                 Interlocked.CompareExchange(ref _lazyExtensionGroupingInfo, new ExtensionGroupingInfo(this), null);
             }
 

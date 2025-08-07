@@ -496,8 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendNamedType(NamedTypeSymbol namedType, StringBuilder builder)
             {
-                Debug.Assert(namedType.CustomModifierCount() == 0);
-
                 if (namedType.SpecialType == SpecialType.System_Void)
                 {
                     builder.Append("void");
@@ -795,9 +793,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (CSharpAttributeData attribute in attributes)
                 {
-                    var stringBuilder = PooledStringBuilder.GetInstance();
-                    appendAttribute(attribute, stringBuilder.Builder);
-                    attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    if (!attribute.IsConditionallyOmitted)
+                    {
+                        var stringBuilder = PooledStringBuilder.GetInstance();
+                        appendAttribute(attribute, stringBuilder.Builder);
+                        attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    }
                 }
 
                 attributesBuilder.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
