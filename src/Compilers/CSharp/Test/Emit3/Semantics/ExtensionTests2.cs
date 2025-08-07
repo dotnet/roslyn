@@ -27305,6 +27305,12 @@ public interface I<T> { }
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
         VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
+
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        Assert.Multiple(
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object!>", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object?>", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+        );
     }
 
     [Fact]
@@ -27335,6 +27341,12 @@ public interface I<T> { }
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
         VerifyCollisions(comp, groupingMatch: true, markerMatch: false);
+
+        var extensions = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers();
+        Assert.Multiple(
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object?>", ((SourceNamedTypeSymbol)extensions[0]).ComputeExtensionMarkerRawName()),
+            () => AssertEx.Equal("extension<T>(System.Int32) where T : notnull, I<System.Object>", ((SourceNamedTypeSymbol)extensions[1]).ComputeExtensionMarkerRawName())
+        );
     }
 
     [Fact]

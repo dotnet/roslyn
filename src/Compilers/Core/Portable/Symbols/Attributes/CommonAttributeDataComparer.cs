@@ -67,12 +67,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var arg in constructorArguments)
             {
-                // We ignore type values because they contain information like tuple element names or nullability annotations,
-                // which are not relevant for this attribute comparison.
-                if (arg.Kind != TypedConstantKind.Type)
-                {
-                    hash = Hash.Combine(arg.GetHashCode(), hash);
-                }
+                hash = Hash.Combine(arg.GetHashCode(), hash);
             }
 
             return hash;
@@ -89,10 +84,7 @@ namespace Microsoft.CodeAnalysis
                     hash = hashCombine(arg.Key.GetHashCode(), hash, _considerNamedArgumentsOrder);
                 }
 
-                if (arg.Value.Kind != TypedConstantKind.Type)
-                {
-                    hash = hashCombine(arg.Value.GetHashCode(), hash, _considerNamedArgumentsOrder);
-                }
+                hash = hashCombine(arg.Value.GetHashCode(), hash, _considerNamedArgumentsOrder);
             }
 
             return hash;
@@ -136,11 +128,6 @@ namespace Microsoft.CodeAnalysis
 
             public int GetHashCode(TypedConstant obj)
             {
-                if (obj.Kind == TypedConstantKind.Type)
-                {
-                    return SymbolEqualityComparer.IgnoreAll.GetHashCode(obj.Value as ISymbol);
-                }
-
                 return obj.GetHashCode();
             }
         }
@@ -162,8 +149,7 @@ namespace Microsoft.CodeAnalysis
 
             public int GetHashCode(KeyValuePair<string, TypedConstant> pair)
             {
-                int hash = pair.Key.GetHashCode();
-                return Hash.Combine(TypedConstantComparer.IgnoreAll.GetHashCode(pair.Value), hash);
+                return pair.GetHashCode();
             }
         }
     }

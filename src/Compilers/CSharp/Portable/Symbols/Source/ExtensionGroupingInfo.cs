@@ -225,13 +225,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(extension1.IsExtension);
             Debug.Assert(extension2.IsExtension);
 
-            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
-            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
             if (extension1.Arity != extension2.Arity)
             {
                 return false;
             }
 
+            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
+            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
             if (extension1.Arity > 0
                 && !MemberSignatureComparer.HaveSameConstraints(extension1.TypeParameters, typeMap1, extension2.TypeParameters, typeMap2, TypeCompareKind.AllIgnoreOptions))
             {
@@ -260,13 +260,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(extension1.IsExtension);
             Debug.Assert(extension2.IsExtension);
 
-            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
-            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
             if (extension1.Arity != extension2.Arity)
             {
                 return false;
             }
 
+            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
+            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
             if (extension1.Arity > 0)
             {
                 ImmutableArray<TypeParameterSymbol> typeParams1 = extension1.TypeParameters;
