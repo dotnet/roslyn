@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             => true;
 
         public string? Name
-            => _oldMethod.Name;
+            => DeltaMetadataWriter.GetDeletedDefinitionName(_oldMethod.Name);
 
         public MethodDefinitionHandle MetadataHandle
             => MetadataTokens.MethodDefinitionHandle(_oldMethod.MetadataToken);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             => _oldMethod.IsMetadataFinal;
 
         public bool IsSpecialName
-            => _oldMethod.HasSpecialName;
+            => true;
 
         public bool IsStatic
             => _oldMethod.IsStatic;
