@@ -136,8 +136,6 @@ internal abstract class LanguageServerProjectLoader
     private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
-        var projectPaths = projectsToLoadOrReload.SelectAsArray(project => project.Path);
-        await ProjectInitializationHandler.SendProjectReloadStartedNotificationAsync(projectPaths);
 
         // TODO: support configuration switching
 
@@ -173,7 +171,6 @@ internal abstract class LanguageServerProjectLoader
         finally
         {
             _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
-            await ProjectInitializationHandler.SendProjectReloadCompletedNotificationAsync(projectPaths);
         }
     }
 

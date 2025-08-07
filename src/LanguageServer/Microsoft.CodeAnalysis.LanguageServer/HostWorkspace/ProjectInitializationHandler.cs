@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Composition;
-using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class ProjectInitializationHandler : IDisposable
 {
     internal const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
-    internal const string ProjectReloadStartedName = "workspace/projectReloadStarted";
-    internal const string ProjectReloadCompletedName = "workspace/projectReloadCompleted";
 
     private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -44,22 +40,6 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
-    }
-
-    public static ValueTask SendProjectReloadStartedNotificationAsync(ImmutableArray<string> projectPaths)
-        => SendNotificationAsync(ProjectReloadStartedName, new ProjectReloadStatusParams(projectPaths));
-
-    public static ValueTask SendProjectReloadCompletedNotificationAsync(ImmutableArray<string> projectPaths)
-        => SendNotificationAsync(ProjectReloadCompletedName, new ProjectReloadStatusParams(projectPaths));
-
-    private sealed record ProjectReloadStatusParams(
-        [property: JsonPropertyName("projectFilePaths")] ImmutableArray<string> ProjectFilePaths);
-
-    private static async ValueTask SendNotificationAsync(string methodName, ProjectReloadStatusParams @params)
-    {
-        Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
-        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        await languageServerManager.SendNotificationAsync(methodName, @params, CancellationToken.None);
     }
 
     public static async ValueTask SendProjectInitializationCompleteNotificationAsync()
