@@ -23161,21 +23161,21 @@ interface I { }
 
         verifier.VerifyTypeIL("E", """
 .class private auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
+    extends [mscorlib]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
     // Nested Types
     .class nested public auto ansi sealed specialname '<Extension>$0AD8C3962A3C5E6BFA97E099F6F428C4'<(I) $T0, (I) $T1, (I) $T2>
-        extends [netstandard]System.Object
+        extends [mscorlib]System.Object
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
         // Nested Types
         .class nested public auto ansi abstract sealed specialname '<Marker>$5B198AEBE2F597134BE1E94D84704187'<(I) T1, (I) T2, (I) T3>
-            extends [netstandard]System.Object
+            extends [mscorlib]System.Object
         {
             .param constraint T1, I
                 .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
@@ -23191,7 +23191,7 @@ interface I { }
                     int32 ''
                 ) cil managed 
             {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Method begins at RVA 0x208e
