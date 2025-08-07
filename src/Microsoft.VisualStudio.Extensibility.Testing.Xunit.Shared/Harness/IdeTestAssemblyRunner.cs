@@ -303,6 +303,7 @@ namespace Xunit.Harness
                     var previousException = WpfTestSharedData.Instance.Exception;
                     try
                     {
+                        // Run the tests again, but using an error reporting test runner that will report the exception.
                         WpfTestSharedData.Instance.Exception = e;
                         return await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource).ConfigureAwait(true);
                     }
@@ -455,7 +456,12 @@ namespace Xunit.Harness
                             testCaseFinished.TestsSkipped + testCaseFinished.TestsFailed);
                     }
 
-                    return !_cancellationToken.IsCancellationRequested;
+                    if (_cancellationToken.IsCancellationRequested)
+                    {
+                        return false;
+                    }
+
+                    return _messageSink.OnMessage(message);
                 }
                 else if (!_finalAttempt && message is ITestFailed testFailed)
                 {
