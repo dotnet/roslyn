@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UserFacingStrings;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests;
@@ -713,6 +714,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         public Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<(Dictionary<string, UserFacingStringAnalysis>?, bool)>((null, false));
         }
     }
 }

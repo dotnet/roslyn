@@ -74,6 +74,7 @@ internal static class FeatureAttribute
     public const string Tagger = nameof(Tagger);
     public const string TaskList = nameof(TaskList);
     public const string Telemetry = nameof(Telemetry);
+    public const string UserFacingStringExtraction = nameof(UserFacingStringExtraction);
     public const string ValueTracking = nameof(ValueTracking);
     public const string Workspace = nameof(Workspace);
 }

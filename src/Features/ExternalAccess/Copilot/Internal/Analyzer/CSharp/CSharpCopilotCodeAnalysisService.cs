@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UserFacingStrings;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
@@ -177,5 +178,12 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         }
 
         return resultBuilder.ToImmutable();
+    }
+
+    protected override Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisCoreAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken)
+    {
+        // For now, return empty results as the external service doesn't exist yet
+        // This will be implemented when the external Copilot service supports user-facing string analysis
+        return Task.FromResult<(Dictionary<string, UserFacingStringAnalysis>?, bool)>((null, false));
     }
 }

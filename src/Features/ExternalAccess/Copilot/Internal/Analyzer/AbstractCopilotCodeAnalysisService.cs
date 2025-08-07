@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UserFacingStrings;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer;
@@ -48,6 +49,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
     protected abstract Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties, CancellationToken cancellationToken);
     protected abstract bool IsImplementNotImplementedExceptionsAvailableCore();
+    protected abstract Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisCoreAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -220,5 +222,13 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         CancellationToken cancellationToken)
     {
         return await ImplementNotImplementedExceptionsCoreAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken)
+    {
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return (null, false);
+
+        return await GetUserFacingStringAnalysisCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 }

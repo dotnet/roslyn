@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UserFacingStrings;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
@@ -101,4 +102,12 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
         Document document,
         ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Analyzes all string literals in code to determine which ones are likely user-facing.
+    /// Returns confidence scores and suggestions for each string without any manual filtering.
+    /// </summary>
+    /// <param name="proposal">The proposal containing all string literals found in the code.</param>
+    /// <returns>A dictionary mapping string candidates to AI analysis results and whether quota has been exceeded.</returns>
+    Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken);
 }

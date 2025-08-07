@@ -23,6 +23,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
+Imports Microsoft.CodeAnalysis.UserFacingStrings
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
@@ -380,6 +381,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
             Public Function ImplementNotImplementedExceptionsAsync(document As Document, methodOrProperties As ImmutableDictionary(Of SyntaxNode, ImmutableArray(Of ReferencedSymbol)), cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of SyntaxNode, ImplementationDetails)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionsAsync
                 Return Task.FromResult(ImmutableDictionary(Of SyntaxNode, ImplementationDetails).Empty)
+            End Function
+
+            Public Function GetUserFacingStringAnalysisAsync(proposal As UserFacingStringProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, UserFacingStringAnalysis), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetUserFacingStringAnalysisAsync
+                Return Task.FromResult((DirectCast(Nothing, Dictionary(Of String, UserFacingStringAnalysis)), False))
             End Function
         End Class
     End Class
