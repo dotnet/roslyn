@@ -28691,7 +28691,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= from x in ... () select x')
             ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.String) (Syntax: 'from x in n ... () select x')
               Expression:
-                IInvocationOperation ( System.String E.<>E__0.Select(System.Func<C, C> selector)) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: 'select x')
+                IInvocationOperation ( System.String E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.Select(System.Func<C, C> selector)) (OperationKind.Invocation, Type: System.String, IsImplicit) (Syntax: 'select x')
                   Instance Receiver:
                     IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
                       Arguments(0)
@@ -29287,7 +29287,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.Property");
-        AssertEx.Equal("System.String E.<>E__0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.String E.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -29588,7 +29588,7 @@ public class Program
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "a.Extension");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.String E.<>E__0.Extension()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Equal(["System.String E.<G>$43BB1C51423008731091E2D86C21895C.Extension()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "a.Extension2");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
@@ -44740,7 +44740,7 @@ static class E
     public void RefAnalysis_Invocation_11()
     {
         // Based on this extension, but missing the implementation method:
-        // static class E
+        // public static class E
         // {
         //     extension(ref int i)
         //     {
@@ -44749,25 +44749,34 @@ static class E
         // }
         string ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+    extends System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32& i ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$56B5C634B2E52051C75D91F71BA8833A'
+            extends System.Object
         {
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32& i ) cil managed 
+            {
+                ret
+            }
         }
-
         .method public hidebysig instance int32& M () cil managed 
         {
-            IL_0000: ldnull
-            IL_0001: throw
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 35 36 42 35 43 36 33 34 42
+                32 45 35 32 30 35 31 43 37 35 44 39 31 46 37 31
+                42 41 38 38 33 33 41 00 00
+            )
+            ldnull
+            throw
         }
     }
 }
-""";
+""" + ExtensionMarkerAttributeIL;
 
         string source = """
 class C
@@ -44848,25 +44857,34 @@ public static class E
         // }
         string ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+    extends System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        extends System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( object o ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
+            extends System.Object
         {
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( object o ) cil managed 
+            {
+                ret
+            }
         }
-
         .method public hidebysig instance void Deconstruct ( [out] int32& x1, [out] int32& x2 ) cil managed 
         {
-            IL_0000: ldnull
-            IL_0001: throw
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
+            )
+            ldnull
+            throw
         }
     }
 }
-""";
+""" + ExtensionMarkerAttributeIL;
 
         var source = """
 object o = new object();
@@ -44920,25 +44938,34 @@ public static class E
         string ilSrc = """
 
 .class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+    extends System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        extends System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( object o ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
+            extends System.Object
         {
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( object o ) cil managed 
+            {
+                ret
+            }
         }
-
         .method public hidebysig instance class [mscorlib]System.Collections.Generic.IEnumerator`1<int32> GetEnumerator () cil managed 
         {
-            IL_0000: ldnull
-            IL_0001: throw
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
+            )
+            ldnull
+            throw
         }
     }
 }
-""";
+""" + ExtensionMarkerAttributeIL;
 
         var source = """
 foreach (var x in new object()) { }

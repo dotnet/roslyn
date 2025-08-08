@@ -28204,25 +28204,34 @@ public static class E
         // }
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+    extends System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends System.Object
         {
-            IL_0000: ret
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                ret
+            }
         }
-
         .method public hidebysig static void M () cil managed 
         {
-            IL_0000: ldnull
-            IL_0001: throw
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
+            )
+            ldnull
+            throw
         }
     }
 }
-""";
+""" + ExtensionMarkerAttributeIL;
 
         var src = """
 var x = int.M;
@@ -28671,45 +28680,64 @@ class C<T> { }
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$DCC6408136F6EFC8A90FB693F174BE24'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C`1<int32> source
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$586604688281C9157DFFE75E9BF93DF3'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x212c
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C`1<int32> source
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x212f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$586604688281C9157DFFE75E9BF93DF3'::'<Extension>$'
+        } // end of class <M>$586604688281C9157DFFE75E9BF93DF3
+        // Methods
         .method public hidebysig 
             instance class C`1<string> SelectMany (
                 class [mscorlib]System.Func`2<int32, class C`1<int32>> collectionSelector,
                 class [mscorlib]System.Func`3<int32, int32, string> resultSelector
             ) cil managed 
         {
-            // Method begins at RVA 0x212e
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 35 38 36 36 30 34 36 38 38
+                32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
+                42 46 39 33 44 46 33 00 00
+            )
+            // Method begins at RVA 0x212c
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::SelectMany
+        } // end of method '<G>$DCC6408136F6EFC8A90FB693F174BE24'::SelectMany
         .method public hidebysig 
             instance class C`1<!!T> Cast<T> () cil managed 
         {
-            // Method begins at RVA 0x212e
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 35 38 36 36 30 34 36 38 38
+                32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
+                42 46 39 33 44 46 33 00 00
+            )
+            // Method begins at RVA 0x212c
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::Cast
-    } // end of class <>E__0
+        } // end of method '<G>$DCC6408136F6EFC8A90FB693F174BE24'::Cast
+    } // end of class <G>$DCC6408136F6EFC8A90FB693F174BE24
     // Methods
     .method public hidebysig static 
         class C`1<string> SelectMany (
@@ -28751,9 +28779,9 @@ class C<T> { }
         var expectedOperationTree = """
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: C<System.String>) (Syntax: 'from int x  ... .ToString()')
 Expression:
-  IInvocationOperation ( C<System.String> E.<>E__0.SelectMany(System.Func<System.Int32, C<System.Int32>> collectionSelector, System.Func<System.Int32, System.Int32, System.String> resultSelector)) (OperationKind.Invocation, Type: C<System.String>, IsImplicit) (Syntax: 'from int y  ... ew C<int>()')
+  IInvocationOperation ( C<System.String> E.<G>$DCC6408136F6EFC8A90FB693F174BE24.SelectMany(System.Func<System.Int32, C<System.Int32>> collectionSelector, System.Func<System.Int32, System.Int32, System.String> resultSelector)) (OperationKind.Invocation, Type: C<System.String>, IsImplicit) (Syntax: 'from int y  ... ew C<int>()')
     Instance Receiver:
-      IInvocationOperation ( C<System.Int32> E.<>E__0.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'from int x  ... ew C<int>()')
+      IInvocationOperation ( C<System.Int32> E.<G>$DCC6408136F6EFC8A90FB693F174BE24.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'from int x  ... ew C<int>()')
         Instance Receiver:
           IObjectCreationOperation (Constructor: C<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: C<System.Int32>) (Syntax: 'new C<int>()')
             Arguments(0)
@@ -28768,7 +28796,7 @@ Expression:
                 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'new C<int>()')
                   IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'new C<int>()')
                     ReturnedValue:
-                      IInvocationOperation ( C<System.Int32> E.<>E__0.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'new C<int>()')
+                      IInvocationOperation ( C<System.Int32> E.<G>$DCC6408136F6EFC8A90FB693F174BE24.Cast<System.Int32>()) (OperationKind.Invocation, Type: C<System.Int32>, IsImplicit) (Syntax: 'new C<int>()')
                         Instance Receiver:
                           IObjectCreationOperation (Constructor: C<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: C<System.Int32>) (Syntax: 'new C<int>()')
                             Arguments(0)
