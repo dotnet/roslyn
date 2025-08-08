@@ -190,21 +190,37 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
             // switch statements do not use best-common-type, but switch expressions can use it.  We don't want the
             // original conversion to be lost because a new best-common-type conversion is added.
             var typeInfo = _semanticModel.GetTypeInfo(node, _cancellationToken);
-            if (typeInfo.ConvertedType is not null &&
-                typeInfo.Type is not null &&
+            if (typeInfo is { Type: not null, ConvertedType: not null } &&
                 !Equals(typeInfo.ConvertedType, typeInfo.Type))
             {
                 var conversion = _semanticModel.Compilation.ClassifyConversion(typeInfo.Type, typeInfo.ConvertedType);
+                //if (NeedsCast(conversion))
+                //    return node.Cast(typeInfo.ConvertedType);
+
                 if (!conversion.IsIdentityOrImplicitReference())
                 {
-                    if (!conversion.IsBoxing || typeInfo.Type.IsNumericType())
-                    {
-                        return node.Cast(typeInfo.ConvertedType);
-                    }
+                    return node.Cast(typeInfo.ConvertedType);
+                    //if (!conversion.IsBoxing || typeInfo.Type.IsNumericType())
+                    //{
+                    //    return node.Cast(typeInfo.ConvertedType);
+                    //}
                 }
             }
 
             return node;
+
+            //bool NeedsCast(Conversion conversion)
+            //{
+            //    if (!conversion.Exists || !conversion.IsImplicit)
+            //        return true;
+
+            //    // We've got an implicit conversion.  Several of these are fine to have continue in a cast-less fashion
+            //    // as the lang allows that to happen automatically.
+
+            //    if (conversion.IsIdentity)
+            //        return false;
+
+            //}
         }
 
         private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)

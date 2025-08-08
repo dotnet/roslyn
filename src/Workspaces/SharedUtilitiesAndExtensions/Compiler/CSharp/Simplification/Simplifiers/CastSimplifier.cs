@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -578,6 +579,16 @@ internal static class CastSimplifier
             return true;
         }
 
+        // Similarly, we want to support this for:
+        //
+        //      int? a = b switch { true => (int?)0, false => 1 }
+        if (IsSwitchExpressionCaseCastSafeToRemove(
+                castNode, originalSemanticModel,
+                rewrittenExpression, rewrittenSemanticModel, cancellationToken))
+        {
+            return true;
+        }
+
         // Widening a value before bitwise negation produces the same value as bitwise negation
         // followed by the same widening.  For example:
         //
@@ -821,6 +832,42 @@ internal static class CastSimplifier
     private static bool IsSignedIntegralOrIntPtrType(ITypeSymbol? type)
         => type.IsSignedIntegralType() || type?.SpecialType is SpecialType.System_IntPtr;
 
+    private static bool IsSwitchExpressionCaseCastSafeToRemove(
+        ExpressionSyntax castNode, SemanticModel originalSemanticModel,
+        ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
+    {
+        if (castNode is not CastExpressionSyntax castExpression)
+            return false;
+
+        var parent = castExpression.WalkUpParentheses();
+        if (parent.Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax originalSwitchExpression })
+            return false;
+
+        if (rewrittenExpression.WalkUpParentheses().Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax rewrittenSwitchExpression })
+            return false;
+
+        return IsSwitchOrConditionalCastSafeToRemove(
+            castExpression,
+            originalSemanticModel,
+            rewrittenExpression,
+            rewrittenSemanticModel,
+            originalSwitchExpression,
+            rewrittenSwitchExpression,
+            static switchExpression => switchExpression.Arms.SelectAsArray(a => a.Expression),
+            static (switchExpression, armExpression) =>
+            {
+                if (switchExpression.Arms.Count <= 2)
+                    return null;
+
+                var arm = switchExpression.Arms.Single(a => a.Expression == armExpression);
+                var armIndex = switchExpression.Arms.IndexOf(arm);
+                return armIndex == 0
+                    ? switchExpression.Arms[1].Expression
+                    : switchExpression.Arms[armIndex - 1].Expression;
+            },
+            cancellationToken);
+    }
+
     private static bool IsConditionalCastSafeToRemove(
         ExpressionSyntax castNode, SemanticModel originalSemanticModel,
         ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
@@ -832,11 +879,47 @@ internal static class CastSimplifier
         if (parent.Parent is not ConditionalExpressionSyntax originalConditionalExpression)
             return false;
 
-        // if we were parented by a conditional before, we must be parented by a conditional afterwards.
-        var rewrittenConditionalExpression = (ConditionalExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
-
         if (parent != originalConditionalExpression.WhenFalse && parent != originalConditionalExpression.WhenTrue)
             return false;
+
+        if (rewrittenExpression.WalkUpParentheses().Parent is not ConditionalExpressionSyntax rewrittenConditionalExpression)
+            return false;
+
+        return IsSwitchOrConditionalCastSafeToRemove(
+            castExpression,
+            originalSemanticModel,
+            rewrittenExpression,
+            rewrittenSemanticModel,
+            originalConditionalExpression,
+            rewrittenConditionalExpression,
+            static conditionalExpression => [conditionalExpression.WhenTrue, conditionalExpression.WhenFalse],
+            static (conditionalExpression, armExpression) => armExpression == conditionalExpression.WhenTrue
+                ? conditionalExpression.WhenFalse
+                : conditionalExpression.WhenTrue,
+            cancellationToken);
+    }
+
+    private static bool IsSwitchOrConditionalCastSafeToRemove<TConditionalOrSwitchExpression>(
+        CastExpressionSyntax castExpression,
+        SemanticModel originalSemanticModel,
+        ExpressionSyntax rewrittenExpression,
+        SemanticModel rewrittenSemanticModel,
+        TConditionalOrSwitchExpression originalConditionalOrSwitchExpression,
+        TConditionalOrSwitchExpression rewrittenConditionalOrSwitchExpression,
+        Func<TConditionalOrSwitchExpression, ImmutableArray<ExpressionSyntax>> getArmExpressions,
+        Func<TConditionalOrSwitchExpression, ExpressionSyntax, ExpressionSyntax?> getAlternativeArm,
+        CancellationToken cancellationToken)
+        where TConditionalOrSwitchExpression : ExpressionSyntax
+    {
+        var parentExpression = castExpression.WalkUpParentheses();
+        //if (parent.Parent is not ConditionalExpressionSyntax originalConditionalExpression)
+        //    return false;
+
+        //// if we were parented by a conditional before, we must be parented by a conditional afterwards.
+        //var rewrittenConditionalExpression = (ConditionalExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
+
+        //if (parent != originalConditionalExpression.WhenFalse && parent != originalConditionalExpression.WhenTrue)
+        //    return false;
 
         if (originalSemanticModel.GetOperation(castExpression, cancellationToken) is not IConversionOperation conversionOperation)
             return false;
@@ -856,16 +939,16 @@ internal static class CastSimplifier
             {
                 // if we have `a ? (int?)b : default` then we can't remove the nullable cast as it changes the
                 // meaning of `default`.
-                if (originalConditionalExpression.WhenTrue.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) ||
-                    originalConditionalExpression.WhenFalse.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
+                foreach (var armExpression in getArmExpressions(originalConditionalOrSwitchExpression))
                 {
-                    return false;
+                    if (armExpression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
+                        return false;
                 }
             }
 
             var originalCastExpressionTypeInfo = originalSemanticModel.GetTypeInfo(castExpression, cancellationToken);
-            var originalConditionalTypeInfo = originalSemanticModel.GetTypeInfo(originalConditionalExpression, cancellationToken);
-            var rewrittenConditionalTypeInfo = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken);
+            var originalConditionalTypeInfo = originalSemanticModel.GetTypeInfo(originalConditionalOrSwitchExpression, cancellationToken);
+            var rewrittenConditionalTypeInfo = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalOrSwitchExpression, cancellationToken);
 
             if (IsNullOrErrorType(originalCastExpressionTypeInfo) ||
                 IsNullOrErrorType(originalConditionalTypeInfo) ||
@@ -886,13 +969,14 @@ internal static class CastSimplifier
             if (IsNullOrErrorType(castType))
                 return false;
 
-            if (rewrittenSemanticModel.GetOperation(rewrittenConditionalExpression, cancellationToken) is not IConditionalOperation rewrittenConditionalOperation)
+            var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenConditionalOrSwitchExpression, cancellationToken);
+            if (rewrittenOperation is not IConditionalOperation and not ISwitchExpressionOperation)
                 return false;
 
-            if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
+            if (castType.Equals(rewrittenOperation.Type, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
-            if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
+            if (rewrittenOperation.Parent is IConversionOperation conditionalParentConversion &&
                 conditionalParentConversion.GetConversion().IsImplicit &&
                 castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
             {
@@ -911,7 +995,11 @@ internal static class CastSimplifier
             if (castExpression.Expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
                 return false;
 
-            var otherSide = parent == originalConditionalExpression.WhenFalse ? originalConditionalExpression.WhenTrue : originalConditionalExpression.WhenFalse;
+            var otherSide = getAlternativeArm(originalConditionalOrSwitchExpression, parentExpression);
+            if (otherSide is null)
+                return false;
+
+            //parent == originalConditionalExpression.WhenFalse ? originalConditionalExpression.WhenTrue : originalConditionalExpression.WhenFalse;
             var otherSideType = originalSemanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
             var thisSideRewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
 
@@ -925,11 +1013,11 @@ internal static class CastSimplifier
             // Now check that with the (T) cast removed, that the outer `x ? y : z` is still
             // immediately implicitly converted to a 'T'. If so, we can remove this inner (T) cast.
 
-            var rewrittenConditionalConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken).ConvertedType;
+            var rewrittenConditionalConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalOrSwitchExpression, cancellationToken).ConvertedType;
             if (rewrittenConditionalConvertedType is null)
                 return false;
 
-            var outerConversion = rewrittenSemanticModel.GetConversion(rewrittenConditionalExpression, cancellationToken);
+            var outerConversion = rewrittenSemanticModel.GetConversion(rewrittenConditionalOrSwitchExpression, cancellationToken);
             if (!outerConversion.IsImplicit)
                 return false;
 
