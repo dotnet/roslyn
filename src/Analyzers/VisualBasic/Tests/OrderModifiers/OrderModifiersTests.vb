@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.OrderModifiers
 
         <Fact>
         Public Async Function TestClass() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|friend|] protected class C
 end class
 ",
@@ -30,7 +30,7 @@ end class
 
         <Fact>
         Public Async Function TestStruct() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|friend|] protected structure C
 
 end structure",
@@ -41,7 +41,7 @@ end structure")
 
         <Fact>
         Public Async Function TestInterface() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|friend|] protected interface C
 end interface",
 "protected friend interface C
@@ -50,7 +50,7 @@ end interface")
 
         <Fact>
         Public Async Function TestEnum() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|friend|] protected enum C
 end enum",
 "protected friend enum C
@@ -59,14 +59,14 @@ end enum")
 
         <Fact>
         Public Async Function TestDelegate() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "[|friend|] protected delegate sub D()",
 "protected friend delegate sub D()")
         End Function
 
         <Fact>
         Public Async Function TestMethodStatement() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|mustoverride|] protected sub M()
 end class",
@@ -77,7 +77,7 @@ end class")
 
         <Fact>
         Public Async Function TestMethodBlock() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|friend|] protected sub M()
     end sub
@@ -90,7 +90,7 @@ end class")
 
         <Fact>
         Public Async Function TestField() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|friend|] protected dim a as integer
 end class",
@@ -101,7 +101,7 @@ end class")
 
         <Fact>
         Public Async Function TestConstructor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|friend|] protected sub new()
     end sub
@@ -114,7 +114,7 @@ end class")
 
         <Fact>
         Public Async Function TestPropertyStatement() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|readonly|] protected property P as integer
 end class",
@@ -125,7 +125,7 @@ end class")
 
         <Fact>
         Public Async Function TestPropertyBlock() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|readonly|] protected property P as integer
         get
@@ -142,7 +142,7 @@ end class")
 
         <Fact>
         Public Async Function TestAccessor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     public property P as integer
         [|friend|] protected get
@@ -161,7 +161,7 @@ end class
 
         <Fact>
         Public Async Function TestPropertyEvent() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|friend|] protected custom event E as Action 
     end event
@@ -174,7 +174,7 @@ end class")
 
         <Fact>
         Public Async Function TestFieldEvent() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|friend|] protected event E as Action
 end class",
@@ -185,7 +185,7 @@ end class")
 
         <Fact>
         Public Async Function TestOperator() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|shared|] public operator +(c1 as integer, c2 as integer) as integer
     end operator
@@ -200,7 +200,7 @@ end class
 
         <Fact>
         Public Async Function TestConversionOperator() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [|shared|] public widening operator CType(x as integer) as boolean
     end operator
@@ -213,7 +213,7 @@ end class")
 
         <Fact>
         Public Async Function TestFixAll1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "{|FixAllInDocument:friend|} protected class C
     friend protected class Nested
     end class
@@ -226,7 +226,7 @@ end class")
 
         <Fact>
         Public Async Function TestFixAll2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "friend protected class C
     {|FixAllInDocument:friend|} protected class Nested
     end class
@@ -241,7 +241,7 @@ end class
 
         <Fact>
         Public Async Function TestTrivia1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 ''' Doc comment
 [|friend|] protected class C
@@ -256,7 +256,7 @@ end class
 
         <Fact>
         Public Async Function TestTrivia3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 #if true
 [|friend|] protected class C

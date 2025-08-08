@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -23,7 +24,6 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     public static AbstractProjectDiagnosticSource CreateForCodeAnalysisDiagnostics(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(project, codeAnalysisService);
 
-    public abstract bool IsLiveSource();
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken);
 
     public ProjectOrDocumentId GetId() => new(Project.Id);
@@ -37,12 +37,6 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     private sealed class FullSolutionAnalysisDiagnosticSource(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : AbstractProjectDiagnosticSource(project)
     {
-        /// <summary>
-        /// This is a normal project source that represents live/fresh diagnostics that should supersede everything else.
-        /// </summary>
-        public override bool IsLiveSource()
-            => true;
-
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
@@ -64,19 +58,17 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         : AbstractProjectDiagnosticSource(project)
     {
-        /// <summary>
-        /// This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
-        /// user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
-        /// that has been produced.
-        /// </summary>
-        public override bool IsLiveSource()
-            => false;
-
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(codeAnalysisService.GetLastComputedProjectDiagnostics(Project.Id));
+            var diagnostics = codeAnalysisService.GetLastComputedProjectDiagnostics(Project.Id);
+
+            // This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
+            // user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
+            // that has been produced.
+            diagnostics = ProtocolConversions.AddBuildTagIfNotPresent(diagnostics);
+            return Task.FromResult(diagnostics);
         }
     }
 }

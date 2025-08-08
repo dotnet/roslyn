@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesAsync(New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken))).
-                Returns(Function() ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
+                Returns(Function() RoslynValueTaskExtensions.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken)())).
                 Returns(Function() CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
@@ -68,7 +68,7 @@ Imports NuGetNamespace
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
         End Function
 
         <Fact>
@@ -83,7 +83,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesAsync(New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken))).
-                Returns(Function() ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
+                Returns(Function() RoslynValueTaskExtensions.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken)())).
                 Returns(Function() CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -97,7 +97,7 @@ Imports NS1.NS2
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
         End Function
 
         <Fact>
@@ -112,7 +112,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesAsync(New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken))).
-                Returns(Function() ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
+                Returns(Function() RoslynValueTaskExtensions.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken)())).
                 Returns(Function() CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -124,7 +124,7 @@ End Class",
 "
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
         End Function
 
         <Fact>
@@ -137,7 +137,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesAsync(New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken))).
-                Returns(Function() ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
+                Returns(Function() RoslynValueTaskExtensions.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken)())).
                 Returns(Function() CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -162,7 +162,7 @@ New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesAsync(New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken))).
-                Returns(Function() ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
+                Returns(Function() RoslynValueTaskExtensions.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken)())).
                 Returns(Function() CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -204,7 +204,7 @@ parameters:=New TestParameters(index:=2, fixProviderData:=data))
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesAsync(New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken))).
-                Returns(Function() ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
+                Returns(Function() RoslynValueTaskExtensions.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken)())).
                 Returns(Function() CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
@@ -218,7 +218,7 @@ Imports NuGetNamespace
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
             installerServiceMock.Verify()
         End Function
 
@@ -236,7 +236,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesAsync(New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken))).
-                Returns(Function() ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
+                Returns(Function() RoslynValueTaskExtensions.FromResult(ImmutableArray(Of ReferenceAssemblyResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, New TypeQuery("NuGetType", 0), It.IsAny(Of NamespaceQuery), It.IsAny(Of CancellationToken)())).
                 Returns(Function() CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
@@ -250,7 +250,7 @@ Imports NuGetNamespace
 
 Class C
     Dim n As NuGetType
-End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+End Class", New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
             installerServiceMock.Verify()
         End Function
 
@@ -264,7 +264,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
         End Function
 
         Private Shared Function CreateSearchResult(ParamArray results As PackageResult()) As ValueTask(Of ImmutableArray(Of PackageResult))
-            Return ValueTaskFactory.FromResult(ImmutableArray.Create(results))
+            Return RoslynValueTaskExtensions.FromResult(ImmutableArray.Create(results))
         End Function
 
         Private Shared Function CreateNameParts(ParamArray parts As String()) As ImmutableArray(Of String)

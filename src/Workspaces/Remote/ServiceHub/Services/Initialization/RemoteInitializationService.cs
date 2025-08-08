@@ -31,7 +31,7 @@ internal sealed class RemoteInitializationService(
             var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
             service.InitializeOptions(options);
 
-            return ValueTaskFactory.FromResult(Process.GetCurrentProcess().Id);
+            return ValueTask.FromResult(Process.GetCurrentProcess().Id);
         }, cancellationToken).ConfigureAwait(false);
 
         return (processId, errorMessage);

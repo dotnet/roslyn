@@ -6,12 +6,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
@@ -23,6 +28,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
 
 public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(TestSourceGeneratedDocumentSpanMappingService));
+
     [Theory, CombinatorialData]
     public async Task TestFindAllReferencesAsync(bool mutatingLspWorkspace)
     {
@@ -339,6 +346,43 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         Assert.True(results[0].Location.DocumentUri.ToString().EndsWith("String.cs"));
 
         AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Skip(1).Select(r => r.Location));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFindReferencesAsync_WithRazorSourceGeneratedFile(bool mutatingLspWorkspace)
+    {
+        var generatedMarkup = """
+            public class B
+            {
+                public void {|reference:M|}()
+                {
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            public class A
+            {
+                public void M()
+                {
+                    new B().{|caret:M|}();
+                }
+            }
+            """, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+        TestFileMarkupParser.GetSpans(generatedMarkup, out var generatedCode, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+        var generatedSourceText = SourceText.From(generatedCode);
+
+        var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", generatedCode));
+        var workspace = testLspServer.TestWorkspace;
+        var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
+        workspace.TryApplyChanges(project.Solution);
+
+        var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+        Assert.Equal(2, results.Length);
+        Assert.True(results[1].Location.DocumentUri.GetRequiredParsedUri().LocalPath.EndsWith("generated_file.cs"));
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        Assert.True(service.DidMapSpans);
     }
 
     private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)

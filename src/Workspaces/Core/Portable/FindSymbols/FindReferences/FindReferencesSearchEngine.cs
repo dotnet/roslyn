@@ -311,7 +311,7 @@ internal sealed partial class FindReferencesSearchEngine(
                     cache, TryGet(symbolToGlobalAliases, symbolToSearchFor));
 
                 ProcessDocument(symbolToSearchFor, symbolGroup, state, onReferenceFound);
-                return ValueTaskFactory.CompletedTask;
+                return ValueTask.CompletedTask;
             }).ConfigureAwait(false);
 
         return;

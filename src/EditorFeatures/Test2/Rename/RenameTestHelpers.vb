@@ -81,6 +81,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Function
 
+        Public Async Function VerifyChangedSourceGeneratedDocumentFileNames(workspace As EditorTestWorkspace, ParamArray mappedFiles As String()) As Task
+            Await WaitForRename(workspace)
+
+            Assert.Equal(workspace.ChangedSourceGeneratedDocumentFileNames, mappedFiles)
+        End Function
+
         Public Sub VerifyFileName(document As Document, newIdentifierName As String)
             Dim expectedName = Path.ChangeExtension(newIdentifierName, Path.GetExtension(document.Name))
             Assert.Equal(expectedName, document.Name)

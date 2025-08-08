@@ -62,7 +62,7 @@ internal static class AsyncEnumerableFactory
 
         static async Task ProcessAsync(IAsyncEnumerable<T> stream, ChannelWriter<T> writer, CancellationToken cancellationToken)
         {
-            await foreach (var value in stream)
+            await foreach (var value in stream.ConfigureAwait(false))
                 await writer.WriteAsync(value, cancellationToken).ConfigureAwait(false);
         }
     }

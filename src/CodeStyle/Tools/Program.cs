@@ -66,12 +66,12 @@ public static class Program
         }
 
         var configDir = Path.Combine(outputDir, "config");
-        foreach (var analysisMode in Enum.GetValues(typeof(AnalysisMode)))
+        foreach (var analysisMode in Enum.GetValues<AnalysisMode>())
         {
             CreateGlobalconfig(
                 configDir,
                 $"AnalysisLevelStyle_{analysisMode}.globalconfig".ToLowerInvariant(),
-                (AnalysisMode)analysisMode!,
+                analysisMode,
                 allRulesById);
         }
 
@@ -197,13 +197,10 @@ public static class Program
 
     private static void CreateTargetsFile(string language, string outputDir, string targetsFileName)
     {
-        var fileContents =
-$@"<Project>{GetTargetContents(language)}
-</Project>";
-
         var directory = Directory.CreateDirectory(outputDir);
         var fileWithPath = Path.Combine(directory.FullName, targetsFileName);
-        File.WriteAllText(fileWithPath, fileContents);
+        File.WriteAllText(fileWithPath, $@"<Project>{GetTargetContents(language)}
+</Project>");
         return;
 
         static string GetTargetContents(string language)

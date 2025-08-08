@@ -135,7 +135,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 private void Goo() => throw new NotImplementedException();
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11518")]
     public Task NameMatchesNamespaceName()
@@ -4203,7 +4203,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 throw new NotImplementedException();
             }
             """,
-            parseOptions: GetScriptOptions());
+            new(parseOptions: GetScriptOptions()));
 
     [Fact]
     public Task TestInTopLevelImplicitClass1()
@@ -4229,7 +4229,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 throw new NotImplementedException();
             }
             """,
-            parseOptions: GetScriptOptions());
+            new(parseOptions: GetScriptOptions()));
 
     [Fact]
     public Task TestInNamespaceImplicitClass1()
@@ -8303,7 +8303,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact]
     public Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
@@ -8333,7 +8333,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact]
     public Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
@@ -8363,7 +8363,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact]
     public Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
@@ -8393,7 +8393,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
     public Task TestDeconstruction1()
@@ -8425,7 +8425,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
     public Task TestDeconstruction2()
@@ -8457,7 +8457,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact/*(Skip = "https://github.com/dotnet/roslyn/issues/15508")*/]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
@@ -8490,7 +8490,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
     public Task TestDeconstruction4()
@@ -8522,7 +8522,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15315")]
     public Task TestInferBooleanTypeBasedOnName1()
@@ -8643,7 +8643,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18969")]
     public Task TestTupleElement2()
@@ -8675,7 +8675,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 }
             }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25305")]
     public Task TestTupleAssignment()
@@ -8775,7 +8775,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
 
             class Goo { }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
     public Task TestWithSameMethodNameAsTypeName2()
@@ -8811,7 +8811,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
 
             interface Goo { }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
     public Task TestWithSameMethodNameAsTypeName3()
@@ -8847,7 +8847,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
 
             struct Goo { }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
     public Task TestWithSameMethodNameAsTypeName4()
@@ -8883,7 +8883,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
 
             delegate void Goo()
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
     public Task TestWithSameMethodNameAsTypeName5()
@@ -8919,7 +8919,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
 
             namespace Goo { }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
     public Task TestWithSameMethodNameAsTypeName6()
@@ -8955,7 +8955,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
 
             enum Goo { One }
             """,
-            parseOptions: TestOptions.Regular);
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26957")]
     public Task NotOnNonExistedMetadataMemberWhenInsideLambda()
@@ -10540,7 +10540,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                     throw new NotImplementedException();
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default);
+            """, new(parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestNullConditionalAssignment1()
@@ -10575,7 +10575,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                     throw new NotImplementedException();
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14)));
 
     [Fact]
     public Task TestNullConditionalAssignment2()
@@ -10612,5 +10612,5 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                     throw new NotImplementedException();
                 }
             }
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14)));
 }

@@ -54,7 +54,7 @@ internal sealed class OnAutoInsertHandler(
         if (!onAutoInsertEnabled)
             return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
-        var servicesForDocument = _braceCompletionServices.Where(s => s.Metadata.Language == document.Project.Language).SelectAsArray(s => s.Value);
+        var servicesForDocument = _braceCompletionServices.SelectAsArray(s => s.Metadata.Language == document.Project.Language, s => s.Value);
         var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
         return GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, isRazorRequest, cancellationToken);

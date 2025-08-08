@@ -111,7 +111,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 PooledDictionary<(ImmutableHashSet<SourceInfo> SourceInfos, ImmutableHashSet<SanitizerInfo> SanitizerInfos), (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SinkInfo>.Builder SinkInfos)>.GetInstance(out var sourceSanitizersToSinks);
 
             // Using LazyThreadSafetyMode.ExecutionAndPublication to avoid instantiating multiple times.
-            foreach (SinkKind sinkKind in Enum.GetValues(typeof(SinkKind)))
+            foreach (var sinkKind in Enum.GetValues<SinkKind>())
             {
                 ImmutableHashSet<SourceInfo> sources = GetSourceInfos(sinkKind);
                 if (!sourcesToSymbolMap.TryGetValue(sources, out Lazy<TaintedDataSymbolMap<SourceInfo>> lazySourceSymbolMap))

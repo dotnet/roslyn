@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -795,16 +797,41 @@ internal static partial class ISymbolExtensions
            (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _) || symbol.Name.All(n => n.Equals('_')));
 
     /// <summary>
-    /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
+    /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="ObsoleteAttribute"/> and does
+    /// <em>not</em> have the <see cref="CompilerFeatureRequiredAttribute"/> attribute.
     /// </summary>
-    /// <param name="symbol"></param>
-    /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
+    /// <remarks>
+    /// The compiler will emit ObsoleteAttributes on symbols along with CompilerFeatureRequiredAttribute to indicate
+    /// that the symbol is conditionally obsolete, depending on if the target compiler supports that particular
+    /// feature or not.  This information is then used just to tell the user a specific message, it is not actually
+    /// intended to indicate the symbol is actually obsolete.  As such, we return 'false' here as this check is 
+    /// intended for use by features that use the traditional concept of an actual <c>[Obsolete]</c> attribute added
+    /// in source by the user themselves.
+    /// </remarks>
     public static bool IsObsolete(this ISymbol symbol)
-        => symbol.GetAttributes().Any(static x => x.AttributeClass is
+    {
+        if (symbol.GetAttributes().Any(static x => x.AttributeClass is
+            {
+                MetadataName: nameof(ObsoleteAttribute),
+                ContainingNamespace.Name: nameof(System),
+                ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+            }))
         {
-            MetadataName: nameof(ObsoleteAttribute),
-            ContainingNamespace.Name: nameof(System),
-        });
+            if (!symbol.GetAttributes().Any(static x => x.AttributeClass is
+                {
+                    MetadataName: nameof(CompilerFeatureRequiredAttribute),
+                    ContainingNamespace.Name: nameof(System.Runtime.CompilerServices),
+                    ContainingNamespace.ContainingNamespace.Name: nameof(System.Runtime),
+                    ContainingNamespace.ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                    ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+                }))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public static bool HasAttribute([NotNullWhen(true)] this ISymbol? symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeClass)
     {

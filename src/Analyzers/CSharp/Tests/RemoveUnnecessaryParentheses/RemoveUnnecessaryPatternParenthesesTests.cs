@@ -24,11 +24,11 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
 
     private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
     {
-        await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
+        await TestInRegularAndScriptAsync(initial, expected, new(options: RemoveAllUnnecessaryParentheses, index: index));
 
         if (offeredWhenRequireForClarityIsEnabled)
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
+            await TestInRegularAndScriptAsync(initial, expected, new(options: RequireAllParenthesesForClarity, index: index));
         }
         else
         {
@@ -41,7 +41,7 @@ public sealed class RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper l
 
     [Fact]
     public Task TestArithmeticRequiredForClarity2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

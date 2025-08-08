@@ -13,35 +13,19 @@ internal static class OnTheFlyDocsUtilities
 {
     public static ImmutableArray<OnTheFlyDocsRelevantFileInfo?> GetAdditionalOnTheFlyDocsContext(Solution solution, ISymbol symbol)
     {
-        var parameters = symbol.GetParameters();
-        var typeArguments = symbol.GetTypeArguments();
+        var parameterStrings = symbol.GetParameters().SelectAsArray(parameter => GetOnTheFlyDocsRelevantFileInfo(parameter.Type));
+        var typeArgumentStrings = symbol.GetTypeArguments().SelectAsArray(GetOnTheFlyDocsRelevantFileInfo);
 
-        var parameterStrings = parameters.Select(parameter =>
-        {
-            var typeSymbol = parameter.Type;
-            return GetOnTheFlyDocsRelevantFileInfo(typeSymbol);
-
-        }).ToImmutableArray();
-
-        var typeArgumentStrings = typeArguments.Select(typeArgument =>
-        {
-            return GetOnTheFlyDocsRelevantFileInfo(typeArgument);
-
-        }).ToImmutableArray();
-
-        return parameterStrings.AddRange(typeArgumentStrings);
+        return [.. parameterStrings, .. typeArgumentStrings];
 
         OnTheFlyDocsRelevantFileInfo? GetOnTheFlyDocsRelevantFileInfo(ITypeSymbol typeSymbol)
         {
             var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-            if (typeSyntaxReference is not null)
+            if (typeSyntaxReference is { Span: var typeSpan })
             {
-                var typeSpan = typeSyntaxReference.Span;
                 var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
                 if (syntaxReferenceDocument is not null)
-                {
                     return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
-                }
             }
 
             return null;

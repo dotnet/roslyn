@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
@@ -469,7 +470,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         }
                     }
                     """;
-                var parameters = new TestParameters();
+                var parameters = TestParameters.Default;
                 using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
                 var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer()]);
@@ -2180,7 +2181,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
                 public override void Initialize(AnalysisContext context)
-                    => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
+                    => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.ExtensionBlockDeclaration);
 
                 public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
@@ -2200,6 +2201,12 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             var method = (MethodDeclarationSyntax)context.Node;
                             context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()));
                             break;
+
+                        case SyntaxKind.ExtensionBlockDeclaration:
+                            var extensionBlock = (ExtensionBlockDeclarationSyntax)context.Node;
+                            context.ReportDiagnostic(Diagnostic.Create(_descriptor, extensionBlock.Keyword.GetLocation()));
+                            break;
+
                     }
                 }
             }
@@ -2584,6 +2591,38 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");
                 await TestMissingAsync(expected);
+            }
+
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79375")]
+            public async Task TestSuppressionOnExtensionBlock()
+            {
+                var csharp14Options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
+
+                var expected = $$"""
+                    using System;
+
+                    [System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{{FeaturesResources.Pending}}")]
+                    struct S
+                    {
+                        extension(string s)
+                        {
+                        }
+                    }
+                    """;
+                await TestAsync("""
+                    using System;
+                    
+                    struct S
+                    {
+                        [|extension(string s)|]
+                        {
+                        }
+                    }
+                    """, expected, csharp14Options);
+
+                // Also verify that the added attribute does indeed suppress the diagnostic.
+                expected = expected.Replace("struct S", "[|struct S|]");
+                await TestMissingAsync(expected, new TestParameters(parseOptions: csharp14Options));
             }
         }
     }

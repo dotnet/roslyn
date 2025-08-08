@@ -479,7 +479,7 @@ public sealed partial class AddUsingTests(ITestOutputHelper logger) : AbstractAd
                 }
             }
             """,
-            parseOptions: Options.Regular);
+            new TestParameters(parseOptions: Options.Regular));
 
     [Theory, CombinatorialData]
     public Task TestOnEnum(TestHost testHost)
@@ -1925,7 +1925,7 @@ using System.Linq.Expressions;
 
 WriteLine(Expression.Constant(123));
 """,
-parseOptions: GetScriptOptions());
+new TestParameters(parseOptions: GetScriptOptions()));
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -2166,8 +2166,8 @@ parseOptions: GetScriptOptions());
 
             Expression
             """,
-            GetScriptOptions(),
-            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+            new TestParameters(GetScriptOptions(),
+            TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver)));
     }
 
     [Theory, CombinatorialData]
@@ -2516,9 +2516,8 @@ parseOptions: GetScriptOptions());
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsWithExternAlias(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsWithExternAlias(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace ProjectLib
@@ -2542,9 +2541,7 @@ parseOptions: GetScriptOptions());
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             extern alias P;
 
             using P::ProjectLib;
@@ -2559,15 +2556,12 @@ parseOptions: GetScriptOptions());
                     }
                 }
             }
-            """;
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsWithPreExistingExternAlias(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsWithPreExistingExternAlias(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace ProjectLib
@@ -2601,9 +2595,7 @@ parseOptions: GetScriptOptions());
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             extern alias P;
 
             using P::AnotherNS;
@@ -2619,15 +2611,12 @@ parseOptions: GetScriptOptions());
                     }
                 }
             }
-            """;
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace ProjectLib;
@@ -2660,9 +2649,7 @@ parseOptions: GetScriptOptions());
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             extern alias P;
 
             using P::AnotherNS;
@@ -2677,15 +2664,12 @@ parseOptions: GetScriptOptions());
                     var x = new [|AnotherClass()|];
                 }
             }
-            """;
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsNoExtern(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsNoExtern(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace AnotherNS
@@ -2710,9 +2694,7 @@ parseOptions: GetScriptOptions());
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             extern alias P;
 
             using P::AnotherNS;
@@ -2726,15 +2708,12 @@ parseOptions: GetScriptOptions());
                     }
                 }
             }
-            """;
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
-    public async Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">namespace AnotherNS;
@@ -2757,9 +2736,7 @@ parseOptions: GetScriptOptions());
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             extern alias P;
 
             using P::AnotherNS;
@@ -2772,9 +2749,7 @@ parseOptions: GetScriptOptions());
                     var x = new AnotherClass();
                 }
             }
-            """;
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
@@ -2818,7 +2793,7 @@ parseOptions: GetScriptOptions());
             /// This is just like <see cref='INotifyPropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2838,7 +2813,7 @@ parseOptions: GetScriptOptions());
             /// This is just like <see cref='INotifyPropertyChanged.PropertyChanged'/>, but this one is mine.
             /// </summary>
             interface MyNotifyPropertyChanged { }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2884,7 +2859,7 @@ parseOptions: GetScriptOptions());
             public class MyClass2
             {
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
@@ -2920,7 +2895,7 @@ parseOptions: GetScriptOptions());
                 {
                 }
             }
-            """, parseOptions: options);
+            """, new TestParameters(parseOptions: options));
     }
 
     [Theory, CombinatorialData]
@@ -3514,9 +3489,8 @@ parseOptions: GetScriptOptions());
             """, testHost);
 
     [Fact]
-    public async Task TestInaccessibleExtensionMethod()
-    {
-        const string initial = """
+    public Task TestInaccessibleExtensionMethod()
+        => TestMissingInRegularAndScriptAsync("""
             namespace N1
             {
                 public static class C
@@ -3538,9 +3512,7 @@ parseOptions: GetScriptOptions());
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
-    }
+            """);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
@@ -6296,9 +6268,8 @@ class C
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
-    public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.cs">using System.ComponentModel;
@@ -6318,9 +6289,7 @@ class C
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             using ProjectLib;
 
             class Program
@@ -6330,16 +6299,12 @@ class C
                     Project p = new [|Project()|];
                 }
             }
-            """;
-
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
-    public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
+        => TestMissingAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">
@@ -6364,15 +6329,12 @@ class C
             </Document>
                 </Project>
             </Workspace>
-            """;
-        await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
-    }
+            """, new TestParameters(testHost: testHost));
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
-    public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
                     <Document FilePath="lib.vb">imports System.ComponentModel
@@ -6393,9 +6355,7 @@ class C
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             using ProjectLib;
 
             class Program
@@ -6405,9 +6365,7 @@ class C
                     Project p = new [|Project()|];
                 }
             }
-            """;
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
@@ -6448,7 +6406,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines1(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             namespace ANamespace
             {
@@ -6489,7 +6447,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines2(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using BNamespace;
 
@@ -6541,7 +6499,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
     public Task TestAddUsingPreservesNewlines3(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using ANamespace;
 
@@ -6593,7 +6551,7 @@ class C
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/24642")]
     public Task TestAddUsingWithMalformedGeneric(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -6613,7 +6571,7 @@ class C
 
     [Theory, CombinatorialData]
     public Task TestOutsideOfMethodWithMalformedGenericParameters(TestHost testHost)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
             
@@ -6648,9 +6606,8 @@ class C
             """, testHost);
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79462")]
-    public async Task TestAddUsingsWithSourceGeneratedFile(TestHost testHost)
-    {
-        const string InitialWorkspace = """
+    public Task TestAddUsingsWithSourceGeneratedFile(TestHost testHost)
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Console" CommonReferences="true">
                     <Document FilePath="Program.cs">using Goo;
@@ -6672,9 +6629,7 @@ class C
                                     </DocumentFromSourceGenerator>
                 </Project>
             </Workspace>
-            """;
-
-        const string ExpectedDocumentText = """
+            """, """
             using Goo;
             using Win32;
             
@@ -6685,7 +6640,5 @@ class C
             {
                 class Something { }
             }
-            """;
-        await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
-    }
+            """, testHost);
 }

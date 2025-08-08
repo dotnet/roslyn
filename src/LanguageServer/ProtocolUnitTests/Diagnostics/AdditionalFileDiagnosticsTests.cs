@@ -2,11 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -20,6 +26,32 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 {
     public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2531252")]
+    public async Task TestDocumentDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var workspaceXml =
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
+                    <Document FilePath="C:\C.cs"></Document>
+                    <AdditionalDocument FilePath="C:\Test.xaml"></AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+        var additionalDocument = testLspServer.GetCurrentSolution().Projects.Single().AdditionalDocuments.Single();
+        await testLspServer.OpenDocumentAsync(additionalDocument.GetURI());
+
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, additionalDocument.GetURI(), useVSDiagnostics, category: TestAdditionalFileDocumentSourceProvider.DiagnosticSourceProviderName);
+        Assert.NotEmpty(results);
+        AssertEx.Equal(
+        [
+            @$"C:\Test.xaml: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
+        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
     }
 
     [Theory, CombinatorialData]
@@ -119,7 +151,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         AssertEx.Empty(results2);
     }
 
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer));
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer), typeof(TestAdditionalFileDocumentSourceProvider));
 
     private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockAdditionalFileDiagnosticAnalyzer()]));
@@ -128,10 +160,10 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
     private sealed class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string Id = "MockAdditionalDiagnostic";
-        private readonly DiagnosticDescriptor _descriptor = new(Id, "MockAdditionalDiagnostic", "MockAdditionalDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
+        internal static readonly DiagnosticDescriptor Descriptor = new(Id, "MockAdditionalDiagnostic", "MockAdditionalDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => [_descriptor];
+            => [Descriptor];
 
         public override void Initialize(AnalysisContext context)
             => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
@@ -140,7 +172,52 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
             => context.RegisterAdditionalFileAction(AnalyzeCompilation);
 
         public void AnalyzeCompilation(AdditionalFileAnalysisContext context)
-            => context.ReportDiagnostic(Diagnostic.Create(_descriptor,
+            => context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                 location: Location.Create(context.AdditionalFile.Path, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args"));
+    }
+
+    [Export(typeof(IDiagnosticSourceProvider)), Shared, PartNotDiscoverable]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestAdditionalFileDocumentSourceProvider() : IDiagnosticSourceProvider
+    {
+        internal const string DiagnosticSourceProviderName = "TestAdditionalFileSource";
+
+        bool IDiagnosticSourceProvider.IsDocument => true;
+
+        string IDiagnosticSourceProvider.Name => DiagnosticSourceProviderName;
+
+        bool IDiagnosticSourceProvider.IsEnabled(LSP.ClientCapabilities clientCapabilities) => true;
+
+        ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        {
+            if (context.TextDocument is not null && context.TextDocument is not Document)
+            {
+                return new([new TestAdditionalFileDocumentSource(context.TextDocument!)]);
+            }
+
+            return new([]);
+        }
+
+        private class TestAdditionalFileDocumentSource(TextDocument textDocument) : IDiagnosticSource
+        {
+            public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            {
+                var diagnostic = Diagnostic.Create(MockAdditionalFileDiagnosticAnalyzer.Descriptor,
+                    location: Location.Create(context.TextDocument!.FilePath!, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args");
+                return Task.FromResult<ImmutableArray<DiagnosticData>>([DiagnosticData.Create(diagnostic, context.TextDocument.Project)]);
+            }
+
+            public LSP.TextDocumentIdentifier? GetDocumentIdentifier() => new LSP.TextDocumentIdentifier
+            {
+                DocumentUri = textDocument.GetURI()
+            };
+
+            public ProjectOrDocumentId GetId() => new(textDocument.Id);
+
+            public Project GetProject() => textDocument.Project;
+
+            public string ToDisplayString() => textDocument.ToString()!;
+        }
     }
 }

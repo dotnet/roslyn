@@ -447,7 +447,7 @@ public sealed class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeAction
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
     public Task TestApplicableKeyword()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword interfa[||]ce.
             class C<TKey>

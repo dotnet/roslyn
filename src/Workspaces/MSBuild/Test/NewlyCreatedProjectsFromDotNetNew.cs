@@ -221,8 +221,7 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
 
             // Unnecessary using directives are reported with a severity of Hidden
             var nonHiddenDiagnostics = compilation!.GetDiagnostics()
-                .Where(diagnostic => diagnostic.Severity > DiagnosticSeverity.Hidden)
-                .ToImmutableArray();
+                .WhereAsArray(diagnostic => diagnostic.Severity > DiagnosticSeverity.Hidden);
 
             // For good test hygiene lets ensure that all ignored diagnostics were actually reported.
             var reportedDiagnosticIds = nonHiddenDiagnostics
