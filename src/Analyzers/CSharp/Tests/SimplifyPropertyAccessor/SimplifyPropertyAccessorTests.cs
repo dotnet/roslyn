@@ -24,7 +24,7 @@ public sealed class SimplifyPropertyAccessorTests
 {
     private static async Task TestAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
-        LanguageVersion languageVersion = LanguageVersion.Preview)
+        LanguageVersion languageVersion = LanguageVersion.CSharp14)
     {
         await new VerifyCS.Test
         {
@@ -42,7 +42,7 @@ public sealed class SimplifyPropertyAccessorTests
         {
             TestCode = initialMarkup,
             FixedCode = fixedMarkup,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp14,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80, // for 'IsExternalInit' type
         }.RunAsync();
     }
@@ -89,7 +89,7 @@ public sealed class SimplifyPropertyAccessorTests
         {
             TestCode = code,
             FixedCode = code,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp14,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferSimplePropertyAccessors, false }
@@ -115,7 +115,7 @@ public sealed class SimplifyPropertyAccessorTests
         {
             TestCode = code,
             FixedCode = code,
-            LanguageVersion = LanguageVersion.Preview
+            LanguageVersion = LanguageVersion.CSharp14
         }.RunAsync();
     }
 
@@ -371,7 +371,7 @@ public sealed class SimplifyPropertyAccessorTests
                     """
                 }
             },
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
     }
 
@@ -404,7 +404,7 @@ public sealed class SimplifyPropertyAccessorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp14,
             CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck | CodeFixTestBehaviors.FixOne,
             DiagnosticSelector = diagnostics => diagnostics[1],
         }.RunAsync();
@@ -457,7 +457,7 @@ public sealed class SimplifyPropertyAccessorTests
                     """
                 }
             },
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp14,
             CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck | CodeFixTestBehaviors.FixOne,
             DiagnosticSelector = diagnostics => diagnostics[1],
         }.RunAsync();
