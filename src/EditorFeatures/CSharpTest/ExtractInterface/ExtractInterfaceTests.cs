@@ -1749,5 +1749,5 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: false,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
 }
