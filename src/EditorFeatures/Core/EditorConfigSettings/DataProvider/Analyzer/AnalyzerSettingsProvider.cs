@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -81,9 +83,25 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
                 (null, null) => true,
                 (null, _) => false,
                 (_, null) => false,
-                _ => x.GetAnalyzerIdAndVersion() == y.GetAnalyzerIdAndVersion()
+                _ => GetAnalyzerIdAndLastWriteTime(x) == GetAnalyzerIdAndLastWriteTime(y)
             };
 
-        public int GetHashCode(DiagnosticAnalyzer obj) => obj.GetAnalyzerIdAndVersion().GetHashCode();
+        public int GetHashCode(DiagnosticAnalyzer obj) => GetAnalyzerIdAndLastWriteTime(obj).GetHashCode();
+
+        private static (string analyzerId, DateTime lastWriteTime) GetAnalyzerIdAndLastWriteTime(DiagnosticAnalyzer analyzer)
+        {
+            // Get the unique ID for given diagnostic analyzer.
+            // note that we also put version stamp so that we can detect changed analyzer.
+            var typeInfo = analyzer.GetType().GetTypeInfo();
+            return (analyzer.GetAnalyzerId(), GetAnalyzerLastWriteTime(typeInfo.Assembly.Location));
+        }
+
+        private static DateTime GetAnalyzerLastWriteTime(string path)
+        {
+            if (path == null || !File.Exists(path))
+                return default;
+
+            return File.GetLastWriteTimeUtc(path);
+        }
     }
 }
