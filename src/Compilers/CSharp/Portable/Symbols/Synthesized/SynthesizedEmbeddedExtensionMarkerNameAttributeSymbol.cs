@@ -9,11 +9,11 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     // Tracked by https://github.com/dotnet/roslyn/issues/78963 : We are not declaring and not initializing the "Name" property yet.
-    internal sealed class SynthesizedEmbeddedExtensionMarkerNameAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
+    internal sealed class SynthesizedEmbeddedExtensionMarkerAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
     {
         private readonly ImmutableArray<MethodSymbol> _constructors;
 
-        public SynthesizedEmbeddedExtensionMarkerNameAttributeSymbol(
+        public SynthesizedEmbeddedExtensionMarkerAttributeSymbol(
             string name,
             NamespaceSymbol containingNamespace,
             ModuleSymbol containingModule,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(systemStringType), 0, RefKind.None, name: "name"))));
 
             // Ensure we never get out of sync with the description
-            Debug.Assert(_constructors.Length == AttributeDescription.ExtensionMarkerNameAttribute.Signatures.Length);
+            Debug.Assert(_constructors.Length == AttributeDescription.ExtensionMarkerAttribute.Signatures.Length);
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;

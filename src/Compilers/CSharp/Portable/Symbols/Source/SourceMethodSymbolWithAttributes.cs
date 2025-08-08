@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.NullableContextAttribute |
                 ReservedAttributes.CaseSensitiveExtensionAttribute |
-                ReservedAttributes.ExtensionMarkerNameAttribute))
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
                 ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.ExtensionMarkerNameAttribute))
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.MaybeNullAttribute))

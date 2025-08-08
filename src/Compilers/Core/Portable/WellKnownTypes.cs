@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_Unsafe,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute,
-        System_Runtime_CompilerServices_ExtensionMarkerNameAttribute,
+        System_Runtime_CompilerServices_ExtensionMarkerAttribute,
 
         System_Linq_Expressions_BinaryExpression,
         System_Linq_Expressions_MethodCallExpression,
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.Unsafe",
 
             "System.Runtime.CompilerServices.ParamCollectionAttribute",
-            "System.Runtime.CompilerServices.ExtensionMarkerNameAttribute",
+            "System.Runtime.CompilerServices.ExtensionMarkerAttribute",
 
             "System.Linq.Expressions.BinaryExpression",
             "System.Linq.Expressions.MethodCallExpression",

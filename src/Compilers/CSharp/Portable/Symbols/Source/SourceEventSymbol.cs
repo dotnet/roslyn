@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.NullableAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.TupleElementNamesAttribute
-                | ReservedAttributes.ExtensionMarkerNameAttribute))
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))

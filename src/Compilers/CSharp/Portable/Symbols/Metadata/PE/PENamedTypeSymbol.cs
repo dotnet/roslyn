@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
                         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : optimization, would it be worth building a map across all methods to optimize this?
-                        if (isExtension && (!module.HasExtensionMarkerNameAttribute(methodHandle, out string markerName) || markerName != MetadataName))
+                        if (isExtension && (!module.HasExtensionMarkerAttribute(methodHandle, out string markerName) || markerName != MetadataName))
                         {
                             // Method doesn't belong to this extension block
                             continue;
@@ -2388,7 +2388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     try
                     {
                         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : optimization, would it be worth building a map across all properties to optimize this?
-                        if (isExtension && (!module.HasExtensionMarkerNameAttribute(propertyDef, out string markerName) || markerName != MetadataName))
+                        if (isExtension && (!module.HasExtensionMarkerAttribute(propertyDef, out string markerName) || markerName != MetadataName))
                         {
                             // Property doesn't belong to this extension block
                             continue;

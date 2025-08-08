@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NullablePublicOnlyAttribute
                 | ReservedAttributes.RefSafetyRulesAttribute
-                | ReservedAttributes.ExtensionMarkerNameAttribute))
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))

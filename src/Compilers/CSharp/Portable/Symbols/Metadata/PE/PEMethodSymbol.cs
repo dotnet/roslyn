@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filteredOutAttribute4: out _,
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
-                        filterOut5: AttributeDescription.ExtensionMarkerNameAttribute,
+                        filterOut5: AttributeDescription.ExtensionMarkerAttribute,
                         filteredOutAttribute6: out _,
                         filterOut6: default);
 

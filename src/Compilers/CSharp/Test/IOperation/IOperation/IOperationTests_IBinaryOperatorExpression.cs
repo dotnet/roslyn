@@ -8305,7 +8305,7 @@ static class Extensions
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: C Extensions.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: C) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: C) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
   Right: 
@@ -8342,7 +8342,7 @@ static class Extensions
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: C Extensions.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'x || y')
+IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'x || y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
   Right: 
@@ -8488,7 +8488,7 @@ Block[B0] - Entry
                   Left:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right:
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 Extensions.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
                       Left:
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a ?? b')
                       Right:
@@ -8559,7 +8559,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean Extensions.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand:
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -8578,7 +8578,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value:
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C Extensions.<Extension>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
                       Left:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right:

@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ScopedRefAttribute = 1 << 12,
             RefSafetyRulesAttribute = 1 << 13,
             RequiresLocationAttribute = 1 << 14,
-            ExtensionMarkerNameAttribute = 1 << 15,
+            ExtensionMarkerAttribute = 1 << 15,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1608,8 +1608,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.ExtensionMarkerNameAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerNameAttribute))
+            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerAttribute))
             {
             }
             else
