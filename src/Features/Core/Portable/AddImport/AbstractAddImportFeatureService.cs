@@ -571,8 +571,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         // Get the diagnostics that indicate a missing import.
         var diagnostics = semanticModel.GetDiagnostics(span, cancellationToken)
-           .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
-           .ToImmutableArray();
+           .WhereAsArray(diagnostic => diagnosticIds.Contains(diagnostic.Id));
 
         var getFixesForDiagnosticsTasks = diagnostics
             .GroupBy(diagnostic => diagnostic.Location.SourceSpan)

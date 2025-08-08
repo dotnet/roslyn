@@ -2019,7 +2019,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Get updated workspace diagnostics for the change.
         var previousResults = CreateDiagnosticParamsFromPreviousReports(results);
-        var previousResultIds = previousResults.Select(param => param.resultId).ToImmutableArray();
+        var previousResultIds = previousResults.SelectAsArray(param => param.resultId);
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResults);
 
         // Verify that since no actual changes have been made we report unchanged diagnostics.
