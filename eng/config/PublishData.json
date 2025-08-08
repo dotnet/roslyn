@@ -94,6 +94,7 @@
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
+      "Microsoft.CodeAnalysis.SemanticSearch.Extensions": "vs-impl",
       "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl",

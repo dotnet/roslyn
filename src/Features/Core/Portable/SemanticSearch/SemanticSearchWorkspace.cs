@@ -26,11 +26,11 @@ internal abstract class SemanticSearchWorkspace(HostServices services, ISemantic
     public override bool CanApplyChange(ApplyChangesKind feature)
         => feature == ApplyChangesKind.ChangeDocument;
 
-    public async Task<Document> UpdateQueryDocumentAsync(string? query, CancellationToken cancellationToken)
+    public async Task<Document> UpdateQueryDocumentAsync(string? query, string? targetLanguage, CancellationToken cancellationToken)
     {
         var (updated, newSolution) = await this.SetCurrentSolutionAsync(
             useAsync: true,
-            transformation: oldSolution => solutionService.SetQueryText(oldSolution, query, ReferenceAssembliesDirectory),
+            transformation: oldSolution => solutionService.SetQueryText(oldSolution, query, targetLanguage, ReferenceAssembliesDirectory),
             changeKind: solutionService.GetWorkspaceChangeKind,
             onBeforeUpdate: null,
             onAfterUpdate: null,

@@ -46,6 +46,9 @@ internal static class CopilotSemanticSearchUtilities
         => SymbolFinder.FindReferencesAsync(
             symbol, solution, new Progress(callback), documents: null, s_options, cancellationToken);
 
+    public static bool CanApplyChange(TextDocument document)
+        => document.CanApplyChange();
+
     private sealed class Progress(Action<ReferenceLocation> callback) : IStreamingFindReferencesProgress
     {
         public ValueTask OnStartedAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;

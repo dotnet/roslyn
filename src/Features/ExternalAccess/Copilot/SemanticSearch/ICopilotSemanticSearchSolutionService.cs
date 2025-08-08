@@ -11,5 +11,5 @@ internal interface ICopilotSemanticSearchSolutionService
 
     (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId) GetWorkspaceChangeKind(Solution oldSolution, Solution newSolution);
 
-    Solution SetQueryText(Solution solution, string? query, string referenceAssembliesDir);
+    Solution SetQueryText(Solution solution, string? query, string? targetLanguage, string referenceAssembliesDir);
 }

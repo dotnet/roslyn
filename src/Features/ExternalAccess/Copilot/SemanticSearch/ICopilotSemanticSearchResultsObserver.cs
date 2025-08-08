@@ -12,7 +12,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
 internal interface ICopilotSemanticSearchResultsObserver
 {
     ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken);
+
     ValueTask OnSymbolFoundAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken);
+    ValueTask OnSyntaxNodeFoundAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+    ValueTask OnLocationFoundAsync(Solution solution, Location location, CancellationToken cancellationToken);
+    ValueTask OnValueFoundAsync(Solution solution, object value, CancellationToken cancellationToken);
+
+    ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+    ValueTask OnTextFileUpdatedAsync(string filePath, string? newContent, CancellationToken cancellationToken);
+    ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken);
+
     ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken);
     ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken);
 

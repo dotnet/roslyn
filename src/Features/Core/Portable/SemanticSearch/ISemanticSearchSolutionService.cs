@@ -21,8 +21,9 @@ internal interface ISemanticSearchSolutionService
     /// </summary>
     /// <param name="solution">Original solution.</param>
     /// <param name="query">New query, or null to use default query.</param>
+    /// <param name="targetLanguage">Language of the target projects the query executes against, or null if it should execute against all supported projects.</param>
     /// <param name="referenceAssembliesDir">Directory containing reference assemblies.</param>
-    Solution SetQueryText(Solution solution, string? query, string referenceAssembliesDir);
+    Solution SetQueryText(Solution solution, string? query, string? targetLanguage, string referenceAssembliesDir);
 
     (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId) GetWorkspaceChangeKind(Solution oldSolution, Solution newSolution);
 }
