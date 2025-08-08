@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ConsiderEverything;
             }
-            else if (comparison == TypeCompareKind.AllIgnoreOptions)
-            {
-                return AllIgnoreOptions;
-            }
             else if (comparison == TypeCompareKind.AllIgnoreOptionsPlusNullableWithObliviousMatchesAny)
             {
                 return AllIgnoreOptionsPlusNullableWithUnknownMatchesAny;
+            }
+            else if (comparison == TypeCompareKind.CLRSignatureCompareOptions)
+            {
+                return CLRSignature;
             }
 
             Debug.Assert(false, "Consider optimizing as above when we need to handle a new type comparison kind.");
