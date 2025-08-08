@@ -124,7 +124,7 @@ internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperatio
 
         var missingEnumMembers = GetMissingEnumMembers(operation);
 
-        return (missingCases: missingEnumMembers.Count > 0, missingDefaultCase: !IsKnownToBeExhaustive(operation) && !HasDefaultCase(operation));
+        return (missingCases: missingEnumMembers.Count > 0, missingDefaultCase: !HasDefaultCase(operation));
     }
 
     protected static bool ConstantValueEquals(Optional<object?> constantValue, object? value)
