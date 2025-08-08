@@ -505,16 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
             => new MethodInstrumentation { Kinds = EmitOptions.InstrumentationKinds };
 
-        internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
-        {
-            return ImmutableArray<AnonymousTypeKey>.Empty;
-        }
-
-        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
-        {
-            return ImmutableArray<SynthesizedDelegateKey>.Empty;
-        }
-
         internal virtual int GetNextAnonymousTypeIndex()
         {
             return 0;

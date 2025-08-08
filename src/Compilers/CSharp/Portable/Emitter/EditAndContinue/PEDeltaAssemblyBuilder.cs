@@ -224,19 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal CSharpDefinitionMap PreviousDefinitions
             => (CSharpDefinitionMap)_changes.DefinitionMap;
 
-        public SynthesizedTypeMaps GetSynthesizedTypes()
-        {
-            var result = new SynthesizedTypeMaps(
-                Compilation.AnonymousTypeManager.GetAnonymousTypeMap(),
-                Compilation.AnonymousTypeManager.GetAnonymousDelegates(),
-                Compilation.AnonymousTypeManager.GetAnonymousDelegatesWithIndexedNames());
-
-            // Should contain all entries in previous generation.
-            Debug.Assert(PreviousGeneration.SynthesizedTypes.IsSubsetOf(result));
-
-            return result;
-        }
-
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
             => GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails: true);
 
@@ -256,16 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(EmitOptions.InstrumentationKinds.IsEmpty);
 
             return _changes.DefinitionMap.GetMethodBodyInstrumentations(method);
-        }
-
-        internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
-        {
-            return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousTypes.Keys);
-        }
-
-        internal override ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
-        {
-            return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousDelegates.Keys);
         }
 
         internal override int GetNextAnonymousTypeIndex()

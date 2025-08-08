@@ -4943,91 +4943,121 @@ End Class
 
         <Fact>
         Public Sub AnonymousTypes()
-            Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
-Namespace N
-    Class A
-        Shared F As Object = New With {.A = 1, .B = 2}
-    End Class
-End Namespace
-Namespace M
-    Class B
-        Shared Sub M()
-            Dim x As New With {.B = 3, .A = 4}
-            Dim y = x.A
-            Dim z As New With {.C = 5}
-        End Sub
-    End Class
-End Namespace
-]]></file>
-                           </compilation>
-            Dim sources1 = <compilation>
-                               <file name="a.vb"><![CDATA[
-Namespace N
-    Class A
-        Shared F As Object = New With {.A = 1, .B = 2}
-    End Class
-End Namespace
-Namespace M
-    Class B
-        Shared Sub M()
-            Dim x As New With {.B = 3, .A = 4}
-            Dim y As New With {.A = x.A}
-            Dim z As New With {.C = 5}
-        End Sub
-    End Class
-End Namespace
-]]></file>
-                           </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
-            Dim compilation1 = compilation0.WithSource(sources1)
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="Module C
+    Sub F()
+        Dim f = New With { .a = 1, .b = 2 }
+    End Sub
+End Module",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers({})
 
-            Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
-            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0),
-                                                                     testData0.GetMethodData("M.B.M").EncDebugInfoProvider)
-                Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.B.M")
-                Dim reader0 = md0.MetadataReader
-                CheckNames(reader0, reader0.GetTypeDefNames(),
-                           "<Module>",
-                           "VB$AnonymousType_0`2",
-                           "VB$AnonymousType_1`2",
-                           "VB$AnonymousType_2`1",
-                           "A",
-                           "B")
-                Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.B.M")
-                Dim diff1 = compilation1.EmitDifference(
-                    generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
+                        g.VerifySynthesizedTypes(
+                            "VB$AnonymousType_0(Of T0, T1)")
 
-                Using md1 = diff1.GetMetadata()
-                    Dim reader1 = md1.Reader
-                    CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_3`1")
-                    diff1.VerifyIL("M.B.M", "
+                        g.VerifyIL("C.F", "
 {
-  // Code size       29 (0x1d)
+  // Code size       10 (0xa)
   .maxstack  2
-  .locals init (VB$AnonymousType_1(Of Integer, Integer) V_0, //x
-  [int] V_1,
-  VB$AnonymousType_2(Of Integer) V_2, //z
-  VB$AnonymousType_3(Of Integer) V_3) //y
+  .locals init (VB$AnonymousType_0(Of Integer, Integer) V_0) //f
   IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  ldc.i4.4
-  IL_0003:  newobj     ""Sub VB$AnonymousType_1(Of Integer, Integer)..ctor(Integer, Integer)""
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
   IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  callvirt   ""Function VB$AnonymousType_1(Of Integer, Integer).get_A() As Integer""
-  IL_000f:  newobj     ""Sub VB$AnonymousType_3(Of Integer)..ctor(Integer)""
-  IL_0014:  stloc.3
-  IL_0015:  ldc.i4.5
-  IL_0016:  newobj     ""Sub VB$AnonymousType_2(Of Integer)..ctor(Integer)""
-  IL_001b:  stloc.2
-  IL_001c:  ret
-}
-")
-                End Using
+  IL_0009:  ret
+}")
+                    End Sub).
+                AddGeneration(' 1
+                    source:="Module C
+    Sub F()
+        Dim g = New With { .x = 1 }
+        Dim f = New With { .a = 1, .b = 2 }
+    End Sub
+End Module",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers({})
+
+                        g.VerifySynthesizedTypes(
+                            "VB$AnonymousType_0(Of T0, T1)",
+                            "VB$AnonymousType_1(Of T0)")
+
+                        g.VerifyTypeDefNames("VB$AnonymousType_1`1")
+                        g.VerifyMethodDefNames("F", "get_x", "set_x", ".ctor", "ToString")
+
+                        g.VerifyIL("C.F", "
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (VB$AnonymousType_0(Of Integer, Integer) V_0, //f
+                VB$AnonymousType_1(Of Integer) V_1) //g
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.1
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
+  IL_000f:  stloc.0
+  IL_0010:  ret
+}")
+                    End Sub).
+                    AddGeneration(' 2
+                        source:="
+Module C
+    Sub F()
+        Dim f = New With { .a = 1, .b = 2, .c = 3 }
+    End Sub
+End Module",
+                        edits:=
+                        {
+                            Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                        },
+                        validator:=
+                        Sub(g)
+                            g.VerifySynthesizedMembers({})
+
+                            g.VerifySynthesizedTypes(
+                                "VB$AnonymousType_0(Of T0, T1)",
+                                "VB$AnonymousType_1(Of T0)",
+                                "VB$AnonymousType_2(Of T0, T1, T2)")
+
+                            g.VerifyTypeDefNames("VB$AnonymousType_2`3")
+                            g.VerifyMethodDefNames("F", "get_a", "set_a", "get_b", "set_b", "get_c", "set_c", ".ctor", "ToString")
+                        End Sub).
+                    AddGeneration(' 3
+                    source:="
+        Module C
+            Sub F()
+                Dim f = New With { .a = 1, .b = 2, .c = 3 }
+                Dim g = New With { .x = 1, .y = 2 }
+            End Sub
+        End Module",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers({})
+
+                        g.VerifySynthesizedTypes(
+                            "VB$AnonymousType_0(Of T0, T1)",
+                            "VB$AnonymousType_1(Of T0)",
+                            "VB$AnonymousType_2(Of T0, T1, T2)",
+                            "VB$AnonymousType_3(Of T0, T1)")
+
+                        g.VerifyTypeDefNames("VB$AnonymousType_3`2")
+                        g.VerifyMethodDefNames("F", "get_x", "set_x", "get_y", "set_y", ".ctor", "ToString")
+                    End Sub).
+                Verify()
             End Using
         End Sub
 
@@ -5736,6 +5766,115 @@ End Class
   IL_002d:  ret
 }
 ")
+        End Sub
+
+        <Fact>
+        Public Sub Lambda_SynthesizedDelegate()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Class C
+    Sub F()
+        Dim f = <N:1>Function(ByRef a As Integer) a</N:1>
+    End Sub
+End Class",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                        {
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0, _Lambda$__1-0}"
+                        })
+
+                        g.VerifySynthesizedTypes(
+                            "VB$AnonymousDelegate_0(Of TArg0, TResult)")
+                    End Sub).
+                AddGeneration(' 1
+                    source:="
+Class C
+    Sub F()
+        Dim g = <N:2>Function(ByRef a As Byte, b As Integer) a</N:2>
+        Dim f = <N:1>Function(ByRef a As Integer) a</N:1>
+    End Sub
+End Class",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                        {
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0#1, $I1-0, _Lambda$__1-0#1, _Lambda$__1-0}"
+                        })
+
+                        g.VerifySynthesizedTypes(
+                            "VB$AnonymousDelegate_0(Of TArg0, TResult)",
+                            "VB$AnonymousDelegate_1(Of TArg0, TArg1, TResult)")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor", "BeginInvoke", "EndInvoke", "Invoke", "_Lambda$__1-0#1")
+                    End Sub).
+                AddGeneration(' 2
+                    source:="
+Class C
+    Sub F()
+        Dim f = <N:1>Function(ByRef a As Boolean, ByRef b As Boolean) a</N:1>
+    End Sub
+End Class",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True, rudeEdits:=Function(node) New RuntimeRudeEdit("Parameter changed", &H123))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                        {
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0#2, _Lambda$__1-0#2, $I1-0#1, $I1-0, _Lambda$__1-0#1, _Lambda$__1-0}"
+                        })
+
+                        g.VerifySynthesizedTypes(
+                            "VB$AnonymousDelegate_0(Of TArg0, TResult)",
+                            "VB$AnonymousDelegate_1(Of TArg0, TArg1, TResult)",
+                            "VB$AnonymousDelegate_2(Of TArg0, TArg1, TResult)")
+
+                        g.VerifyTypeDefNames("VB$AnonymousDelegate_2`3", "HotReloadException")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-0#1", ".ctor", "BeginInvoke", "EndInvoke", "Invoke", ".ctor", "_Lambda$__1-0#2")
+                    End Sub).
+                AddGeneration(' 3
+                    source:="
+Class C
+    Sub F()
+        Dim f = Function(ByRef a As Boolean, ByRef b As Boolean) a
+        Dim g = Function(ByRef a As Boolean, ByRef b As Boolean, c As Boolean) a
+    End Sub
+End Class",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                        {
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C._Closure$__: {$I1-0#3, $I1-1#3, _Lambda$__1-0#3, _Lambda$__1-1#3, $I1-0#2, _Lambda$__1-0#2, $I1-0#1, $I1-0, _Lambda$__1-0#1, _Lambda$__1-0}",
+                            "C: {_Closure$__}"
+                        })
+
+                        g.VerifySynthesizedTypes(
+                            "VB$AnonymousDelegate_0(Of TArg0, TResult)",
+                            "VB$AnonymousDelegate_1(Of TArg0, TArg1, TResult)",
+                            "VB$AnonymousDelegate_2(Of TArg0, TArg1, TResult)",
+                            "VB$AnonymousDelegate_3(Of TArg0, TArg1, TArg2, TResult)")
+
+                        g.VerifyTypeDefNames("VB$AnonymousDelegate_3`4")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0#2", ".ctor", "BeginInvoke", "EndInvoke", "Invoke", "_Lambda$__1-0#3", "_Lambda$__1-1#3")
+                    End Sub).
+                Verify()
+            End Using
         End Sub
 
         ''' <summary>

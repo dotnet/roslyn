@@ -165,6 +165,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
         }
 
+        internal static void VerifySynthesizedSymbols(IEnumerable<ISymbolInternal> actualSymbols, params string[] expected)
+        {
+            AssertEx.SetEqual(expected, actualSymbols.Select(v => v.GetISymbol().ToDisplayString(SymbolDisplayFormat.TestFormat)), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+        }
+
         public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
         {
             var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field).Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);

@@ -159,7 +159,17 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract IAssemblySymbolInternal CommonCorLibrary { get; }
         internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
         internal abstract void CompilationFinished();
+
+        /// <summary>
+        /// Returns all type members synthesized when compiling method bodies for this module.
+        /// </summary>
         internal abstract ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllSynthesizedMembers();
+
+        /// <summary>
+        /// Returns all delegates and anonymous templates synthesized when compiling method bodies for this module.
+        /// </summary>
+        internal abstract SynthesizedTypeMaps GetAllSynthesizedTypes();
+
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbolInternal type, DiagnosticBag diagnostics);
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly);
@@ -1076,6 +1086,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return builder.ToImmutable();
         }
+
+        internal override SynthesizedTypeMaps GetAllSynthesizedTypes()
+            => Compilation.CommonAnonymousTypeManager.GetSynthesizedTypeMaps();
 
         #endregion
 

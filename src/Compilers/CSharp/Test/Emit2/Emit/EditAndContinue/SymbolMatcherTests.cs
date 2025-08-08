@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -37,14 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 fromCompilation.SourceAssembly,
                 toCompilation.SourceAssembly,
                 SynthesizedTypeMaps.Empty,
-                otherSynthesizedMembers: null,
-                otherDeletedMembers: null);
+                otherSynthesizedMembers: SpecializedCollections.EmptyReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>(),
+                otherDeletedMembers: SpecializedCollections.EmptyReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>());
 
         private static CSharpSymbolMatcher CreateMatcher(CSharpCompilation fromCompilation, PEAssemblySymbol peAssemblySymbol)
             => new CSharpSymbolMatcher(
-                SynthesizedTypeMaps.Empty,
                 fromCompilation.SourceAssembly,
-                peAssemblySymbol);
+                peAssemblySymbol,
+                SynthesizedTypeMaps.Empty);
 
         private static IEnumerable<string> Inspect(ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> anonymousDelegatesWithIndexedNames)
             => from entry in anonymousDelegatesWithIndexedNames
@@ -505,7 +506,7 @@ class C
             Assert.Equal("x1", x1.Name);
             Assert.Equal("x2", x2.Name);
 
-            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(compilation1.SourceAssembly, peAssemblySymbol0, synthesizedTypes0);
 
             var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
             var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);
@@ -575,7 +576,7 @@ class C
             var x1 = fields.Where(f => f.Name == "x1").Single();
             var x2 = fields.Where(f => f.Name == "x2").Single();
 
-            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(compilation1.SourceAssembly, peAssemblySymbol0, synthesizedTypes0);
 
             var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
             var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);
@@ -1129,7 +1130,7 @@ class C
             var y1 = fields.Where(f => f.Name == "y1").Single();
             var y2 = fields.Where(f => f.Name == "y2").Single();
 
-            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(compilation1.SourceAssembly, peAssemblySymbol0, synthesizedTypes0);
 
             var mappedY1 = (Cci.IFieldDefinition)matcher.MapDefinition(y1);
             var mappedY2 = (Cci.IFieldDefinition)matcher.MapDefinition(y2);
@@ -1486,7 +1487,7 @@ class C
             Assert.Equal("<>9__0_1", field2.Name);
             Assert.Equal("<>9__0_2", field3.Name);
 
-            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(compilation1.SourceAssembly, peAssemblySymbol0, synthesizedTypes0);
 
             var mappedField1 = (Cci.IFieldDefinition)matcher.MapDefinition(field1);
             var mappedField2 = (Cci.IFieldDefinition)matcher.MapDefinition(field2);
@@ -1544,7 +1545,7 @@ class C
             var field0 = displayClass.GetFields(emitContext).Single(f => f.Name == "<>9__0_0");
             Assert.Equal("<>f__AnonymousDelegate0", field0.GetType(emitContext).ToString());
 
-            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(compilation1.SourceAssembly, peAssemblySymbol0, synthesizedTypes0);
             var field1 = (Cci.IFieldDefinition)matcher.MapDefinition(field0);
             Assert.Equal("<>9__0_0", field1.Name);
         }
@@ -1614,7 +1615,7 @@ class C
             Assert.Equal("<>9__0_1", field2.Name);
             Assert.Equal("<>9__0_2", field3.Name);
 
-            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(compilation1.SourceAssembly, peAssemblySymbol0, synthesizedTypes0);
 
             Assert.Null(matcher.MapDefinition(field1));
             Assert.Null(matcher.MapDefinition(field2));
@@ -1684,7 +1685,7 @@ class C
             Assert.Equal("<>9__0_1", field2.Name);
             Assert.Equal("<>9__0_2", field3.Name);
 
-            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(compilation1.SourceAssembly, peAssemblySymbol0, synthesizedTypes0);
 
             var mappedField1 = (Cci.IFieldDefinition)matcher.MapDefinition(field1);
             var mappedField2 = (Cci.IFieldDefinition)matcher.MapDefinition(field2);

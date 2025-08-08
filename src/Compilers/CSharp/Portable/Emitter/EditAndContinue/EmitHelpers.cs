@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
 
                 var sourceToMetadata = new CSharpSymbolMatcher(
-                    metadataSymbols.SynthesizedTypes,
-                    sourceAssembly,
-                    metadataAssembly);
+                    sourceAssembly: sourceAssembly,
+                    otherAssembly: metadataAssembly,
+                    otherSynthesizedTypes: metadataSymbols.SynthesizedTypes);
 
                 var previousSourceToMetadata = new CSharpSymbolMatcher(
-                    metadataSymbols.SynthesizedTypes,
-                    previousSourceAssembly,
-                    metadataAssembly);
+                    sourceAssembly: previousSourceAssembly,
+                    otherAssembly: metadataAssembly,
+                    otherSynthesizedTypes: metadataSymbols.SynthesizedTypes);
 
                 CSharpSymbolMatcher? currentSourceToPreviousSource = null;
                 if (baseline.Ordinal > 0)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     currentSourceToPreviousSource = new CSharpSymbolMatcher(
                         sourceAssembly: sourceAssembly,
                         otherAssembly: previousSourceAssembly,
-                        baseline.SynthesizedTypes,
+                        otherSynthesizedTypes: baseline.SynthesizedTypes,
                         otherSynthesizedMembers: baseline.SynthesizedMembers,
                         otherDeletedMembers: baseline.DeletedMembers);
                 }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
             RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
 
-            var synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes();
+            var currentSynthesizedTypes = moduleBeingBuilt.GetAllSynthesizedTypes();
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
             var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers;
 
@@ -213,11 +213,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var previousSourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
 
             var matcher = new CSharpSymbolMatcher(
-                previousSourceAssembly,
-                compilation.SourceAssembly,
-                synthesizedTypes,
-                currentSynthesizedMembers,
-                currentDeletedMembers);
+                sourceAssembly: previousSourceAssembly,
+                otherAssembly: compilation.SourceAssembly,
+                otherSynthesizedTypes: currentSynthesizedTypes,
+                otherSynthesizedMembers: currentSynthesizedMembers,
+                otherDeletedMembers: currentDeletedMembers);
+
+            var mappedSynthesizedTypes = matcher.MapSynthesizedTypes(previousGeneration.SynthesizedTypes, currentSynthesizedTypes);
 
             var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
 
@@ -225,17 +227,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
 
             // TODO: can we reuse some data from the previous matcher?
-            var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
-                previousSourceAssembly,
-                compilation.SourceAssembly,
-                synthesizedTypes,
-                mappedSynthesizedMembers,
-                mappedDeletedMembers);
+            var matcherWithAllSynthesizedTypesAndMembers = new CSharpSymbolMatcher(
+                sourceAssembly: previousSourceAssembly,
+                otherAssembly: compilation.SourceAssembly,
+                otherSynthesizedTypes: mappedSynthesizedTypes,
+                otherSynthesizedMembers: mappedSynthesizedMembers,
+                otherDeletedMembers: mappedDeletedMembers);
 
-            return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
+            return matcherWithAllSynthesizedTypesAndMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
+                mappedSynthesizedTypes,
                 mappedSynthesizedMembers,
                 mappedDeletedMembers);
         }

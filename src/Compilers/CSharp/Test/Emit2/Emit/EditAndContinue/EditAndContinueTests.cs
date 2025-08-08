@@ -2257,6 +2257,256 @@ class C
         }
 
         [Fact]
+        public void Lambda_SynthesizedDelegate()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(ref int a) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c}",
+                            "class C.<>c: {<>9__0_0, <F>b__0_0}"
+                        ]);
+
+                        g.VerifySynthesizedTypes(
+                            "<>F{00000001}<T1, TResult>");
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var g = <N:2>(out byte a) => a = 1</N:2>;
+                                var f = <N:1>(ref int a) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                               "class C: {<>c}",
+                               "class C.<>c: {<>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}" // new and reused lambdas
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>F{00000001}<T1, TResult>",
+                                "<>F{00000002}<T1, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>F{00000002}`2");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_0#1");
+                        })
+                .AddGeneration(
+                    // 2
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(ref bool a, ref bool b) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true, rudeEdits: _ => new RuntimeRudeEdit("Parameter changed", 0x123)),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <F>b__0_0#2, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>F{00000001}<T1, TResult>",
+                                "<>F{00000002}<T1, TResult>",
+                                "<>F{00000009}<T1, T2, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>F{00000009}`3", "HotReloadException");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_0#1", ".ctor", "Invoke", ".ctor", "<F>b__0_0#2");
+                        })
+                .AddGeneration(
+                    // 3
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(ref bool a, ref bool b) => a</N:1>;
+                                var g = <N:2>(ref bool a, ref bool b, bool c) => a</N:2>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <>9__0_1#3, <F>b__0_0#2, <F>b__0_1#3, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>F{00000001}<T1, TResult>",
+                                "<>F{00000002}<T1, TResult>",
+                                "<>F{00000009}<T1, T2, TResult>",
+                                "<>F{00000009}<T1, T2, T3, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>F{00000009}`4");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0#2", ".ctor", "Invoke", "<F>b__0_1#3");
+                        })
+                .Verify();
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate_WithIndexedName()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(int a = 1) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c}",
+                            "class C.<>c: {<>9__0_0, <F>b__0_0}"
+                        ]);
+
+                        g.VerifySynthesizedTypes(
+                            "<>f__AnonymousDelegate0<T1, TResult>");
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var g = <N:2>(int a = 1) => a + 1</N:2>;
+                                var f = <N:1>(int a = 2) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}" // new lambda is created
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousDelegate0<T1, TResult>",
+                                "<>f__AnonymousDelegate1<T1, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>f__AnonymousDelegate1`2");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_0#1");
+                        })
+                .AddGeneration(
+                    // 2
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(int a = 3) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true, rudeEdits: _ => new RuntimeRudeEdit("Parameter changed", 0x123)),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <F>b__0_0#2, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousDelegate0<T1, TResult>",
+                                "<>f__AnonymousDelegate1<T1, TResult>",
+                                "<>f__AnonymousDelegate2<T1, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>f__AnonymousDelegate2`2", "HotReloadException");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_0#1", ".ctor", "Invoke", ".ctor", "<F>b__0_0#2");
+                        })
+                .AddGeneration(
+                    // 3
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(int a = 3) => a</N:1>;
+                                var g = <N:2>(int a = 1, int b = 2) => a</N:2>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <>9__0_1#3, <F>b__0_0#2, <F>b__0_1#3, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousDelegate0<T1, TResult>",
+                                "<>f__AnonymousDelegate1<T1, TResult>",
+                                "<>f__AnonymousDelegate2<T1, TResult>",
+                                "<>f__AnonymousDelegate3<T1, T2, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>f__AnonymousDelegate3`3");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0#2", ".ctor", "Invoke", "<F>b__0_1#3");
+                        })
+                .Verify();
+        }
+
+        [Fact]
         public void Lambda_Delete()
         {
             using var _ = new EditAndContinueTest()
@@ -9871,94 +10121,162 @@ class C
         /// <summary>
         /// Reuse existing anonymous types.
         /// </summary>
-        [WorkItem(825903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
         [Fact]
+        [WorkItem(825903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
         public void AnonymousTypes()
         {
-            var source0 =
-@"namespace N
-{
-    class A
-    {
-        static object F = new { A = 1, B = 2 };
-    }
-}
-namespace M
-{
-    class B
-    {
-        static void M()
-        {
-            var x = new { B = 3, A = 4 };
-            var y = x.A;
-            var z = new { };
-        }
-    }
-}";
-            var source1 =
-@"namespace N
-{
-    class A
-    {
-        static object F = new { A = 1, B = 2 };
-    }
-}
-namespace M
-{
-    class B
-    {
-        static void M()
-        {
-            var x = new { B = 3, A = 4 };
-            var y = new { A = x.A };
-            var z = new { };
-        }
-    }
-}";
-            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var f = new { a = 1, b = 2 };
+                            }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}"
+                        ]);
 
-            var m0 = compilation0.GetMember<MethodSymbol>("M.B.M");
-            var m1 = compilation1.GetMember<MethodSymbol>("M.B.M");
+                        g.VerifySynthesizedTypes(
+                            "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>");
 
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+                        g.VerifyIL("C.F", """
+                            {
+                                // Code size       10 (0xa)
+                                .maxstack  2
+                                .locals init (<>f__AnonymousType0<int, int> V_0) //f
+                                IL_0000:  nop
+                                IL_0001:  ldc.i4.1
+                                IL_0002:  ldc.i4.2
+                                IL_0003:  newobj     "<>f__AnonymousType0<int, int>..ctor(int, int)"
+                                IL_0008:  stloc.0
+                                IL_0009:  ret
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var g = new { x = 1 };
+                                var f = new { a = 1, b = 2 };
+                            }
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType1<<x>j__TPar>: {Equals, GetHashCode, ToString}"
+                            ]);
 
-            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
-            var generation0 = CreateInitialBaseline(compilation0, md0, testData0.GetMethodData("M.B.M").EncDebugInfoProvider());
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>",
+                                "<>f__AnonymousType1<<x>j__TPar>");
 
-            var reader0 = md0.MetadataReader;
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "<>f__AnonymousType2", "B", "A");
+                            g.VerifyTypeDefNames("<>f__AnonymousType1`1");
+                            g.VerifyMethodDefNames("F", "get_x", ".ctor", "Equals", "GetHashCode", "ToString");
 
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetEquivalentNodesMap(m1, m0))));
+                            g.VerifyIL("C.F", """
+                                {
+                                  // Code size       17 (0x11)
+                                  .maxstack  2
+                                  .locals init (<>f__AnonymousType0<int, int> V_0, //f
+                                                <>f__AnonymousType1<int> V_1) //g
+                                  IL_0000:  nop
+                                  IL_0001:  ldc.i4.1
+                                  IL_0002:  newobj     "<>f__AnonymousType1<int>..ctor(int)"
+                                  IL_0007:  stloc.1
+                                  IL_0008:  ldc.i4.1
+                                  IL_0009:  ldc.i4.2
+                                  IL_000a:  newobj     "<>f__AnonymousType0<int, int>..ctor(int, int)"
+                                  IL_000f:  stloc.0
+                                  IL_0010:  ret
+                                }
+                                """);
+                        })
+                .AddGeneration(
+                    // 2
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var f = new { a = 1, b = 2, c = 3 };
+                            }
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType1<<x>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>: {Equals, GetHashCode, ToString}",
+                            ]);
 
-            using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType3`1"); // one additional type
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>",
+                                "<>f__AnonymousType1<<x>j__TPar>",
+                                "<>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>");
 
-            diff1.VerifyIL("M.B.M", @"
-{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (<>f__AnonymousType1<int, int> V_0, //x
-                [int] V_1,
-                <>f__AnonymousType2 V_2, //z
-                <>f__AnonymousType3<int> V_3) //y
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  ldc.i4.4
-  IL_0003:  newobj     ""<>f__AnonymousType1<int, int>..ctor(int, int)""
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  callvirt   ""int <>f__AnonymousType1<int, int>.A.get""
-  IL_000f:  newobj     ""<>f__AnonymousType3<int>..ctor(int)""
-  IL_0014:  stloc.3
-  IL_0015:  newobj     ""<>f__AnonymousType2..ctor()""
-  IL_001a:  stloc.2
-  IL_001b:  ret
-}");
+                            g.VerifyTypeDefNames("<>f__AnonymousType2`3");
+                            g.VerifyMethodDefNames("F", "get_a", "get_b", "get_c", ".ctor", "Equals", "GetHashCode", "ToString");
+                        })
+                .AddGeneration(
+                    // 3
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var f = new { a = 1, b = 2, c = 3 };
+                                var g = new { x = 1, y = 2 };
+                            }
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType1<<x>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType3<<x>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}",
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>",
+                                "<>f__AnonymousType1<<x>j__TPar>",
+                                "<>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>",
+                                "<>f__AnonymousType3<<x>j__TPar, <y>j__TPar>");
+
+                            g.VerifyTypeDefNames("<>f__AnonymousType3`2");
+                            g.VerifyMethodDefNames("F", "get_x", "get_y", ".ctor", "Equals", "GetHashCode", "ToString");
+                        })
+                .Verify();
         }
 
         /// <summary>
