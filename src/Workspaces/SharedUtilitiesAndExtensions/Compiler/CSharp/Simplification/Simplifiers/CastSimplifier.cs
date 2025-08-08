@@ -849,6 +849,8 @@ internal static class CastSimplifier
         if (rewrittenExpression.WalkUpParentheses().Parent is not ConditionalExpressionSyntax rewrittenConditionalExpression)
             return false;
 
+        // Defer to common helper to determine if the cast can be removed.  This unified processing of `x ? y : z` and
+        // `x switch { .. => y, .. => z, .. => w, ... }` expressions.
         return IsSwitchOrConditionalCastSafeToRemove(
             castExpression,
             originalSemanticModel,
@@ -881,6 +883,8 @@ internal static class CastSimplifier
         if (rewrittenExpression.WalkUpParentheses().Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax rewrittenSwitchExpression })
             return false;
 
+        // Defer to common helper to determine if the cast can be removed.  This unified processing of `x ? y : z` and
+        // `x switch { .. => y, .. => z, .. => w, ... }` expressions. 
         return IsSwitchOrConditionalCastSafeToRemove(
             castExpression,
             originalSemanticModel,
