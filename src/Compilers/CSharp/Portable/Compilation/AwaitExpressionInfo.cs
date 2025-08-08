@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Structure containing all semantic information about an await expression.
     /// </summary>
+    // https://github.com/dotnet/roslyn/issues/79818: Add runtime async info
     public readonly struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
     {
         public IMethodSymbol? GetAwaiterMethod { get; }

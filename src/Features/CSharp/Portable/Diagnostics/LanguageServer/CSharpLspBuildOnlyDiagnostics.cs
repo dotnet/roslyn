@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS8419", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
     "CS8420", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
     "CS9217", // ErrorCode.ERR_RefLocalAcrossAwait
-    "CS9274"  // ErrorCode.ERR_DataSectionStringLiteralHashCollision
+    "CS9274", // ErrorCode.ERR_DataSectionStringLiteralHashCollision
+    "CS9328"  // ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
     )]
 [Shared]
 internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics

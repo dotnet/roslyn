@@ -2992,6 +2992,7 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
                     case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
+                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 
