@@ -59,7 +59,8 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        using var _1 = ArrayBuilder<InlineHint>.GetInstance(out var result);
+        // Allow large array instances in the pool, as these arrays often exceed the ArrayBuilder reuse size threshold
+        using var _1 = ArrayBuilder<InlineHint>.GetInstance(discardLargeInstances: false, out var result);
         using var _2 = ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)>.GetInstance(out var buffer);
 
         foreach (var node in root.DescendantNodes(textSpan, n => n.Span.IntersectsWith(textSpan)))
