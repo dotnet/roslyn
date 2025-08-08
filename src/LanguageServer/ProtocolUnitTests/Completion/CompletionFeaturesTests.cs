@@ -132,7 +132,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var actualItem = completionResult.Items.First(i => i.Label == "Task");
         Assert.Equal("System.Threading.Tasks", actualItem.LabelDetails.Description);
-        Assert.Equal("~Task  System.Threading.Tasks", actualItem.SortText);
+        Assert.Equal("0000~Task  System.Threading.Tasks", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Class, actualItem.Kind);
         Assert.Null(actualItem.LabelDetails.Detail);
         Assert.Null(actualItem.FilterText);
@@ -149,7 +149,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("System.Threading.Tasks", resolvedItem.LabelDetails.Description);
-        Assert.Equal("~Task  System.Threading.Tasks", resolvedItem.SortText);
+        Assert.Equal("0000~Task  System.Threading.Tasks", resolvedItem.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
 
         TextEdit expectedAdditionalEdit = isInUsingStatement
@@ -219,7 +219,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var actualItem = completionResult.Items.First(i => i.Label == "ExtensionMethod");
         Assert.Equal("NS2", actualItem.LabelDetails.Description);
-        Assert.Equal("~ExtensionMethod NS2", actualItem.SortText);
+        Assert.Equal("0004~ExtensionMethod NS2", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Method, actualItem.Kind);
         Assert.Null(actualItem.LabelDetails.Detail);
         Assert.Null(actualItem.FilterText);
@@ -236,7 +236,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("NS2", resolvedItem.LabelDetails.Description);
-        Assert.Equal("~ExtensionMethod NS2", resolvedItem.SortText);
+        Assert.Equal("0004~ExtensionMethod NS2", resolvedItem.SortText);
         Assert.Equal(CompletionItemKind.Method, resolvedItem.Kind);
 
         var expectedAdditionalEdit = new TextEdit() { NewText = "using NS2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
@@ -285,7 +285,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Equal(CompletionItemKind.Keyword, actualItem.Kind);
         Assert.Equal("summ", actualItem.TextEditText);
         Assert.Null(actualItem.LabelDetails);
-        Assert.Null(actualItem.SortText);
+        Assert.Equal("0011", actualItem.SortText);
         Assert.Null(actualItem.FilterText);
         Assert.Null(actualItem.TextEdit);
         Assert.Null(actualItem.AdditionalTextEdits);
@@ -544,7 +544,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var actualItem = completionResult.Items.First(i => i.Label == "ObsoleteType");
         Assert.Null(actualItem.LabelDetails);
-        Assert.Null(actualItem.SortText);
+        Assert.Equal("0000", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Class, actualItem.Kind);
         Assert.Equal([CompletionItemTag.Deprecated], actualItem.Tags);
         Assert.Null(actualItem.FilterText);
@@ -561,7 +561,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         Assert.Null(resolvedItem.LabelDetails);
-        Assert.Null(resolvedItem.SortText);
+        Assert.Equal("0000", actualItem.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
         Assert.Equal([CompletionItemTag.Deprecated], resolvedItem.Tags);
 
@@ -577,7 +577,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
             Kind = LSP.MarkupKind.PlainText,
             Value = "[deprecated] class ObsoleteType"
         };
-        AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
+        AssertJsonEquals(expectedDocumentation, resolvedItem.Documentation);
     }
 
     private sealed class CSharpLspMockCompletionService : CompletionService
@@ -724,7 +724,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var resolvedItem1 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS1, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace1", resolvedItem1.LabelDetails.Description);
-        Assert.Equal("~MyClass Namespace1", resolvedItem1.SortText);
+        Assert.Equal("0000~MyClass Namespace1", resolvedItem1.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem1.Kind);
 
         var expectedAdditionalEdit1 = new TextEdit() { NewText = "using Namespace1;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
@@ -732,7 +732,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var resolvedItem2 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS2, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace2", resolvedItem2.LabelDetails.Description);
-        Assert.Equal("~MyClass Namespace2", resolvedItem2.SortText);
+        Assert.Equal("0001~MyClass Namespace2", resolvedItem2.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem2.Kind);
 
         var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
