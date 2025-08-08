@@ -1608,13 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (op1)
                     {
                         case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.GetIsNewExtensionMember():
-                            var methodInvocationInfo = new MethodInvocationInfo
-                            {
-                                MethodInfo = MethodInfo.Create(propSet),
-                                Parameters = propSet.Parameters,
-                                Receiver = receiver,
-                                ArgsOpt = [op2],
-                            };
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
                             handleExtensionSetter(in methodInvocationInfo);
                             return;
                         case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.GetIsNewExtensionMember():

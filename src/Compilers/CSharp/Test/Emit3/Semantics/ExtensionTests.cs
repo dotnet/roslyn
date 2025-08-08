@@ -43114,28 +43114,57 @@ static class E
     {
         var x = new S {  field = stackalloc int[10] };
         s.Property = x;
+        s = x.Property;
         E.set_Property(s, x);
+        s = E.get_Property(x);
 
         s.RefReceiverProperty = x;
         E.set_RefReceiverProperty(ref s, x);
+        s = x.RefReceiverProperty;
+        s = E.get_RefReceiverProperty(ref x);
     }
 }
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (26,9): error CS8350: This combination of arguments to 'E.extension(ref S).RefReceiverProperty.set' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
-            //         s.RefReceiverProperty = x;
-            Diagnostic(ErrorCode.ERR_CallArgMixing, "s.RefReceiverProperty = x").WithArguments("E.extension(ref S).RefReceiverProperty.set", "value").WithLocation(26, 9),
-            // (26,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s.RefReceiverProperty = x;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 33),
-            // (27,9): error CS8350: This combination of arguments to 'E.set_RefReceiverProperty(ref S, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
-            //         E.set_RefReceiverProperty(ref s, x);
-            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_RefReceiverProperty(ref s, x)").WithArguments("E.set_RefReceiverProperty(ref S, S)", "value").WithLocation(27, 9),
-            // (27,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         E.set_RefReceiverProperty(ref s, x);
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 42)
+                // (24,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = x.Property;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 13),
+                // (24,13): error CS8347: Cannot use a result of 'E.extension(S).Property' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = x.Property;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x.Property").WithArguments("E.extension(S).Property", "s").WithLocation(24, 13),
+                // (26,13): error CS8347: Cannot use a result of 'E.get_Property(S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = E.get_Property(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Property(x)").WithArguments("E.get_Property(S)", "s").WithLocation(26, 13),
+                // (26,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = E.get_Property(x);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 28),
+                // (28,9): error CS8350: This combination of arguments to 'E.extension(ref S).RefReceiverProperty.set' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         s.RefReceiverProperty = x;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s.RefReceiverProperty = x").WithArguments("E.extension(ref S).RefReceiverProperty.set", "value").WithLocation(28, 9),
+                // (28,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s.RefReceiverProperty = x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 33),
+                // (29,9): error CS8350: This combination of arguments to 'E.set_RefReceiverProperty(ref S, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         E.set_RefReceiverProperty(ref s, x);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_RefReceiverProperty(ref s, x)").WithArguments("E.set_RefReceiverProperty(ref S, S)", "value").WithLocation(29, 9),
+                // (29,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         E.set_RefReceiverProperty(ref s, x);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 42),
+                // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = x.RefReceiverProperty;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
+                // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).RefReceiverProperty' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = x.RefReceiverProperty;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x.RefReceiverProperty").WithArguments("E.extension(ref S).RefReceiverProperty", "s").WithLocation(30, 13),
+                // (31,13): error CS8347: Cannot use a result of 'E.get_RefReceiverProperty(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = E.get_RefReceiverProperty(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_RefReceiverProperty(ref x)").WithArguments("E.get_RefReceiverProperty(ref S)", "s").WithLocation(31, 13),
+                // (31,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = E.get_RefReceiverProperty(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 43)
+
         );
     }
 
@@ -43166,10 +43195,14 @@ static class E
     {
         var x = new S {  field = stackalloc int[10] };
         s.Property = x;
+        x = s.Property;
         E.get_Property(s) = x;
+        x = E.get_Property(s);
 
         s.RefReceiverProperty = x;
+        s = x.RefReceiverProperty;
         E.get_RefReceiverProperty(ref s) = x;
+        s = E.get_RefReceiverProperty(ref x);
     }
 }
 """;
@@ -43179,15 +43212,27 @@ static class E
             // (23,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         s.Property = x;
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(23, 22),
-            // (24,29): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            // (25,29): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         E.get_Property(s) = x;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 29),
-            // (26,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(25, 29),
+            // (28,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         s.RefReceiverProperty = x;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 33),
-            // (27,44): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 33),
+            // (29,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = x.RefReceiverProperty;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 13),
+            // (29,13): error CS8347: Cannot use a result of 'E.extension(ref S).RefReceiverProperty' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = x.RefReceiverProperty;
+            Diagnostic(ErrorCode.ERR_EscapeCall, "x.RefReceiverProperty").WithArguments("E.extension(ref S).RefReceiverProperty", "s").WithLocation(29, 13),
+            // (30,44): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         E.get_RefReceiverProperty(ref s) = x;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 44)
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 44),
+            // (31,13): error CS8347: Cannot use a result of 'E.get_RefReceiverProperty(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_RefReceiverProperty(ref x);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_RefReceiverProperty(ref x)").WithArguments("E.get_RefReceiverProperty(ref S)", "s").WithLocation(31, 13),
+            // (31,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_RefReceiverProperty(ref x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 43)
         );
     }
 
@@ -43219,9 +43264,13 @@ static class E
         var x = new S {  field = stackalloc int[10] };
         s[0] = x;
         E.set_Item(s, 0, x);
+        s = x[0];
+        s = e.get_Item(x, 0);
 
         s[1.0] = x;
         E.set_Item(ref s, 1.0, x);
+        s = x[1.0];
+        s = E.get_Item(ref x, 1.0);
     }
 }
 """;
@@ -43237,15 +43286,30 @@ static class E
             // (23,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
             //         s[0] = x;
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[0]").WithArguments("S").WithLocation(23, 9),
-            // (26,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // (25,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("S").WithLocation(25, 13),
+            // (26,13): error CS0103: The name 'e' does not exist in the current context
+            //         s = e.get_Item(x, 0);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(26, 13),
+            // (28,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
             //         s[1.0] = x;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(26, 9),
-            // (27,9): error CS8350: This combination of arguments to 'E.set_Item(ref S, double, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(28, 9),
+            // (29,9): error CS8350: This combination of arguments to 'E.set_Item(ref S, double, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
             //         E.set_Item(ref s, 1.0, x);
-            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref s, 1.0, x)").WithArguments("E.set_Item(ref S, double, S)", "value").WithLocation(27, 9),
-            // (27,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref s, 1.0, x)").WithArguments("E.set_Item(ref S, double, S)", "value").WithLocation(29, 9),
+            // (29,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         E.set_Item(ref s, 1.0, x);
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 32)
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 32),
+            // (30,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[1.0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1.0]").WithArguments("S").WithLocation(30, 13),
+            // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
+            // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
         );
     }
 
@@ -43277,9 +43341,13 @@ static class E
         var x = new S {  field = stackalloc int[10] };
         s[0] = x;
         E.get_Item(s, 0) = x;
+        s = x[0];
+        s = E.get_Item(x, 0);
 
         s[1.0] = x;
         E.get_Item(ref s, 1.0) = x;
+        s = x[1.0];
+        s = E.get_Item(ref x, 1.0);
     }
 }
 """;
@@ -43298,12 +43366,24 @@ static class E
             // (24,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         E.get_Item(s, 0) = x;
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 28),
-            // (26,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            // (25,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("S").WithLocation(25, 13),
+            // (28,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
             //         s[1.0] = x;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(26, 9),
-            // (27,34): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(28, 9),
+            // (29,34): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
             //         E.get_Item(ref s, 1.0) = x;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(27, 34)
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 34),
+            // (30,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[1.0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1.0]").WithArguments("S").WithLocation(30, 13),
+            // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
+            // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
         );
     }
 

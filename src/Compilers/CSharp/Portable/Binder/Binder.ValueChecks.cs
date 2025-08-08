@@ -144,6 +144,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HasAnyErrors = call.HasAnyErrors
                 };
 
+            public static MethodInvocationInfo FromCallParts(MethodSymbol method, BoundExpression receiver, ImmutableArray<BoundExpression> args, ThreeState receiverIsSubjectToCloning)
+                => new MethodInvocationInfo
+                {
+                    MethodInfo = MethodInfo.Create(method),
+                    Parameters = method.Parameters,
+                    Receiver = receiver,
+                    ReceiverIsSubjectToCloning = receiverIsSubjectToCloning,
+                    ArgsOpt = args,
+                    ArgumentRefKindsOpt = default,
+                    ArgsToParamsOpt = default,
+                    HasAnyErrors = false
+                };
+
             public static MethodInvocationInfo FromFunctionPointerInvocation(BoundFunctionPointerInvocation ptrInvocation)
             {
                 var methodSymbol = ptrInvocation.FunctionPointer.Signature;
@@ -304,6 +317,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ArgumentRefKindsOpt = refKinds,
                     ArgsToParamsOpt = default,
                     HasAnyErrors = hasAnyErrors
+                };
+
+            public static MethodInvocationInfo FromProperty(BoundPropertyAccess propertyAccess)
+                => new MethodInvocationInfo
+                {
+                    MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
+                    Receiver = propertyAccess.ReceiverOpt,
+                    ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                    HasAnyErrors = propertyAccess.HasAnyErrors,
                 };
         }
 
@@ -3701,13 +3723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
-                        new MethodInvocationInfo
-                        {
-                            MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
-                            Receiver = propertyAccess.ReceiverOpt,
-                            ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                            HasAnyErrors = propertyAccess.HasAnyErrors,
-                        },
+                        MethodInvocationInfo.FromProperty(propertyAccess),
                         localScopeDepth,
                         isRefEscape: true);
 
@@ -4028,13 +4044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // not passing any arguments/parameters
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
-                        new MethodInvocationInfo
-                        {
-                            MethodInfo = MethodInfo.Create(propertySymbol),
-                            Receiver = propertyAccess.ReceiverOpt,
-                            ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                            HasAnyErrors = propertyAccess.HasAnyErrors,
-                        },
+                        MethodInvocationInfo.FromProperty(propertyAccess),
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
@@ -4329,13 +4339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
-                        new MethodInvocationInfo
-                        {
-                            MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
-                            Receiver = propertyAccess.ReceiverOpt,
-                            ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                            HasAnyErrors = propertyAccess.HasAnyErrors,
-                        },
+                        MethodInvocationInfo.FromProperty(propertyAccess),
                         localScopeDepth,
                         isRefEscape: false);
 
@@ -5027,13 +5031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // not passing any arguments/parameters
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
-                        new MethodInvocationInfo
-                        {
-                            MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
-                            Receiver = propertyAccess.ReceiverOpt,
-                            ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                            HasAnyErrors = propertyAccess.HasAnyErrors,
-                        },
+                        MethodInvocationInfo.FromProperty(propertyAccess),
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
