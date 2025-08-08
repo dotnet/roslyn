@@ -362,7 +362,6 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         var renameLocation = await ProtocolConversions.TextSpanToLocationAsync(generatedDocument, spans["caret"].First(), isStale: false, CancellationToken.None);
         var renameValue = "RENAME";
-        //var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
         var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
