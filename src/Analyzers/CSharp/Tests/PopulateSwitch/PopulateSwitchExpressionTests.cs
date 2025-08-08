@@ -1864,8 +1864,8 @@ public sealed partial class PopulateSwitchExpressionTests(ITestOutputHelper logg
                 public static string ToApiString(this bool? value)
                     => value [||]switch
                     {
-            	        { } val => val.ToApiString(),
-            	        null => "Unknown",
+                        { } val => val.ToApiString(),
+                        null => "Unknown",
                     };
             }
             """);
