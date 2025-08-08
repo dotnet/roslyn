@@ -25830,9 +25830,9 @@ public class AAttribute : System.Attribute { }
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
-                "TypeDefinition:<Marker>$E32A05FB502A840C00FE0EDD5BE96810",
-                "TypeDefinition:<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"
+                "TypeDefinition:<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
+                "TypeDefinition:<M>$E32A05FB502A840C00FE0EDD5BE96810",
+                "TypeDefinition:<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -25866,8 +25866,8 @@ public class AAttribute : System.Attribute { }
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
-                "TypeDefinition:<Marker>$E32A05FB502A840C00FE0EDD5BE96810"
+                "TypeDefinition:<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
+                "TypeDefinition:<M>$E32A05FB502A840C00FE0EDD5BE96810"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -25924,9 +25924,9 @@ public class BAttribute : System.Attribute { }
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
-                "TypeDefinition:<Marker>$E32A05FB502A840C00FE0EDD5BE96810",
-                "TypeDefinition:<Marker>$218F3E71AC85BD424B16D5E83C9E7F44"
+                "TypeDefinition:<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
+                "TypeDefinition:<M>$E32A05FB502A840C00FE0EDD5BE96810",
+                "TypeDefinition:<M>$218F3E71AC85BD424B16D5E83C9E7F44"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -25963,9 +25963,9 @@ public class AAttribute : System.Attribute
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
-                "TypeDefinition:<Marker>$B6EBDF480696A625FE9EDB09D32E1830",
-                "TypeDefinition:<Marker>$30F160891A3959D878D7B02360CC7D54"
+                "TypeDefinition:<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
+                "TypeDefinition:<M>$B6EBDF480696A625FE9EDB09D32E1830",
+                "TypeDefinition:<M>$30F160891A3959D878D7B02360CC7D54"
                 ], reader.DumpNestedTypes(e.Handle));
 
             var extensions = e.GetTypeMembers();
@@ -26004,9 +26004,9 @@ public class AAttribute : System.Attribute { }
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
-                "TypeDefinition:<Marker>$F3C360580C2136B2A9F2154F91355898",
-                "TypeDefinition:<Marker>$E32A05FB502A840C00FE0EDD5BE96810"
+                "TypeDefinition:<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
+                "TypeDefinition:<M>$F3C360580C2136B2A9F2154F91355898",
+                "TypeDefinition:<M>$E32A05FB502A840C00FE0EDD5BE96810"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -26168,9 +26168,9 @@ public class AAttribute : System.Attribute { }
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$B8D310208B4544F25EEBACB9990FC73B",
-                "TypeDefinition:<Marker>$F167169D271C76FCF9FF858EA5CFC454",
-                "TypeDefinition:<Marker>$9D7BB308433678477E9C2F4392A27B18"
+                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B",
+                "TypeDefinition:<M>$F167169D271C76FCF9FF858EA5CFC454",
+                "TypeDefinition:<M>$9D7BB308433678477E9C2F4392A27B18"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -26205,9 +26205,9 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$8048A6C8BE30A622530249B904B537EB",
-                "TypeDefinition:<Marker>$C7A07C3975E80DE5DBC93B5392C6C922",
-                "TypeDefinition:<Marker>$01CE3801593377B4E240F33E20D30D50"
+                "TypeDefinition:<G>$8048A6C8BE30A622530249B904B537EB",
+                "TypeDefinition:<M>$C7A07C3975E80DE5DBC93B5392C6C922",
+                "TypeDefinition:<M>$01CE3801593377B4E240F33E20D30D50"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -26240,9 +26240,9 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$B8D310208B4544F25EEBACB9990FC73B",
-                "TypeDefinition:<Marker>$A189EAA0A09C2534B53DBF86166AD56A",
-                "TypeDefinition:<Marker>$869530FF3C2454D7BCCC5A8D0E31052F"
+                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B",
+                "TypeDefinition:<M>$A189EAA0A09C2534B53DBF86166AD56A",
+                "TypeDefinition:<M>$869530FF3C2454D7BCCC5A8D0E31052F"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -26275,8 +26275,8 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$B8D310208B4544F25EEBACB9990FC73B",
-                "TypeDefinition:<Marker>$9D7BB308433678477E9C2F4392A27B18"
+                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B",
+                "TypeDefinition:<M>$9D7BB308433678477E9C2F4392A27B18"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -26309,9 +26309,9 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
-                "TypeDefinition:<Marker>$531E7AC45D443AE2243E7FFAB9455D60",
-                "TypeDefinition:<Marker>$032E02D1D6078965F7C2AFC8F27F2F81"
+                "TypeDefinition:<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
+                "TypeDefinition:<M>$531E7AC45D443AE2243E7FFAB9455D60",
+                "TypeDefinition:<M>$032E02D1D6078965F7C2AFC8F27F2F81"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
@@ -26344,8 +26344,8 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
-                "TypeDefinition:<Marker>$F4B4FFE41AB49E80A4ECF390CF6EB372"
+                "TypeDefinition:<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69",
+                "TypeDefinition:<M>$F4B4FFE41AB49E80A4ECF390CF6EB372"
                 ], reader.DumpNestedTypes(e.Handle));
         }
     }
