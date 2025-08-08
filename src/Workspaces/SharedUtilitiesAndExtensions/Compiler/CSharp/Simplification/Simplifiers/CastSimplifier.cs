@@ -832,42 +832,6 @@ internal static class CastSimplifier
     private static bool IsSignedIntegralOrIntPtrType(ITypeSymbol? type)
         => type.IsSignedIntegralType() || type?.SpecialType is SpecialType.System_IntPtr;
 
-    private static bool IsSwitchExpressionCaseCastSafeToRemove(
-        ExpressionSyntax castNode, SemanticModel originalSemanticModel,
-        ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
-    {
-        if (castNode is not CastExpressionSyntax castExpression)
-            return false;
-
-        var parent = castExpression.WalkUpParentheses();
-        if (parent.Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax originalSwitchExpression })
-            return false;
-
-        if (rewrittenExpression.WalkUpParentheses().Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax rewrittenSwitchExpression })
-            return false;
-
-        return IsSwitchOrConditionalCastSafeToRemove(
-            castExpression,
-            originalSemanticModel,
-            rewrittenExpression,
-            rewrittenSemanticModel,
-            originalSwitchExpression,
-            rewrittenSwitchExpression,
-            static switchExpression => switchExpression.Arms.SelectAsArray(a => a.Expression),
-            static (switchExpression, armExpression) =>
-            {
-                if (switchExpression.Arms.Count <= 2)
-                    return null;
-
-                var arm = switchExpression.Arms.Single(a => a.Expression == armExpression);
-                var armIndex = switchExpression.Arms.IndexOf(arm);
-                return armIndex == 0
-                    ? switchExpression.Arms[1].Expression
-                    : switchExpression.Arms[armIndex - 1].Expression;
-            },
-            cancellationToken);
-    }
-
     private static bool IsConditionalCastSafeToRemove(
         ExpressionSyntax castNode, SemanticModel originalSemanticModel,
         ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
@@ -893,9 +857,49 @@ internal static class CastSimplifier
             originalConditionalExpression,
             rewrittenConditionalExpression,
             static conditionalExpression => [conditionalExpression.WhenTrue, conditionalExpression.WhenFalse],
-            static (conditionalExpression, armExpression) => armExpression == conditionalExpression.WhenTrue
-                ? conditionalExpression.WhenFalse
-                : conditionalExpression.WhenTrue,
+            static (conditionalExpression, armExpression) =>
+            {
+                Contract.ThrowIfFalse(conditionalExpression.WhenTrue == armExpression || conditionalExpression.WhenFalse == armExpression);
+                return armExpression == conditionalExpression.WhenTrue
+                    ? conditionalExpression.WhenFalse
+                    : conditionalExpression.WhenTrue;
+            },
+            cancellationToken);
+    }
+
+    private static bool IsSwitchExpressionCaseCastSafeToRemove(
+        ExpressionSyntax castNode, SemanticModel originalSemanticModel,
+        ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
+    {
+        if (castNode is not CastExpressionSyntax castExpression)
+            return false;
+
+        var parent = castExpression.WalkUpParentheses();
+        if (parent.Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax originalSwitchExpression })
+            return false;
+
+        if (rewrittenExpression.WalkUpParentheses().Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax rewrittenSwitchExpression })
+            return false;
+
+        return IsSwitchOrConditionalCastSafeToRemove(
+            castExpression,
+            originalSemanticModel,
+            rewrittenExpression,
+            rewrittenSemanticModel,
+            originalSwitchExpression,
+            rewrittenSwitchExpression,
+            static switchExpression => switchExpression.Arms.SelectAsArray(a => a.Expression),
+            static (switchExpression, armExpression) =>
+            {
+                if (switchExpression.Arms.Count < 2)
+                    return null;
+
+                var arm = switchExpression.Arms.Single(a => a.Expression == armExpression);
+                var armIndex = switchExpression.Arms.IndexOf(arm);
+                return armIndex == 0
+                    ? switchExpression.Arms[1].Expression
+                    : switchExpression.Arms[armIndex - 1].Expression;
+            },
             cancellationToken);
     }
 
@@ -912,14 +916,6 @@ internal static class CastSimplifier
         where TConditionalOrSwitchExpression : ExpressionSyntax
     {
         var parentExpression = castExpression.WalkUpParentheses();
-        //if (parent.Parent is not ConditionalExpressionSyntax originalConditionalExpression)
-        //    return false;
-
-        //// if we were parented by a conditional before, we must be parented by a conditional afterwards.
-        //var rewrittenConditionalExpression = (ConditionalExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
-
-        //if (parent != originalConditionalExpression.WhenFalse && parent != originalConditionalExpression.WhenTrue)
-        //    return false;
 
         if (originalSemanticModel.GetOperation(castExpression, cancellationToken) is not IConversionOperation conversionOperation)
             return false;
@@ -999,7 +995,6 @@ internal static class CastSimplifier
             if (otherSide is null)
                 return false;
 
-            //parent == originalConditionalExpression.WhenFalse ? originalConditionalExpression.WhenTrue : originalConditionalExpression.WhenFalse;
             var otherSideType = originalSemanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
             var thisSideRewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
 
