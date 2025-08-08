@@ -44,6 +44,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return flowDiagnostics.ToReadOnlyAndFree().Diagnostics;
         }
 
+        protected static void VerifyDataFlowAnalysis(string expected, DataFlowAnalysis result)
+        {
+            var actual = $$"""
+VariablesDeclared: {{GetSymbolNamesJoined(result.VariablesDeclared)}}
+AlwaysAssigned: {{GetSymbolNamesJoined(result.AlwaysAssigned)}}
+Captured: {{GetSymbolNamesJoined(result.Captured)}}
+CapturedInside: {{GetSymbolNamesJoined(result.CapturedInside)}}
+CapturedOutside: {{GetSymbolNamesJoined(result.CapturedOutside)}}
+DataFlowsIn: {{GetSymbolNamesJoined(result.DataFlowsIn)}}
+DataFlowsOut: {{GetSymbolNamesJoined(result.DataFlowsOut)}}
+DefinitelyAssignedOnEntry: {{GetSymbolNamesJoined(result.DefinitelyAssignedOnEntry)}}
+DefinitelyAssignedOnExit: {{GetSymbolNamesJoined(result.DefinitelyAssignedOnExit)}}
+ReadInside: {{GetSymbolNamesJoined(result.ReadInside)}}
+ReadOutside: {{GetSymbolNamesJoined(result.ReadOutside)}}
+WrittenInside: {{GetSymbolNamesJoined(result.WrittenInside)}}
+WrittenOutside: {{GetSymbolNamesJoined(result.WrittenOutside)}}
+""";
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual);
+        }
+
         private IEnumerable<MethodSymbol> AllMethods(Symbol symbol)
         {
             switch (symbol.Kind)

@@ -3,21 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class StringKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class StringKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.StringKeyword)
 {
-    public StringKeywordRecommender()
-        : base(SyntaxKind.StringKeyword)
-    {
-    }
-
     protected override SpecialType SpecialType => SpecialType.System_String;
 
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
@@ -47,8 +42,8 @@ internal sealed class StringKeywordRecommender : AbstractSpecialTypePreselecting
             context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken);
     }
 }

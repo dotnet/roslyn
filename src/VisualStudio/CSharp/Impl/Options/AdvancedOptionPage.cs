@@ -6,14 +6,13 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+[Guid(Guids.CSharpOptionPageAdvancedIdString)]
+internal sealed class AdvancedOptionPage : AbstractOptionPage
 {
-    [Guid(Guids.CSharpOptionPageAdvancedIdString)]
-    internal class AdvancedOptionPage : AbstractOptionPage
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-        {
-            return new AdvancedOptionPageControl(optionStore);
-        }
+        return new AdvancedOptionPageControl(optionStore);
     }
 }

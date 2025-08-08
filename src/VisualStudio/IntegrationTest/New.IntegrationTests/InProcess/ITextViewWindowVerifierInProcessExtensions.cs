@@ -62,10 +62,9 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         CancellationToken cancellationToken = default)
     {
         var events = new List<WorkspaceChangeEventArgs>();
-        void WorkspaceChangedHandler(object sender, WorkspaceChangeEventArgs e) => events.Add(e);
 
         var workspace = await textViewWindowVerifier.TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
-        using var workspaceEventRestorer = WithWorkspaceChangedHandler(workspace, WorkspaceChangedHandler);
+        using var _ = workspace.RegisterWorkspaceChangedHandler(e => events.Add(e));
 
         await textViewWindowVerifier.TestServices.Editor.ShowLightBulbAsync(cancellationToken);
 
@@ -116,11 +115,11 @@ internal static class ITextViewWindowVerifierInProcessExtensions
                     ],
                     cancellationToken);
 
-                if (codeActionLogger.Messages.Any())
+                if (codeActionLogger.Messages.Count != 0)
                 {
                     foreach (var e in events)
                     {
-                        codeActionLogger.Messages.Add($"{e.OldSolution.WorkspaceVersion} to {e.NewSolution.WorkspaceVersion}: {e.Kind} {e.DocumentId}");
+                        codeActionLogger.Messages.Add($"{e.OldSolution.SolutionStateContentVersion} to {e.NewSolution.SolutionStateContentVersion}: {e.Kind} {e.DocumentId}");
                     }
                 }
 
@@ -155,12 +154,6 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         Assert.NotEqual("text", tokenType);
     }
 
-    private static WorkspaceEventRestorer WithWorkspaceChangedHandler(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)
-    {
-        workspace.WorkspaceChanged += eventHandler;
-        return new WorkspaceEventRestorer(workspace, eventHandler);
-    }
-
     private static LoggerRestorer WithLogger(ILogger logger)
     {
         return new LoggerRestorer(Logger.SetLogger(logger));
@@ -192,23 +185,6 @@ internal static class ITextViewWindowVerifierInProcessExtensions
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-        }
-    }
-
-    private readonly struct WorkspaceEventRestorer : IDisposable
-    {
-        private readonly Workspace _workspace;
-        private readonly EventHandler<WorkspaceChangeEventArgs> _eventHandler;
-
-        public WorkspaceEventRestorer(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)
-        {
-            _workspace = workspace;
-            _eventHandler = eventHandler;
-        }
-
-        public void Dispose()
-        {
-            _workspace.WorkspaceChanged -= _eventHandler;
         }
     }
 

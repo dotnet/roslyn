@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging;
 /// the data so it can be read from the background.
 /// </summary>
 [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
-internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
+internal sealed partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
 {
     // Proper name, should not be localized.
     private const string NugetTitle = "NuGet";
@@ -232,7 +232,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
         var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(false);
 
         // Start listening to additional events workspace changes.
-        Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _ = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
 
         // Kick off an initial set of work that will analyze the entire solution.
@@ -421,7 +421,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         // ThisCanBeCalledOnAnyThread();
 
@@ -462,7 +462,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
 
         // If we've been disconnected, then there's no point proceeding.
         if (Workspace == null || !IsEnabled)
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
 
         return ProcessWorkQueueWorkerAsync(workQueue, cancellationToken);
     }
@@ -736,7 +736,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
     {
     }
 
-    private class SearchQuery : IVsSearchQuery
+    private sealed class SearchQuery : IVsSearchQuery
     {
         public SearchQuery(string packageName)
             => this.SearchString = packageName;

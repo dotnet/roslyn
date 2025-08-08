@@ -4,10 +4,13 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelper testOutputHelper) : IDisposable
 {
-    protected TestOutputLogger TestOutputLogger => new(testOutputHelper);
+    protected ILoggerFactory LoggerFactory => new LoggerFactory([new TestOutputLoggerProvider(testOutputHelper)]);
     protected TempRoot TempRoot => new();
     protected TempDirectory ExtensionLogsDirectory => TempRoot.CreateDirectory();
 
@@ -56,11 +59,9 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         var codePath = Path.Combine(projectDirectory.Path, "Code.cs");
         await File.WriteAllTextAsync(codePath, code);
 
-#pragma warning disable RS0030 // Do not use banned APIs
-        Uri codeUri = new(codePath);
-#pragma warning restore RS0030 // Do not use banned APIs
+        var codeUri = ProtocolConversions.CreateAbsoluteDocumentUri(codePath);
         var text = SourceText.From(code);
-        Dictionary<Uri, SourceText> files = new() { [codeUri] = text };
+        Dictionary<DocumentUri, SourceText> files = new() { [codeUri] = text };
         var annotatedLocations = GetAnnotatedLocations(codeUri, text, spans);
 
         // Create server and open the project
@@ -69,7 +70,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             ExtensionLogsDirectory.Path,
             includeDevKitComponents,
             debugLsp,
-            TestOutputLogger,
+            LoggerFactory,
             documents: files,
             locations: annotatedLocations);
 
@@ -91,7 +92,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         return lspClient;
     }
 
-    private protected static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(Uri codeUri, SourceText text, ImmutableDictionary<string, ImmutableArray<TextSpan>> spanMap)
+    private protected static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(DocumentUri codeUri, SourceText text, ImmutableDictionary<string, ImmutableArray<TextSpan>> spanMap)
     {
         var locations = new Dictionary<string, IList<LSP.Location>>();
         foreach (var (name, spans) in spanMap)
@@ -106,11 +107,11 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
 
         return locations;
 
-        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
+        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, DocumentUri documentUri)
         {
             var location = new LSP.Location
             {
-                Uri = documentUri,
+                DocumentUri = documentUri,
                 Range = ProtocolConversions.TextSpanToRange(span, text),
             };
 
@@ -118,9 +119,9 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         }
     }
 
-    private protected static TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
+    private protected static TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
     {
-        var documentIdentifier = new VSTextDocumentIdentifier { Uri = uri };
+        var documentIdentifier = new VSTextDocumentIdentifier { DocumentUri = uri };
 
         if (projectContext != null)
         {
@@ -138,7 +139,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
     private protected static CodeActionParams CreateCodeActionParams(LSP.Location location)
         => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(location.Uri),
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
             Range = location.Range,
             Context = new CodeActionContext
             {

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
@@ -35,7 +36,7 @@ internal sealed partial class RenameTrackingTaggerProvider
     /// <summary>
     /// Determines whether the original token was a renameable identifier on a background thread
     /// </summary>
-    private class TrackingSession
+    private sealed class TrackingSession
     {
         private static readonly Task<TriggerIdentifierKind> s_notRenamableTask = Task.FromResult(TriggerIdentifierKind.NotRenamable);
         private readonly Task<TriggerIdentifierKind> _isRenamableIdentifierTask;
@@ -197,7 +198,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                         // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                         ForceRenameOverloads = true;
 
-                        return DetermineIfRenamableSymbols(renameSymbolInfo.Symbols, document);
+                        return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document).ConfigureAwait(false);
                     }
                     else
                     {
@@ -208,7 +209,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                             return TriggerIdentifierKind.NotRenamable;
                         }
 
-                        return DetermineIfRenamableSymbol(renameSymbolInfo.Symbols.Single(), document, token);
+                        return await DetermineIfRenamableSymbolAsync(renameSymbolInfo.Symbols.Single(), document, token).ConfigureAwait(false);
                     }
                 }
             }
@@ -216,12 +217,12 @@ internal sealed partial class RenameTrackingTaggerProvider
             return TriggerIdentifierKind.NotRenamable;
         }
 
-        private TriggerIdentifierKind DetermineIfRenamableSymbols(IEnumerable<ISymbol> symbols, Document document)
+        private async ValueTask<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document)
         {
             foreach (var symbol in symbols)
             {
                 // Get the source symbol if possible
-                var sourceSymbol = SymbolFinder.FindSourceDefinition(symbol, document.Project.Solution, _cancellationToken) ?? symbol;
+                var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
                 if (!sourceSymbol.IsFromSource())
                 {
@@ -232,10 +233,10 @@ internal sealed partial class RenameTrackingTaggerProvider
             return TriggerIdentifierKind.RenamableReference;
         }
 
-        private TriggerIdentifierKind DetermineIfRenamableSymbol(ISymbol symbol, Document document, SyntaxToken token)
+        private async ValueTask<TriggerIdentifierKind> DetermineIfRenamableSymbolAsync(ISymbol symbol, Document document, SyntaxToken token)
         {
             // Get the source symbol if possible
-            var sourceSymbol = SymbolFinder.FindSourceDefinition(symbol, document.Project.Solution, _cancellationToken) ?? symbol;
+            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
             if (sourceSymbol is IFieldSymbol { ContainingType.IsTupleType: true, IsImplicitlyDeclared: true })
             {

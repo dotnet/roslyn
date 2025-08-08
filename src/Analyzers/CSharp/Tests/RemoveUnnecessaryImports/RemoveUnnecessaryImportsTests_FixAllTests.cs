@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImports;
 
-public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveUnnecessaryImportsTests_FixAllTests(ITestOutputHelper logger)
       : base(logger)
@@ -30,9 +30,8 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        var input = """
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -66,9 +65,7 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -101,17 +98,13 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        var input = """
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -145,9 +138,7 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -179,17 +170,13 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProjectSkipsGeneratedCode()
-    {
-        var input = """
+    public Task TestFixAllInProjectSkipsGeneratedCode()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -223,9 +210,7 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -258,17 +243,13 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        var input = """
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -302,9 +283,7 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -335,17 +314,13 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingMember_NotApplicable()
-    {
-        var input = """
+    public Task TestFixAllInContainingMember_NotApplicable()
+        => TestMissingInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -379,17 +354,13 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestMissingInRegularAndScriptAsync(input);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingType_NotApplicable()
-    {
-        var input = """
+    public Task TestFixAllInContainingType_NotApplicable()
+        => TestMissingInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -423,9 +394,6 @@ public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosti
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestMissingInRegularAndScriptAsync(input);
-    }
+            """);
     #endregion
 }

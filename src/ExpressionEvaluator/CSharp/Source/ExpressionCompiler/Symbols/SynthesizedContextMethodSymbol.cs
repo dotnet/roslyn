@@ -4,12 +4,10 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// expressions outside of a method - specifically, binding
     /// DebuggerDisplayAttribute expressions.
     /// </summary>
-    internal sealed class SynthesizedContextMethodSymbol : SynthesizedInstanceMethodSymbol
+    internal sealed class SynthesizedContextMethodSymbol : SynthesizedMethodSymbol
     {
         private readonly NamedTypeSymbol _container;
 

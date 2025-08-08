@@ -14,59 +14,58 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal sealed partial class CodeStyleHostLanguageServices : HostLanguageServices
 {
-    internal sealed partial class CodeStyleHostLanguageServices : HostLanguageServices
+    private sealed class MefHostExportProvider : IMefHostExportProvider
     {
-        private sealed class MefHostExportProvider : IMefHostExportProvider
+        private readonly CompositionHost _compositionContext;
+
+        private MefHostExportProvider(CompositionHost compositionContext)
+            => _compositionContext = compositionContext;
+
+        public static MefHostExportProvider Create(string languageName)
         {
-            private readonly CompositionHost _compositionContext;
+            var assemblies = CreateAssemblies(languageName);
+            var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
+            return new MefHostExportProvider(compositionConfiguration.CreateContainer());
+        }
 
-            private MefHostExportProvider(CompositionHost compositionContext)
-                => _compositionContext = compositionContext;
+        private static ImmutableArray<Assembly> CreateAssemblies(string languageName)
+        {
+            using var disposer = ArrayBuilder<string>.GetInstance(out var assemblyNames);
 
-            public static MefHostExportProvider Create(string languageName)
+            assemblyNames.Add("Microsoft.CodeAnalysis.CodeStyle.Fixes");
+            switch (languageName)
             {
-                var assemblies = CreateAssemblies(languageName);
-                var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
-                return new MefHostExportProvider(compositionConfiguration.CreateContainer());
+                case LanguageNames.CSharp:
+                    assemblyNames.Add("Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes");
+                    break;
+
+                case LanguageNames.VisualBasic:
+                    assemblyNames.Add("Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes");
+                    break;
             }
 
-            private static ImmutableArray<Assembly> CreateAssemblies(string languageName)
-            {
-                using var disposer = ArrayBuilder<string>.GetInstance(out var assemblyNames);
+            return [.. MefHostServices.DefaultAssemblies,
+                    .. MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames.ToImmutableAndClear())];
+        }
 
-                assemblyNames.Add("Microsoft.CodeAnalysis.CodeStyle.Fixes");
-                switch (languageName)
-                {
-                    case LanguageNames.CSharp:
-                        assemblyNames.Add("Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes");
-                        break;
+        IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
+            => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 
-                    case LanguageNames.VisualBasic:
-                        assemblyNames.Add("Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes");
-                        break;
-                }
+        IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
+        {
+            var importer = new WithMetadataImporter<TExtension, TMetadata>();
+            _compositionContext.SatisfyImports(importer);
+            return importer.Exports;
+        }
 
-                return MefHostServices.DefaultAssemblies.Concat(
-                    MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames));
-            }
-
-            IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-                => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
-
-            IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
-            {
-                var importer = new WithMetadataImporter<TExtension, TMetadata>();
-                _compositionContext.SatisfyImports(importer);
-                return importer.Exports;
-            }
-
-            private class WithMetadataImporter<TExtension, TMetadata>
-            {
-                [ImportMany]
-                public IEnumerable<Lazy<TExtension, TMetadata>> Exports { get; set; }
-            }
+        private sealed class WithMetadataImporter<TExtension, TMetadata>
+        {
+            [ImportMany]
+            public IEnumerable<Lazy<TExtension, TMetadata>> Exports { get; set; }
         }
     }
 }

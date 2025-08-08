@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
-public class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTest
+public sealed class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new CSharpInlineMethodRefactoringProvider();
@@ -30,34 +30,32 @@ public class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTes
     // it is hard to test cross language scenario.
     // After it is resolved then this test should be merged to the other test class
     [Fact]
-    public async Task TestCrossLanguageInline()
-    {
-        var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
-    <ProjectReference>VBAssembly</ProjectReference>
-    <Document>
-        using VBAssembly;
-        public class TestClass
-        {
-            public void Caller()
-            {
-                var x = new VBClass();
-                x.C[||]allee();
-            }
-        }
-    </Document>
-    </Project>
-    <Project Language=""Visual Basic"" AssemblyName=""VBAssembly"" CommonReferences=""true"">
-    <Document>
-        Public Class VBClass
-            Private Sub Callee()
-            End Sub
-        End Class
-    </Document>
-    </Project>
-</Workspace>";
-        await TestNoActionIsProvided(input);
-    }
+    public Task TestCrossLanguageInline()
+        => TestNoActionIsProvided("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="CSAssembly" CommonReferences="true">
+                <ProjectReference>VBAssembly</ProjectReference>
+                <Document>
+                    using VBAssembly;
+                    public class TestClass
+                    {
+                        public void Caller()
+                        {
+                            var x = new VBClass();
+                            x.C[||]allee();
+                        }
+                    }
+                </Document>
+                </Project>
+                <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
+                <Document>
+                    Public Class VBClass
+                        Private Sub Callee()
+                        End Sub
+                    End Class
+                </Document>
+                </Project>
+            </Workspace>
+            """);
 }
 

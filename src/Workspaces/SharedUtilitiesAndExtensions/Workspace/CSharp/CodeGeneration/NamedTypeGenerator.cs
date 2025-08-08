@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -60,7 +59,11 @@ internal static class NamedTypeGenerator
         CancellationToken cancellationToken)
     {
         var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.CompilationUnit, info, cancellationToken);
-        var members = Insert(destination.Members, declaration, info, availableIndices);
+        var members = Insert(
+            destination.Members, declaration, info, availableIndices,
+            // We're adding a named type to a compilation unit.  If there are any global statements, we must place it after them.
+            after: static members => members.LastOrDefault(m => m is GlobalStatementSyntax),
+            canPlaceAtIndex: static (members, index) => index >= members.Count || members[index] is not GlobalStatementSyntax);
         return destination.WithMembers(members);
     }
 
@@ -78,8 +81,7 @@ internal static class NamedTypeGenerator
         // the getter and setter to get generated instead. Since the list of members is going to include
         // the method symbols for the getter and setter, we don't want to generate them twice.
 
-        var members = GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s))
-                                           .ToImmutableArray();
+        var members = GetMembers(namedType).WhereAsArray(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s));
         if (namedType.IsRecord)
         {
             declaration = GenerateRecordMembers(service, info, (RecordDeclarationSyntax)declaration, members, cancellationToken);

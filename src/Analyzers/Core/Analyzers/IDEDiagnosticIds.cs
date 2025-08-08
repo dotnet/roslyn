@@ -63,7 +63,7 @@ internal static class IDEDiagnosticIds
 
     public const string UseLocalFunctionDiagnosticId = "IDE0039";
 
-    public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
+    public const string AddOrRemoveAccessibilityModifiersDiagnosticId = "IDE0040";
 
     public const string UseIsNullCheckDiagnosticId = "IDE0041";
 
@@ -230,4 +230,7 @@ internal static class IDEDiagnosticIds
     public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
     public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
+
+    // 3000 range for copilot features.
+    public const string CopilotImplementNotImplementedExceptionDiagnosticId = "IDE3000";
 }

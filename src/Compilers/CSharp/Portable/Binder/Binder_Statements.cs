@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     out var disposeMethod,
                                                     out isExpanded);
 
-            if (disposeMethod?.IsExtensionMethod == true)
+            if (disposeMethod is not null && (disposeMethod.IsExtensionMethod || disposeMethod.GetIsNewExtensionMember()))
             {
                 // Extension methods should just be ignored, rather than rejected after-the-fact
                 // Tracked by https://github.com/dotnet/roslyn/issues/32767
@@ -1911,7 +1911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 node,
                 locals,
-                GetDeclaredLocalFunctionsForScope(node),
+                ImmutableArray<MethodSymbol>.CastUp(GetDeclaredLocalFunctionsForScope(node)),
                 hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
                 instrumentation: null,
                 boundStatements);
@@ -2723,8 +2723,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
-                Debug.Assert(resultKind == LookupResultKind.Empty, "How could overload resolution fail if a user-defined true operator was found?");
-                Debug.Assert(originalUserDefinedOperators.IsEmpty, "How could overload resolution fail if a user-defined true operator was found?");
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
                 return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
@@ -3855,7 +3853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (containingType.IsStructType() || containingType.IsEnumType())
+            if (containingType.IsStructType() || containingType.IsEnumType() || containingType.IsExtension)
             {
                 return null;
             }
@@ -4153,7 +4151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bindingDiagnostics,
                     queryClause: null,
                     ignoreNormalFormIfHasValidParamsParameter: true,
-                    anyApplicableCandidates: out _);
+                    anyApplicableCandidates: out _,
+                    disallowExpandedNonArrayParams: false,
+                    acceptOnlyMethods: true);
 
                 analyzedArguments.Free();
 

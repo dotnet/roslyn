@@ -11,18 +11,13 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 [Method(VSInternalMethods.DocumentPullDiagnosticName)]
-internal partial class DocumentPullDiagnosticHandler
-    : AbstractDocumentPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>
+internal sealed partial class DocumentPullDiagnosticHandler(
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IGlobalOptionService globalOptions)
+    : AbstractDocumentPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>(
+        diagnosticRefresher, diagnosticSourceManager, globalOptions)
 {
-    public DocumentPullDiagnosticHandler(
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticSourceManager diagnosticSourceManager,
-        IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions)
-        : base(analyzerService, diagnosticRefresher, diagnosticSourceManager, globalOptions)
-    {
-    }
-
     protected override string? GetRequestDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
         => diagnosticsParams.QueryingDiagnosticKind?.Value;
 

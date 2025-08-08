@@ -6,11 +6,10 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
+
+internal sealed class XamlStructureTag
 {
-    internal class XamlStructureTag
-    {
-        public string Type { get; set; }
-        public TextSpan TextSpan { get; set; }
-    }
+    public string Type { get; set; }
+    public TextSpan TextSpan { get; set; }
 }

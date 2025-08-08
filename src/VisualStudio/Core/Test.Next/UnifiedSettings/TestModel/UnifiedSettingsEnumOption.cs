@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
+internal sealed record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
 {
     [JsonPropertyName("enum")]
     public required string[] @Enum { get; init; }
@@ -17,7 +17,7 @@ internal record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
     [JsonConverter(typeof(ResourceStringArrayConverter))]
     public required string[] EnumItemLabels { get; init; }
 
-    public virtual bool Equals(UnifiedSettingsEnumOption? other)
+    public bool Equals(UnifiedSettingsEnumOption? other)
     {
         if (other is null)
             return false;

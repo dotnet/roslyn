@@ -172,7 +172,7 @@ internal abstract class AbstractSimplificationService<
         }
         else
         {
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 source: nodesAndTokensToReduce,
                 cancellationToken,
                 ReduceOneNodeOrTokenAsync).ConfigureAwait(false);
@@ -196,7 +196,7 @@ internal abstract class AbstractSimplificationService<
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using var rewriter = reducer.GetOrCreateRewriter();
-                rewriter.Initialize(document.Project.ParseOptions, options, cancellationToken);
+                rewriter.Initialize(document.Project.ParseOptions!, options, cancellationToken);
 
                 do
                 {

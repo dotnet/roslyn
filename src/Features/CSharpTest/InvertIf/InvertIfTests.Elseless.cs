@@ -8,12 +8,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf;
 
-public partial class InvertIfTests
+public sealed partial class InvertIfTests
 {
     [Fact]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause1()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -55,12 +54,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause2()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause2()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -100,12 +97,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause3()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause3()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -135,12 +130,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause4()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause4()
+        => TestAsync("""
             class C
             {
                 bool M()
@@ -176,12 +169,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause5()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause5()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -213,12 +204,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause6()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause6()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -266,12 +255,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause7()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause7()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -319,12 +306,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40909")]
-    public async Task IfWithoutElse_MoveIfBodyToElseClause8()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveIfBodyToElseClause8()
+        => TestAsync("""
             using System.Diagnostics;
             class C
             {
@@ -360,12 +345,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody1()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveSubsequentStatementsToIfBody1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -397,12 +380,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody2()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveSubsequentStatementsToIfBody2()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -440,12 +421,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody3()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveSubsequentStatementsToIfBody3()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -481,12 +460,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73917")]
-    public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody4()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveSubsequentStatementsToIfBody4()
+        => TestAsync("""
             public void SomeMethod()
             {
                 object something = null;
@@ -513,12 +490,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73917")]
-    public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody5()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_MoveSubsequentStatementsToIfBody5()
+        => TestAsync("""
             switch (o)
             {
                 case 1:
@@ -551,12 +526,10 @@ public partial class InvertIfTests
                     return;
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_SwapIfBodyWithSubsequentStatements1()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_SwapIfBodyWithSubsequentStatements1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -583,12 +556,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_SwapIfBodyWithSubsequentStatements2()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_SwapIfBodyWithSubsequentStatements2()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -619,12 +590,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithElseClause1()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithElseClause1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -652,12 +621,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithNegatedCondition1()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithNegatedCondition1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -674,12 +641,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithNearmostJumpStatement1()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithNearmostJumpStatement1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -709,12 +674,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithNearmostJumpStatement2()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithNearmostJumpStatement2()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -748,12 +711,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithNearmostJumpStatement3()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithNearmostJumpStatement3()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -777,12 +738,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithNearmostJumpStatement4()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithNearmostJumpStatement4()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -812,12 +771,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithSubsequentExitPointStatement1()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithSubsequentExitPointStatement1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -853,12 +810,10 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IfWithoutElse_WithSubsequentExitPointStatement2()
-    {
-        await TestAsync("""
+    public Task IfWithoutElse_WithSubsequentExitPointStatement2()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -900,15 +855,13 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("get")]
     [InlineData("set")]
     [InlineData("init")]
-    public async Task IfWithoutElse_InPropertyAccessors(string accessor)
-    {
-        await TestAsync($$"""
+    public Task IfWithoutElse_InPropertyAccessors(string accessor)
+        => TestAsync($$"""
             class C
             {
                 private bool _b;
@@ -946,5 +899,4 @@ public partial class InvertIfTests
                 }
             }
             """);
-    }
 }

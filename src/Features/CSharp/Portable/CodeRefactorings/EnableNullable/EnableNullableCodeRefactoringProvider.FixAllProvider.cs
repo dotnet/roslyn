@@ -57,18 +57,17 @@ internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefact
             : CodeAction.SolutionChangeAction(
                 CSharpFeaturesResources.Enable_nullable_reference_types_in_solution,
                 (progress, cancellationToken) => createChangedSolution(CodeActionPurpose.Apply, progress, cancellationToken),
-                nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_solution))
+                nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_solution),
+                CodeActionPriority.Default,
+                CodeActionCleanup.Default)
         {
             private readonly Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var changedSolution = await _createChangedSolution(
-                    CodeActionPurpose.Preview, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
-                if (changedSolution is null)
-                    return [];
-
-                return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
+                    CodeActionPurpose.Preview, progress, cancellationToken).ConfigureAwait(false);
+                return changedSolution is null ? [] : [new ApplyChangesOperation(changedSolution)];
             }
         }
     }

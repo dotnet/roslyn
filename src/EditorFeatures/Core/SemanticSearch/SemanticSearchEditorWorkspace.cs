@@ -6,20 +6,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
 internal sealed class SemanticSearchEditorWorkspace(
     HostServices services,
-    SemanticSearchProjectConfiguration config,
+    ISemanticSearchSolutionService solutionService,
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider)
-    : SemanticSearchWorkspace(services, config)
+    : SemanticSearchWorkspace(services, solutionService)
 {
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.SemanticSearch);
 

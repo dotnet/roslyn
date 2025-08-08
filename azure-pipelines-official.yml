@@ -5,7 +5,9 @@ trigger:
     - main-vs-deps
     - release/dev16.*-vs-deps
     - release/dev17.*
+    - release/dev18.*
     - features/lsp_tools_host
+    - features/runtime-async
     exclude:
     - release/dev17.0
 pr: none
@@ -16,6 +18,11 @@ resources:
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
+  pipelines:
+    - pipeline: profilingInputs
+      source: dotnet-vscode-csharp-profiling
+      branch: main
+      trigger: none
 
 parameters:
 - name: IbcDrop
@@ -36,6 +43,12 @@ parameters:
 - name: SkipTests
   type: boolean
   default: true
+
+# An optional VS commit SHA that will be automatically cherry-picked
+# to the insertion PR created by this build.
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
 
 schedules:
   - cron: "0 8 23-29 * 0"
@@ -89,6 +102,9 @@ variables:
   - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
     - name: enableSourceIndex
       value: true
+  - name: VSCodeOptimizationDataRoot
+    value: $(Pipeline.Workspace)/profilingInputs/merged mibc
+
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
@@ -154,7 +170,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -202,6 +218,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -273,6 +292,10 @@ extends:
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
           condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
+        - download: profilingInputs
+          artifact: merged mibc
+          displayName: Download VSCode optimization inputs
+
         - task: PowerShell@2
           displayName: Build
           inputs:
@@ -288,12 +311,13 @@ extends:
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
                        -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
+                       /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
                        /p:DotNetSignType=$(SignType)
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
@@ -376,6 +400,7 @@ extends:
             publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
             publishDataAccessToken: "$(System.AccessToken)"
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
 
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self

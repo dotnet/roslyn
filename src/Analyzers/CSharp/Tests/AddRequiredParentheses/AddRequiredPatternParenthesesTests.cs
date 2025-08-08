@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
 
@@ -32,12 +26,11 @@ public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnost
         => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 
     private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
-        => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+        => TestInRegularAndScriptAsync(initialMarkup, expected, parameters: new TestParameters(options: options));
 
     [Fact]
-    public async Task TestLogicalPrecedence()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedence()
+        => TestAsync(
             """
             class C
             {
@@ -56,12 +49,10 @@ public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnost
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNoLogicalOnLowerPrecedence()
-    {
-        await TestMissingAsync(
+    public Task TestNoLogicalOnLowerPrecedence()
+        => TestMissingAsync(
             """
             class C
             {
@@ -71,12 +62,10 @@ public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnost
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfLogicalPrecedenceStaysTheSame()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfLogicalPrecedenceStaysTheSame()
+        => TestMissingAsync(
             """
             class C
             {
@@ -86,12 +75,10 @@ public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnost
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
-    {
-        await TestMissingAsync(
+    public Task TestNotIfLogicalPrecedenceIsNotEnforced()
+        => TestMissingAsync(
             """
             class C
             {
@@ -101,12 +88,10 @@ public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnost
                 }
             }
             """, RequireArithmeticBinaryParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
+        => TestAsync(
             """
             class C
             {
@@ -125,12 +110,10 @@ public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnost
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 
     [Fact]
-    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
-    {
-        await TestAsync(
+    public Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
+        => TestAsync(
             """
             class C
             {
@@ -149,5 +132,4 @@ public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnost
                 }
             }
             """, RequireAllParenthesesForClarity);
-    }
 }

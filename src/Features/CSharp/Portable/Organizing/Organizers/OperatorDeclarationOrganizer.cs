@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Organizing.Organizers;
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
 
 [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
-internal class OperatorDeclarationOrganizer : AbstractSyntaxNodeOrganizer<OperatorDeclarationSyntax>
+internal sealed class OperatorDeclarationOrganizer : AbstractSyntaxNodeOrganizer<OperatorDeclarationSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

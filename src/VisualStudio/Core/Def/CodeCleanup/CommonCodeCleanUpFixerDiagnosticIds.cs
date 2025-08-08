@@ -31,18 +31,18 @@ internal static class CommonCodeCleanUpFixerDiagnosticIds
     public static readonly FixIdDefinition? RemoveQualificationDiagnosticId;
 
     [Export]
-    [FixId(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)]
-    [Name(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)]
+    [FixId(IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId)]
+    [Name(IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId)]
     [Order(After = IDEDiagnosticIds.AddBracesDiagnosticId)]
     [ConfigurationKey("unused")]
-    [HelpLink($"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId}")]
+    [HelpLink($"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId}")]
     [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Add_accessibility_modifiers))]
-    public static readonly FixIdDefinition? AddAccessibilityModifiersDiagnosticId;
+    public static readonly FixIdDefinition? AddOrRemoveAccessibilityModifiersDiagnosticId;
 
     [Export]
     [FixId(IDEDiagnosticIds.OrderModifiersDiagnosticId)]
     [Name(IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-    [Order(After = IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)]
+    [Order(After = IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId)]
     [ConfigurationKey("unused")]
     [HelpLink($"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.OrderModifiersDiagnosticId}")]
     [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Order_modifiers))]

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 
 [Export]
-internal class RecentItemsManager
+internal sealed class RecentItemsManager
 {
     private const int MaxMRUSize = 10;
 

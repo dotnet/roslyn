@@ -2,21 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
-    : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
+internal sealed class CSharpAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer
+    : AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
 {
+    protected override IAccessibilityFacts AccessibilityFacts => CSharpAccessibilityFacts.Instance;
+    protected override IAddOrRemoveAccessibilityModifiers AddOrRemoveAccessibilityModifiers => CSharpAddOrRemoveAccessibilityModifiers.Instance;
+
     protected override void ProcessCompilationUnit(
         SyntaxTreeAnalysisContext context,
         CodeStyleOption2<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
@@ -47,20 +48,6 @@ internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         if (member is TypeDeclarationSyntax typeDeclaration)
             ProcessMembers(context, option, typeDeclaration.Members);
 
-        if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(
-                CSharpAccessibilityFacts.Instance, member, option.Value, out var name, out var modifiersAdded))
-        {
-            return;
-        }
-
-        // Have an issue to flag, either add or remove. Report issue to user.
-        var additionalLocations = ImmutableArray.Create(member.GetLocation());
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            name.GetLocation(),
-            option.Notification,
-            context.Options,
-            additionalLocations: additionalLocations,
-            modifiersAdded ? ModifiersAddedProperties : null));
+        CheckMemberAndReportDiagnostic(context, option, member);
     }
 }

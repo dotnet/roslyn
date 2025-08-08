@@ -11,254 +11,254 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
+
+internal partial class CSharpProjectShim
 {
-    internal partial class CSharpProjectShim
+    private sealed class OptionsProcessor : AbstractLegacyProjectSystemProjectOptionsProcessor
     {
-        private class OptionsProcessor : ProjectSystemProjectOptionsProcessor
+        private readonly ProjectSystemProject _projectSystemProject;
+
+        private readonly object[] _options = new object[(int)CompilerOptions.LARGEST_OPTION_ID];
+        private string? _mainTypeName;
+        private OutputKind _outputKind;
+
+        public OptionsProcessor(ProjectSystemProject projectSystemProject, SolutionServices workspaceServices)
+            : base(projectSystemProject, workspaceServices)
         {
-            private readonly ProjectSystemProject _projectSystemProject;
+            _projectSystemProject = projectSystemProject;
+        }
 
-            private readonly object[] _options = new object[(int)CompilerOptions.LARGEST_OPTION_ID];
-            private string? _mainTypeName;
-            private OutputKind _outputKind;
-
-            public OptionsProcessor(ProjectSystemProject projectSystemProject, SolutionServices workspaceServices)
-                : base(projectSystemProject, workspaceServices)
+        public object this[CompilerOptions compilerOption]
+        {
+            get
             {
-                _projectSystemProject = projectSystemProject;
+                return _options[(int)compilerOption];
             }
 
-            public object this[CompilerOptions compilerOption]
+            set
             {
-                get
+                if (object.Equals(_options[(int)compilerOption], value))
                 {
-                    return _options[(int)compilerOption];
+                    return;
                 }
 
-                set
+                _options[(int)compilerOption] = value;
+                UpdateProjectForNewHostValues();
+            }
+        }
+
+        protected override CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile? ruleSetFile)
+        {
+            IDictionary<string, ReportDiagnostic>? ruleSetSpecificDiagnosticOptions;
+
+            // Get options from the ruleset file, if any, first. That way project-specific
+            // options can override them.
+            ReportDiagnostic? ruleSetGeneralDiagnosticOption = null;
+
+            // TODO: merge this core logic back down to the base of OptionsProcessor, since this should be the same for all languages. The CompilationOptions
+            // would then already contain the right information, and could be updated accordingly by the language-specific logic.
+            if (ruleSetFile != null)
+            {
+                ruleSetGeneralDiagnosticOption = ruleSetFile.GetGeneralDiagnosticOption();
+                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(ruleSetFile.GetSpecificDiagnosticOptions());
+            }
+            else
+            {
+                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
+            }
+
+            ReportDiagnostic generalDiagnosticOption;
+            var warningsAreErrors = GetNullableBooleanOption(CompilerOptions.OPTID_WARNINGSAREERRORS);
+            if (warningsAreErrors.HasValue)
+            {
+                generalDiagnosticOption = warningsAreErrors.Value ? ReportDiagnostic.Error : ReportDiagnostic.Default;
+            }
+            else if (ruleSetGeneralDiagnosticOption.HasValue)
+            {
+                generalDiagnosticOption = ruleSetGeneralDiagnosticOption.Value;
+            }
+            else
+            {
+                generalDiagnosticOption = ReportDiagnostic.Default;
+            }
+
+            // Start with the rule set options
+            var diagnosticOptions = new Dictionary<string, ReportDiagnostic>(ruleSetSpecificDiagnosticOptions);
+
+            // Update the specific options based on the general settings
+            if (warningsAreErrors.HasValue && warningsAreErrors.Value == true)
+            {
+                foreach (var pair in ruleSetSpecificDiagnosticOptions)
                 {
-                    if (object.Equals(_options[(int)compilerOption], value))
+                    if (pair.Value == ReportDiagnostic.Warn)
                     {
-                        return;
+                        diagnosticOptions[pair.Key] = ReportDiagnostic.Error;
                     }
-
-                    _options[(int)compilerOption] = value;
-                    UpdateProjectForNewHostValues();
                 }
             }
 
-            protected override CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile? ruleSetFile)
+            // Update the specific options based on the specific settings
+            foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNASERRORLIST))
             {
-                IDictionary<string, ReportDiagnostic>? ruleSetSpecificDiagnosticOptions;
+                diagnosticOptions[diagnosticID] = ReportDiagnostic.Error;
+            }
 
-                // Get options from the ruleset file, if any, first. That way project-specific
-                // options can override them.
-                ReportDiagnostic? ruleSetGeneralDiagnosticOption = null;
-
-                // TODO: merge this core logic back down to the base of OptionsProcessor, since this should be the same for all languages. The CompilationOptions
-                // would then already contain the right information, and could be updated accordingly by the language-specific logic.
-                if (ruleSetFile != null)
+            foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNNOTASERRORLIST))
+            {
+                if (ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, out var ruleSetOption))
                 {
-                    ruleSetGeneralDiagnosticOption = ruleSetFile.GetGeneralDiagnosticOption();
-                    ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(ruleSetFile.GetSpecificDiagnosticOptions());
+                    diagnosticOptions[diagnosticID] = ruleSetOption;
                 }
                 else
                 {
-                    ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
-                }
-
-                ReportDiagnostic generalDiagnosticOption;
-                var warningsAreErrors = GetNullableBooleanOption(CompilerOptions.OPTID_WARNINGSAREERRORS);
-                if (warningsAreErrors.HasValue)
-                {
-                    generalDiagnosticOption = warningsAreErrors.Value ? ReportDiagnostic.Error : ReportDiagnostic.Default;
-                }
-                else if (ruleSetGeneralDiagnosticOption.HasValue)
-                {
-                    generalDiagnosticOption = ruleSetGeneralDiagnosticOption.Value;
-                }
-                else
-                {
-                    generalDiagnosticOption = ReportDiagnostic.Default;
-                }
-
-                // Start with the rule set options
-                var diagnosticOptions = new Dictionary<string, ReportDiagnostic>(ruleSetSpecificDiagnosticOptions);
-
-                // Update the specific options based on the general settings
-                if (warningsAreErrors.HasValue && warningsAreErrors.Value == true)
-                {
-                    foreach (var pair in ruleSetSpecificDiagnosticOptions)
-                    {
-                        if (pair.Value == ReportDiagnostic.Warn)
-                        {
-                            diagnosticOptions[pair.Key] = ReportDiagnostic.Error;
-                        }
-                    }
-                }
-
-                // Update the specific options based on the specific settings
-                foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNASERRORLIST))
-                {
-                    diagnosticOptions[diagnosticID] = ReportDiagnostic.Error;
-                }
-
-                foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNNOTASERRORLIST))
-                {
-                    if (ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, out var ruleSetOption))
-                    {
-                        diagnosticOptions[diagnosticID] = ruleSetOption;
-                    }
-                    else
-                    {
-                        diagnosticOptions[diagnosticID] = ReportDiagnostic.Default;
-                    }
-                }
-
-                foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_NOWARNLIST))
-                {
-                    diagnosticOptions[diagnosticID] = ReportDiagnostic.Suppress;
-                }
-
-                if (!Enum.TryParse(GetStringOption(CompilerOptions.OPTID_PLATFORM, ""), ignoreCase: true, result: out Platform platform))
-                {
-                    platform = Platform.AnyCpu;
-                }
-
-                if (!int.TryParse(GetStringOption(CompilerOptions.OPTID_WARNINGLEVEL, defaultValue: ""), out var warningLevel))
-                {
-                    warningLevel = 4;
-                }
-
-                // TODO: appConfigPath: GetFilePathOption(CompilerOptions.OPTID_FUSIONCONFIG), bug #869604
-
-                return ((CSharpCompilationOptions)compilationOptions).WithAllowUnsafe(GetBooleanOption(CompilerOptions.OPTID_UNSAFE))
-                    .WithOverflowChecks(GetBooleanOption(CompilerOptions.OPTID_CHECKED))
-                    .WithCryptoKeyContainer(GetStringOption(CompilerOptions.OPTID_KEYNAME, defaultValue: null))
-                    .WithCryptoKeyFile(GetFilePathRelativeOption(CompilerOptions.OPTID_KEYFILE))
-                    .WithDelaySign(GetNullableBooleanOption(CompilerOptions.OPTID_DELAYSIGN))
-                    .WithGeneralDiagnosticOption(generalDiagnosticOption)
-                    .WithMainTypeName(_mainTypeName)
-                    .WithModuleName(GetStringOption(CompilerOptions.OPTID_MODULEASSEMBLY, defaultValue: null))
-                    .WithOptimizationLevel(GetBooleanOption(CompilerOptions.OPTID_OPTIMIZATIONS) ? OptimizationLevel.Release : OptimizationLevel.Debug)
-                    .WithOutputKind(_outputKind)
-                    .WithPlatform(platform)
-                    .WithSpecificDiagnosticOptions(diagnosticOptions)
-                    .WithWarningLevel(warningLevel);
-            }
-
-            private static string GetIdForErrorCode(int errorCode)
-                => "CS" + errorCode.ToString("0000");
-
-            private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)
-            {
-                Contract.ThrowIfFalse(
-                    compilerOptions is CompilerOptions.OPTID_NOWARNLIST or
-                    CompilerOptions.OPTID_WARNASERRORLIST or
-                    CompilerOptions.OPTID_WARNNOTASERRORLIST);
-
-                foreach (var warning in GetStringOption(compilerOptions, defaultValue: "").Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries))
-                {
-                    var warningStringID = warning;
-                    if (int.TryParse(warning, out var warningId))
-                    {
-                        warningStringID = GetIdForErrorCode(warningId);
-                    }
-
-                    yield return warningStringID;
+                    diagnosticOptions[diagnosticID] = ReportDiagnostic.Default;
                 }
             }
 
-            private bool? GetNullableBooleanOption(CompilerOptions optionID)
-                => (bool?)_options[(int)optionID];
-
-            private bool GetBooleanOption(CompilerOptions optionID)
-                => GetNullableBooleanOption(optionID).GetValueOrDefault(defaultValue: false);
-
-            private string? GetFilePathRelativeOption(CompilerOptions optionID)
+            foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_NOWARNLIST))
             {
-                var path = GetStringOption(optionID, defaultValue: null);
+                diagnosticOptions[diagnosticID] = ReportDiagnostic.Suppress;
+            }
 
-                if (string.IsNullOrEmpty(path))
+            if (!Enum.TryParse(GetStringOption(CompilerOptions.OPTID_PLATFORM, ""), ignoreCase: true, result: out Platform platform))
+            {
+                platform = Platform.AnyCpu;
+            }
+
+            if (!int.TryParse(GetStringOption(CompilerOptions.OPTID_WARNINGLEVEL, defaultValue: ""), out var warningLevel))
+            {
+                warningLevel = 4;
+            }
+
+            // TODO: appConfigPath: GetFilePathOption(CompilerOptions.OPTID_FUSIONCONFIG), bug #869604
+
+            return ((CSharpCompilationOptions)compilationOptions).WithAllowUnsafe(GetBooleanOption(CompilerOptions.OPTID_UNSAFE))
+                .WithOverflowChecks(GetBooleanOption(CompilerOptions.OPTID_CHECKED))
+                .WithCryptoKeyContainer(GetStringOption(CompilerOptions.OPTID_KEYNAME, defaultValue: null))
+                .WithCryptoKeyFile(GetFilePathRelativeOption(CompilerOptions.OPTID_KEYFILE))
+                .WithDelaySign(GetNullableBooleanOption(CompilerOptions.OPTID_DELAYSIGN))
+                .WithGeneralDiagnosticOption(generalDiagnosticOption)
+                .WithMainTypeName(_mainTypeName)
+                .WithModuleName(GetStringOption(CompilerOptions.OPTID_MODULEASSEMBLY, defaultValue: null))
+                .WithOptimizationLevel(GetBooleanOption(CompilerOptions.OPTID_OPTIMIZATIONS) ? OptimizationLevel.Release : OptimizationLevel.Debug)
+                .WithOutputKind(_outputKind)
+                .WithPlatform(platform)
+                .WithSpecificDiagnosticOptions(diagnosticOptions)
+                .WithWarningLevel(warningLevel);
+        }
+
+        private static string GetIdForErrorCode(int errorCode)
+            => "CS" + errorCode.ToString("0000");
+
+        private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)
+        {
+            Contract.ThrowIfFalse(
+                compilerOptions is CompilerOptions.OPTID_NOWARNLIST or
+                CompilerOptions.OPTID_WARNASERRORLIST or
+                CompilerOptions.OPTID_WARNNOTASERRORLIST);
+
+            foreach (var warning in GetStringOption(compilerOptions, defaultValue: "").Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                var warningStringID = warning;
+                if (int.TryParse(warning, out var warningId))
                 {
-                    return null;
+                    warningStringID = GetIdForErrorCode(warningId);
                 }
 
-                var directory = Path.GetDirectoryName(_projectSystemProject.FilePath);
+                yield return warningStringID;
+            }
+        }
 
-                if (!string.IsNullOrEmpty(directory))
-                {
-                    return FileUtilities.ResolveRelativePath(path, directory);
-                }
+        private bool? GetNullableBooleanOption(CompilerOptions optionID)
+            => (bool?)_options[(int)optionID];
 
+        private bool GetBooleanOption(CompilerOptions optionID)
+            => GetNullableBooleanOption(optionID).GetValueOrDefault(defaultValue: false);
+
+        private string? GetFilePathRelativeOption(CompilerOptions optionID)
+        {
+            var path = GetStringOption(optionID, defaultValue: null);
+
+            if (string.IsNullOrEmpty(path))
+            {
                 return null;
             }
 
-            [return: NotNullIfNotNull(nameof(defaultValue))]
-            private string? GetStringOption(CompilerOptions optionID, string? defaultValue)
-            {
-                var value = (string)_options[(int)optionID];
+            var directory = Path.GetDirectoryName(_projectSystemProject.FilePath);
 
-                if (string.IsNullOrEmpty(value))
-                {
-                    return defaultValue;
-                }
-                else
-                {
-                    return value;
-                }
+            if (!string.IsNullOrEmpty(directory))
+            {
+                return FileUtilities.ResolveRelativePath(path, directory);
             }
 
-            protected override ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
+            return null;
+        }
+
+        [return: NotNullIfNotNull(nameof(defaultValue))]
+        private string? GetStringOption(CompilerOptions optionID, string? defaultValue)
+        {
+            var value = (string)_options[(int)optionID];
+
+            if (string.IsNullOrEmpty(value))
             {
-                var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split([';'], StringSplitOptions.RemoveEmptyEntries);
+                return defaultValue;
+            }
+            else
+            {
+                return value;
+            }
+        }
 
-                // The base implementation of OptionsProcessor already tried this, but it didn't have the real documentation
-                // path so we have to do it a second time
-                var documentationMode = DocumentationMode.Parse;
-                if (GetStringOption(CompilerOptions.OPTID_XML_DOCFILE, defaultValue: null) != null)
-                {
-                    documentationMode = DocumentationMode.Diagnose;
-                }
+        protected override ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
+        {
+            var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split([';'], StringSplitOptions.RemoveEmptyEntries);
 
-                LanguageVersionFacts.TryParse(GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: ""), out var languageVersion);
-
-                return ((CSharpParseOptions)parseOptions).WithKind(SourceCodeKind.Regular)
-                    .WithLanguageVersion(languageVersion)
-                    .WithPreprocessorSymbols(symbols.AsImmutable())
-                    .WithDocumentationMode(documentationMode);
+            // The base implementation of OptionsProcessor already tried this, but it didn't have the real documentation
+            // path so we have to do it a second time
+            var documentationMode = DocumentationMode.Parse;
+            if (GetStringOption(CompilerOptions.OPTID_XML_DOCFILE, defaultValue: null) != null)
+            {
+                documentationMode = DocumentationMode.Diagnose;
             }
 
-            public void SetOutputFileType(OutputFileType fileType)
-            {
-                var newOutputKind = fileType switch
-                {
-                    OutputFileType.Console => OutputKind.ConsoleApplication,
-                    OutputFileType.Windows => OutputKind.WindowsApplication,
-                    OutputFileType.Library => OutputKind.DynamicallyLinkedLibrary,
-                    OutputFileType.Module => OutputKind.NetModule,
-                    OutputFileType.AppContainer => OutputKind.WindowsRuntimeApplication,
-                    OutputFileType.WinMDObj => OutputKind.WindowsRuntimeMetadata,
-                    _ => throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType)),
-                };
+            LanguageVersionFacts.TryParse(GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: ""), out var languageVersion);
 
-                if (_outputKind != newOutputKind)
-                {
-                    _outputKind = newOutputKind;
-                    UpdateProjectForNewHostValues();
-                }
+            return ((CSharpParseOptions)parseOptions).WithKind(SourceCodeKind.Regular)
+                .WithLanguageVersion(languageVersion)
+                .WithPreprocessorSymbols(symbols.AsImmutable())
+                .WithDocumentationMode(documentationMode);
+        }
+
+        public void SetOutputFileType(OutputFileType fileType)
+        {
+            var newOutputKind = fileType switch
+            {
+                OutputFileType.Console => OutputKind.ConsoleApplication,
+                OutputFileType.Windows => OutputKind.WindowsApplication,
+                OutputFileType.Library => OutputKind.DynamicallyLinkedLibrary,
+                OutputFileType.Module => OutputKind.NetModule,
+                OutputFileType.AppContainer => OutputKind.WindowsRuntimeApplication,
+                OutputFileType.WinMDObj => OutputKind.WindowsRuntimeMetadata,
+                _ => throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType)),
+            };
+
+            if (_outputKind != newOutputKind)
+            {
+                _outputKind = newOutputKind;
+                UpdateProjectForNewHostValues();
             }
+        }
 
-            public void SetMainTypeName(string? mainTypeName)
+        public void SetMainTypeName(string? mainTypeName)
+        {
+            if (_mainTypeName != mainTypeName)
             {
-                if (_mainTypeName != mainTypeName)
-                {
-                    _mainTypeName = mainTypeName;
-                    UpdateProjectForNewHostValues();
-                }
+                _mainTypeName = mainTypeName;
+                UpdateProjectForNewHostValues();
             }
         }
     }

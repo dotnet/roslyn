@@ -8,10 +8,8 @@
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 #endregion
 
-using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces
 {

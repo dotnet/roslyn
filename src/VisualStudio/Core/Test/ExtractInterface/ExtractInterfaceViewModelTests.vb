@@ -2,20 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Collections.Immutable
-Imports System.Linq
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
-Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
     <[UseExportProvider]>
@@ -265,7 +262,7 @@ public class $$MyClass
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
-            Assert.Equal(5, viewModel.MemberContainers.Count)
+            Assert.Equal(5, viewModel.MemberContainers.Length)
             Assert.Equal("Goo()", viewModel.MemberContainers.ElementAt(0).SymbolName)
             Assert.Equal("Goo(int)", viewModel.MemberContainers.ElementAt(1).SymbolName)
             Assert.Equal("Goo(int, int)", viewModel.MemberContainers.ElementAt(2).SymbolName)
@@ -291,7 +288,7 @@ public class $$MyClass
             Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
-                If (Not doc.CursorPosition.HasValue) Then
+                If Not doc.CursorPosition.HasValue Then
                     Assert.True(False, "Missing caret location in document.")
                 End If
 
@@ -300,16 +297,15 @@ public class $$MyClass
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 Dim extractableMembers = DirectCast(symbol, INamedTypeSymbol).GetMembers().Where(Function(s) Not (TypeOf s Is IMethodSymbol) OrElse DirectCast(s, IMethodSymbol).MethodKind <> MethodKind.Constructor)
 
-                Dim memberViewModels = extractableMembers.Select(Function(member As ISymbol)
-                                                                     Return New MemberSymbolViewModel(member, Nothing)
-                                                                 End Function)
+                Dim memberViewModels = extractableMembers.Select(
+                    Function(member As ISymbol) New MemberSymbolViewModel(member, Nothing))
 
                 Return New ExtractInterfaceDialogViewModel(
                     workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)(),
                     notificationService:=New TestNotificationService(),
                     uiThreadOperationExecutor:=Nothing,
                     defaultInterfaceName:=defaultInterfaceName,
-                    conflictingTypeNames:=If(conflictingTypeNames, New List(Of String)),
+                    conflictingTypeNames:=conflictingTypeNames.AsImmutableOrEmpty(),
                     memberViewModels:=memberViewModels.ToImmutableArray(),
                     defaultNamespace:=defaultNamespace,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,

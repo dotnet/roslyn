@@ -224,6 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
+        internal sealed override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
+
         internal sealed override ScopedKind EffectiveScope => _scope;
 
         internal sealed override bool UseUpdatedEscapeRules =>
@@ -323,6 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        internal override bool HasEnumeratorCancellationAttribute => false;
+
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return null; }
@@ -376,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _baseParameterForAttributes?.GetAttributes() ?? ImmutableArray<CSharpAttributeData>.Empty;
         }
 
-        public bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
+        internal override bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 

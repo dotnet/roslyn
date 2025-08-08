@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments;
 
 [Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-public class XmlTagCompletionTests : AbstractXmlTagCompletionTests
+public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
 {
     private protected override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(EditorTestWorkspace workspace)
         => workspace.ExportProvider.GetCommandHandler<XmlTagCompletionCommandHandler>(nameof(XmlTagCompletionCommandHandler), ContentTypeNames.CSharpContentType);
@@ -24,411 +24,273 @@ public class XmlTagCompletionTests : AbstractXmlTagCompletionTests
 
     [WpfFact]
     public void SimpleTagCompletion()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$</goo>
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void NestedTagCompletion()
-    {
-        var text = """
+        => Verify("""
             /// <summary>
             /// <goo$$
             /// </summary>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// <goo>$$</goo>
             /// </summary>
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void CompleteBeforeIncompleteTag()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$
             /// </summary>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$</goo>
             /// </summary>
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void NotEmptyElement()
-    {
-        var text = """
+        => Verify("""
             /// <$$
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <>$$
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void NotAlreadyCompleteTag()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$</goo>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$</goo>
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void NotAlreadyCompleteTag2()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$
             ///
             /// </goo>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$
             ///
             /// </goo>
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void SimpleSlashCompletion()
-    {
-        var text = """
+        => Verify("""
             /// <goo><$$
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo></goo>$$
             class c { }
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 
     [WpfFact]
     public void NestedSlashTagCompletion()
-    {
-        var text = """
+        => Verify("""
             /// <summary>
             /// <goo><$$
             /// </summary>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// <goo></goo>$$
             /// </summary>
             class c { }
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 
     [WpfFact]
     public void SlashCompleteBeforeIncompleteTag()
-    {
-        var text = """
+        => Verify("""
             /// <goo><$$
             /// </summary>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo></goo>$$
             /// </summary>
             class c { }
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 
     [WpfFact]
     public void SlashNotEmptyElement()
-    {
-        var text = """
+        => Verify("""
             /// <><$$
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <></$$
             class c { }
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 
     [WpfFact]
     public void SlashNotAlreadyCompleteTag()
-    {
-        var text = """
+        => Verify("""
             /// <goo><$$goo>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo></$$goo>
             class c { }
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 
     [WpfFact]
     public void SlashNotAlreadyCompleteTag2()
-    {
-        var text = """
+        => Verify("""
             /// <goo>
             ///
             /// <$$goo>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo>
             ///
             /// </$$goo>
             class c { }
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
     public void NestedIdenticalTags()
-    {
-        var text = """
+        => Verify("""
             /// <goo><goo$$</goo>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo><goo>$$</goo></goo>
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
     public void MultipleNestedIdenticalTags()
-    {
-        var text = """
+        => Verify("""
             /// <goo><goo><goo$$</goo></goo>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <goo><goo><goo>$$</goo></goo></goo>
             class c { }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
     public void SlashNotIfCloseTagFollows()
-    {
-        var text = """
+        => Verify("""
             /// <summary>
             /// <$$
             /// </summary>
             class c { }
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// </$$
             /// </summary>
             class c { }
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 
     [WpfFact]
     public void TestSimpleTagCompletion()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$
             class C {}
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$</goo>
             class C {}
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void TestNestedTagCompletion()
-    {
-        var text = """
+        => Verify("""
             /// <summary>
             /// <goo$$
             /// </summary>
             class C {}
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// <goo>$$</goo>
             /// </summary>
             class C {}
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void TestCompleteBeforeIncompleteTag()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$
             /// </summary>
             class C {}
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$</goo>
             /// </summary>
             class C {}
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void TestNotEmptyElement()
-    {
-        var text = """
+        => Verify("""
             /// <$$
             class C {}
-            """;
-
-        var expected = """
+            """, """
             /// <>$$
             class C {}
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void TestNotAlreadyCompleteTag()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$</goo>
             class C {}
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$</goo>
             class C {}
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void TestNotAlreadyCompleteTag2()
-    {
-        var text = """
+        => Verify("""
             /// <goo$$
             ///
             /// </goo>
             class C {}
-            """;
-
-        var expected = """
+            """, """
             /// <goo>$$
             ///
             /// </goo>
             class C {}
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact]
     public void TestNotOutsideDocComment()
-    {
-        var text = """
+        => Verify("""
             class C
             {
                 private int z = <goo$$
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 private int z = <goo>$$
             }
-            """;
-
-        Verify(text, expected, '>');
-    }
+            """, '>');
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
     public void TestNotCloseClosedTag()
-    {
-        var text = """
+        => Verify("""
             /// <summary>
             /// <$$
             /// </summary>
             class C {}
-            """;
-
-        var expected = """
+            """, """
             /// <summary>
             /// </$$
             /// </summary>
             class C {}
-            """;
-
-        Verify(text, expected, '/');
-    }
+            """, '/');
 }

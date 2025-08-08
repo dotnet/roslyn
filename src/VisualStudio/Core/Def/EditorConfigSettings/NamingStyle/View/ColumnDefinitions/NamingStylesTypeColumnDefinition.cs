@@ -18,7 +18,7 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Type)]
-internal class NamingStylesTypeColumnDefinition : TableColumnDefinitionBase
+internal sealed class NamingStylesTypeColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

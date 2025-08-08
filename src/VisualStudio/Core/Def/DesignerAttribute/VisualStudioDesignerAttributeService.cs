@@ -60,6 +60,8 @@ internal sealed class VisualStudioDesignerAttributeService :
     // deliver them to VS in batches to prevent flooding the UI thread.
     private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
 
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioDesignerAttributeService(
@@ -92,7 +94,7 @@ internal sealed class VisualStudioDesignerAttributeService :
         if (workspace != _workspace)
             return;
 
-        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         _workQueue.AddWork(cancelExistingWork: true);
     }
 
@@ -101,10 +103,11 @@ internal sealed class VisualStudioDesignerAttributeService :
         if (workspace != _workspace)
             return;
 
-        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         _workQueue.AddWork(cancelExistingWork: true);
     }
@@ -311,7 +314,7 @@ internal sealed class VisualStudioDesignerAttributeService :
     public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(_projectSystemNotificationQueue);
-        _projectSystemNotificationQueue.AddWork(data);
-        return ValueTaskFactory.CompletedTask;
+        _projectSystemNotificationQueue.AddWork(data.AsSpan());
+        return ValueTask.CompletedTask;
     }
 }

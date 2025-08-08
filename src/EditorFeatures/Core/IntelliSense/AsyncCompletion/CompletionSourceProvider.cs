@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 [ContentType(ContentTypeNames.RoslynContentType)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CompletionSourceProvider(
+internal sealed class CompletionSourceProvider(
     IThreadingContext threadingContext,
     IUIThreadOperationExecutor operationExecutor,
     IAsynchronousOperationListenerProvider listenerProvider,

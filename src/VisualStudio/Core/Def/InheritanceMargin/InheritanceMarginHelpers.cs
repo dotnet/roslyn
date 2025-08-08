@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
 internal static class InheritanceMarginHelpers
 {
-    private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => new());
+    private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => []);
 
     private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
         =

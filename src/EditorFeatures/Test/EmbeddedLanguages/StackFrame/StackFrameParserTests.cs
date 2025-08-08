@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Xunit;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 using static Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame.StackFrameExtensions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame;
 
-public partial class StackFrameParserTests
+public sealed partial class StackFrameParserTests
 {
     [Fact]
     public void TestNoParams()

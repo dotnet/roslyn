@@ -132,6 +132,11 @@
         <target state="translated">'{0}' se define en el ensamblado '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeReserved">
         <source>The type name '{0}' is reserved to be used by the compiler.</source>
         <target state="translated">El nombre de tipo "{0}" está reservado para uso del compilador.</target>
@@ -629,13 +634,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">El ensamblado del analizador ”{0}” hace referencia a la versión ”{1}” del compilador, que es más reciente que la versión "{2}" que se está ejecutando actualmente.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">El ensamblado del analizador ”{0}” hace referencia a la versión ”{1}” del compilador, que es más reciente que la versión "{2}" que se está ejecutando actualmente.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">El ensamblado del analizador hace referencia a una versión más reciente del compilador que la versión que se está ejecutando actualmente.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">El ensamblado del analizador hace referencia a una versión más reciente del compilador que la versión que se está ejecutando actualmente.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

@@ -6,15 +6,14 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
+public sealed class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
     : StringCopyPasteCommandHandlerUnknownSourceTests
 {
     #region Paste from external source into verbatim interpolated string no hole
 
     [WpfFact]
     public void TestNewLineIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\n",
             """
             var x = $@"[||]"
@@ -23,12 +22,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestNewLineIntoVerbatimInterpolatedString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
 
 
@@ -43,12 +40,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTabIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t",
             """
             var x = $@"[||]"
@@ -57,12 +52,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestSingleQuoteIntoVerbatimInterpolatedString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """'""",
             """
             var x = $@"[||]"
@@ -73,12 +66,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestDoubleQuoteIntoVerbatimInterpolatedString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             "
             """,
@@ -91,12 +82,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@""[||]"
             """);
-    }
 
     [WpfFact]
     public void TestComplexStringIntoVerbatimInterpolatedString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t\"\"\t",
             """
             var x = $@"[||]"
@@ -105,12 +94,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestVerbatimTextIntoVerbatimInterpolatedString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """abc""",
             """
             var x = $@"[||]"
@@ -121,12 +108,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestOpenCurlyIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{""",
             """
             var x = $@"[||]"
@@ -137,12 +122,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoOpenCurliesIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{""",
             """
             var x = $@"[||]"
@@ -153,12 +136,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoOpenCurliesAndContentIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{0""",
             """
             var x = $@"[||]"
@@ -169,12 +150,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestCloseCurlyIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}""",
             """
             var x = $@"[||]"
@@ -185,12 +164,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoCloseCurliesIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}}""",
             """
             var x = $@"[||]"
@@ -201,12 +178,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoCloseCurliesAndContentIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}}0""",
             """
             var x = $@"[||]"
@@ -217,12 +192,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestCurlyWithContentIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """x{0}y""",
             """
             var x = $@"[||]"
@@ -233,12 +206,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestCurliesWithContentIntoVerbatimInterpolatedString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """x{{0}}y""",
             """
             var x = $@"[||]"
@@ -249,7 +220,6 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]"
             """);
-    }
 
     #endregion
 
@@ -257,8 +227,7 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
 
     [WpfFact]
     public void TestNewLineIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\n",
             """
             var x = $@"[||]{0}"
@@ -267,12 +236,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestNewLineIntoVerbatimInterpolatedStringBeforeHole2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
 
 
@@ -287,12 +254,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestTabIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t",
             """
             var x = $@"[||]{0}"
@@ -301,12 +266,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestSingleQuoteIntoVerbatimInterpolatedStringBeforeHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """'""",
             """
             var x = $@"[||]{0}"
@@ -317,12 +280,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestDoubleQuoteIntoVerbatimInterpolatedStringBeforeHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             "
             """,
@@ -335,12 +296,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@""[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestComplexStringIntoVerbatimInterpolatedStringBeforeHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t\"\"\t",
             """
             var x = $@"[||]{0}"
@@ -349,12 +308,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestVerbatimTextIntoVerbatimInterpolatedStringBeforeHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """abc""",
             """
             var x = $@"[||]{0}"
@@ -365,12 +322,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestOpenCurlyIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{""",
             """
             var x = $@"[||]{0}"
@@ -381,12 +336,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestTwoOpenCurliesIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{""",
             """
             var x = $@"[||]{0}"
@@ -397,12 +350,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestTwoOpenCurliesAndContentIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{0""",
             """
             var x = $@"[||]{0}"
@@ -413,12 +364,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestCloseCurlyIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}""",
             """
             var x = $@"[||]{0}"
@@ -429,12 +378,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"}[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestTwoCloseCurliesIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}}""",
             """
             var x = $@"[||]{0}"
@@ -445,12 +392,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestTwoCloseCurliesAndContentIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}}0""",
             """
             var x = $@"[||]{0}"
@@ -461,12 +406,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestCurlyWithContentIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """x{0}y""",
             """
             var x = $@"[||]{0}"
@@ -477,12 +420,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     [WpfFact]
     public void TestCurliesWithContentIntoVerbatimInterpolatedStringBeforeHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """x{{0}}y""",
             """
             var x = $@"[||]{0}"
@@ -493,7 +434,6 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"[||]{0}"
             """);
-    }
 
     #endregion
 
@@ -501,8 +441,7 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
 
     [WpfFact]
     public void TestNewLineIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\n",
             """
             var x = $@"{0}[||]"
@@ -511,12 +450,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestNewLineIntoVerbatimInterpolatedStringAfterHole2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
 
 
@@ -531,12 +468,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTabIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t",
             """
             var x = $@"{0}[||]"
@@ -545,12 +480,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestSingleQuoteIntoVerbatimInterpolatedStringAfterHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """'""",
             """
             var x = $@"{0}[||]"
@@ -561,12 +494,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestDoubleQuoteIntoVerbatimInterpolatedStringAfterHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             "
             """,
@@ -579,12 +510,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}"[||]"
             """);
-    }
 
     [WpfFact]
     public void TestComplexStringIntoVerbatimInterpolatedStringAfterHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t\"\"\t",
             """
             var x = $@"{0}[||]"
@@ -593,12 +522,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestVerbatimTextIntoVerbatimInterpolatedStringAfterHole()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """abc""",
             """
             var x = $@"{0}[||]"
@@ -609,12 +536,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestOpenCurlyIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{""",
             """
             var x = $@"{0}[||]"
@@ -625,12 +550,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}{[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoOpenCurliesIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{""",
             """
             var x = $@"{0}[||]"
@@ -641,12 +564,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoOpenCurliesAndContentIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{0""",
             """
             var x = $@"{0}[||]"
@@ -657,12 +578,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestCloseCurlyIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}""",
             """
             var x = $@"{0}[||]"
@@ -673,12 +592,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoCloseCurliesIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}}""",
             """
             var x = $@"{0}[||]"
@@ -689,12 +606,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestTwoCloseCurliesAndContentIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """}}0""",
             """
             var x = $@"{0}[||]"
@@ -705,12 +620,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestCurlyWithContentIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """x{0}y""",
             """
             var x = $@"{0}[||]"
@@ -721,12 +634,10 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     [WpfFact]
     public void TestCurliesWithContentIntoVerbatimInterpolatedStringAfterHole1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """x{{0}}y""",
             """
             var x = $@"{0}[||]"
@@ -737,7 +648,6 @@ public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
             afterUndo: """
             var x = $@"{0}[||]"
             """);
-    }
 
     #endregion
 }

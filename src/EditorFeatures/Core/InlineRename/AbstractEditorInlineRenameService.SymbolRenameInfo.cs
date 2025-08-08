@@ -9,13 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -24,7 +22,7 @@ internal abstract partial class AbstractEditorInlineRenameService
     /// <summary>
     /// Represents information about the ability to rename a particular location.
     /// </summary>
-    private partial class SymbolInlineRenameInfo : IInlineRenameInfo
+    private sealed partial class SymbolInlineRenameInfo : IInlineRenameInfo
     {
         private const string AttributeSuffix = "Attribute";
 
@@ -136,7 +134,7 @@ internal abstract partial class AbstractEditorInlineRenameService
             var locations = await Renamer.FindRenameLocationsAsync(
                 solution, this.RenameSymbol, options, cancellationToken).ConfigureAwait(false);
 
-            return new InlineRenameLocationSet(this, locations);
+            return await InlineRenameLocationSet.CreateAsync(this, locations, cancellationToken).ConfigureAwait(false);
         }
 
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)

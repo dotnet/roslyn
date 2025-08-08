@@ -5,13 +5,13 @@
 #if !NET
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -27,17 +27,17 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
-        return DefaultCreateIsolatedAnalyzerReferencesAsync(references);
+        return ValueTask.FromResult(references);
     }
 
-    public static partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ChecksumCollection analyzerChecksums,
         SolutionServices solutionServices,
         Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
         CancellationToken cancellationToken)
     {
-        return DefaultCreateIsolatedAnalyzerReferencesAsync(getReferencesAsync);
+        return await getReferencesAsync().ConfigureAwait(false);
     }
 }
 

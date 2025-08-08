@@ -3,21 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports System.Diagnostics.CodeAnalysis
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Editing
-#Else
-Imports Microsoft.CodeAnalysis.Editing
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicSyntaxFacts
@@ -83,6 +78,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Function SupportsFieldExpression(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsFieldExpression
+            Return False
+        End Function
+
+        Public Function SupportsNullConditionalAssignment(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNullConditionalAssignment
             Return False
         End Function
 
@@ -832,58 +831,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End If
 
             Return Nothing
-        End Function
-
-        Public Function ContainsInMemberBody(node As SyntaxNode, span As TextSpan) As Boolean Implements ISyntaxFacts.ContainsInMemberBody
-            Dim method = TryCast(node, MethodBlockBaseSyntax)
-            If method IsNot Nothing Then
-                Return method.Statements.Count > 0 AndAlso ContainsExclusively(GetSyntaxListSpan(method.Statements), span)
-            End If
-
-            Dim [event] = TryCast(node, EventBlockSyntax)
-            If [event] IsNot Nothing Then
-                Return [event].Accessors.Count > 0 AndAlso ContainsExclusively(GetSyntaxListSpan([event].Accessors), span)
-            End If
-
-            Dim [property] = TryCast(node, PropertyBlockSyntax)
-            If [property] IsNot Nothing Then
-                Return [property].Accessors.Count > 0 AndAlso ContainsExclusively(GetSyntaxListSpan([property].Accessors), span)
-            End If
-
-            Dim field = TryCast(node, FieldDeclarationSyntax)
-            If field IsNot Nothing Then
-                Return field.Declarators.Count > 0 AndAlso ContainsExclusively(GetSeparatedSyntaxListSpan(field.Declarators), span)
-            End If
-
-            Dim [enum] = TryCast(node, EnumMemberDeclarationSyntax)
-            If [enum] IsNot Nothing Then
-                Return [enum].Initializer IsNot Nothing AndAlso ContainsExclusively([enum].Initializer.Span, span)
-            End If
-
-            Dim propStatement = TryCast(node, PropertyStatementSyntax)
-            If propStatement IsNot Nothing Then
-                Return propStatement.Initializer IsNot Nothing AndAlso ContainsExclusively(propStatement.Initializer.Span, span)
-            End If
-
-            Return False
-        End Function
-
-        Private Shared Function ContainsExclusively(outerSpan As TextSpan, innerSpan As TextSpan) As Boolean
-            If innerSpan.IsEmpty Then
-                Return outerSpan.Contains(innerSpan.Start)
-            End If
-
-            Return outerSpan.Contains(innerSpan)
-        End Function
-
-        Private Shared Function GetSyntaxListSpan(Of T As SyntaxNode)(list As SyntaxList(Of T)) As TextSpan
-            Debug.Assert(list.Count > 0)
-            Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
-        End Function
-
-        Private Shared Function GetSeparatedSyntaxListSpan(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T)) As TextSpan
-            Debug.Assert(list.Count > 0)
-            Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
@@ -1917,6 +1864,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             openParen = parenthesizedExpression.OpenParenToken
             expression = parenthesizedExpression.Expression
             closeParen = parenthesizedExpression.CloseParenToken
+        End Sub
+
+        Public Sub GetPartsOfPostfixUnaryExpression(node As SyntaxNode, ByRef operand As SyntaxNode, ByRef operatorToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfPostfixUnaryExpression
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub
 
         Public Sub GetPartsOfPrefixUnaryExpression(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef operand As SyntaxNode) Implements ISyntaxFacts.GetPartsOfPrefixUnaryExpression

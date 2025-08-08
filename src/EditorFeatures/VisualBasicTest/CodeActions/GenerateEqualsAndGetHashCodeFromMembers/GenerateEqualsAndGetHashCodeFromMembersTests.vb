@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
@@ -613,7 +613,7 @@ Class Z
         Return (a, b).GetHashCode()
     End Function
 End Class",
-index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=True))
+New TestParameters(index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=True)))
         End Function
 
         <Fact>
@@ -635,7 +635,7 @@ End Class",
         Return -1757793268 + a.GetHashCode()
     End Function
 End Class",
-index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=False))
+New TestParameters(index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=False)))
         End Function
 
         <Fact>

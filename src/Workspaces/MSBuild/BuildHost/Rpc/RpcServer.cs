@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipes;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,19 +26,19 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// </remarks>
 internal sealed class RpcServer
 {
-    private readonly TextWriter _sendingStream;
+    private readonly TextWriter _streamWriter;
     private readonly SemaphoreSlim _sendingStreamSemaphore = new SemaphoreSlim(initialCount: 1);
-    private readonly TextReader _receivingStream;
+    private readonly TextReader _streamReader;
 
     private readonly ConcurrentDictionary<int, object> _rpcTargets = [];
     private volatile int _nextRpcTargetIndex = -1; // We'll start at -1 so the first value becomes zero
 
     private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
-    public RpcServer(Stream sendingStream, Stream receivingStream)
+    public RpcServer(PipeStream stream)
     {
-        _sendingStream = new StreamWriter(sendingStream, JsonSettings.StreamEncoding);
-        _receivingStream = new StreamReader(receivingStream, JsonSettings.StreamEncoding);
+        _streamWriter = new StreamWriter(stream, JsonSettings.StreamEncoding);
+        _streamReader = new StreamReader(stream, JsonSettings.StreamEncoding);
     }
 
     public int AddTarget(object rpcTarget)
@@ -61,7 +62,7 @@ internal sealed class RpcServer
         var runningTasks = new ConcurrentSet<Task>();
 
         string? line;
-        while ((line = await _receivingStream.TryReadLineOrReturnNullIfCancelledAsync(_shutdownTokenSource.Token).ConfigureAwait(false)) != null)
+        while ((line = await _streamReader.TryReadLineOrReturnNullIfCancelledAsync(_shutdownTokenSource.Token).ConfigureAwait(false)) != null)
         {
             Request? request;
 
@@ -173,8 +174,8 @@ internal sealed class RpcServer
 #endif
         using (await _sendingStreamSemaphore.DisposableWaitAsync().ConfigureAwait(false))
         {
-            await _sendingStream.WriteLineAsync(responseJson).ConfigureAwait(false);
-            await _sendingStream.FlushAsync().ConfigureAwait(false);
+            await _streamWriter.WriteLineAsync(responseJson).ConfigureAwait(false);
+            await _streamWriter.FlushAsync().ConfigureAwait(false);
         }
     }
 

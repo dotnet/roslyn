@@ -21,12 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CommentSelection)]
-public class CSharpCommentSelectionTests
+public sealed class CSharpCommentSelectionTests
 {
     [WpfFact]
     public void UncommentAndFormat1()
-    {
-        var code = """
+        => UncommentSelection("""
             class A
             {
                 [|          //            void  Method  (   )
@@ -34,8 +33,7 @@ public class CSharpCommentSelectionTests
                             //
                             //                      }|]
             }
-            """;
-        var expected = """
+            """, """
             class A
             {
                 void Method()
@@ -43,14 +41,11 @@ public class CSharpCommentSelectionTests
 
                 }
             }
-            """;
-        UncommentSelection(code, expected);
-    }
+            """);
 
     [WpfFact]
     public void UncommentAndFormat2()
-    {
-        var code = """
+        => UncommentSelection("""
             class A
             {
                 [|          /*            void  Method  (   )
@@ -58,8 +53,7 @@ public class CSharpCommentSelectionTests
 
                                                   } */|]
             }
-            """;
-        var expected = """
+            """, """
             class A
             {
                 void Method()
@@ -67,14 +61,11 @@ public class CSharpCommentSelectionTests
 
                 }
             }
-            """;
-        UncommentSelection(code, expected);
-    }
+            """);
 
     [WpfFact]
     public void UncommentSingleLineCommentInPseudoBlockComment()
-    {
-        var code = """
+        => UncommentSelection("""
             class C
             {
                 /// <include file='doc\Control.uex' path='docs/doc[@for="Control.RtlTranslateAlignment1"]/*' />
@@ -84,9 +75,7 @@ public class CSharpCommentSelectionTests
                 }
                 /* Hello world */
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 /// <include file='doc\Control.uex' path='docs/doc[@for="Control.RtlTranslateAlignment1"]/*' />
@@ -96,15 +85,11 @@ public class CSharpCommentSelectionTests
                 }
                 /* Hello world */
             }
-            """;
-
-        UncommentSelection(code, expected);
-    }
+            """);
 
     [WpfFact]
     public void UncommentAndFormat3()
-    {
-        var code = """
+        => UncommentSelection("""
             class A
             {
                 [|          //            void  Method  (   )       |]
@@ -112,8 +97,7 @@ public class CSharpCommentSelectionTests
                 [|            //                                    |]
                 [|            //                      }             |]
             }
-            """;
-        var expected = """
+            """, """
             class A
             {
                 void Method()
@@ -121,9 +105,7 @@ public class CSharpCommentSelectionTests
 
                 }
             }
-            """;
-        UncommentSelection(code, expected);
-    }
+            """);
 
     private static void UncommentSelection(string markup, string expected)
     {

@@ -34,16 +34,15 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
 
     // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
     protected override TestComposition GetComposition()
-        => EditorTestCompositions.EditorFeaturesWpf;
+        => EditorTestCompositions.EditorFeatures;
 
     #region Generate Class
 
     #region Generics
 
     [Fact]
-    public async Task TestGenerateTypeParameterFromArgumentInferT()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateTypeParameterFromArgumentInferT()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -67,12 +66,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromTypeParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromTypeParameter()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -90,12 +87,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateInternalClassFromASingleConstraintClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClause()
+        => TestInRegularAndScriptAsync(
             """
             class EmployeeList<T> where T : [|Employee|], new()
             {
@@ -111,12 +106,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGeneratePublicClassFromASingleConstraintClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGeneratePublicClassFromASingleConstraintClause()
+        => TestInRegularAndScriptAsync(
             """
             public class EmployeeList<T> where T : [|Employee|], new()
             {
@@ -132,23 +125,19 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task NegativeTestGenerateClassFromConstructorConstraint()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NegativeTestGenerateClassFromConstructorConstraint()
+        => TestMissingInRegularAndScriptAsync(
             """
             class EmployeeList<T> where T : Employee, [|new()|]
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGenerateInternalClassFromMultipleTypeConstraintClauses()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromMultipleTypeConstraintClauses()
+        => TestInRegularAndScriptAsync(
             """
             class Derived<T, U>
                 where U : struct
@@ -168,12 +157,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGeneratePublicClassFromMultipleTypeConstraintClauses()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGeneratePublicClassFromMultipleTypeConstraintClauses()
+        => TestInRegularAndScriptAsync(
             """
             public class Derived<T, U>
                 where U : struct
@@ -193,12 +180,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task NegativeTestGenerateClassFromClassOrStructConstraint()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NegativeTestGenerateClassFromClassOrStructConstraint()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Derived<T, U>
                 where U : [|struct|]
@@ -206,12 +191,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAbsenceOfGenerateIntoInvokingTypeForConstraintList()
-    {
-        await TestActionCountAsync(
+    public Task TestAbsenceOfGenerateIntoInvokingTypeForConstraintList()
+        => TestActionCountAsync(
             """
             class EmployeeList<T> where T : [|Employee|]
             {
@@ -219,12 +202,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             count: 3,
             parameters: new TestParameters(Options.Regular));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClauseInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClauseInterface()
+        => TestInRegularAndScriptAsync(
             """
             interface IEmployeeList<T> where T : [|Employee|], new()
             {
@@ -240,12 +221,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGeneratePublicClassFromASingleConstraintClausePublicInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGeneratePublicClassFromASingleConstraintClausePublicInterface()
+        => TestInRegularAndScriptAsync(
             """
             public interface IEmployeeList<T> where T : [|Employee|], new()
             {
@@ -261,12 +240,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalDelegate()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClauseInternalDelegate()
+        => TestInRegularAndScriptAsync(
             """
             class Employee
             {
@@ -284,12 +261,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClausePublicDelegate()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClausePublicDelegate()
+        => TestInRegularAndScriptAsync(
             """
             class Employee
             {
@@ -307,12 +282,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClauseInternalMethod()
+        => TestInRegularAndScriptAsync(
             """
             class Employee
             {
@@ -330,12 +303,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClausePublicMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClausePublicMethod()
+        => TestInRegularAndScriptAsync(
             """
             class Employee
             {
@@ -353,12 +324,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClauseMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClauseMethod()
+        => TestInRegularAndScriptAsync(
             """
             class Employee
             {
@@ -376,12 +345,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClauseMethodInInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClauseMethodInInterface()
+        => TestInRegularAndScriptAsync(
             """
             interface Employee
             {
@@ -399,7 +366,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
     [InlineData("public", "internal", "internal")]
@@ -410,9 +376,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     [InlineData("protected internal", "protected", "public")]
     [InlineData("protected", "protected private", "internal")]
     [InlineData("protected private", "protected", "internal")]
-    public async Task TestGenerateInternalClassFromASingleConstraintClauseNestedClass(string middleAccessibility, string accessibility, string generatedAccessibility)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInternalClassFromASingleConstraintClauseNestedClass(string middleAccessibility, string accessibility, string generatedAccessibility)
+        => TestInRegularAndScriptAsync(
             $$"""
             public class A
             {
@@ -442,16 +407,14 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     #endregion
 
     #region Lambdas
 
     [Fact]
-    public async Task TestGenerateClassFromParenthesizedLambdaExpressionsParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromParenthesizedLambdaExpressionsParameter()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -469,12 +432,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromParenthesizedLambdaExpressionsBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromParenthesizedLambdaExpressionsBody()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -496,14 +457,12 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     #endregion
 
     [Fact]
-    public async Task TestGenerateClassFromFieldDeclarationIntoSameType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromFieldDeclarationIntoSameType()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -521,12 +480,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Class
@@ -546,12 +503,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [WpfFact]
-    public async Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
+        => TestAddDocumentInRegularAndScriptAsync(
             @"class Program { void Main ( ) { [|Goo|] f ; } } ",
             """
             internal class Goo
@@ -560,12 +515,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: [],
             expectedDocumentName: "Goo.cs");
-    }
 
     [WpfFact]
-    public async Task TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
+        => TestAddDocumentInRegularAndScriptAsync(
             @"class Class { [|TestNamespace|].Goo f; }",
             """
             namespace TestNamespace
@@ -577,12 +530,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: ["TestNamespace"],
             expectedDocumentName: "Goo.cs");
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromFieldDeclarationIntoSameNamespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromFieldDeclarationIntoSameNamespace()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -600,12 +551,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGenerateClassWithCtorFromObjectCreation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassWithCtorFromObjectCreation()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -626,12 +575,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -655,12 +602,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -684,12 +629,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromBaseList()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromBaseList()
+        => TestInRegularAndScriptAsync(
             """
             class Class : [|BaseClass|]
             {
@@ -705,12 +648,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromMethodParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromMethodParameters()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -732,12 +673,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromMethodReturnType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromMethodReturnType()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -759,12 +698,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromAttribute()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromAttribute()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -790,12 +727,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromExpandedAttribute()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromExpandedAttribute()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -821,12 +756,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromCatchClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromCatchClause()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -879,12 +812,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromThrowStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromThrowStatement()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -927,12 +858,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromThrowStatementWithDifferentArg()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromThrowStatementWithDifferentArg()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -982,12 +911,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromThrowStatementWithMatchingArg()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromThrowStatementWithMatchingArg()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1030,7 +957,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
     public async Task TestGenerateClassFromThrowStatementOnModernDotNet_NoObsoleteConstructor()
@@ -1081,9 +1007,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestAbsenceOfGenerateIntoInvokingTypeForBaseList()
-    {
-        await TestActionCountAsync(
+    public Task TestAbsenceOfGenerateIntoInvokingTypeForBaseList()
+        => TestActionCountAsync(
             """
             class Class : [|BaseClass|]
             {
@@ -1091,12 +1016,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             count: 3,
             parameters: new TestParameters(Options.Regular));
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromUsingStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromUsingStatement()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1124,12 +1047,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestGenerateClassFromForeachStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassFromForeachStatement()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1157,12 +1078,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538346")]
-    public async Task TestGenerateClassWhereKeywordBecomesTypeName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateClassWhereKeywordBecomesTypeName()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1180,12 +1099,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task NegativeTestGenerateClassOnContextualKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NegativeTestGenerateClassOnContextualKeyword()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1203,7 +1120,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
     public async Task NegativeTestGenerateClassOnFrameworkTypes()
@@ -1243,9 +1159,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538409")]
-    public async Task GenerateIntoRightPart()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateIntoRightPart()
+        => TestInRegularAndScriptAsync(
             """
             partial class Class
             {
@@ -1271,12 +1186,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
-    public async Task GenerateTypeIntoCompilationUnit()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateTypeIntoCompilationUnit()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1302,12 +1215,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
-    public async Task GenerateTypeIntoNamespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateTypeIntoNamespace()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -1339,12 +1250,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
-    public async Task GenerateTypeWithPreprocessor()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateTypeWithPreprocessor()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1368,12 +1277,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538495")]
-    public async Task GenerateTypeIntoContainingNamespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateTypeIntoContainingNamespace()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -1397,12 +1304,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538516")]
-    public async Task TestGenerateClassFromIntoNewNamespace()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestGenerateClassFromIntoNewNamespace()
+        => TestAddDocumentInRegularAndScriptAsync(
             @"class Class { static void Main(string[] args) { [|N|].C c; } }",
             """
             namespace N
@@ -1414,7 +1319,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: ["N"],
             expectedDocumentName: "C.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538558")]
     public async Task NegativeTestGlobalAlias()
@@ -1443,9 +1347,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
-    public async Task GenerateTypeFromArrayCreation1()
-    {
-        await TestAsync(
+    public Task GenerateTypeFromArrayCreation1()
+        => TestAsync(
             """
             class A
             {
@@ -1468,14 +1371,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            index: 1,
-            parseOptions: null);
-    }
+            new(index: 1, parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
-    public async Task GenerateTypeFromArrayCreation2()
-    {
-        await TestAsync(
+    public Task GenerateTypeFromArrayCreation2()
+        => TestAsync(
             """
             class A
             {
@@ -1498,14 +1398,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            index: 1,
-            parseOptions: null);
-    }
+            new(index: 1, parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
-    public async Task GenerateTypeFromArrayCreation3()
-    {
-        await TestAsync(
+    public Task GenerateTypeFromArrayCreation3()
+        => TestAsync(
             """
             class A
             {
@@ -1528,9 +1425,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            index: 1,
-            parseOptions: null);
-    }
+            new(index: 1, parseOptions: null));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539329")]
     public async Task NegativeTestNotInUsingDirective()
@@ -1552,9 +1447,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task GenerateSimpleConstructor()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateSimpleConstructor()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1581,12 +1475,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithValueParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithValueParameter()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1616,12 +1508,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithTwoValueParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithTwoValueParameters()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1653,12 +1543,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithNullableParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithNullableParameter()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Class
@@ -1692,12 +1580,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithNullableParameterThatIsNotNull()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithNullableParameterThatIsNotNull()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Class
@@ -1731,12 +1617,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithNamedParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithNamedParameter()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1766,12 +1650,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithRefParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithRefParameter()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1801,12 +1683,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameter()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1839,12 +1719,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1872,12 +1750,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters2_CSharp7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters2_CSharp7()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1908,14 +1784,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-            index: 1,
-            parseOptions: TestOptions.Regular7);
-    }
+            new TestParameters(index: 1, parseOptions: TestOptions.Regular7));
 
     [Fact]
-    public async Task GenerateWithOutParameters2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1947,12 +1820,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1984,12 +1855,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters4()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2017,12 +1886,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters5()
+        => TestInRegularAndScriptAsync(
             """
             class Class<X>
             {
@@ -2050,12 +1917,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters6_CSharp7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters6_CSharp7()
+        => TestInRegularAndScriptAsync(
             """
             class Class<X>
             {
@@ -2082,14 +1947,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-            index: 2,
-            parseOptions: TestOptions.Regular7);
-    }
+            new TestParameters(index: 2, parseOptions: TestOptions.Regular7));
 
     [Fact]
-    public async Task GenerateWithOutParameters6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters6()
+        => TestInRegularAndScriptAsync(
             """
             class Class<X>
             {
@@ -2117,12 +1979,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters7()
+        => TestInRegularAndScriptAsync(
             """
             class Class<X> where X : class
             {
@@ -2150,12 +2010,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithOutParameters8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithOutParameters8()
+        => TestInRegularAndScriptAsync(
             """
             class Class<X> where X : class
             {
@@ -2183,12 +2041,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task GenerateWithMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithMethod()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2220,12 +2076,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithLambda()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2257,12 +2111,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithDelegatingConstructor1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithDelegatingConstructor1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2303,12 +2155,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithDelegatingConstructor2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithDelegatingConstructor2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2349,12 +2199,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithDelegatingConstructor3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithDelegatingConstructor3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2399,12 +2247,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithDelegatingConstructor4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithDelegatingConstructor4()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2445,12 +2291,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithDelegatingConstructor5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithDelegatingConstructor5()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2493,12 +2337,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithDelegatingConstructor6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithDelegatingConstructor6()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2539,12 +2381,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithDelegatingConstructorAssigningToNullableField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithDelegatingConstructorAssigningToNullableField()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             class Class
@@ -2578,12 +2418,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithNonDelegatingConstructor1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithNonDelegatingConstructor1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2627,12 +2465,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithNonDelegatingConstructor2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithNonDelegatingConstructor2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2676,12 +2512,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithNonDelegatingConstructor3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithNonDelegatingConstructor3()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2724,12 +2558,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithNonDelegatingConstructor4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithNonDelegatingConstructor4()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2773,12 +2605,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2816,12 +2646,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2859,12 +2687,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField3()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2904,12 +2730,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField4()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2949,12 +2773,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField5()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -2994,12 +2816,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField6()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3039,12 +2859,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField7()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3082,12 +2900,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField7WithQualification()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField7WithQualification()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3124,14 +2940,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 protected int I;
             }
             """,
-            index: 1,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
-    }
+            new TestParameters(index: 1, options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
 
     [Fact]
-    public async Task GenerateWithCallToField8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField8()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3171,12 +2984,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField9()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3216,12 +3027,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToField10()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToField10()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3267,7 +3076,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 protected int i }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49924")]
     public async Task GenerateCorrectFieldNaming()
@@ -3303,13 +3111,12 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-            index: 1, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+            new TestParameters(index: 1, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
     }
 
     [Fact]
-    public async Task GenerateWithCallToProperty1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToProperty1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3349,12 +3156,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToProperty2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToProperty2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3392,12 +3197,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToProperty2WithQualification()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToProperty2WithQualification()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3434,14 +3237,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public int I { get; protected set; }
             }
             """,
-            index: 1,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
-    }
+            new TestParameters(index: 1, options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact]
-    public async Task GenerateWithCallToProperty3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToProperty3()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3479,12 +3279,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task GenerateWithCallToProperty3WithQualification()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateWithCallToProperty3WithQualification()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3522,13 +3320,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
-    }
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
+        => TestInRegularAndScriptAsync(
             """
             class Class {
                 void M(int i) 
@@ -3556,17 +3352,15 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1,
-            options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error));
-    }
+            new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
 
     #endregion
 
     #region Generate Interface
 
     [Fact]
-    public async Task TestGenerateInterfaceFromTypeConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInterfaceFromTypeConstraint()
+        => TestInRegularAndScriptAsync(
             """
             class EmployeeList<T> where T : Employee, [|IEmployee|], new()
             {
@@ -3582,12 +3376,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGenerateInterfaceFromTypeConstraints()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInterfaceFromTypeConstraints()
+        => TestInRegularAndScriptAsync(
             """
             class EmployeeList<T> where T : Employee, IEmployee, [|IComparable<T>|], new()
             {
@@ -3603,12 +3395,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task NegativeTestGenerateInterfaceFromTypeConstraint()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NegativeTestGenerateInterfaceFromTypeConstraint()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3616,12 +3406,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGenerateInterfaceFromBaseList1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInterfaceFromBaseList1()
+        => TestInRegularAndScriptAsync(
             """
             interface A : [|B|]
             {
@@ -3637,12 +3425,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
-    public async Task TestGenerateInterfaceFromBaseList2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInterfaceFromBaseList2()
+        => TestInRegularAndScriptAsync(
             """
             class Test : [|ITest|]
             {
@@ -3658,12 +3444,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
-    public async Task TestGenerateInterfaceFromTypeConstraints2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInterfaceFromTypeConstraints2()
+        => TestInRegularAndScriptAsync(
             """
             class Test<T> where T : [|ITest|]
             {
@@ -3679,12 +3463,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGenerateInterfaceFromBaseList3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInterfaceFromBaseList3()
+        => TestInRegularAndScriptAsync(
             """
             class A : object, [|B|]
             {
@@ -3700,14 +3482,12 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     #endregion
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-    public async Task NotInLeftSideOfAssignment()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotInLeftSideOfAssignment()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3717,12 +3497,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-    public async Task InLeftSideOfAssignment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InLeftSideOfAssignment()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3746,12 +3524,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-    public async Task NotInRightSideOfAssignment()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotInRightSideOfAssignment()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3761,12 +3537,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-    public async Task InRightSideOfAssignment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InRightSideOfAssignment()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3790,12 +3564,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-    public async Task TestEscapedName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEscapedName()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3813,12 +3585,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-    public async Task TestEscapedKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEscapedKeyword()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -3836,12 +3606,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539535")]
-    public async Task TestGenerateIntoNewFile()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestGenerateIntoNewFile()
+        => TestAddDocumentInRegularAndScriptAsync(
             @"class Class { void F() { new [|Goo|].Bar(); } }",
             """
             namespace Goo
@@ -3856,12 +3624,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: ["Goo"],
             expectedDocumentName: "Bar.cs");
-    }
 
     [WpfFact]
-    public async Task TestGenerateIntoNewFileWithUsings1()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestGenerateIntoNewFileWithUsings1()
+        => TestAddDocumentInRegularAndScriptAsync(
             @"class Class { void F() { new [|Goo|].Bar(new System.Collections.Generic.List<int>()); } }",
             """
             using System.Collections.Generic;
@@ -3881,12 +3647,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: ["Goo"],
             expectedDocumentName: "Bar.cs");
-    }
 
     [WpfFact]
-    public async Task TestGenerateIntoNewFileWithUsings2()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestGenerateIntoNewFileWithUsings2()
+        => TestAddDocumentInRegularAndScriptAsync(
             @"class Class { void F() { new [|Goo|].Bar(new System.Collections.Generic.List<int>()); } }",
             """
             namespace Goo
@@ -3907,12 +3671,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             expectedContainers: ["Goo"],
             expectedDocumentName: "Bar.cs",
             parameters: new TestParameters(options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539620")]
-    public async Task TestDeclarationSpan()
-    {
-        await TestSpansAsync(
+    public Task TestDeclarationSpan()
+        => TestSpansAsync(
             """
             class Class
             {
@@ -3922,23 +3684,19 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]
-    public async Task TestNotInEnumBaseList()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInEnumBaseList()
+        => TestMissingInRegularAndScriptAsync(
             """
             enum E : [|A|]
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539681")]
-    public async Task TestNotInConditional()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInConditional()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3950,12 +3708,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInUsing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInUsing()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -3991,12 +3747,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/54493")]
-    public async Task TestInLocalFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4024,12 +3778,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestNotInDelegateConstructor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInDelegateConstructor()
+        => TestMissingInRegularAndScriptAsync(
             """
             delegate void D(int x);
 
@@ -4041,12 +3793,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539754")]
-    public async Task TestMissingOnVar()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnVar()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -4060,12 +3810,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539765")]
-    public async Task TestElideDefaultConstructor()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestElideDefaultConstructor()
+        => TestInRegularAndScriptAsync(
             """
             class A
             {
@@ -4097,20 +3845,16 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539783")]
-    public async Task RegressionFor5867ErrorToleranceTopLevel()
-    {
-        await TestMissingAsync(
+    public Task RegressionFor5867ErrorToleranceTopLevel()
+        => TestMissingAsync(
             @"[|this|] . f = f ; ",
             new TestParameters(GetScriptOptions()));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")]
-    public async Task TestOnInaccessibleType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOnInaccessibleType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4127,12 +3871,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539794")]
-    public async Task TestDefaultConstructorInTypeDerivingFromInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDefaultConstructorInTypeDerivingFromInterface()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4164,12 +3906,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGenerateWithThrow()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateWithThrow()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4214,12 +3954,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestGenerateInTryCatch()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInTryCatch()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4274,13 +4012,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539739")]
-    public async Task TestNotGenerateInDelegateConstructor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotGenerateInDelegateConstructor()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4294,12 +4030,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInStructBaseList()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInStructBaseList()
+        => TestInRegularAndScriptAsync(
             """
             struct S : [|A|]
             {
@@ -4315,12 +4049,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539870")]
-    public async Task TestGenericWhenNonGenericExists()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenericWhenNonGenericExists()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4352,12 +4084,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539930")]
-    public async Task TestInheritedTypeParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInheritedTypeParameters()
+        => TestInRegularAndScriptAsync(
             """
             class C<T, R>
             {
@@ -4389,12 +4119,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539971")]
-    public async Task TestDoNotUseOuterTypeParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDoNotUseOuterTypeParameters()
+        => TestInRegularAndScriptAsync(
             """
             class C<T1, T2>
             {
@@ -4418,12 +4146,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
-    public async Task TestReferencingTypeParameters1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReferencingTypeParameters1()
+        => TestInRegularAndScriptAsync(
             """
             class M<T, R>
             {
@@ -4455,12 +4181,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
-    public async Task TestReferencingTypeParameters2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReferencingTypeParameters2()
+        => TestInRegularAndScriptAsync(
             """
             class M<T, R>
             {
@@ -4492,12 +4216,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
-    public async Task TestReferencingTypeParameters3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReferencingTypeParameters3()
+        => TestInRegularAndScriptAsync(
             """
             class C<T1, T2>
             {
@@ -4529,12 +4251,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
-    public async Task TestReferencingTypeParameters4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReferencingTypeParameters4()
+        => TestInRegularAndScriptAsync(
             """
             class C<T1, T2>
             {
@@ -4566,12 +4286,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539992")]
-    public async Task TestNotPassingEmptyIssueListToCtor()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotPassingEmptyIssueListToCtor()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -4582,12 +4300,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     Enumerable.[|T|] Enumerable . Select(Enumerable.Range(0, 9), i => char.Parse(i.ToString())) }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540644")]
-    public async Task TestGenerateWithVoidArg()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateWithVoidArg()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4617,12 +4333,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540989")]
-    public async Task TestMissingOnInaccessibleType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnInaccessibleType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Outer
             {
@@ -4636,12 +4350,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 Outer.[|Inner|] inner;
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540766")]
-    public async Task TestOnInvalidGlobalCode()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnInvalidGlobalCode()
+        => TestInRegularAndScriptAsync(
             @"[|a|] test ",
             """
             [|a|] test internal class a
@@ -4649,12 +4361,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]
-    public async Task TestDoNotInferTypeWithWrongArity()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDoNotInferTypeWithWrongArity()
+        => TestInRegularAndScriptAsync(
             """
             class C<T1>
             {
@@ -4681,12 +4391,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestMissingOnInvalidConstructorToExistingType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnInvalidConstructorToExistingType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -4696,12 +4404,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541263")]
-    public async Task TestAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public static class MyExtension
             {
@@ -4725,12 +4431,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestBaseTypeAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestBaseTypeAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public class C : [|D|]
             {
@@ -4746,12 +4450,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestBaseInterfaceAccessibilityConstraint1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestBaseInterfaceAccessibilityConstraint1()
+        => TestInRegularAndScriptAsync(
             """
             public class C : X, [|IGoo|]
             {
@@ -4767,12 +4469,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestAccessibilityConstraint2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityConstraint2()
+        => TestInRegularAndScriptAsync(
             """
             public interface C : [|IBar|], IGoo
             {
@@ -4788,12 +4488,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestAccessibilityConstraint3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityConstraint3()
+        => TestInRegularAndScriptAsync(
             """
             public interface C : IBar, [|IGoo|]
             {
@@ -4809,12 +4507,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestDelegateReturnTypeAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDelegateReturnTypeAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             @"public delegate [|D|] Goo();",
             """
             public delegate D Goo();
@@ -4824,12 +4520,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestDelegateParameterAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDelegateParameterAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             @"public delegate D Goo([|S|] d);",
             """
             public delegate D Goo(S d);
@@ -4839,12 +4533,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestMethodParameterAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodParameterAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -4862,12 +4554,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestMethodReturnTypeAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodReturnTypeAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -4885,12 +4575,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestPropertyTypeAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPropertyTypeAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -4908,12 +4596,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestFieldEventTypeAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldEventTypeAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -4931,12 +4617,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact]
-    public async Task TestEventTypeAccessibilityConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEventTypeAccessibilityConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public class C
             {
@@ -4972,12 +4656,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541654")]
-    public async Task TestGenerateVarType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateVarType()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5001,12 +4683,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541641")]
-    public async Task TestOnBadAttribute()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnBadAttribute()
+        => TestInRegularAndScriptAsync(
             """
             [[|AttClass|]()]
             class C
@@ -5034,12 +4714,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
-    public async Task TestGenerateStruct1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateStruct1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5075,12 +4753,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542480")]
-    public async Task TestCopyConstraints1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCopyConstraints1()
+        => TestInRegularAndScriptAsync(
             """
             class A<T> where T : class
             {
@@ -5112,12 +4788,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
-    public async Task TestGenerateStruct2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateStruct2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5152,12 +4826,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
-    public async Task TestGenerateStruct3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateStruct3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5192,12 +4864,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542761")]
-    public async Task TestGenerateOpenType1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateOpenType1()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -5221,12 +4891,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542766")]
-    public async Task TestGenerateAttributeInGenericType()
-    {
-        await TestActionCountAsync(
+    public Task TestGenerateAttributeInGenericType()
+        => TestActionCountAsync(
             """
             using System;
 
@@ -5239,12 +4907,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             count: 6);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]
-    public async Task TestNestedGenericAccessibility()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNestedGenericAccessibility()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -5270,7 +4936,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543493")]
     public async Task MissingIfNotInTypeStatementOrExpressionContext()
@@ -5305,9 +4970,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542641")]
-    public async Task TestAttributeSuffixOnAttributeSubclasses()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributeSuffixOnAttributeSubclasses()
+        => TestInRegularAndScriptAsync(
             """
             using System.Runtime.CompilerServices;
 
@@ -5335,20 +4999,16 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
-    public async Task TestDisplayStringForGlobalNamespace()
-    {
-        await TestSmartTagTextAsync(
+    public Task TestDisplayStringForGlobalNamespace()
+        => TestSmartTagTextAsync(
             @"class C : [|Goo|]",
             string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"));
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
-    public async Task TestAddDocumentForGlobalNamespace()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestAddDocumentForGlobalNamespace()
+        => TestAddDocumentInRegularAndScriptAsync(
             @"class C : [|Goo|]",
             """
             internal class Goo
@@ -5357,12 +5017,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             [],
             "Goo.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543886")]
-    public async Task TestVerbatimAttribute()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestVerbatimAttribute()
+        => TestInRegularAndScriptAsync(
             """
             [[|@X|]]
             class Class3
@@ -5382,12 +5040,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531220")]
-    public async Task CompareIncompleteMembersToEqual()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompareIncompleteMembersToEqual()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5412,15 +5068,12 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 {
                 }
             }
-
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544168")]
-    public async Task TestNotOnAbstractClassCreation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnAbstractClassCreation()
+        => TestMissingInRegularAndScriptAsync(
             """
             abstract class Goo
             {
@@ -5434,7 +5087,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545362")]
     public async Task TestGenerateInVenus1()
@@ -5481,9 +5133,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
-    public async Task TestGenerateTypeOutsideCurrentProject()
-    {
-        var code = """
+    public Task TestGenerateTypeOutsideCurrentProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                                     <ProjectReference>Assembly2</ProjectReference>
@@ -5509,9 +5160,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }</Document>
                                 </Project>
                             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             namespace A
             {
                 public class B
@@ -5521,15 +5170,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
-    }
+            """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-    public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
-    {
-        var code = """
+    public Task TestGenerateTypeInFolderNotDefaultNamespace_0()
+        => TestAddDocumentInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DefaultNamespace = "Namespace1.Namespace2">
                                     <Document FilePath="Test1.cs">
@@ -5542,27 +5187,21 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                                     </Document>
                                 </Project>
                             </Workspace>
-            """;
-
-        var expected = """
+            """,
+            """
             namespace Namespace1.Namespace2
             {
                 public class ClassB
                 {
                 }
             }
-            """;
-
-        await TestAddDocumentInRegularAndScriptAsync(code,
-            expected,
+            """,
             expectedContainers: [],
             expectedDocumentName: "ClassB.cs");
-    }
 
     [WpfFact]
-    public async Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
-    {
-        var code = """
+    public Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
+        => TestAddDocumentInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DefaultNamespace = "Namespace1.Namespace2">
                                     <Document FilePath="Test1.cs">
@@ -5574,29 +5213,23 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                                     </Document>
                                 </Project>
                             </Workspace>
-            """;
-
-        var expected = """
+            """,
+            """
             namespace Namespace1.Namespace2;
 
             public class ClassB
             {
             }
-            """;
-
-        await TestAddDocumentInRegularAndScriptAsync(code,
-            expected,
+            """,
             expectedContainers: [],
             expectedDocumentName: "ClassB.cs",
             new TestParameters(
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
                 options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-    public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
-    {
-        var code = """
+    public Task TestGenerateTypeInFolderNotDefaultNamespace_1()
+        => TestAddDocumentInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DefaultNamespace = "Namespace1.Namespace2" >
                                     <Document FilePath="Test1.cs" Folders="Namespace1\Namespace2">
@@ -5609,42 +5242,30 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                                     </Document>
                                 </Project>
                             </Workspace>
-            """;
-
-        var expected = """
+            """,
+            """
             namespace Namespace1.Namespace2.Namespace3
             {
                 public class ClassB
                 {
                 }
             }
-            """;
-
-        await TestAddDocumentInRegularAndScriptAsync(code,
-            expected,
+            """,
             expectedContainers: ["Namespace1", "Namespace2"],
             expectedDocumentName: "ClassB.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]
-    public async Task TestGenerateTypeWithNoBraces()
-    {
-        var code = @"class Test : [|Base|]";
-
-        var expected = """
+    public Task TestGenerateTypeWithNoBraces()
+        => TestInRegularAndScriptAsync(@"class Test : [|Base|]", """
             class Test : Base
             internal class Base
             {
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, index: 1);
-    }
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-    public async Task TestWithProperties1()
-    {
-        var code = """
+    public Task TestWithProperties1()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5654,9 +5275,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     var c = new [|Customer|](x: 1, y: "Hello") {Name = "John", Age = DateTime.Today};
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
 
             class Program
@@ -5681,15 +5300,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public string Name { get; set; }
                 public DateTime Age { get; set; }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, index: 1);
-    }
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-    public async Task TestWithProperties2()
-    {
-        var code = """
+    public Task TestWithProperties2()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5699,9 +5314,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     var c = new [|Customer|](x: 1, y: "Hello") {Name = null, Age = DateTime.Today};
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
 
             class Program
@@ -5726,15 +5339,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public object Name { get; set; }
                 public DateTime Age { get; set; }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, index: 1);
-    }
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-    public async Task TestWithProperties3()
-    {
-        var code = """
+    public Task TestWithProperties3()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5744,9 +5353,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     var c = new [|Customer|](x: 1, y: "Hello") {Name = Goo, Age = DateTime.Today};
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
 
             class Program
@@ -5771,15 +5378,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public object Name { get; set; }
                 public DateTime Age { get; set; }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, index: 1);
-    }
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082031")]
-    public async Task TestWithProperties4()
-    {
-        var code = """
+    public Task TestWithProperties4()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5789,9 +5392,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     var c = new [|Customer|] {Name = "John", Age = DateTime.Today};
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
 
             class Program
@@ -5807,15 +5408,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public string Name { get; set; }
                 public DateTime Age { get; set; }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, index: 1);
-    }
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-    public async Task TestWithNameOf()
-    {
-        var code = """
+    public Task TestWithNameOf()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -5823,9 +5420,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     var x = nameof([|Z|]);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -5837,15 +5432,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             internal class Z
             {
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, index: 1);
-    }
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-    public async Task TestWithNameOf2()
-    {
-        var code = """
+    public Task TestWithNameOf2()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -5853,9 +5444,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                     var x = nameof([|C.Test|]);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -5867,15 +5456,11 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
-    }
+            """);
 
     [Fact]
-    public async Task TestWithUsingStatic()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithUsingStatic()
+        => TestInRegularAndScriptAsync(
             @"using static [|Sample|];",
             """
             using static Sample;
@@ -5885,19 +5470,15 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact]
-    public async Task TestWithUsingStatic2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithUsingStatic2()
+        => TestMissingInRegularAndScriptAsync(
             @"using [|Sample|];");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-    public async Task TestAccessibilityForPublicFields()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityForPublicFields()
+        => TestInRegularAndScriptAsync(
             """
             class A
             {
@@ -5912,12 +5493,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-    public async Task TestAccessibilityForPublicFields2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityForPublicFields2()
+        => TestInRegularAndScriptAsync(
             """
             class A
             {
@@ -5938,12 +5517,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-    public async Task TestAccessibilityForPublicFields3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityForPublicFields3()
+        => TestInRegularAndScriptAsync(
             """
             class A
             {
@@ -5964,12 +5541,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-    public async Task TestAccessibilityForPublicFields4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityForPublicFields4()
+        => TestInRegularAndScriptAsync(
             """
             class A
             {
@@ -5984,12 +5559,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-    public async Task TestAccessibilityForPublicFields5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityForPublicFields5()
+        => TestInRegularAndScriptAsync(
             """
             class A
             {
@@ -6010,12 +5583,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-    public async Task TestAccessibilityForPublicFields6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAccessibilityForPublicFields6()
+        => TestInRegularAndScriptAsync(
             """
             class A
             {
@@ -6036,12 +5607,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 2);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-    public async Task TestPreserveFileBanner1()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestPreserveFileBanner1()
+        => TestAddDocumentInRegularAndScriptAsync(
             """
             // I am a banner
 
@@ -6062,12 +5631,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: [],
             expectedDocumentName: "Goo.cs");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-    public async Task TestPreserveFileBanner2()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestPreserveFileBanner2()
+        => TestAddDocumentInRegularAndScriptAsync(
             """
             /// I am a doc comment
             class Program
@@ -6085,12 +5652,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: [],
             expectedDocumentName: "Goo.cs");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-    public async Task TestPreserveFileBanner3()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestPreserveFileBanner3()
+        => TestAddDocumentInRegularAndScriptAsync(
             """
             // I am a banner
             using System;
@@ -6119,12 +5684,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: [],
             expectedDocumentName: "Goo.cs");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-    public async Task TestPreserveFileBanner4()
-    {
-        await TestAddDocumentInRegularAndScriptAsync(
+    public Task TestPreserveFileBanner4()
+        => TestAddDocumentInRegularAndScriptAsync(
             """
             class Program
             {
@@ -6144,14 +5707,12 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             expectedContainers: [],
             expectedDocumentName: "Goo.cs",
             new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "I am a banner")));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/22293")]
     [InlineData("void")]
     [InlineData("int")]
-    public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
+        => TestInRegularAndScriptAsync(
             $$"""
             <Workspace>
                 <Project Language="C#" CommonReferencesMinCorlib="true">
@@ -6193,12 +5754,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/270")]
-    public async Task TestGenerateInIsExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateInIsExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6243,12 +5802,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """,
             index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45808")]
-    public async Task TestGenerateUnsafe()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateUnsafe()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6277,12 +5834,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40605")]
-    public async Task DoNoInferArrayBaseType1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoNoInferArrayBaseType1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6310,12 +5865,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58495")]
-    public async Task UseImplicitObjectInitializerToPopulateProperties()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseImplicitObjectInitializerToPopulateProperties()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -6340,5 +5893,26 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public int B { get; set; }
             }
             """, index: 1);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49649")]
+    public Task TestInTopLevelProgram()
+        => TestInRegularAndScriptAsync(
+            """
+            var student = new [|Student|]("Youssef");
+            Console.WriteLine(student.Name);
+            """,
+            """
+            var student = new Student("Youssef");
+            Console.WriteLine(student.Name);
+
+            internal class Student
+            {
+                private string v;
+
+                public Student(string v)
+                {
+                    this.v = v;
+                }
+            }
+            """, index: 1);
 }

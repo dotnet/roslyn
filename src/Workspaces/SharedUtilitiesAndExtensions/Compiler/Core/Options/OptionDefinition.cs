@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -97,7 +96,7 @@ internal abstract class OptionDefinition : IEquatable<OptionDefinition?>
            type == typeof(long?) ||
            type.IsEnum ||
            Nullable.GetUnderlyingType(type)?.IsEnum == true ||
-#if !CODE_STYLE
+#if WORKSPACE
            typeof(ICodeStyleOption).IsAssignableFrom(type) ||
 #endif
            typeof(ICodeStyleOption2).IsAssignableFrom(type) ||

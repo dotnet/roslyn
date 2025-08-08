@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerRootViewModel : ViewModelBase
+internal sealed class StackTraceExplorerRootViewModel : ViewModelBase
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IClassificationFormatMap _formatMap;
@@ -30,12 +30,10 @@ internal class StackTraceExplorerRootViewModel : ViewModelBase
     }
 
     public ObservableCollection<StackTraceExplorerTab> Tabs { get; } = [];
-
-    private StackTraceExplorerTab? _selectedTab;
     public StackTraceExplorerTab? SelectedTab
     {
-        get => _selectedTab;
-        set => SetProperty(ref _selectedTab, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     /// <summary>

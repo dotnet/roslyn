@@ -10,47 +10,46 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+public class KeywordRecommenderTests : RecommenderTests
 {
-    public class KeywordRecommenderTests : RecommenderTests
+    private static readonly Dictionary<SyntaxKind, AbstractSyntacticSingleKeywordRecommender> s_recommenderMap = new(SyntaxFacts.EqualityComparer);
+    protected override string KeywordText { get; }
+
+    static KeywordRecommenderTests()
     {
-        private static readonly Dictionary<SyntaxKind, AbstractSyntacticSingleKeywordRecommender> s_recommenderMap = new(SyntaxFacts.EqualityComparer);
-        protected override string KeywordText { get; }
-
-        static KeywordRecommenderTests()
+        foreach (var recommenderType in typeof(AbstractSyntacticSingleKeywordRecommender).Assembly.GetTypes())
         {
-            foreach (var recommenderType in typeof(AbstractSyntacticSingleKeywordRecommender).Assembly.GetTypes())
+            if (recommenderType.IsSubclassOf(typeof(AbstractSyntacticSingleKeywordRecommender)))
             {
-                if (recommenderType.IsSubclassOf(typeof(AbstractSyntacticSingleKeywordRecommender)))
+                try
                 {
-                    try
-                    {
-                        var recommender = Activator.CreateInstance(recommenderType);
-                        var field = recommenderType.GetField(nameof(AbstractSyntacticSingleKeywordRecommender.KeywordKind), BindingFlags.Public | BindingFlags.Instance);
-                        var kind = (SyntaxKind)field!.GetValue(recommender)!;
+                    var recommender = Activator.CreateInstance(recommenderType);
+                    var field = recommenderType.GetField(nameof(AbstractSyntacticSingleKeywordRecommender.KeywordKind), BindingFlags.Public | BindingFlags.Instance);
+                    var kind = (SyntaxKind)field!.GetValue(recommender)!;
 
-                        s_recommenderMap.Add(kind, (AbstractSyntacticSingleKeywordRecommender)recommender!);
-                    }
-                    catch
-                    {
-                    }
+                    s_recommenderMap.Add(kind, (AbstractSyntacticSingleKeywordRecommender)recommender!);
+                }
+                catch
+                {
                 }
             }
         }
+    }
 
-        protected KeywordRecommenderTests()
-        {
-            var name = GetType().Name;
-            var kindName = name[..^"RecommenderTests".Length]; // e.g. ForEachKeywordRecommenderTests -> ForEachKeyword
+    protected KeywordRecommenderTests()
+    {
+        var name = GetType().Name;
+        var kindName = name[..^"RecommenderTests".Length]; // e.g. ForEachKeywordRecommenderTests -> ForEachKeyword
 
-            var field = typeof(SyntaxKind).GetField(kindName);
-            var kind = (SyntaxKind)field!.GetValue(null)!;
-            KeywordText = SyntaxFacts.GetText(kind);
+        var field = typeof(SyntaxKind).GetField(kindName);
+        var kind = (SyntaxKind)field!.GetValue(null)!;
+        KeywordText = SyntaxFacts.GetText(kind);
 
-            s_recommenderMap.TryGetValue(kind, out var recommender);
-            Assert.NotNull(recommender);
+        s_recommenderMap.TryGetValue(kind, out var recommender);
+        Assert.NotNull(recommender);
 
-            RecommendKeywordsAsync = (position, context) => Task.FromResult(recommender.GetTestAccessor().RecommendKeywords(position, context));
-        }
+        RecommendKeywordsAsync = (position, context) => Task.FromResult(recommender.GetTestAccessor().RecommendKeywords(position, context));
     }
 }

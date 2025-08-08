@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly IEnumerable<KeyValuePair<string, ReportDiagnostic>> WithSpanAllocWarning = new[]
         {
-            KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate), ReportDiagnostic.Warn),
-            KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate), ReportDiagnostic.Warn)
+            KeyValuePair.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate), ReportDiagnostic.Warn),
+            KeyValuePair.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate), ReportDiagnostic.Warn)
         };
 
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
@@ -3311,9 +3311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         var y = b ? [new int[0]] : [[1, 2, 3]];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection expressions", "collection expressions").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection expression", "collection expression").WithLocation(6, 17));
         }
 
         [Fact]
@@ -3436,9 +3436,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         var a = AsArray([.. b ? [x] : [y]]);
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [x] : [y]").WithArguments("collection expressions", "collection expressions").WithLocation(9, 29));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [x] : [y]").WithArguments("collection expression", "collection expression").WithLocation(9, 29));
         }
 
         [Fact]
@@ -9525,7 +9525,8 @@ static class Program
                                     System.ReadOnlySpan<int> V_3,
                                     int V_4,
                                     int[] V_5,
-                                    System.Span<int> V_6)
+                                    System.Span<int> V_6,
+                                    System.Span<int> V_7)
                       IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=8_Align=4 <PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F4"
                       IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                       IL_000a:  stloc.0
@@ -9561,8 +9562,8 @@ static class Program
                       IL_0056:  ldloca.s   V_3
                       IL_0058:  ldloc.s    V_5
                       IL_005a:  newobj     "System.Span<int>..ctor(int[])"
-                      IL_005f:  stloc.s    V_6
-                      IL_0061:  ldloca.s   V_6
+                      IL_005f:  stloc.s    V_7
+                      IL_0061:  ldloca.s   V_7
                       IL_0063:  ldloc.s    V_4
                       IL_0065:  ldloca.s   V_3
                       IL_0067:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -9763,9 +9764,9 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         return [a, b, .. c ? [null] : []];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection expressions", "collection expressions").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection expression", "collection expression").WithLocation(5, 26));
         }
 
         [Fact]
@@ -11541,7 +11542,8 @@ static class Program
                                 T[] V_2,
                                 System.Span<T> V_3,
                                 System.Span<T> V_4,
-                                System.Span<T> V_5)
+                                System.Span<T> V_5,
+                                System.Span<T> V_6)
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.1
                   IL_0002:  stloc.0
@@ -11577,8 +11579,8 @@ static class Program
                   IL_004e:  ldloca.s   V_4
                   IL_0050:  ldloc.2
                   IL_0051:  newobj     "System.Span<T>..ctor(T[])"
-                  IL_0056:  stloc.s    V_5
-                  IL_0058:  ldloca.s   V_5
+                  IL_0056:  stloc.s    V_6
+                  IL_0058:  ldloca.s   V_6
                   IL_005a:  ldloc.1
                   IL_005b:  ldloca.s   V_4
                   IL_005d:  call       "int System.Span<T>.Length.get"
@@ -11645,7 +11647,8 @@ static class Program
                                 int V_10,
                                 int V_11,
                                 int V_12,
-                                int V_13)
+                                int V_13,
+                                System.Span<int> V_14)
                   IL_0000:  ldstr      "A"
                   IL_0005:  ldc.i4.2
                   IL_0006:  newarr     "int"
@@ -11762,8 +11765,8 @@ static class Program
                   IL_0105:  ldloca.s   V_6
                   IL_0107:  ldloc.s    V_4
                   IL_0109:  newobj     "System.Span<int>..ctor(int[])"
-                  IL_010e:  stloc.s    V_7
-                  IL_0110:  ldloca.s   V_7
+                  IL_010e:  stloc.s    V_14
+                  IL_0110:  ldloca.s   V_14
                   IL_0112:  ldloc.3
                   IL_0113:  ldloca.s   V_6
                   IL_0115:  call       "int System.Span<int>.Length.get"
@@ -14046,13 +14049,17 @@ namespace System
                 }
                 """;
 
-            // We should check conversion to the iteration type
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9),
+                // (9,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         List<object> y = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
+                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = [2, null]; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
         }
 
         [Fact]
@@ -14073,9 +14080,9 @@ namespace System
                     {
                         S<object?> x = [1];
                         x[0].ToString(); // 1
-                        S<object> y = [null];
+                        S<object> y = [null]; // 2
                         y[0].ToString();
-                        y = [2, null];
+                        y = [2, null]; // 3
                         y[1].ToString();
                     }
                 }
@@ -14084,7 +14091,13 @@ namespace System
             comp.VerifyEmitDiagnostics(
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9),
+                // (15,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         S<object> y = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 24),
+                // (17,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = [2, null]; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 17));
         }
 
         [Fact]
@@ -24811,7 +24824,7 @@ partial class Program
                   IL_0008:  pop
                   IL_0009:  ldsfld     "C<T>.<>c C<T>.<>c.<>9"
                   IL_000e:  ldftn      "void C<T>.<>c.<.ctor>b__1_1(T)"
-                  IL_0014:  newobj     "System.Action<T>..ctor(object, nint)"
+                  IL_0014:  newobj     "System.Action<T>..ctor(object, System.IntPtr)"
                   IL_0019:  dup
                   IL_001a:  stsfld     "System.Action<T> C<T>.<>c.<>9__1_1"
                   IL_001f:  ldarg.2
@@ -25291,8 +25304,8 @@ partial class Program
                   .maxstack  1
                   .locals init (object V_0,
                                 string V_1,
-                                nint V_2,
-                                nuint V_3)
+                                System.IntPtr V_2,
+                                System.UIntPtr V_3)
                   IL_0000:  ldstr      "1"
                   IL_0005:  stloc.0
                   IL_0006:  ldloca.s   V_0
@@ -25307,14 +25320,14 @@ partial class Program
                   IL_0025:  conv.i
                   IL_0026:  stloc.2
                   IL_0027:  ldloca.s   V_2
-                  IL_0029:  newobj     "System.ReadOnlySpan<nint>..ctor(ref readonly nint)"
-                  IL_002e:  call       "void Program.Report<nint>(System.ReadOnlySpan<nint>)"
+                  IL_0029:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(ref readonly System.IntPtr)"
+                  IL_002e:  call       "void Program.Report<System.IntPtr>(System.ReadOnlySpan<System.IntPtr>)"
                   IL_0033:  ldc.i4.4
                   IL_0034:  conv.i
                   IL_0035:  stloc.3
                   IL_0036:  ldloca.s   V_3
-                  IL_0038:  newobj     "System.ReadOnlySpan<nuint>..ctor(ref readonly nuint)"
-                  IL_003d:  call       "void Program.Report<nuint>(System.ReadOnlySpan<nuint>)"
+                  IL_0038:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(ref readonly System.UIntPtr)"
+                  IL_003d:  call       "void Program.Report<System.UIntPtr>(System.ReadOnlySpan<System.UIntPtr>)"
                   IL_0042:  ret
                 }
                 """);
@@ -28022,9 +28035,9 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expressions' and 'List<int>'
+                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expression' and 'List<int>'
                 //         [] + list;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expressions", "System.Collections.Generic.List<int>").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expression", "System.Collections.Generic.List<int>").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [] + list;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] + list").WithLocation(7, 9));
@@ -31962,8 +31975,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(src).VerifyEmitDiagnostics();
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (5,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // CNotNull x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 16));
         }
 
         [Fact]
@@ -31986,7 +32001,7 @@ partial class Program
                 M(CreateUnannotated(maybeNull), [maybeNull]);
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [maybeNull]); // 1
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -32007,8 +32022,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (17,32): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
+                // M(CreateUnannotated(notNull), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(17, 32));
         }
 
         [Fact]
@@ -32037,8 +32054,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (8,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C.Add<object>(object t)'.
+                // M(new C(), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void C.Add<object>(object t)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -32084,11 +32103,10 @@ partial class Program
                 }
                 """;
 
-            // Should we also produce W-warnings on `M(CreateAnnotated(notNull), [maybeNull])` and `M(CreateUnannotated(notNull), [maybeNull])`?
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
-
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (17,32): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
+                // M(CreateUnannotated(notNull), [maybeNull]); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(17, 32));
         }
 
         [Fact]
@@ -32102,7 +32120,7 @@ partial class Program
                 object? maybeNull = null;
                 object? notNull = new object();
 
-                M(new C(), [maybeNull]);
+                M(new C(), [maybeNull]); // 1
                 C c1 = [maybeNull];
 
                 M(new C(), [notNull]);
@@ -32118,8 +32136,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (8,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C.Add<object>(object t)'.
+                // M(new C(), [maybeNull]); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void C.Add<object>(object t)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -32133,13 +32153,13 @@ partial class Program
                 object? maybeNull = null;
                 object notNull = new object();
 
-                CAnnotated<object> c1 = [maybeNull]; // 1
+                CAnnotated<object> c1 = [maybeNull];
                 CAnnotated<object?> c2 = [maybeNull];
 
                 CAnnotated<object> c3 = [notNull];
                 CAnnotated<object?> c4 = [notNull];
 
-                CUnannotated<object> c5 = [maybeNull]; // 2
+                CUnannotated<object> c5 = [maybeNull]; // 1
                 CUnannotated<object?> c6 = [maybeNull];
 
                 CUnannotated<object> c7 = [notNull];
@@ -32160,10 +32180,10 @@ partial class Program
                 }
                 """;
 
-            // We should produce W-warnings on `c1` and `c5` for implicit conversion from the element to the iteration type.
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (14,28): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
+                // CUnannotated<object> c5 = [maybeNull]; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(14, 28));
         }
 
         [Fact]
@@ -32183,10 +32203,10 @@ partial class Program
                 M(CreateAnnotated(notNull), [maybeNull]);
                 M(CreateAnnotated(notNull), [notNull]);
 
-                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [maybeNull]); // 1
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [maybeNull]); // 1
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -32209,8 +32229,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (14,34): warning CS8604: Possible null reference argument for parameter 'u' in 'void CUnannotated<object?>.Add<object>(object u)'.
+                // M(CreateUnannotated(maybeNull), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("u", "void CUnannotated<object?>.Add<object>(object u)").WithLocation(14, 34));
         }
 
         [Fact]
@@ -32473,9 +32495,10 @@ partial class Program
                 }
                 """;
 
-            // We should check conversion to the iteration type
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
-            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (6,26): warning CS8620: Argument of type 'Container<string?>' cannot be used for parameter 'item' of type 'Container<string>' in 'void List<Container<string>>.Add(Container<string> item)' due to differences in the nullability of reference types.
+                // var collection = IdList([element1, element2]); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "element1").WithArguments("Container<string?>", "Container<string>", "item", "void List<Container<string>>.Add(Container<string> item)").WithLocation(6, 26));
 
             var tree = comp.SyntaxTrees.First();
             var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
@@ -33692,7 +33715,8 @@ partial class Program
                                 System.ReadOnlySpan<int> V_3,
                                 int V_4,
                                 int[] V_5,
-                                System.Span<int> V_6)
+                                System.Span<int> V_6,
+                                System.Span<int> V_7)
                   IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
                   IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_000a:  stloc.0
@@ -33734,8 +33758,8 @@ partial class Program
                   IL_006d:  ldloca.s   V_3
                   IL_006f:  ldloc.s    V_5
                   IL_0071:  newobj     "System.Span<int>..ctor(int[])"
-                  IL_0076:  stloc.s    V_6
-                  IL_0078:  ldloca.s   V_6
+                  IL_0076:  stloc.s    V_7
+                  IL_0078:  ldloca.s   V_7
                   IL_007a:  ldloc.s    V_4
                   IL_007c:  ldloca.s   V_3
                   IL_007e:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -33791,7 +33815,8 @@ partial class Program
                                 C[] V_6,
                                 System.ReadOnlySpan<D>.Enumerator V_7,
                                 D V_8,
-                                System.ReadOnlySpan<C> V_9)
+                                System.ReadOnlySpan<D>.Enumerator V_9,
+                                System.ReadOnlySpan<C> V_10)
                   IL_0000:  newobj     "D..ctor()"
                   IL_0005:  stloc.1
                   IL_0006:  ldloca.s   V_1
@@ -33834,9 +33859,9 @@ partial class Program
                   IL_0061:  brtrue.s   IL_0043
                   IL_0063:  ldloca.s   V_4
                   IL_0065:  call       "System.ReadOnlySpan<D>.Enumerator System.ReadOnlySpan<D>.GetEnumerator()"
-                  IL_006a:  stloc.s    V_7
+                  IL_006a:  stloc.s    V_9
                   IL_006c:  br.s       IL_0085
-                  IL_006e:  ldloca.s   V_7
+                  IL_006e:  ldloca.s   V_9
                   IL_0070:  call       "ref readonly D System.ReadOnlySpan<D>.Enumerator.Current.get"
                   IL_0075:  ldind.ref
                   IL_0076:  stloc.s    V_8
@@ -33848,13 +33873,13 @@ partial class Program
                   IL_0081:  ldc.i4.1
                   IL_0082:  add
                   IL_0083:  stloc.s    V_5
-                  IL_0085:  ldloca.s   V_7
+                  IL_0085:  ldloca.s   V_9
                   IL_0087:  call       "bool System.ReadOnlySpan<D>.Enumerator.MoveNext()"
                   IL_008c:  brtrue.s   IL_006e
                   IL_008e:  ldloc.s    V_6
                   IL_0090:  call       "System.ReadOnlySpan<C> System.ReadOnlySpan<C>.op_Implicit(C[])"
-                  IL_0095:  stloc.s    V_9
-                  IL_0097:  ldloca.s   V_9
+                  IL_0095:  stloc.s    V_10
+                  IL_0097:  ldloca.s   V_10
                   IL_0099:  call       "void CollectionExtensions.Report<C>(in System.ReadOnlySpan<C>)"
                   IL_009e:  ret
                 }
@@ -34211,7 +34236,8 @@ partial class Program
                                 int V_3,
                                 Base[] V_4,
                                 System.ReadOnlySpan<Base> V_5,
-                                System.Span<Base> V_6)
+                                System.Span<Base> V_6,
+                                System.Span<Base> V_7)
                   IL_0000:  ldc.i4.1
                   IL_0001:  newarr     "Derived"
                   IL_0006:  dup
@@ -34263,8 +34289,8 @@ partial class Program
                   IL_006a:  ldloca.s   V_5
                   IL_006c:  ldloc.s    V_4
                   IL_006e:  newobj     "System.Span<Base>..ctor(Base[])"
-                  IL_0073:  stloc.s    V_6
-                  IL_0075:  ldloca.s   V_6
+                  IL_0073:  stloc.s    V_7
+                  IL_0075:  ldloca.s   V_7
                   IL_0077:  ldloc.3
                   IL_0078:  ldloca.s   V_5
                   IL_007a:  call       "int System.ReadOnlySpan<Base>.Length.get"
@@ -35263,7 +35289,8 @@ partial class Program
                                 int[] V_3,
                                 System.ReadOnlySpan<int> V_4,
                                 System.ReadOnlySpan<int> V_5,
-                                System.Span<int> V_6)
+                                System.Span<int> V_6,
+                                System.Span<int> V_7)
                   IL_0000:  ldc.i4.2
                   IL_0001:  newarr     "int"
                   IL_0006:  dup
@@ -35315,8 +35342,8 @@ partial class Program
                   IL_005f:  ldloca.s   V_5
                   IL_0061:  ldloc.3
                   IL_0062:  newobj     "System.Span<int>..ctor(int[])"
-                  IL_0067:  stloc.s    V_6
-                  IL_0069:  ldloca.s   V_6
+                  IL_0067:  stloc.s    V_7
+                  IL_0069:  ldloca.s   V_7
                   IL_006b:  ldloc.2
                   IL_006c:  ldloca.s   V_5
                   IL_006e:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -35479,7 +35506,7 @@ partial class Program
                   // Code size        7 (0x7)
                   .maxstack  1
                   IL_0000:  ldarg.1
-                  IL_0001:  callvirt   "nint[] System.Collections.Generic.List<nint>.ToArray()"
+                  IL_0001:  callvirt   "System.IntPtr[] System.Collections.Generic.List<System.IntPtr>.ToArray()"
                   IL_0006:  ret
                 }
                 """);
@@ -35489,7 +35516,7 @@ partial class Program
                   // Code size        7 (0x7)
                   .maxstack  1
                   IL_0000:  ldarg.1
-                  IL_0001:  call       "System.Collections.Generic.List<nint> System.Linq.Enumerable.ToList<nint>(System.Collections.Generic.IEnumerable<nint>)"
+                  IL_0001:  call       "System.Collections.Generic.List<System.IntPtr> System.Linq.Enumerable.ToList<System.IntPtr>(System.Collections.Generic.IEnumerable<System.IntPtr>)"
                   IL_0006:  ret
                 }
                 """);
@@ -35499,7 +35526,7 @@ partial class Program
                   // Code size        7 (0x7)
                   .maxstack  1
                   IL_0000:  ldarg.1
-                  IL_0001:  callvirt   "nint[] System.Collections.Generic.List<nint>.ToArray()"
+                  IL_0001:  callvirt   "System.IntPtr[] System.Collections.Generic.List<System.IntPtr>.ToArray()"
                   IL_0006:  ret
                 }
                 """);
@@ -35544,7 +35571,8 @@ partial class Program
                                 System.ReadOnlySpan<int> V_6,
                                 System.Runtime.CompilerServices.TaskAwaiter<int[]> V_7,
                                 System.Span<int> V_8,
-                                System.Exception V_9)
+                                System.Span<int> V_9,
+                                System.Exception V_10)
                   IL_0000:  ldarg.0
                   IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
                   IL_0006:  stloc.0
@@ -35639,8 +35667,8 @@ partial class Program
                     IL_00ea:  ldarg.0
                     IL_00eb:  ldfld      "int[] C.<Main>d__0.<>7__wrap4"
                     IL_00f0:  newobj     "System.Span<int>..ctor(int[])"
-                    IL_00f5:  stloc.s    V_8
-                    IL_00f7:  ldloca.s   V_8
+                    IL_00f5:  stloc.s    V_9
+                    IL_00f7:  ldloca.s   V_9
                     IL_00f9:  ldloc.s    V_4
                     IL_00fb:  ldloca.s   V_6
                     IL_00fd:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -35719,13 +35747,13 @@ partial class Program
                   }
                   catch System.Exception
                   {
-                    IL_01c5:  stloc.s    V_9
+                    IL_01c5:  stloc.s    V_10
                     IL_01c7:  ldarg.0
                     IL_01c8:  ldc.i4.s   -2
                     IL_01ca:  stfld      "int C.<Main>d__0.<>1__state"
                     IL_01cf:  ldarg.0
                     IL_01d0:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
-                    IL_01d5:  ldloc.s    V_9
+                    IL_01d5:  ldloc.s    V_10
                     IL_01d7:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
                     IL_01dc:  leave.s    IL_01f1
                   }
@@ -35852,13 +35880,14 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      146 (0x92)
+                  // Code size      147 (0x93)
                   .maxstack  4
                   .locals init (int V_0,
                                 System.Span<int> V_1,
                                 int V_2,
                                 System.Collections.Generic.List<int> V_3,
-                                System.Span<int> V_4)
+                                System.Span<int> V_4,
+                                System.Span<int> V_5)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -35908,27 +35937,27 @@ partial class Program
                   IL_0055:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
                   IL_005a:  ldloc.3
                   IL_005b:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0060:  stloc.1
-                  IL_0061:  ldc.i4.0
-                  IL_0062:  stloc.0
-                  IL_0063:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0068:  stloc.s    V_4
-                  IL_006a:  ldloca.s   V_4
-                  IL_006c:  ldloca.s   V_1
-                  IL_006e:  ldloc.0
-                  IL_006f:  ldloca.s   V_4
-                  IL_0071:  call       "int System.Span<int>.Length.get"
-                  IL_0076:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
-                  IL_007b:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
-                  IL_0080:  ldloc.0
-                  IL_0081:  ldloca.s   V_4
-                  IL_0083:  call       "int System.Span<int>.Length.get"
-                  IL_0088:  add
-                  IL_0089:  stloc.0
-                  IL_008a:  ldloc.3
-                  IL_008b:  ldc.i4.0
-                  IL_008c:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0091:  ret
+                  IL_0060:  stloc.s    V_4
+                  IL_0062:  ldc.i4.0
+                  IL_0063:  stloc.0
+                  IL_0064:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0069:  stloc.s    V_5
+                  IL_006b:  ldloca.s   V_5
+                  IL_006d:  ldloca.s   V_4
+                  IL_006f:  ldloc.0
+                  IL_0070:  ldloca.s   V_5
+                  IL_0072:  call       "int System.Span<int>.Length.get"
+                  IL_0077:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                  IL_007c:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
+                  IL_0081:  ldloc.0
+                  IL_0082:  ldloca.s   V_5
+                  IL_0084:  call       "int System.Span<int>.Length.get"
+                  IL_0089:  add
+                  IL_008a:  stloc.0
+                  IL_008b:  ldloc.3
+                  IL_008c:  ldc.i4.0
+                  IL_008d:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0092:  ret
                 }
                 """);
         }
@@ -37839,15 +37868,16 @@ partial class Program
             // Ideally we'd like to be able to use *both* something like AddRange, *and* AsSpan/CopyTo/etc. while building the same target collection
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      181 (0xb5)
+                  // Code size      182 (0xb6)
                   .maxstack  3
                   .locals init (int V_0,
                                 System.Span<int> V_1,
                                 int V_2,
                                 System.Collections.Generic.ICollection<int> V_3,
                                 System.Collections.Generic.List<int> V_4,
-                                System.Collections.Generic.IEnumerator<int> V_5,
-                                int V_6)
+                                System.Span<int> V_5,
+                                System.Collections.Generic.IEnumerator<int> V_6,
+                                int V_7)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -37900,49 +37930,49 @@ partial class Program
                   IL_005a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
                   IL_005f:  ldloc.s    V_4
                   IL_0061:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0066:  stloc.1
-                  IL_0067:  ldc.i4.0
-                  IL_0068:  stloc.0
-                  IL_0069:  ldloc.3
-                  IL_006a:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
-                  IL_006f:  stloc.s    V_5
+                  IL_0066:  stloc.s    V_5
+                  IL_0068:  ldc.i4.0
+                  IL_0069:  stloc.0
+                  IL_006a:  ldloc.3
+                  IL_006b:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_0070:  stloc.s    V_6
                   .try
                   {
-                    IL_0071:  br.s       IL_008b
-                    IL_0073:  ldloc.s    V_5
-                    IL_0075:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
-                    IL_007a:  stloc.s    V_6
-                    IL_007c:  ldloca.s   V_1
-                    IL_007e:  ldloc.0
-                    IL_007f:  call       "ref int System.Span<int>.this[int].get"
-                    IL_0084:  ldloc.s    V_6
-                    IL_0086:  stind.i4
-                    IL_0087:  ldloc.0
-                    IL_0088:  ldc.i4.1
-                    IL_0089:  add
-                    IL_008a:  stloc.0
-                    IL_008b:  ldloc.s    V_5
-                    IL_008d:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0092:  brtrue.s   IL_0073
-                    IL_0094:  leave.s    IL_00a2
+                    IL_0072:  br.s       IL_008c
+                    IL_0074:  ldloc.s    V_6
+                    IL_0076:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_007b:  stloc.s    V_7
+                    IL_007d:  ldloca.s   V_5
+                    IL_007f:  ldloc.0
+                    IL_0080:  call       "ref int System.Span<int>.this[int].get"
+                    IL_0085:  ldloc.s    V_7
+                    IL_0087:  stind.i4
+                    IL_0088:  ldloc.0
+                    IL_0089:  ldc.i4.1
+                    IL_008a:  add
+                    IL_008b:  stloc.0
+                    IL_008c:  ldloc.s    V_6
+                    IL_008e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0093:  brtrue.s   IL_0074
+                    IL_0095:  leave.s    IL_00a3
                   }
                   finally
                   {
-                    IL_0096:  ldloc.s    V_5
-                    IL_0098:  brfalse.s  IL_00a1
-                    IL_009a:  ldloc.s    V_5
-                    IL_009c:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_00a1:  endfinally
+                    IL_0097:  ldloc.s    V_6
+                    IL_0099:  brfalse.s  IL_00a2
+                    IL_009b:  ldloc.s    V_6
+                    IL_009d:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_00a2:  endfinally
                   }
-                  IL_00a2:  ldloca.s   V_1
-                  IL_00a4:  ldloc.0
-                  IL_00a5:  call       "ref int System.Span<int>.this[int].get"
-                  IL_00aa:  ldc.i4.4
-                  IL_00ab:  stind.i4
-                  IL_00ac:  ldloc.s    V_4
-                  IL_00ae:  ldc.i4.0
-                  IL_00af:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_00b4:  ret
+                  IL_00a3:  ldloca.s   V_5
+                  IL_00a5:  ldloc.0
+                  IL_00a6:  call       "ref int System.Span<int>.this[int].get"
+                  IL_00ab:  ldc.i4.4
+                  IL_00ac:  stind.i4
+                  IL_00ad:  ldloc.s    V_4
+                  IL_00af:  ldc.i4.0
+                  IL_00b0:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_00b5:  ret
                 }
                 """);
         }
@@ -40100,6 +40130,63 @@ partial class Program
                 // (8,37): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int>.Add(string)").WithLocation(8, 37));
+        }
+
+        [Fact]
+        public void AddMethod_Extension_Nullability()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                namespace N
+                {
+                    internal static class Extensions
+                    {
+                        public static void Add<T>(this MyCollection<T> collection, T t) { collection.__AddInternal(t); }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using N;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> c1 = [null]; // missing warning
+                        c1.Report();
+                        c1 = ["a"];
+                        c1.Report();
+                        c1 = [..(string[])["a"], "b"];
+                        c1.Report();
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/68786
+            // Warnings for element conversions to reinferred extension Add parameter types are not implemented.
+            var verifier = CompileAndVerify([sourceB, sourceA, s_collectionExtensions], expectedOutput: "[null], [a], [a, b],");
+            verifier.VerifyDiagnostics();
+
+            comp = CreateCompilation([sourceB, s_collectionExtensions], references: [refA]);
+            comp.VerifyEmitDiagnostics(
+                // (6,35): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<string> c1 = [null];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("MyCollection<string>", "Add").WithLocation(6, 35),
+                // (8,14): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
+                //         c1 = ["a"];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""a""]").WithArguments("MyCollection<string>", "Add").WithLocation(8, 14),
+                // (10,14): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
+                //         c1 = [..(string[])["a"], "b"];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[..(string[])[""a""], ""b""]").WithArguments("MyCollection<string>", "Add").WithLocation(10, 14));
         }
 
         [Fact]

@@ -234,11 +234,26 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
     private static Location GetDiagnosticLocation(IFieldSymbol field)
         => field.Locations[0];
 
+    private static bool IsWrittenTo(IOperation? operation, ISymbol owningSymbol)
+    {
+        if (operation is null)
+            return false;
+
+        var result = operation.GetValueUsageInfo(owningSymbol);
+        if (result.IsWrittenTo())
+            return true;
+
+        // Accessing an indexer/property off of a value type will read/write the value type depending on how the
+        // indexer/property itself is used.
+        return operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation }
+            ? IsWrittenTo(operation.Parent, owningSymbol)
+            : false;
+    }
+
     private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
     {
         // Check if the underlying member is being written or a writable reference to the member is taken.
-        var valueUsageInfo = fieldReference.GetValueUsageInfo(owningSymbol);
-        if (!valueUsageInfo.IsWrittenTo())
+        if (!IsWrittenTo(fieldReference, owningSymbol))
             return false;
 
         // Writes to fields inside constructor are ignored, except for the below cases:

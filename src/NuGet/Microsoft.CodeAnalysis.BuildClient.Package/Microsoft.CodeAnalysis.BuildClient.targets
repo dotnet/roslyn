@@ -1,0 +1,13 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\Portable\CommitHashAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\BuildProtocol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\BuildServerConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\CompilerServerLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\NamedPipeUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\NativeMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\RuntimeHostInfo.cs" />
+  </ItemGroup>
+</Project>

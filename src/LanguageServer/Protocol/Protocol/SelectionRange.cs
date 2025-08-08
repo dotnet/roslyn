@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-internal class SelectionRange
+internal sealed class SelectionRange
 {
     /// <summary>
     /// The range of the selection range

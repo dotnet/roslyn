@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -842,6 +843,437 @@ class C
             Assert.Empty(fullTree.GetDiagnostics());
 
             WalkTreeAndVerify(withCloseBraceDeletedTree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromExtensionToClass()
+        {
+            var text = @"
+class C
+{
+    extension(object x) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
+            var newTree = oldTree.WithReplaceFirst("extension", "class D");
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify();
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassKeyword,
+                            SyntaxKind.IdentifierToken);
+
+            UsingTree(newTree);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromExtensionToClass_NoParameterIdentifier()
+        {
+            var text = @"
+class C
+{
+    extension(object) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
+            var newTree = oldTree.WithReplaceFirst("extension", "class D");
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify(
+                // (4,19): error CS1001: Identifier expected
+                //     class D(object) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 19));
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassKeyword,
+                            SyntaxKind.IdentifierToken,
+                            SyntaxKind.ParameterList,
+                            SyntaxKind.Parameter,
+                            SyntaxKind.IdentifierToken);
+
+            UsingTree(newTree,
+                // (4,19): error CS1001: Identifier expected
+                //     class D(object) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromExtensionToClass_WithName()
+        {
+            var text = @"
+class C
+{
+    extension E(object x) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
+            var newTree = oldTree.WithReplaceFirst("extension", "class");
+            oldTree.GetDiagnostics().Verify(
+                // (4,15): error CS9281: Extension declarations may not have a name.
+                //     extension E(object x) { }
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "E").WithLocation(4, 15));
+            newTree.GetDiagnostics().Verify();
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassKeyword,
+                            SyntaxKind.IdentifierToken);
+
+            UsingTree(newTree);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "E");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromClassToExtension()
+        {
+            var text = @"
+class C
+{
+    class D(object x) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
+            var newTree = oldTree.WithReplaceFirst("class D", "extension");
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify();
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
+                            SyntaxKind.ExtensionKeyword);
+
+            UsingTree(newTree);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromClassToExtension_NoParameterIdentifier()
+        {
+            var text = @"
+class C
+{
+    class D(object) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
+            var newTree = oldTree.WithReplaceFirst("class D", "extension");
+            oldTree.GetDiagnostics().Verify(
+                // (4,19): error CS1001: Identifier expected
+                //     class D(object) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 19));
+            newTree.GetDiagnostics().Verify();
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
+                            SyntaxKind.ExtensionKeyword,
+                            SyntaxKind.ParameterList,
+                            SyntaxKind.Parameter);
+
+            UsingTree(newTree);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromClassToExtension_WithName()
+        {
+            var text = @"
+class C
+{
+    struct D(object x) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
+            var newTree = oldTree.WithReplaceFirst("struct", "extension");
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify(
+                // (4,15): error CS9281: Extension declarations may not have a name.
+                //     extension D(object x) { }
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "D").WithLocation(4, 15));
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
+                            SyntaxKind.ExtensionKeyword);
+
+            UsingTree(newTree,
+                // (4,15): error CS9281: Extension declarations may not have a name.
+                //     extension D(object x) { }
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "D").WithLocation(4, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateExtension_ChangeParameterList()
+        {
+            var text = """
+class C
+{
+    extension(object, Type z1) { }
+}
+""";
+            var oldTree = this.Parse(text, LanguageVersion.CSharp14);
+            var newTree = oldTree.WithReplaceFirst("z1", "z2");
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify();
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                SyntaxKind.CompilationUnit,
+                SyntaxKind.ClassDeclaration,
+                SyntaxKind.ExtensionBlockDeclaration,
+                SyntaxKind.ExtensionKeyword,
+                SyntaxKind.ParameterList,
+                SyntaxKind.Parameter,
+                SyntaxKind.IdentifierToken);
+
+            UsingTree(newTree);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.IdentifierToken, "z2");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         #region "Regression"

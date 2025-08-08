@@ -6,107 +6,106 @@
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(ICodeElements))]
+public sealed class ExternalMemberCollection : AbstractCodeElementCollection
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(ICodeElements))]
-    public sealed class ExternalMemberCollection : AbstractCodeElementCollection
+    internal static EnvDTE.CodeElements Create(
+        CodeModelState state,
+        object parent,
+        ProjectId projectId,
+        ITypeSymbol typeSymbol)
     {
-        internal static EnvDTE.CodeElements Create(
-            CodeModelState state,
-            object parent,
-            ProjectId projectId,
-            ITypeSymbol typeSymbol)
-        {
-            var collection = new ExternalMemberCollection(state, parent, projectId, typeSymbol);
-            return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
-        }
+        var collection = new ExternalMemberCollection(state, parent, projectId, typeSymbol);
+        return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+    }
 
-        private readonly ProjectId _projectId;
-        private readonly SymbolKey _typeSymbolId;
-        private ImmutableArray<EnvDTE.CodeElement> _children;
+    private readonly ProjectId _projectId;
+    private readonly SymbolKey _typeSymbolId;
+    private ImmutableArray<EnvDTE.CodeElement> _children;
 
-        private ExternalMemberCollection(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
-            : base(state, parent)
-        {
-            _projectId = projectId;
-            _typeSymbolId = typeSymbol.GetSymbolKey();
-        }
+    private ExternalMemberCollection(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
+        : base(state, parent)
+    {
+        _projectId = projectId;
+        _typeSymbolId = typeSymbol.GetSymbolKey();
+    }
 
-        private ImmutableArray<EnvDTE.CodeElement> GetChildren()
+    private ImmutableArray<EnvDTE.CodeElement> GetChildren()
+    {
+        if (_children == null)
         {
-            if (_children == null)
+            var project = this.State.Workspace.CurrentSolution.GetProject(_projectId);
+            if (project == null)
             {
-                var project = this.State.Workspace.CurrentSolution.GetProject(_projectId);
-                if (project == null)
-                {
-                    throw Exceptions.ThrowEFail();
-                }
-
-                if (_typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is not ITypeSymbol typeSymbol)
-                {
-                    throw Exceptions.ThrowEFail();
-                }
-
-                var childrenBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
-
-                foreach (var member in typeSymbol.GetMembers())
-                {
-                    if (this.CodeModelService.IsValidExternalSymbol(member))
-                    {
-                        childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, member));
-                    }
-                }
-
-                foreach (var typeMember in typeSymbol.GetTypeMembers())
-                {
-                    childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, typeMember));
-                }
-
-                _children = childrenBuilder.ToImmutableAndFree();
+                throw Exceptions.ThrowEFail();
             }
 
-            return _children;
-        }
-
-        protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
-        {
-            var children = GetChildren();
-            if (index < children.Length)
+            if (_typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is not ITypeSymbol typeSymbol)
             {
-                element = children[index];
-                return true;
+                throw Exceptions.ThrowEFail();
             }
 
-            element = null;
-            return false;
-        }
+            var childrenBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
 
-        protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
-        {
-            var children = GetChildren();
-            var index = children.IndexOf(e => e.Name == name);
-
-            if (index < children.Length)
+            foreach (var member in typeSymbol.GetMembers())
             {
-                element = children[index];
-                return true;
+                if (this.CodeModelService.IsValidExternalSymbol(member))
+                {
+                    childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, member));
+                }
             }
 
-            element = null;
-            return false;
+            foreach (var typeMember in typeSymbol.GetTypeMembers())
+            {
+                childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, typeMember));
+            }
+
+            _children = childrenBuilder.ToImmutableAndFree();
         }
 
-        public override int Count
+        return _children;
+    }
+
+    protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
+    {
+        var children = GetChildren();
+        if (index < children.Length)
         {
-            get { return GetChildren().Length; }
+            element = children[index];
+            return true;
         }
+
+        element = null;
+        return false;
+    }
+
+    protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
+    {
+        var children = GetChildren();
+        var index = children.IndexOf(e => e.Name == name);
+
+        if (index < children.Length)
+        {
+            element = children[index];
+            return true;
+        }
+
+        element = null;
+        return false;
+    }
+
+    public override int Count
+    {
+        get { return GetChildren().Length; }
     }
 }

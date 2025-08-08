@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Workspace specific server capabilities.
 /// </summary>
-internal class WorkspaceServerCapabilities
+internal sealed class WorkspaceServerCapabilities
 {
     /// <summary>
     /// The server supports workspace folder.

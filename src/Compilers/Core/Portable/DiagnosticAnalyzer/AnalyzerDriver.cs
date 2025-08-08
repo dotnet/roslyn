@@ -16,10 +16,8 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -844,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             AnalyzerDriver analyzerDriver = compilation.CreateAnalyzerDriver(analyzers, analyzerManager, severityFilter);
             newCompilation = compilation
-                .WithSemanticModelProvider(new CachingSemanticModelProvider())
+                .WithSemanticModelProvider(CachingSemanticModelProvider.Instance)
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             var categorizeDiagnostics = false;

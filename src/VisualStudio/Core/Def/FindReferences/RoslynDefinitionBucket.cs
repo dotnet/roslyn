@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
 internal partial class StreamingFindUsagesPresenter
 {
-    private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
+    private sealed class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
     {
         private readonly StreamingFindUsagesPresenter _presenter;
 

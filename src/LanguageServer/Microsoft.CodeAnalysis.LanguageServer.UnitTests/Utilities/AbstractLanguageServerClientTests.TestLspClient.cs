@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -24,9 +23,9 @@ public partial class AbstractLanguageServerClientTests
         private int _disposed = 0;
 
         private readonly Process _process;
-        private readonly Dictionary<Uri, SourceText> _documents;
+        private readonly Dictionary<DocumentUri, SourceText> _documents;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
-        private readonly TestOutputLogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
         private readonly JsonRpc _clientRpc;
 
@@ -37,8 +36,8 @@ public partial class AbstractLanguageServerClientTests
             string extensionLogsPath,
             bool includeDevKitComponents,
             bool debugLsp,
-            TestOutputLogger logger,
-            Dictionary<Uri, SourceText>? documents = null,
+            ILoggerFactory loggerFactory,
+            Dictionary<DocumentUri, SourceText>? documents = null,
             Dictionary<string, IList<LSP.Location>>? locations = null)
         {
             var pipeName = CreateNewPipeName();
@@ -47,7 +46,7 @@ public partial class AbstractLanguageServerClientTests
             var process = Process.Start(processStartInfo);
             Assert.NotNull(process);
 
-            var lspClient = new TestLspClient(process, pipeName, documents ?? [], locations ?? [], logger);
+            var lspClient = new TestLspClient(process, pipeName, documents ?? [], locations ?? [], loggerFactory);
 
             // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
             if (process.HasExited)
@@ -124,11 +123,11 @@ public partial class AbstractLanguageServerClientTests
 
         internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
 
-        private TestLspClient(Process process, string pipeName, Dictionary<Uri, SourceText> documents, Dictionary<string, IList<LSP.Location>> locations, TestOutputLogger logger)
+        private TestLspClient(Process process, string pipeName, Dictionary<DocumentUri, SourceText> documents, Dictionary<string, IList<LSP.Location>> locations, ILoggerFactory loggerFactory)
         {
             _documents = documents;
             _locations = locations;
-            _logger = logger;
+            _loggerFactory = loggerFactory;
             _process = process;
 
             _process.EnableRaisingEvents = true;
@@ -160,7 +159,9 @@ public partial class AbstractLanguageServerClientTests
 
             Action<int, string> GetMessageLogger(string method)
             {
-                return (int type, string message) =>
+                var logger = _loggerFactory.CreateLogger($"LSP {method}");
+
+                return (type, message) =>
                 {
                     var logLevel = (MessageType)type switch
                     {
@@ -171,19 +172,20 @@ public partial class AbstractLanguageServerClientTests
                         MessageType.Debug => LogLevel.Debug,
                         _ => LogLevel.Trace,
                     };
-                    _logger.Log(logLevel, "[LSP {Method}] {Message}", method, message);
+
+                    logger.Log(logLevel, message);
                 };
             }
         }
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            _logger.LogInformation("[LSP STDOUT] {Data}", e.Data);
+            _loggerFactory.CreateLogger("LSP STDOUT").LogInformation(e.Data);
         }
 
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            _logger.LogCritical("[LSP STDERR] {Data}", e.Data);
+            _loggerFactory.CreateLogger("LSP STDERR").LogInformation(e.Data);
         }
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
@@ -226,7 +228,7 @@ public partial class AbstractLanguageServerClientTests
 
             foreach (var documentEdit in textDocumentEdits)
             {
-                var uri = documentEdit.TextDocument.Uri;
+                var uri = documentEdit.TextDocument.DocumentUri;
                 var document = _documents[uri];
 
                 var changes = documentEdit.Edits
@@ -239,7 +241,7 @@ public partial class AbstractLanguageServerClientTests
             }
         }
 
-        public string GetDocumentText(Uri uri) => _documents[uri].ToString();
+        public string GetDocumentText(DocumentUri uri) => _documents[uri].ToString();
 
         public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
@@ -249,9 +251,11 @@ public partial class AbstractLanguageServerClientTests
             if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
                 return;
 
+            var logger = _loggerFactory.CreateLogger("Shutdown");
+
             if (!_process.HasExited)
             {
-                _logger.LogTrace("Sending a Shutdown request to the LSP.");
+                logger.LogTrace("Sending a Shutdown request to the LSP.");
 
                 await _clientRpc.InvokeAsync(Methods.ShutdownName);
                 await _clientRpc.NotifyAsync(Methods.ExitName);
@@ -262,7 +266,7 @@ public partial class AbstractLanguageServerClientTests
             _clientRpc.Dispose();
             _process.Dispose();
 
-            _logger.LogTrace("Process shut down.");
+            logger.LogTrace("Process shut down.");
         }
     }
 }

@@ -31,10 +31,13 @@
       "Microsoft.Net.Compilers.Toolset.Arm64": "arcade",
       "Microsoft.Net.Compilers.Toolset.Framework": "arcade",
       "Microsoft.NETCore.Compilers": "arcade",
+      "Microsoft.CodeAnalysis.BuildClient": "arcade",
+      "Microsoft.CodeAnalysis.Contracts": "arcade",
       "Microsoft.CodeAnalysis.Debugging": "arcade",
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
       "Microsoft.CodeAnalysis.Collections": "arcade",
       "Microsoft.CodeAnalysis.Threading": "arcade",
+      "Microsoft.CodeAnalysis.Extensions": "vs-impl",
       "Microsoft.CodeAnalysis.Features": "arcade",
       "Microsoft.CodeAnalysis.EditorFeatures": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Common": "vssdk",
@@ -70,6 +73,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Extensions": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
@@ -77,20 +81,36 @@
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
-      "Microsoft.CodeAnalysis.ExternalAccess.Xaml":  "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Xaml": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
+      "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.Xaml": "vs-impl",
       "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl",
-      "Microsoft.CommonLanguageServerProtocol.Framework.Binary": "vs-impl"
+      "Microsoft.CommonLanguageServerProtocol.Framework.Binary": "vs-impl",
+      "Microsoft.CodeAnalysis.Analyzers": "arcade",
+      "Microsoft.CodeAnalysis.AnalyzerUtilities": "arcade",
+      "Microsoft.CodeAnalysis.BannedApiAnalyzers": "arcade",
+      "Microsoft.CodeAnalysis.Metrics": "arcade",
+      "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers": "arcade",
+      "Microsoft.CodeAnalysis.PublicApiAnalyzers": "arcade",
+      "Microsoft.CodeAnalysis.ResxSourceGenerator": "arcade",
+      "Microsoft.CodeAnalysis.RulesetToEditorconfigConverter": "arcade",
+      "Roslyn.Diagnostics.Analyzers": "arcade",
+      "Text.Analyzers": "arcade"
     }
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
@@ -106,16 +126,7 @@
     },
     "dev15.9.x-vs-deps": {
       "nugetKind": "PerBuildPreRelease",
-      "vsBranch": "rel/d15.9",
-      "vsMajorVersion": 15
-    },
-    "release/dev16.9-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d16.9",
-      "vsMajorVersion": 16
+      "vsBranch": "rel/d15.9"
     },
     "release/dev16.11-vs-deps": {
       "nugetKind": [
@@ -123,53 +134,7 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d16.11",
-      "vsMajorVersion": 16,
       "insertionTitlePrefix": "[d16.11]"
-    },
-    "release/dev17.0-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.0",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.0]"
-    },
-    "release/dev17.2": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.2",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.2]"
-    },
-    "release/dev17.3": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.3",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.3]"
-    },
-    "release/dev17.6": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.6",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.6]"
-    },
-    "release/dev17.7": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.7",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.7]"
     },
     "release/dev17.8": {
       "nugetKind": [
@@ -177,17 +142,7 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.8",
-      "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.8]"
-    },
-    "release/dev17.9": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.9",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.9]"
     },
     "release/dev17.10": {
       "nugetKind": [
@@ -195,17 +150,7 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.10",
-      "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.10]"
-    },
-    "release/dev17.11": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.11",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.11]"
     },
     "release/dev17.12": {
       "nugetKind": [
@@ -213,16 +158,6 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.12",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.12]"
-    },
-    "release/dev17.12-telmet": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.12telmet",
-      "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.12]"
     },
     "release/dev17.13": {
@@ -231,17 +166,7 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.13",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.13 P3]"
-    },
-    "release/dev17.13-preview2.1": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.13",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.13 P2]"
+      "insertionTitlePrefix": "[d17.13]"
     },
     "release/dev17.14": {
       "nugetKind": [
@@ -249,9 +174,17 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.14",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.14 P1]",
+      "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
+    },
+    "release/dev-next": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Validation]",
+      "insertionCreateDraftPR": true
     },
     "main": {
       "nugetKind": [
@@ -259,49 +192,17 @@
         "NonShipping"
       ],
       "vsBranch": "main",
-      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
+    "main-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.14 P2]"
-    },
-    "dev/andrha/telemetry": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Telemetry Validation]"
-    },
-    "dev/jorobich/pr-val-v3-publishing": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[PR Validation]"
-    },
-    "demo/razor-lexer": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionTitlePrefix": "[Do not merge, please close me]",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false
-    },
-    "features/vscode_net9": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionTitlePrefix": "[Do not merge, please close me]",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true
+      "insertionTitlePrefix": "[dNext]"
     }
   }
 }

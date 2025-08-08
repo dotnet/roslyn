@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../TextAnalyzersResources.resx">
+    <body>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
+        <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
+        <target state="translated">公用列舉具有 System.FlagsAttribute 屬性，且其名稱不會以 ""s"" 結尾。因為 FlagsAttribute 屬性表示可指定一個以上的值，所以使用該屬性所標記的類型，具有複數名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
+        <source>Flags enums should have plural names</source>
+        <target state="translated">旗標列舉應使用複數名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
+        <source>Flags enums should have plural names</source>
+        <target state="translated">旗標列舉應使用複數名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
+        <source>Error parsing dictionary '{0}': {1}</source>
+        <target state="translated">剖析字典 '{0}' 時發生錯誤: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageVariable">
+        <source>Correct the spelling of '{0}' in variable name '{1}'</source>
+        <target state="translated">更正變數名稱 '{1}' 中 '{0}' 的拼字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
+        <source>Identifiers should be spelled correctly</source>
+        <target state="translated">識別項的拼字應正確</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyDescription">
+        <source>The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</source>
+        <target state="translated">外部可見的識別項名稱，包含一或多個 Microsoft 拼字檢查程式庫無法辨識的字。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssembly">
+        <source>Correct the spelling of '{0}' in assembly name '{1}'</source>
+        <target state="translated">更正組件名稱 '{1}' 中 '{0}' 的拼字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespace">
+        <source>Correct the spelling of '{0}' in namespace name '{1}'</source>
+        <target state="translated">更正命名空間名稱 '{1}' 中 '{0}' 的拼字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageType">
+        <source>Correct the spelling of '{0}' in type name '{1}'</source>
+        <target state="translated">更正型別名稱 '{1}' 中 '{0}' 的拼字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMember">
+        <source>Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</source>
+        <target state="translated">更正成員名稱 '{1}' 中 '{0}' 的拼字，或是如果其代表任何類型的匈牙利標記法，則整個移除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter">
+        <source>In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
+        <target state="translated">在方法 '{0}' 中，更正參數名稱 '{2}' 中 '{1}' 的拼字，或是如果其代表任何類型的匈牙利標記法，則整個移除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter">
+        <source>In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
+        <target state="translated">在委派 '{0}' 中，更正參數名稱 '{2}' 中 '{1}' 的拼字，或是如果其代表任何類型的匈牙利標記法，則整個移除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter">
+        <source>On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
+        <target state="translated">在型別 '{0}' 中，更正泛型型別參數名稱 '{2}' 中 '{1}' 的拼字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter">
+        <source>On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
+        <target state="translated">在方法 '{0}' 中，更正泛型型別參數名稱 '{2}' 中 '{1}' 的拼字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than assembly name '{0}'</source>
+        <target state="translated">請考慮提供較組件名稱 '{0}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than namespace name '{0}'</source>
+        <target state="translated">請考慮提供較命名空間名稱 '{0}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than type name '{0}'</source>
+        <target state="translated">請考慮提供較型別名稱 '{0}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName">
+        <source>Consider providing a more meaningful name than member name '{0}'</source>
+        <target state="translated">請考慮提供較成員名稱 '{0}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName">
+        <source>In method '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
+        <target state="translated">請考慮在方法 '{0}' 中提供較參數名稱 '{1}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName">
+        <source>In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
+        <target state="translated">請考慮在委派 '{0}' 中提供較參數名稱 '{1}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName">
+        <source>On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
+        <target state="translated">請考慮在型別 '{0}' 中提供較泛型型別參數名稱 '{1}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName">
+        <source>On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
+        <target state="translated">請考慮在方法 '{0}' 中提供較泛型型別參數名稱 '{1}' 更具意義的名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CategoryNaming">
+        <source>Naming</source>
+        <target state="translated">命名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
+        <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
+        <target state="translated">依照命名慣例的要求，列舉若是複數的名稱，表示可以同時指定多個列舉值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
+        <source>Only FlagsAttribute enums should have plural names</source>
+        <target state="translated">只有 FlagsAttribute 列舉應使用複數名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
+        <source>Only FlagsAttribute enums should have plural names</source>
+        <target state="translated">只有 FlagsAttribute 列舉應使用複數名稱</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

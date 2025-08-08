@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -20,34 +19,34 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
 [UseExportProvider]
-public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
+public sealed class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
 {
     private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
     private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
     {
-        const string unconditionalSuppressMessageDef = @"
-namespace System.Diagnostics.CodeAnalysis
-{
-    [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
-    public sealed class UnconditionalSuppressMessageAttribute : System.Attribute
-    {
-        public UnconditionalSuppressMessageAttribute(string category, string checkId)
-        {
-            Category = category;
-            CheckId = checkId;
-        }
-        public string Category { get; }
-        public string CheckId { get; }
-        public string Scope { get; set; }
-        public string Target { get; set; }
-        public string MessageId { get; set; }
-        public string Justification { get; set; }
-    }
-}";
         return CSharpCompilation.Create("unconditionalsuppress",
              options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-            syntaxTrees: [CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef)],
+            syntaxTrees: [CSharpSyntaxTree.ParseText("""
+        namespace System.Diagnostics.CodeAnalysis
+        {
+            [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
+            public sealed class UnconditionalSuppressMessageAttribute : System.Attribute
+            {
+                public UnconditionalSuppressMessageAttribute(string category, string checkId)
+                {
+                    Category = category;
+                    CheckId = checkId;
+                }
+                public string Category { get; }
+                public string CheckId { get; }
+                public string Scope { get; set; }
+                public string Target { get; set; }
+                public string MessageId { get; set; }
+                public string Justification { get; set; }
+            }
+        }
+        """)],
             references: [TestBase.MscorlibRef]).EmitToImageReference();
     }, LazyThreadSafetyMode.PublicationOnly);
 
@@ -102,17 +101,17 @@ namespace System.Diagnostics.CodeAnalysis
         var diagnostic = Diagnostic("AD0001", null);
 
         // expect 3 different diagnostics with 3 different contexts.
-        await VerifyCSharpAsync(@"
-public class C
-{
-}
-public class C1
-{
-}
-public class C2
-{
-}
-",
+        await VerifyCSharpAsync("""
+            public class C
+            {
+            }
+            public class C1
+            {
+            }
+            public class C2
+            {
+            }
+            """,
             [new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception()))],
             diagnostics: [diagnostic, diagnostic, diagnostic]);
     }

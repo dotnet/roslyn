@@ -70,6 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">i__Field";
         }
 
+        internal static string MakeExtensionName(int index)
+        {
+            Debug.Assert((char)GeneratedNameKind.Extension == 'E');
+            return "<>E__" + StringExtensions.GetNumeral(index);
+        }
+
         internal static string MakeAnonymousTypeParameterName(string propertyName)
         {
             return "<" + propertyName + ">j__TPar";

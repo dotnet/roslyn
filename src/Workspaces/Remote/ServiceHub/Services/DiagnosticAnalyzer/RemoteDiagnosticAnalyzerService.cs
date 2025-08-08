@@ -4,22 +4,22 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRemoteDiagnosticAnalyzerService
+internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteDiagnosticAnalyzerService
 {
     internal sealed class Factory : FactoryBase<IRemoteDiagnosticAnalyzerService>
     {
@@ -28,11 +28,6 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
     }
 
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
-
-    public RemoteDiagnosticAnalyzerService(in ServiceConstructionArguments arguments)
-        : base(arguments)
-    {
-    }
 
     /// <summary>
     /// Calculate diagnostics. this works differently than other ones such as todo comments or designer attribute scanner
@@ -66,7 +61,6 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                         documentSpan,
                         arguments.ProjectAnalyzerIds, arguments.HostAnalyzerIds, documentAnalysisKind,
                         _analyzerInfoCache, hostWorkspaceServices,
-                        isExplicit: arguments.IsExplicit,
                         logPerformanceInfo: arguments.LogPerformanceInfo,
                         getTelemetryInfo: arguments.GetTelemetryInfo,
                         cancellationToken).ConfigureAwait(false);
@@ -82,9 +76,9 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
         }
     }
 
-    public async ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
     {
-        return await RunWithSolutionAsync(
+        return RunWithSolutionAsync(
             solutionChecksum,
             async solution =>
             {
@@ -96,12 +90,12 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                     var document = solution.GetDocument(diagnostic.Location.SourceTree);
                     var data = document != null
                         ? DiagnosticData.Create(diagnostic, document)
-                        : DiagnosticData.Create(solution, diagnostic, project);
+                        : DiagnosticData.Create(diagnostic, project);
                     builder.Add(data);
                 }
 
                 return builder.ToImmutableAndClear();
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
     }
 
     public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
@@ -123,5 +117,24 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
 
             return default;
         }, cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var analyzerReference = project.AnalyzerReferences
+                    .First(r => r.FullPath == analyzerReferenceFullPath);
+
+                var descriptors = project
+                    .GetDiagnosticDescriptors(analyzerReference)
+                    .SelectAsArray(DiagnosticDescriptorData.Create);
+
+                return ValueTask.FromResult(descriptors);
+            },
+            cancellationToken);
     }
 }

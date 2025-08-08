@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.UnitTests
 
@@ -1070,8 +1069,8 @@ Friend Class GooAttribute
     Sub New(x As Integer)
     End Sub
 End Class",
-index:=1,
-parseOptions:=Nothing)
+New TestParameters(index:=1,
+parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542783")>
@@ -1922,7 +1921,7 @@ End Module",
         End With
     End Sub
 End Module",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
 
             Await TestAsync(
 "Module Program
@@ -1940,7 +1939,7 @@ End Module",
         End With
     End Sub
 End Module",
-parseOptions:=GetScriptOptions())
+New TestParameters(parseOptions:=GetScriptOptions()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545702")>
@@ -2723,7 +2722,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
@@ -2747,7 +2746,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
@@ -2773,8 +2772,8 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, index:=1,
-                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(index:=1,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
@@ -2820,7 +2819,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>

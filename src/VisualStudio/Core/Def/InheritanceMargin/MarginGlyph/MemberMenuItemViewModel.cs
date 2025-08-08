@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 /// }
 /// And this view model is used to show the first level entry to let the user choose member.
 /// </summary>
-internal class MemberMenuItemViewModel : MenuItemViewModel
+internal sealed class MemberMenuItemViewModel : MenuItemViewModel
 {
     /// <summary>
     /// Inheritance Targets for this member.

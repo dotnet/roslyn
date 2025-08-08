@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseAutoProperty
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicUseAutoPropertyAnalyzer(), GetVisualBasicUseAutoPropertyCodeFixProvider())
+            Return (New VisualBasicUseAutoPropertyAnalyzer(), New VisualBasicUseAutoPropertyCodeFixProvider())
         End Function
 
         <Fact>
@@ -1101,7 +1101,7 @@ end class")
 End Class",
 "Public Class Foo
 	Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions2.UseTabs, True))
+End Class", New TestParameters(options:=[Option](FormattingOptions2.UseTabs, True)))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")>
@@ -1118,7 +1118,7 @@ End Class", options:=[Option](FormattingOptions2.UseTabs, True))
 End Class",
 "Public Class Foo
     Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions2.UseTabs, False))
+End Class", New TestParameters(options:=[Option](FormattingOptions2.UseTabs, False)))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")>
@@ -1126,7 +1126,7 @@ End Class", options:=[Option](FormattingOptions2.UseTabs, False))
             Await TestInRegularAndScriptAsync(
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath = ""z:\\file.vb"">
+        <Document FilePath = ""file.vb"">
 Public Class Foo
 	[||]Private ReadOnly o2 As Object
 
@@ -1137,7 +1137,7 @@ Public Class Foo
 	End Property
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+        <AnalyzerConfigDocument FilePath = "".editorconfig"">
 [*]
 indent_style = tab
 </AnalyzerConfigDocument>
@@ -1145,12 +1145,12 @@ indent_style = tab
 </Workspace>",
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath = ""z:\\file.vb"">
+        <Document FilePath = ""file.vb"">
 Public Class Foo
 	Public ReadOnly Property O As Object
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+        <AnalyzerConfigDocument FilePath = "".editorconfig"">
 [*]
 indent_style = tab
 </AnalyzerConfigDocument>
@@ -1163,7 +1163,7 @@ indent_style = tab
             Await TestInRegularAndScriptAsync(
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath = ""z:\\file.vb"">
+        <Document FilePath = ""file.vb"">
 Public Class Foo
 	[||]Private ReadOnly o2 As Object
 
@@ -1174,7 +1174,7 @@ Public Class Foo
 	End Property
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+        <AnalyzerConfigDocument FilePath = "".editorconfig"">
 [*]
 indent_style = space
 </AnalyzerConfigDocument>
@@ -1182,12 +1182,12 @@ indent_style = space
 </Workspace>",
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath = ""z:\\file.vb"">
+        <Document FilePath = ""file.vb"">
 Public Class Foo
     Public ReadOnly Property O As Object
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+        <AnalyzerConfigDocument FilePath = "".editorconfig"">
 [*]
 indent_style = space
 </AnalyzerConfigDocument>

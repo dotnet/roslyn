@@ -101,7 +101,6 @@
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="ICSharpCode.Decompiler" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
 
     <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />

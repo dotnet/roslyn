@@ -48,8 +48,11 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     protected override bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
         ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
         ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        out bool mayChangeSemantics,
         CancellationToken cancellationToken)
     {
+        mayChangeSemantics = false;
+
         // Constructor wasn't called with any arguments.  Nothing to validate.
         var argumentList = _objectCreationExpression.ArgumentList;
         if (argumentList is null || argumentList.Arguments.Count == 0)
@@ -63,20 +66,21 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         if (this.SemanticModel.GetSymbolInfo(_objectCreationExpression, cancellationToken).Symbol is not IMethodSymbol
             {
                 MethodKind: MethodKind.Constructor,
-                Parameters.Length: 1,
+                Parameters: [var firstParameter],
             } constructor)
         {
             return false;
         }
 
-        var ienumerableOfTType = this.SemanticModel.Compilation.IEnumerableOfTType();
-        var firstParameter = constructor.Parameters[0];
-        if (Equals(firstParameter.Type.OriginalDefinition, ienumerableOfTType) ||
-            firstParameter.Type.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
+        if (CanSpreadFirstParameter(constructor.ContainingType, firstParameter))
         {
             // Took a single argument that implements IEnumerable<T>.  We handle this by spreading that argument as the
             // first thing added to the collection.
             preMatches.Add(new(argumentList.Arguments[0].Expression, UseSpread: true));
+
+            // Can't be certain that spreading the elements will be the same as passing to the constructor.  So pass
+            // that uncertainty up to the caller so they can inform the user.
+            mayChangeSemantics = true;
             return true;
         }
         else if (firstParameter is { Type.SpecialType: SpecialType.System_Int32, Name: "capacity" })
@@ -195,5 +199,45 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         }
 
         return false;
+
+        bool CanSpreadFirstParameter(INamedTypeSymbol constructedType, IParameterSymbol firstParameter)
+        {
+            var compilation = this.SemanticModel.Compilation;
+
+            var ienumerableOfTType = compilation.IEnumerableOfTType();
+            var implementedInterface = firstParameter.Type
+                .GetAllInterfacesIncludingThis()
+                .FirstOrDefault(i => Equals(i.OriginalDefinition, ienumerableOfTType));
+
+            var elementType = implementedInterface?.GetTypeArguments().SingleOrDefault();
+            if (elementType is null)
+                return false;
+
+            // Ok, the constructor takes some `IEnumerable<X>` type.  If it also has an `Add(X)` method, then we
+            // can take those constructor arguments and pass them along to the final collection by spreading them.
+            // If not, then we can't convert this to a collection expression.
+            var addMethods = this.GetAddMethods(cancellationToken);
+            if (!addMethods.Any(m => m.Parameters is [{ Type: var parameterType }] && Equals(parameterType, elementType)))
+                return false;
+
+            // Looks like something passed to the constructor call that we could potentially spread instead. e.g. `new
+            // HashSet(someList)` can become `[.. someList]`.  However, check for certain cases we know where this is
+            // wrong and we can't do this.
+
+            // BlockingCollection<T> and Collection<T> both take ownership of the collection passed to them.  So adds to
+            // them will add through to the original collection.  They do not take the original collection and add their
+            // elements to itself.
+
+            var collectionType = compilation.CollectionOfTType();
+            var blockingCollectionType = compilation.BlockingCollectionOfTType();
+            if (constructedType.GetBaseTypesAndThis().Any(
+                    t => Equals(collectionType, t.OriginalDefinition) ||
+                         Equals(blockingCollectionType, t.OriginalDefinition)))
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

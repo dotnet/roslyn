@@ -2,17 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.UnitTests
-Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
@@ -2715,7 +2709,7 @@ End Class </text>
     Private Shared Function NewMethod() As Integer
         Return 100
     End Function
-End Class </text>
+End Class</text>
 
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3352,7 +3346,7 @@ End Namespace"
                         </Submission>
                     </Workspace>,
                     workspaceKind:=WorkspaceKind.Interactive,
-                    composition:=EditorTestCompositions.EditorFeaturesWpf)
+                    composition:=EditorTestCompositions.EditorFeatures)
 
                     ' Force initialization.
                     workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()

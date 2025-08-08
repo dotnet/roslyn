@@ -11,31 +11,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal readonly struct SolutionUpdate(
     ModuleUpdates moduleUpdates,
+    ImmutableDictionary<ProjectId, Guid> staleProjects,
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
     ImmutableArray<ProjectBaseline> projectBaselines,
     ImmutableArray<ProjectDiagnostics> diagnostics,
-    ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits,
-    Diagnostic? syntaxError)
+    Diagnostic? syntaxError,
+    ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
+    ImmutableArray<ProjectId> projectsToRebuild,
+    ImmutableArray<ProjectId> projectsToRedeploy)
 {
     public readonly ModuleUpdates ModuleUpdates = moduleUpdates;
+    public readonly ImmutableDictionary<ProjectId, Guid> StaleProjects = staleProjects;
     public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions = nonRemappableRegions;
     public readonly ImmutableArray<ProjectBaseline> ProjectBaselines = projectBaselines;
-    public readonly ImmutableArray<ProjectDiagnostics> Diagnostics = diagnostics;
-    public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits = documentsWithRudeEdits;
-    public readonly Diagnostic? SyntaxError = syntaxError;
 
-    public static SolutionUpdate Blocked(
+    // Diagnostics for projects, unique entries per project.
+    public readonly ImmutableArray<ProjectDiagnostics> Diagnostics = diagnostics;
+    public readonly Diagnostic? SyntaxError = syntaxError;
+    public readonly ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart = projectsToRestart;
+    public readonly ImmutableArray<ProjectId> ProjectsToRebuild = projectsToRebuild;
+    public readonly ImmutableArray<ProjectId> ProjectsToRedeploy = projectsToRedeploy;
+
+    public static SolutionUpdate Empty(
         ImmutableArray<ProjectDiagnostics> diagnostics,
-        ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)> documentsWithRudeEdits,
         Diagnostic? syntaxError,
-        bool hasEmitErrors)
+        ImmutableDictionary<ProjectId, Guid> staleProjects,
+        ModuleUpdateStatus status)
         => new(
-            new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, []),
+            new(status, Updates: []),
+            staleProjects: staleProjects,
             nonRemappableRegions: [],
             projectBaselines: [],
             diagnostics,
-            documentsWithRudeEdits,
-            syntaxError);
+            syntaxError,
+            projectsToRestart: ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+            projectsToRebuild: [],
+            projectsToRedeploy: []);
 
     internal void Log(TraceLog log, UpdateId updateId)
     {
@@ -53,18 +64,12 @@ internal readonly struct SolutionUpdate(
         {
             foreach (var diagnostic in projectDiagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                log.Write($"[{projectDiagnostics.ProjectId.DebugName}]: {diagnostic}", diagnostic.Severity switch
                 {
-                    log.Write($"Project {projectDiagnostics.ProjectId.DebugName} update error: {diagnostic}", LogMessageSeverity.Error);
-                }
-            }
-        }
-
-        foreach (var documentWithRudeEdits in DocumentsWithRudeEdits)
-        {
-            foreach (var rudeEdit in documentWithRudeEdits.Diagnostics)
-            {
-                log.Write($"Document {documentWithRudeEdits.DocumentId.DebugName} rude edit: {rudeEdit.Kind} {rudeEdit.SyntaxKind}", LogMessageSeverity.Error);
+                    DiagnosticSeverity.Warning => LogMessageSeverity.Warning,
+                    DiagnosticSeverity.Error => LogMessageSeverity.Error,
+                    _ => LogMessageSeverity.Info
+                });
             }
         }
     }

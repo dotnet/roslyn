@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports;
 
@@ -30,6 +29,9 @@ internal sealed partial class CSharpOrganizeImportsService() : IOrganizeImportsS
     }
 
     public string SortImportsDisplayStringWithAccelerator
+        => CSharpWorkspaceResources.Sort_Usings_with_accelerator;
+
+    public string SortImportsDisplayStringWithoutAccelerator
         => CSharpWorkspaceResources.Sort_Usings;
 
     public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator

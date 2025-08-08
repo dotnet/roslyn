@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -15,13 +14,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
-using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -35,7 +32,9 @@ internal partial class VisualStudioWorkspaceImpl
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+
+        // This is lazily initialized to avoid loading editor components when they're not needed until we actually open a file.
+        private readonly Lazy<IEditorOptionsFactoryService> _editorOptionsFactoryService;
         private readonly IAsynchronousOperationListener _asynchronousOperationListener;
         private readonly OpenTextBufferProvider _openTextBufferProvider;
 
@@ -49,21 +48,29 @@ internal partial class VisualStudioWorkspaceImpl
         /// </summary>
         private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker = [];
 
+        #endregion
+
         /// <summary>
         /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.
         /// </summary>
-        private bool _anyDocumentOpened;
+        /// <remarks>
+        /// This is written on the UI thread once it's been enabled, since the enablement can only happen there. It might be read on other threads in deciding to
+        /// do the work on the UI thread, but that's not a problem since <see cref="EnsureSuggestedActionsSourceProviderEnabled"/> is idempotent.
+        /// </remarks>
+        private bool _suggestedActionSourceProviderEnabled;
 
-        #endregion
-
-        private OpenFileTracker(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IComponentModel componentModel)
+        public OpenFileTracker(
+            VisualStudioWorkspaceImpl workspace,
+            ProjectSystemProjectFactory projectSystemProjectFactory,
+            Lazy<IEditorOptionsFactoryService> editorOptionsFactoryService,
+            IAsynchronousOperationListener workspaceOperationListener,
+            OpenTextBufferProvider openTextBufferProvider)
         {
-            workspace._threadingContext.ThrowIfNotOnUIThread();
             _workspace = workspace;
             _projectSystemProjectFactory = projectSystemProjectFactory;
-            _editorOptionsFactoryService = componentModel.GetService<IEditorOptionsFactoryService>();
-            _asynchronousOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
-            _openTextBufferProvider = componentModel.GetService<OpenTextBufferProvider>();
+            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _asynchronousOperationListener = workspaceOperationListener;
+            _openTextBufferProvider = openTextBufferProvider;
             _openTextBufferProvider.AddListener(this);
         }
 
@@ -84,14 +91,6 @@ internal partial class VisualStudioWorkspaceImpl
             TryOpeningDocumentsForMonikerAndSetContextOnUIThread(newMoniker, buffer, hierarchy: _openTextBufferProvider.GetDocumentHierarchy(newMoniker));
         }
 
-        public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IAsyncServiceProvider asyncServiceProvider)
-        {
-            var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
-            Assumes.Present(componentModel);
-
-            return new OpenFileTracker(workspace, projectSystemProjectFactory, componentModel);
-        }
-
         private void TryOpeningDocumentsForMonikerAndSetContextOnUIThread(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
         {
             _workspace._threadingContext.ThrowIfNotOnUIThread();
@@ -109,14 +108,14 @@ internal partial class VisualStudioWorkspaceImpl
         {
             _workspace._threadingContext.ThrowIfNotOnUIThread();
 
-            if (!_anyDocumentOpened)
+            if (!_suggestedActionSourceProviderEnabled)
             {
-                _anyDocumentOpened = true;
+                _suggestedActionSourceProviderEnabled = true;
 
                 // First document opened in the workspace.
                 // We enable quick actions from SuggestedActionsSourceProvider via an editor option.
                 // NOTE: We need to be on the UI thread to enable the editor option.
-                SuggestedActionsSourceProvider.Enable(_editorOptionsFactoryService);
+                SuggestedActionsSourceProvider.Enable(_editorOptionsFactoryService.Value);
             }
         }
 
@@ -369,9 +368,18 @@ internal partial class VisualStudioWorkspaceImpl
                             // and if it was actually open, we'll schedule an update asynchronously.
                             if (TryOpeningDocumentsForFilePathCore(w, newFileName, textBuffer, hierarchy: null))
                             {
-                                // The files are now tied to the buffer, but let's schedule work to correctly update the context.
-                                var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(CheckForAddedFileBeingOpenMaybeAsync));
-                                UpdateContextAfterOpenAsync(newFileName).CompletesAsyncOperation(token);
+                                // We've opened the document, but we only have to go to the UI thread if either:
+                                //
+                                // 1. We have multiple documents with the same file path, so we need to ensure the context is actually correct.
+                                // 2. We haven't enabled the suggested actions source provider, which needs to be done once.
+                                var needsContextUpdate = w.CurrentSolution.GetDocumentIdsWithFilePath(newFileName).Length >= 2;
+                                if (needsContextUpdate || !_suggestedActionSourceProviderEnabled)
+                                {
+                                    var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(UpdateContextAfterOpenAndEnableSuggestedActionsSourceProviderAsync));
+
+                                    // Update the context on the UI thread if necessary, and enable the suggested actions source provider no matter what.
+                                    UpdateContextAfterOpenAndEnableSuggestedActionsSourceProviderAsync(needsContextUpdate ? newFileName : null).CompletesAsyncOperation(token);
+                                }
                             }
                         }
                     }
@@ -379,29 +387,22 @@ internal partial class VisualStudioWorkspaceImpl
             }).AsTask();
         }
 
-        private async Task UpdateContextAfterOpenAsync(string filePath)
+        /// <param name="filePath">The file path to update the context on, or null if we're just calling this to ensure suggested actions are enabled.</param>
+        private async Task UpdateContextAfterOpenAndEnableSuggestedActionsSourceProviderAsync(string? filePath)
         {
             await _workspace._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var hierarchy = _openTextBufferProvider.GetDocumentHierarchy(filePath);
-            if (hierarchy != null)
-                RefreshContextForMoniker(filePath, hierarchy);
+
+            if (filePath != null)
+            {
+                var hierarchy = _openTextBufferProvider.GetDocumentHierarchy(filePath);
+                if (hierarchy != null)
+                    RefreshContextForMoniker(filePath, hierarchy);
+            }
 
             EnsureSuggestedActionsSourceProviderEnabled();
         }
 
-        internal void CheckForOpenFilesThatWeMissed()
-        {
-            // It's possible that Roslyn is loading asynchronously after documents were already opened by the user; this is a one-time check for
-            // any of those -- after this point, we are subscribed to events so we'll know of anything else.
-            _workspace._threadingContext.ThrowIfNotOnUIThread();
-
-            foreach (var (filePath, textBuffer, hierarchy) in _openTextBufferProvider.EnumerateDocumentSet())
-            {
-                TryOpeningDocumentsForMonikerAndSetContextOnUIThread(filePath, textBuffer, hierarchy);
-            }
-        }
-
-        private class HierarchyEventSink : IVsHierarchyEvents, IDisposable
+        private sealed class HierarchyEventSink : IVsHierarchyEvents, IDisposable
         {
             private readonly IVsHierarchy _hierarchy;
             private readonly uint _cookie;

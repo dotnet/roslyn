@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -27,29 +30,35 @@ internal readonly struct EmitSolutionUpdateResults
         public required ImmutableArray<DiagnosticData> Diagnostics { get; init; }
 
         [DataMember]
-        public required ImmutableArray<DiagnosticData> RudeEdits { get; init; }
-
-        [DataMember]
         public required DiagnosticData? SyntaxError { get; init; }
 
         [DataMember]
-        public required ImmutableArray<ProjectId> ProjectsToRestart { get; init; }
+        public required ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart { get; init; }
 
         [DataMember]
         public required ImmutableArray<ProjectId> ProjectsToRebuild { get; init; }
+
+        [DataMember]
+        public required ImmutableArray<ProjectId> ProjectsToRedeploy { get; init; }
 
         internal ImmutableArray<ManagedHotReloadDiagnostic> GetAllDiagnostics()
         {
             using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
 
-            // Add semantic and lowering diagnostics reported during delta emit:
-
             foreach (var diagnostic in Diagnostics)
             {
-                builder.Add(diagnostic.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: false));
-            }
+                var severity = diagnostic.Severity switch
+                {
+                    DiagnosticSeverity.Error => EditAndContinueDiagnosticDescriptors.IsEncDiagnostic(diagnostic.Id) ? ManagedHotReloadDiagnosticSeverity.RestartRequired : ManagedHotReloadDiagnosticSeverity.Error,
+                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
+                    _ => default
+                };
 
-            // Add syntax error:
+                if (severity != default)
+                {
+                    builder.Add(diagnostic.ToHotReloadDiagnostic(severity));
+                }
+            }
 
             if (SyntaxError != null)
             {
@@ -66,14 +75,29 @@ internal readonly struct EmitSolutionUpdateResults
                     fileSpan.Span.ToSourceSpan()));
             }
 
-            // Report all rude edits.
-
-            foreach (var data in RudeEdits)
-            {
-                builder.Add(data.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: true));
-            }
-
             return builder.ToImmutableAndClear();
+        }
+
+        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects)
+        {
+            ImmutableArray<DiagnosticData> diagnostics = [];
+            var firstProject = solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First();
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+
+            var diagnostic = Diagnostic.Create(
+                descriptor,
+                Location.None,
+                string.Format(descriptor.MessageFormat.ToString(), "", errorMessage));
+
+            return new()
+            {
+                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
+                Diagnostics = [DiagnosticData.Create(diagnostic, firstProject)],
+                SyntaxError = null,
+                ProjectsToRebuild = [.. runningProjects.Keys],
+                ProjectsToRedeploy = [],
+                ProjectsToRestart = runningProjects.Keys.ToImmutableDictionary(keySelector: static p => p, elementSelector: static p => ImmutableArray.Create(p)),
+            };
         }
     }
 
@@ -82,10 +106,10 @@ internal readonly struct EmitSolutionUpdateResults
         Solution = null,
         ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, []),
         Diagnostics = [],
-        RudeEdits = [],
         SyntaxError = null,
-        ProjectsToRestart = [],
+        ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
         ProjectsToRebuild = [],
+        ProjectsToRedeploy = [],
     };
 
     /// <summary>
@@ -98,12 +122,32 @@ internal readonly struct EmitSolutionUpdateResults
     public required Solution? Solution { get; init; }
 
     public required ModuleUpdates ModuleUpdates { get; init; }
+
+    /// <summary>
+    /// Reported diagnostics per project.
+    /// At most one set of diagnostics per project.
+    /// </summary>
     public required ImmutableArray<ProjectDiagnostics> Diagnostics { get; init; }
-    public required ImmutableArray<ProjectDiagnostics> RudeEdits { get; init; }
+
     public required Diagnostic? SyntaxError { get; init; }
 
-    public required ImmutableArray<ProjectId> ProjectsToRestart { get; init; }
+    /// <summary>
+    /// Running projects that have to be restarted and a list of projects with rude edits that caused the restart.
+    /// </summary>
+    public required ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart { get; init; }
+
+    /// <summary>
+    /// Projects whose source have been updated and need to be rebuilt. Does not include projects without change that depend on such projects.
+    /// It is assumed that the host automatically rebuilds all such projects that need rebuilding because it detects the dependent project outputs have been updated.
+    /// Unordered set.
+    /// </summary>
     public required ImmutableArray<ProjectId> ProjectsToRebuild { get; init; }
+
+    /// <summary>
+    /// Projects whose dependencies need to be deployed to their output directory, if not already present.
+    /// Unordered set.
+    /// </summary>
+    public required ImmutableArray<ProjectId> ProjectsToRedeploy { get; init; }
 
     public Data Dehydrate()
         => Solution == null
@@ -111,19 +155,19 @@ internal readonly struct EmitSolutionUpdateResults
         {
             ModuleUpdates = ModuleUpdates,
             Diagnostics = [],
-            RudeEdits = [],
             SyntaxError = null,
-            ProjectsToRestart = [],
+            ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
             ProjectsToRebuild = [],
+            ProjectsToRedeploy = [],
         }
         : new()
         {
             ModuleUpdates = ModuleUpdates,
             Diagnostics = Diagnostics.ToDiagnosticData(Solution),
-            RudeEdits = RudeEdits.ToDiagnosticData(Solution),
             SyntaxError = GetSyntaxErrorData(),
             ProjectsToRestart = ProjectsToRestart,
             ProjectsToRebuild = ProjectsToRebuild,
+            ProjectsToRedeploy = ProjectsToRedeploy,
         };
 
     private DiagnosticData? GetSyntaxErrorData()
@@ -141,152 +185,281 @@ internal readonly struct EmitSolutionUpdateResults
     /// <summary>
     /// Returns projects that need to be rebuilt and/or restarted due to blocking rude edits in order to apply changes.
     /// </summary>
+    /// <param name="addedUnbuiltProjects">Projects that were added to the solution and not built yet.</param>
     /// <param name="runningProjects">Identifies projects that have been launched.</param>
-    /// <param name="projectsToRestart">Running projects that have to be restarted.</param>
-    /// <param name="projectsToRebuild">Projects whose source have been updated and need to be rebuilt.</param>
+    /// <param name="projectsToRestart">
+    /// Running projects that have to be restarted and a list of projects with rude edits that caused the restart.
+    /// </param>
+    /// <param name="projectsToRebuild">
+    /// Projects whose source have been updated and need to be rebuilt. Does not include projects without change that depend on such projects.
+    /// It is assumed that the host automatically rebuilds all such projects that need rebuilding because it detects the dependent project outputs have been updated.
+    /// Unordered set.
+    /// </param>
     internal static void GetProjectsToRebuildAndRestart(
         Solution solution,
-        ModuleUpdates moduleUpdates,
-        IEnumerable<ProjectDiagnostics> rudeEdits,
-        IImmutableSet<ProjectId> runningProjects,
-        out ImmutableArray<ProjectId> projectsToRestart,
+        ImmutableArray<ManagedHotReloadUpdate> moduleUpdates,
+        ImmutableArray<ProjectDiagnostics> diagnostics,
+        IReadOnlyCollection<ProjectId> addedUnbuiltProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
+        out ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
         out ImmutableArray<ProjectId> projectsToRebuild)
     {
+        Debug.Assert(!diagnostics.HasDuplicates(d => d.ProjectId));
+        Debug.Assert(diagnostics.Select(re => re.ProjectId).IsSorted());
+
+        // Projects with errors (including blocking rude edits) should not have updates:
+        Debug.Assert(diagnostics
+            .Where(r => r.Diagnostics.Any(static d => d.Severity == DiagnosticSeverity.Error))
+            .Select(r => r.ProjectId)
+            .Intersect(moduleUpdates.Select(u => u.ProjectId))
+            .IsEmpty());
+
         var graph = solution.GetProjectDependencyGraph();
 
-        // First, find all running projects that transitively depend on projects with rude edits.
+        // First, find all running projects that transitively depend on projects with blocking rude edits
+        // or edits that have no effect until restart. Note that the latter only trigger restart 
+        // of projects that are configured to restart on no-effect change.
+        //
         // These will need to be rebuilt and restarted. In order to rebuilt these projects
-        // all their transitive references must either be free of source changes or be rebuilt as well.
+        // all their transitive references must either be free of source changes [*] or be rebuilt as well.
         // This may add more running projects to the set of projects we need to restart.
         // We need to repeat this process until we find a fixed point.
+        //
+        // [*] If a running project depended on a project with changes and was not restarted,
+        // the debugger might stop at the changed method body and its current source code
+        // wouldn't match the IL being executed.
 
-        using var _1 = ArrayBuilder<Project>.GetInstance(out var traversalStack);
+        using var _1 = ArrayBuilder<ProjectId>.GetInstance(out var traversalStack);
+
+        // Maps project to restart to all projects with rude edits that caused the restart:
         using var _2 = PooledHashSet<ProjectId>.GetInstance(out var projectsToRestartBuilder);
-        using var _3 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRebuildBuilder);
+        var projectsToRebuildBuilder = PooledDictionary<ProjectId, ArrayBuilder<ProjectId>>.GetInstance();
 
-        foreach (var projectWithRudeEdit in GetProjectsContainingBlockingRudeEdits(solution))
+        using var _3 = ArrayBuilder<(ProjectId projectWithRudeEdits, ImmutableArray<ProjectId> impactedRunningProjects)>.GetInstance(out var impactedRunningProjectMap);
+
+        foreach (var (projectId, projectDiagnostics) in diagnostics)
         {
-            if (AddImpactedRunningProjects(projectsToRestartBuilder, projectWithRudeEdit))
+            ClassifyRudeEdits(projectDiagnostics, out var hasBlocking, out var hasNoEffect);
+            if (!hasBlocking && !hasNoEffect)
             {
-                projectsToRebuildBuilder.Add(projectWithRudeEdit.Id);
+                continue;
+            }
+
+            var hasImpactedRunningProjects = false;
+            foreach (var ancestor in GetAncestorsAndSelf(projectId))
+            {
+                if (runningProjects.TryGetValue(ancestor, out var runningProject) &&
+                    (hasBlocking || runningProject.RestartWhenChangesHaveNoEffect))
+                {
+                    projectsToRebuildBuilder.MultiAdd(ancestor, projectId);
+                    projectsToRestartBuilder.Add(ancestor);
+
+                    hasImpactedRunningProjects = true;
+                }
+            }
+
+            if (hasBlocking && !hasImpactedRunningProjects)
+            {
+                // Projects with rude edits that do not impact running projects has to be rebuilt,
+                // so that the change takes effect if it is loaded in future.
+                projectsToRebuildBuilder.MultiAdd(projectId, projectId);
             }
         }
 
-        // At this point the restart set contains all running projects directly affected by rude edits.
+        // Rebuild unbuilt projects that have been added and impact a running project
+        // (a project reference was added).
+        foreach (var projectId in addedUnbuiltProjects)
+        {
+            if (GetAncestorsAndSelf(projectId).Where(runningProjects.ContainsKey).Any())
+            {
+                projectsToRebuildBuilder.MultiAdd(projectId, projectId);
+            }
+        }
+
+        // At this point the restart set contains all running projects transitively affected by rude edits.
         // Next, find projects that were successfully updated and affect running projects.
 
-        if (moduleUpdates.Updates.IsEmpty || projectsToRestartBuilder.Count == 0)
+        if (!moduleUpdates.IsEmpty && projectsToRebuildBuilder.Count > 0)
         {
-            projectsToRestart = [.. projectsToRestartBuilder];
-            projectsToRebuild = [.. projectsToRebuildBuilder];
-            return;
-        }
+            // The set of updated projects is usually much smaller than the number of all projects in the solution.
+            // We iterate over this set updating the restart set until no new project is added to the restart set.
+            // Once a project is determined to affect a running process, all running processes that
+            // reference this project are added to the restart set. The project is then removed from updated
+            // project set as it can't contribute any more running projects to the restart set.
+            // If an updated project does not affect restart set in a given iteration, it stays in the set
+            // because it may affect restart set later on, after another running project is added to it.
 
-        // The set of updated projects is usually much smaller then the number of all projects in the solution.
-        // We iterate over this set updating the reset set until no new project is added to the reset set.
-        // Once a project is determined to affect a running process, all running processes that
-        // reference this project are added to the reset set. The project is then removed from updated
-        // project set as it can't contribute any more running projects to the reset set.
-        // If an updated project does not affect reset set in a given iteration, it stays in the set
-        // because it may affect reset set later on, after another running project is added to it.
+            using var _6 = PooledHashSet<ProjectId>.GetInstance(out var updatedProjects);
+            using var _7 = ArrayBuilder<ProjectId>.GetInstance(out var updatedProjectsToRemove);
+            using var _8 = PooledHashSet<ProjectId>.GetInstance(out var projectsThatCausedRebuild);
 
-        using var _4 = PooledHashSet<Project>.GetInstance(out var updatedProjects);
-        using var _5 = ArrayBuilder<Project>.GetInstance(out var updatedProjectsToRemove);
+            updatedProjects.AddRange(moduleUpdates.Select(static u => u.ProjectId));
 
-        foreach (var update in moduleUpdates.Updates)
-        {
-            updatedProjects.Add(solution.GetRequiredProject(update.ProjectId));
-        }
-
-        using var _6 = ArrayBuilder<ProjectId>.GetInstance(out var impactedProjects);
-
-        while (true)
-        {
-            Debug.Assert(updatedProjectsToRemove.Count == 0);
-
-            foreach (var updatedProject in updatedProjects)
+            while (true)
             {
-                if (AddImpactedRunningProjects(impactedProjects, updatedProject) &&
-                    impactedProjects.Any(projectsToRestartBuilder.Contains))
+                updatedProjectsToRemove.Clear();
+
+                foreach (var updatedProjectId in updatedProjects)
                 {
-                    projectsToRestartBuilder.AddRange(impactedProjects);
-                    updatedProjectsToRemove.Add(updatedProject);
-                    projectsToRebuildBuilder.Add(updatedProject.Id);
+                    projectsThatCausedRebuild.Clear();
+
+                    // A project being updated that is a transitive dependency of a running project and
+                    // also transitive dependency of a project that needs to be rebuilt
+                    // causes the running project to be restarted.
+
+                    foreach (var ancestor in GetAncestorsAndSelf(updatedProjectId))
+                    {
+                        if (projectsToRebuildBuilder.TryGetValue(ancestor, out var causes))
+                        {
+                            projectsThatCausedRebuild.AddRange(causes);
+                        }
+                    }
+
+                    if (!projectsThatCausedRebuild.Any())
+                    {
+                        continue;
+                    }
+
+                    var hasImpactOnRestartSet = false;
+                    foreach (var ancestor in GetAncestorsAndSelf(updatedProjectId))
+                    {
+                        if (!runningProjects.ContainsKey(ancestor))
+                        {
+                            continue;
+                        }
+
+                        if (!projectsToRebuildBuilder.ContainsKey(ancestor))
+                        {
+                            projectsToRebuildBuilder.MultiAddRange(ancestor, projectsThatCausedRebuild);
+                            projectsToRestartBuilder.Add(ancestor);
+
+                            hasImpactOnRestartSet = true;
+                        }
+                    }
+
+                    if (hasImpactOnRestartSet)
+                    {
+                        updatedProjectsToRemove.Add(updatedProjectId);
+                    }
                 }
 
-                impactedProjects.Clear();
-            }
+                if (updatedProjectsToRemove is [])
+                {
+                    // none of the remaining updated projects affect restart set:
+                    break;
+                }
 
-            if (updatedProjectsToRemove is [])
-            {
-                // none of the remaining updated projects affect restart set:
-                break;
+                updatedProjects.RemoveAll(updatedProjectsToRemove);
             }
-
-            updatedProjects.RemoveAll(updatedProjectsToRemove);
-            updatedProjectsToRemove.Clear();
         }
 
-        projectsToRestart = [.. projectsToRestartBuilder];
-        projectsToRebuild = [.. projectsToRebuildBuilder];
+        foreach (var (_, causes) in projectsToRebuildBuilder)
+        {
+            causes.SortAndRemoveDuplicates();
+        }
+
+        projectsToRebuild = [.. projectsToRebuildBuilder.Keys];
+
+        projectsToRestart = projectsToRebuildBuilder.ToImmutableMultiDictionaryAndFree(
+            where: static (id, projectsToRestartBuilder) => projectsToRestartBuilder.Contains(id),
+            projectsToRestartBuilder);
+
         return;
 
-        bool AddImpactedRunningProjects(ICollection<ProjectId> impactedProjects, Project initialProject)
+        IEnumerable<ProjectId> GetAncestorsAndSelf(ProjectId initialProject)
         {
-            Debug.Assert(traversalStack.Count == 0);
+            traversalStack.Clear();
             traversalStack.Push(initialProject);
-
-            var added = false;
 
             while (traversalStack.Count > 0)
             {
-                var project = traversalStack.Pop();
-                if (runningProjects.Contains(project.Id))
-                {
-                    impactedProjects.Add(project.Id);
-                    added = true;
-                }
+                var projectId = traversalStack.Pop();
+                yield return projectId;
 
-                foreach (var referencingProjectId in graph.GetProjectsThatDirectlyDependOnThisProject(project.Id))
+                foreach (var referencingProjectId in graph.GetProjectsThatDirectlyDependOnThisProject(projectId))
                 {
-                    traversalStack.Push(solution.GetRequiredProject(referencingProjectId));
+                    traversalStack.Push(referencingProjectId);
                 }
             }
-
-            return added;
         }
+    }
 
-        IEnumerable<Project> GetProjectsContainingBlockingRudeEdits(Solution solution)
-            => rudeEdits
-                .Where(static e => e.Diagnostics.HasBlockingRudeEdits())
-                .Select(static e => e.ProjectId)
-                .Distinct()
-                .OrderBy(static id => id)
-                .Select(solution.GetRequiredProject);
+    private static void ClassifyRudeEdits(ImmutableArray<Diagnostic> diagnostics, out bool blocking, out bool noEffect)
+    {
+        noEffect = false;
+        blocking = false;
+
+        foreach (var diagnostic in diagnostics)
+        {
+            noEffect |= diagnostic.IsNoEffectDiagnostic();
+            blocking |= diagnostic.IsEncDiagnostic() && diagnostic.Severity == DiagnosticSeverity.Error;
+
+            if (noEffect && blocking)
+            {
+                return;
+            }
+        }
     }
 
     public ImmutableArray<Diagnostic> GetAllDiagnostics()
     {
-        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
 
-        // add semantic and lowering diagnostics reported during delta emit:
         foreach (var (_, projectEmitDiagnostics) in Diagnostics)
         {
-            diagnostics.AddRange(projectEmitDiagnostics);
+            result.AddRange(projectEmitDiagnostics);
         }
 
-        // add syntax error:
         if (SyntaxError != null)
         {
-            diagnostics.Add(SyntaxError);
+            result.Add(SyntaxError);
         }
 
-        // add rude edits:
-        foreach (var (_, projectEmitDiagnostics) in RudeEdits)
+        return result.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// Returns all diagnostics that can be addressed by rebuilding/restarting the project.
+    /// </summary>
+    public ImmutableArray<(ProjectId projectId, ImmutableArray<Diagnostic> diagnostics)> GetTransientDiagnostics()
+    {
+        using var _ = ArrayBuilder<(ProjectId projectId, ImmutableArray<Diagnostic> diagnostics)>.GetInstance(out var result);
+
+        foreach (var (projectId, diagnostics) in Diagnostics)
         {
-            diagnostics.AddRange(projectEmitDiagnostics);
+            var transientDiagnostics = diagnostics.WhereAsArray(static d => d.IsEncDiagnostic());
+            if (transientDiagnostics.Length > 0)
+            {
+                result.Add((projectId, transientDiagnostics));
+            }
         }
 
-        return diagnostics.ToImmutableAndClear();
+        return result.ToImmutable();
+    }
+
+    /// <summary>
+    /// Returns all diagnostics that can't be addressed by rebuilding/restarting the project.
+    /// </summary>
+    public ImmutableArray<Diagnostic> GetPersistentDiagnostics()
+    {
+        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
+
+        foreach (var (_, diagnostics) in Diagnostics)
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                if (!diagnostic.IsEncDiagnostic())
+                {
+                    result.Add(diagnostic);
+                }
+            }
+        }
+
+        if (SyntaxError != null)
+        {
+            result.Add(SyntaxError);
+        }
+
+        return result.ToImmutableAndClear();
     }
 }

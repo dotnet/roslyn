@@ -9,17 +9,14 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
@@ -45,8 +42,8 @@ internal partial class SyntacticClassificationTaggerProvider
         private static readonly object s_uniqueKey = new();
 
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
-        private readonly ITextBuffer2 _subjectBuffer;
-        private readonly WorkspaceRegistration _workspaceRegistration;
+        private readonly ITextBuffer _subjectBuffer;
+        private readonly ITaggerEventSource _taggerEventSource;
 
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
@@ -61,8 +58,6 @@ internal partial class SyntacticClassificationTaggerProvider
         /// Timeout before we cancel the work to diff and return whatever we have.
         /// </summary>
         private readonly TimeSpan _diffTimeout;
-
-        private Workspace? _workspace;
 
         /// <summary>
         /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see
@@ -88,12 +83,11 @@ internal partial class SyntacticClassificationTaggerProvider
         /// again and again to find exactly same answer
         /// </summary>
         private readonly ClassifiedLineCache _lineCache;
-
         private int _taggerReferenceCount;
 
         public TagComputer(
             SyntacticClassificationTaggerProvider taggerProvider,
-            ITextBuffer2 subjectBuffer,
+            ITextBuffer subjectBuffer,
             TimeSpan diffTimeout)
         {
             _taggerProvider = taggerProvider;
@@ -108,13 +102,19 @@ internal partial class SyntacticClassificationTaggerProvider
 
             _lineCache = new ClassifiedLineCache(taggerProvider.ThreadingContext);
 
-            _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
-            _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
+            _taggerEventSource = TaggerEventSources.Compose(
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, taggerProvider._listener),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer));
 
-            if (_workspaceRegistration.Workspace != null)
-                ConnectToWorkspace(_workspaceRegistration.Workspace);
+            _taggerEventSource.Connect();
 
-            _subjectBuffer.ChangedOnBackground += this.OnSubjectBufferChanged;
+            _taggerEventSource.Changed += OnEventSourceChanged;
+
+            // Kick off work to classify the current snapshot of the subject buffer.
+            _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
         }
 
         public static TagComputer GetOrCreate(
@@ -129,14 +129,13 @@ internal partial class SyntacticClassificationTaggerProvider
             return tagComputer;
         }
 
-        private void DisconnectTagComputer()
-            => _subjectBuffer.Properties.RemoveProperty(s_uniqueKey);
-
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         private (SolutionServices solutionServices, IClassificationService classificationService)? TryGetClassificationService(ITextSnapshot snapshot)
         {
-            var workspace = _workspace;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var workspace = document?.Project.Solution.Workspace;
+
             var contentType = snapshot.ContentType;
             var lastCachedServices = _lastCachedServices;
 
@@ -157,45 +156,6 @@ internal partial class SyntacticClassificationTaggerProvider
             return (lastCachedServices.SolutionServices, lastCachedServices.ClassificationService);
         }
 
-        #region Workspace Hookup
-
-        private void OnWorkspaceRegistrationChanged(object? sender, EventArgs e)
-        {
-            var token = _taggerProvider._listener.BeginAsyncOperation(nameof(OnWorkspaceRegistrationChanged));
-            var task = SwitchToMainThreadAndHookupWorkspaceAsync();
-            task.CompletesAsyncOperation(token);
-        }
-
-        private async Task SwitchToMainThreadAndHookupWorkspaceAsync()
-        {
-            try
-            {
-                await _taggerProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_disposalCancellationSource.Token);
-
-                // We both try to connect synchronously, and register for workspace registration events.
-                // It's possible (particularly in tests), to connect in the startup path, but then get a
-                // previously scheduled, but not yet delivered event.  Don't bother connecting to the
-                // same workspace again in that case.
-                var newWorkspace = _workspaceRegistration.Workspace;
-                if (newWorkspace == _workspace)
-                    return;
-
-                DisconnectFromWorkspace();
-
-                if (newWorkspace != null)
-                    ConnectToWorkspace(newWorkspace);
-            }
-            catch (OperationCanceledException)
-            {
-                // can happen if we were disposed of.
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                // We were in a fire and forget task.  So just report the NFW and do not let
-                // this bleed out to an unhandled exception.
-            }
-        }
-
         internal void IncrementReferenceCount()
         {
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
@@ -212,99 +172,16 @@ internal partial class SyntacticClassificationTaggerProvider
                 // stop any bg work we're doing.
                 _disposalCancellationSource.Cancel();
 
-                _subjectBuffer.ChangedOnBackground -= this.OnSubjectBufferChanged;
+                _taggerEventSource.Changed -= OnEventSourceChanged;
+                _taggerEventSource.Disconnect();
 
-                DisconnectFromWorkspace();
-                _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
-                DisconnectTagComputer();
+                _subjectBuffer.Properties.RemoveProperty(s_uniqueKey);
+                _lastCachedServices = null;
             }
         }
 
-        private void ConnectToWorkspace(Workspace workspace)
-        {
-            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
-
-            _workspace = workspace;
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-            _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
-
-            // Now that we've connected to the workspace, kick off work to reclassify this buffer.
-            _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-        }
-
-        public void DisconnectFromWorkspace()
-        {
-            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
-            _lastCachedServices = null;
-
-            lock (_gate)
-            {
-                _lastProcessedData = null;
-            }
-
-            if (_workspace != null)
-            {
-                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
-
-                _workspace = null;
-
-                // Now that we've disconnected to the workspace, kick off work to reclassify this buffer.
-                _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-            }
-        }
-
-        #endregion
-
-        #region Event Handling
-
-        private void OnSubjectBufferChanged(object? sender, TextContentChangedEventArgs args)
-        {
-            // we know a change to our buffer is always affecting this document.  So we can
-            // just enqueue the work to reclassify things unilaterally.
-            _workQueue.AddWork(args.After);
-        }
-
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
-        {
-            if (_workspace == null)
-                return;
-
-            var documentId = args.NewActiveContextDocumentId;
-            var bufferDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-            if (bufferDocumentId != documentId)
-                return;
-
-            _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-        }
-
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
-        {
-            // We may be getting an event for a workspace we already disconnected from.  If so,
-            // ignore them.  We won't be able to find the Document corresponding to our text buffer,
-            // so we can't reasonably classify this anyways.
-            if (args.NewSolution.Workspace != _workspace)
-                return;
-
-            if (args.Kind != WorkspaceChangeKind.ProjectChanged)
-                return;
-
-            var documentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-            if (args.ProjectId != documentId?.ProjectId)
-                return;
-
-            var oldProject = args.OldSolution.GetProject(args.ProjectId);
-            var newProject = args.NewSolution.GetProject(args.ProjectId);
-
-            // In case of parse options change reclassify the doc as it may have affected things
-            // like preprocessor directives.
-            if (Equals(oldProject?.ParseOptions, newProject?.ParseOptions))
-                return;
-
-            _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-        }
-
-        #endregion
+        private void OnEventSourceChanged(object? sender, EventArgs e)
+            => _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
 
         /// <summary>
         /// Parses the document in the background and determines what has changed to report to
@@ -377,7 +254,7 @@ internal partial class SyntacticClassificationTaggerProvider
             CancellationToken cancellationToken)
         {
             if (lastProcessedDocument is null)
-                return ValueTaskFactory.FromResult<TextChangeRange?>(null);
+                return ValueTask.FromResult<TextChangeRange?>(null);
 
             if (lastProcessedRoot != null)
             {
@@ -385,7 +262,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 if (currentRoot is not null)
                     return new(classificationService.ComputeSyntacticChangeRange(solutionServices, lastProcessedRoot, currentRoot, _diffTimeout, cancellationToken));
                 else
-                    return ValueTaskFactory.FromResult<TextChangeRange?>(null);
+                    return ValueTask.FromResult<TextChangeRange?>(null);
             }
             else
             {
@@ -411,7 +288,7 @@ internal partial class SyntacticClassificationTaggerProvider
         private void AddTagsWorker(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<IClassificationTag>> tags)
         {
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
-            if (spans.Count == 0 || _workspace == null)
+            if (spans.Count == 0)
                 return;
 
             var snapshot = spans[0].Snapshot;

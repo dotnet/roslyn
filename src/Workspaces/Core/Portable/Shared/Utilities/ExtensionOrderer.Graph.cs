@@ -4,8 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -25,35 +26,29 @@ internal static partial class ExtensionOrderer
         public void CheckForCycles()
         {
             foreach (var node in this.Nodes.Values)
-            {
                 node.CheckForCycles();
-            }
         }
 
-        public IList<Lazy<TExtension, TMetadata>> TopologicalSort()
+        public ImmutableArray<Lazy<TExtension, TMetadata>> TopologicalSort()
         {
-            var result = new List<Lazy<TExtension, TMetadata>>();
+            using var _ = ArrayBuilder<Lazy<TExtension, TMetadata>>.GetInstance(out var result);
             var seenNodes = new HashSet<Node<TExtension, TMetadata>>();
 
             foreach (var node in this.Nodes.Values)
-            {
                 Visit(node, result, seenNodes);
-            }
 
-            return result;
+            return result.ToImmutableAndClear();
         }
 
         private static void Visit(
             Node<TExtension, TMetadata> node,
-            List<Lazy<TExtension, TMetadata>> result,
+            ArrayBuilder<Lazy<TExtension, TMetadata>> result,
             HashSet<Node<TExtension, TMetadata>> seenNodes)
         {
             if (seenNodes.Add(node))
             {
                 foreach (var before in node.ExtensionsBeforeMeSet)
-                {
                     Visit(before, result, seenNodes);
-                }
 
                 result.Add(node.Extension);
             }

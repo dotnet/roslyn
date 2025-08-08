@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new MakeLocalFunctionStaticCodeRefactoringProvider();
@@ -23,9 +23,8 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
     private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
     [Fact]
-    public async Task ShouldNotTriggerForCSharp7()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotTriggerForCSharp7()
+        => TestMissingAsync(
             """
             class C
             {
@@ -40,12 +39,10 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                 }  
             }
             """, parameters: new TestParameters(parseOptions: CSharp72ParseOptions));
-    }
 
     [Fact]
-    public async Task ShouldNotTriggerIfNoCaptures()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotTriggerIfNoCaptures()
+        => TestMissingAsync(
             """
             class C
             {
@@ -60,12 +57,10 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                 }  
             }
             """, parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-    }
 
     [Fact]
-    public async Task ShouldNotTriggerIfAlreadyStatic()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotTriggerIfAlreadyStatic()
+        => TestMissingAsync(
             """
             class C
             {
@@ -80,12 +75,10 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                 }  
             }
             """, parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-    }
 
     [Fact]
-    public async Task ShouldNotTriggerIfAlreadyStaticWithError()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotTriggerIfAlreadyStaticWithError()
+        => TestMissingAsync(
             """
             class C
             {
@@ -100,12 +93,10 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                 }  
             }
             """, parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
-    public async Task ShouldTriggerIfCapturesThisParameter1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ShouldTriggerIfCapturesThisParameter1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -137,13 +128,11 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
-    public async Task ShouldTriggerIfCapturesThisParameter2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ShouldTriggerIfCapturesThisParameter2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -175,13 +164,11 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
-    public async Task ShouldTriggerIfCapturesThisParameter3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ShouldTriggerIfCapturesThisParameter3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -213,13 +200,11 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38734")]
-    public async Task ShouldTriggerIfCapturesThisParameter4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ShouldTriggerIfCapturesThisParameter4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -251,13 +236,11 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task ShouldTriggerIfExplicitlyPassedInThisParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ShouldTriggerIfExplicitlyPassedInThisParameter()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -291,13 +274,11 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                     }
                 }  
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task ShouldTriggerForCSharp8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ShouldTriggerForCSharp8()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -326,13 +307,11 @@ public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionT
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
-    }
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestMultipleVariables()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleVariables()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -362,13 +341,11 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestMultipleCalls()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleCalls()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -399,13 +376,11 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
-    }
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestMultipleCallsWithExistingParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleCallsWithExistingParameters()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -438,13 +413,11 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
-    }
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestRecursiveCall()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRecursiveCall()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -476,13 +449,11 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestCallInArgumentList()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCallInArgumentList()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -512,13 +483,11 @@ parseOptions: CSharp8ParseOptions);
                     }
                 }
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestCallsWithNamedArguments()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCallsWithNamedArguments()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -551,13 +520,11 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
-    }
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestCallsWithDafaultValue()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCallsWithDafaultValue()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -590,13 +557,11 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """
-, parseOptions: CSharp8ParseOptions);
-    }
+, new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestWarningAnnotation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWarningAnnotation()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -625,13 +590,11 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
-    }
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact]
-    public async Task TestNonCamelCaseCapture()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNonCamelCaseCapture()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -662,13 +625,11 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
-    }
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46858")]
-    public async Task ShouldNotTriggerIfCallsOtherLocalFunction()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotTriggerIfCallsOtherLocalFunction()
+        => TestMissingAsync(
             """
             class C
             {
@@ -688,12 +649,10 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """, parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-    }
 
     [Fact]
-    public async Task TestCallingStaticLocationFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCallingStaticLocationFunction()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -732,13 +691,11 @@ parseOptions: CSharp8ParseOptions);
                 }  
             }
             """,
-parseOptions: CSharp8ParseOptions);
-    }
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53179")]
-    public async Task TestLocalFunctionAsTopLevelStatement()
-    {
-        await TestAsync("""
+    public Task TestLocalFunctionAsTopLevelStatement()
+        => TestAsync("""
             int y = 10;
             return AddLocal();
 
@@ -754,7 +711,6 @@ parseOptions: CSharp8ParseOptions);
             {
                 return y;
             }
-            """, parseOptions: CSharp8ParseOptions);
-    }
+            """, new(parseOptions: CSharp8ParseOptions));
 }
 

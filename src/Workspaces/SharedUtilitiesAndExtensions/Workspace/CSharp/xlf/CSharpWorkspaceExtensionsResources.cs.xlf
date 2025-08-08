@@ -1,12 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpWorkspaceExtensionsResources.resx">
-    <body>
-      <trans-unit id="EmptyResource">
-        <source>Remove this value when another is added.</source>
-        <target state="translated">Odebrat tuto hodnotu, když se přidá jiná</target>
-        <note>https://github.com/Microsoft/msbuild/issues/1661</note>
-      </trans-unit>
-    </body>
+    <body />
   </file>
 </xliff>

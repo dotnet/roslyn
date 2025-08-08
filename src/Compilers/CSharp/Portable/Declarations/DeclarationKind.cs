@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         Submission,
         ImplicitClass,
         Record,
-        RecordStruct
+        RecordStruct,
+        Extension,
     }
 
     internal static partial class EnumConversions
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration: return DeclarationKind.Delegate;
                 case SyntaxKind.RecordDeclaration: return DeclarationKind.Record;
                 case SyntaxKind.RecordStructDeclaration: return DeclarationKind.RecordStruct;
+                case SyntaxKind.ExtensionBlockDeclaration: return DeclarationKind.Extension;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class TextDocumentExtensions
 {
-#if CODE_STYLE
+#if !WORKSPACE
     public static ValueTask<SourceText> GetValueTextAsync(this TextDocument document, CancellationToken cancellationToken)
     {
         if (document.TryGetText(out var text))
-            return ValueTaskFactory.FromResult(text);
+            return ValueTask.FromResult(text);
 
         return new ValueTask<SourceText>(document.GetTextAsync(cancellationToken));
     }

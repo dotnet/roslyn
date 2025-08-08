@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -16,13 +18,15 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
-
 using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
 {
+    private static readonly ConditionalWeakTable<ProjectId, TypeImportCompletionCacheEntry> s_projectItemsCache = new();
+    private static readonly ConditionalWeakTable<MetadataId, TypeImportCompletionCacheEntry> s_metadataItemsCache = new();
+
     private IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry> CacheService { get; }
 
     protected abstract string GenericTypeSuffix { get; }
@@ -64,6 +68,18 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
                 options.MemberDisplayOptions.HideAdvancedMembers);
     }
 
+    private static MetadataId? GetMetadataId(PortableExecutableReference reference)
+    {
+        try
+        {
+            return reference.GetMetadataId();
+        }
+        catch (Exception ex) when (ex is BadImageFormatException or IOException)
+        {
+            return null;
+        }
+    }
+
     private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, Compilation originCompilation, bool forceCacheCreation, CancellationToken cancellationToken)
     {
         try
@@ -92,7 +108,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
                     var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, cancellationToken).ConfigureAwait(false);
                     resultBuilder.Add(upToDateCacheEntry);
                 }
-                else if (CacheService.ProjectItemsCache.TryGetValue(projectId, out var cacheEntry))
+                else if (s_projectItemsCache.TryGetValue(project.Id, out var cacheEntry))
                 {
                     resultBuilder.Add(cacheEntry);
                 }
@@ -105,11 +121,11 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
             var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(originCompilation));
             foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
             {
-                // Can't cache items for reference with null key. We don't want risk potential perf regression by 
-                // making those items repeatedly, so simply not returning anything from this assembly, until 
-                // we have a better understanding on this scenario.
-                var peReferenceKey = GetPEReferenceCacheKey(peReference);
-                if (peReferenceKey is null || !HasGlobalAlias(peReference.Properties.Aliases))
+                if (!HasGlobalAlias(peReference.Properties.Aliases))
+                    continue;
+
+                var metadataId = GetMetadataId(peReference);
+                if (metadataId is null)
                     continue;
 
                 if (forceCacheCreation)
@@ -119,7 +135,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
                         resultBuilder.Add(upToDateCacheEntry);
                     }
                 }
-                else if (CacheService.PEItemsCache.TryGetValue(peReferenceKey, out var cacheEntry))
+                else if (s_metadataItemsCache.TryGetValue(metadataId, out var cacheEntry))
                 {
                     resultBuilder.Add(cacheEntry);
                 }
@@ -153,9 +169,6 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
     private static bool HasGlobalAlias(ImmutableArray<string> aliases)
         => aliases.IsEmpty || aliases.Any(static alias => alias == MetadataReferenceProperties.GlobalAlias);
 
-    private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
-        => peReference.FilePath ?? peReference.Display;
-
     /// <summary>
     /// Get appropriate completion items for all the visible top level types from given project. 
     /// This method is intended to be used for getting types from source only, so the project must support compilation. 
@@ -171,7 +184,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
             project.Id,
             compilation.Assembly,
             checksum,
-            CacheService.ProjectItemsCache,
+            s_projectItemsCache,
             new EditorBrowsableInfo(compilation),
             cancellationToken);
     }
@@ -185,34 +198,35 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         EditorBrowsableInfo editorBrowsableInfo,
         PortableExecutableReference peReference,
         CancellationToken cancellationToken,
-        out TypeImportCompletionCacheEntry cacheEntry)
+        [NotNullWhen(true)] out TypeImportCompletionCacheEntry? cacheEntry)
     {
-        if (originCompilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assemblySymbol)
+        var metadataId = GetMetadataId(peReference);
+
+        if (metadataId is null ||
+            originCompilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assemblySymbol)
         {
-            cacheEntry = default;
+            cacheEntry = null;
             return false;
         }
-        else
-        {
-            cacheEntry = CreateCacheWorker(
-                GetPEReferenceCacheKey(peReference)!,
-                assemblySymbol,
-                checksum: SymbolTreeInfo.GetMetadataChecksum(solution.Services, peReference, cancellationToken),
-                CacheService.PEItemsCache,
-                editorBrowsableInfo,
-                cancellationToken);
-            return true;
-        }
+
+        cacheEntry = CreateCacheWorker(
+            metadataId,
+            assemblySymbol,
+            checksum: SymbolTreeInfo.GetMetadataChecksum(solution.Services, peReference, cancellationToken),
+            s_metadataItemsCache,
+            editorBrowsableInfo,
+            cancellationToken);
+        return true;
     }
 
     private TypeImportCompletionCacheEntry CreateCacheWorker<TKey>(
         TKey key,
         IAssemblySymbol assembly,
         Checksum checksum,
-        IDictionary<TKey, TypeImportCompletionCacheEntry> cache,
+        ConditionalWeakTable<TKey, TypeImportCompletionCacheEntry> cache,
         EditorBrowsableInfo editorBrowsableInfo,
         CancellationToken cancellationToken)
-        where TKey : notnull
+        where TKey : class
     {
         // Cache hit
         if (cache.TryGetValue(key, out var cacheEntry) && cacheEntry.Checksum == checksum)
@@ -223,7 +237,13 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         using var builder = new TypeImportCompletionCacheEntry.Builder(SymbolKey.Create(assembly, cancellationToken), checksum, Language, GenericTypeSuffix, editorBrowsableInfo);
         GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
         cacheEntry = builder.ToReferenceCacheEntry();
-        cache[key] = cacheEntry;
+
+#if NET
+        cache.AddOrUpdate(key, cacheEntry);
+#else
+        cache.Remove(key);
+        cache.GetValue(key, _ => cacheEntry);
+#endif
 
         return cacheEntry;
     }

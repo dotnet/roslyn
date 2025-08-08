@@ -87,8 +87,8 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             return null;
 
         var lines = addIndentation
-            ? GetDocumentationCommentLines(token, text, options, out _, out var caretOffset, out var spanToReplaceLength)
-            : GetDocumentationCommentLinesNoIndentation(token, text, options, out caretOffset, out spanToReplaceLength);
+            ? GetDocumentationCommentLines(token, text, options, out var indentText, out var caretOffset, out var spanToReplaceLength)
+            : GetDocumentationCommentLinesNoIndentation(token, text, options, out caretOffset, out spanToReplaceLength, out indentText);
 
         if (lines == null)
             return null;
@@ -102,7 +102,9 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
 
         var replaceSpan = new TextSpan(token.Span.Start, spanToReplaceLength);
 
-        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset);
+        var memberNode = GetContainingMember(syntaxTree, position, cancellationToken);
+
+        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, position, memberNode, indentText);
     }
 
     private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText, out int caretOffset, out int spanToReplaceLength)
@@ -136,8 +138,9 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         return lines;
     }
 
-    private List<string>? GetDocumentationCommentLinesNoIndentation(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out int caretOffset, out int spanToReplaceLength)
+    private List<string>? GetDocumentationCommentLinesNoIndentation(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out int caretOffset, out int spanToReplaceLength, out string? indentText)
     {
+        indentText = null;
         var lines = GetDocumentationStubLines(token, text, options, out caretOffset, out spanToReplaceLength, out var existingCommentText);
         if (lines is null)
         {
@@ -319,7 +322,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             replaceSpan = new TextSpan(start, currentLinePosition.Value - start);
         }
 
-        return new DocumentationCommentSnippet(replaceSpan, newText, offset);
+        return new DocumentationCommentSnippet(replaceSpan, newText, offset, position: null, memberNode: null, indentText: null);
     }
 
     public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
@@ -358,7 +361,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         // For a command we don't replace a token, but insert before it
         var replaceSpan = new TextSpan(token.Span.Start, 0);
 
-        return new DocumentationCommentSnippet(replaceSpan, comments, offset);
+        return new DocumentationCommentSnippet(replaceSpan, comments, offset, position: null, memberNode: null, indentText: null);
     }
 
     private DocumentationCommentSnippet? GenerateExteriorTriviaAfterEnter(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
@@ -434,7 +437,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             ? TextSpan.FromBounds(currentLine.Start, currentLine.Start + firstNonWhitespaceOffset.Value)
             : currentLine.Span;
 
-        return new DocumentationCommentSnippet(replaceSpan, insertionText, insertionText.Length);
+        return new DocumentationCommentSnippet(replaceSpan, insertionText, insertionText.Length, position: null, memberNode: null, indentText: null);
     }
 
     private string CreateInsertionTextFromPreviousLine(TextLine previousLine, in DocumentationCommentOptions options)

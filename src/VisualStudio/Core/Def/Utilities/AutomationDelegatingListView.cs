@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 extern alias slowautomation;
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using slowautomation::System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+using slowautomation::System.Windows.Automation;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-internal class AutomationDelegatingListView : ListView
+internal sealed class AutomationDelegatingListView : ListView
 {
     protected override bool IsItemItsOwnContainerOverride(object item)
         => item is AutomationDelegatingListViewItem;
@@ -36,7 +36,7 @@ internal class AutomationDelegatingListView : ListView
     }
 }
 
-internal class AutomationDelegatingListViewAutomationPeer : FrameworkElementAutomationPeer
+internal sealed class AutomationDelegatingListViewAutomationPeer : FrameworkElementAutomationPeer
 {
     public AutomationDelegatingListViewAutomationPeer(AutomationDelegatingListView listView)
         : base(listView)
@@ -71,13 +71,13 @@ internal class AutomationDelegatingListViewAutomationPeer : FrameworkElementAuto
         => AutomationControlType.List;
 }
 
-internal class AutomationDelegatingListViewItem : ListViewItem
+internal sealed class AutomationDelegatingListViewItem : ListViewItem
 {
     protected override AutomationPeer OnCreateAutomationPeer()
         => new AutomationDelegatingListViewItemAutomationPeer(this);
 }
 
-internal class AutomationDelegatingListViewItemAutomationPeer : ListBoxItemWrapperAutomationPeer
+internal sealed class AutomationDelegatingListViewItemAutomationPeer : ListBoxItemWrapperAutomationPeer
 {
     private readonly CheckBoxAutomationPeer? checkBoxItem;
     private readonly RadioButtonAutomationPeer? radioButtonItem;

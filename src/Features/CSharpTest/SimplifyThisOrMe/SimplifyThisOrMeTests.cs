@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyThisOrMe;
 
-public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public SimplifyThisOrMeTests(ITestOutputHelper logger)
         : base(logger)
@@ -29,9 +29,8 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
         => (new CSharpSimplifyThisOrMeDiagnosticAnalyzer(), new CSharpSimplifyThisOrMeCodeFixProvider());
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
-    public async Task TestSimplifyDiagnosticId()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimplifyDiagnosticId()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -56,13 +55,11 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/6682")]
-    public async Task TestThisWithNoType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestThisWithNoType()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -85,12 +82,10 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
-    public async Task TestAppropriateDiagnosticOnMissingQualifier()
-    {
-        await TestDiagnosticInfoAsync(
+    public Task TestAppropriateDiagnosticOnMissingQualifier()
+        => TestDiagnosticInfoAsync(
             """
             class C
             {
@@ -105,14 +100,12 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
             options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Warning),
             diagnosticId: IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_RemoveThis()
-    {
-        var input = """
+    public Task TestFixAllInSolution_RemoveThis()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -233,9 +226,7 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -356,17 +347,22 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllInSolution_RemoveMemberAccessQualification()
     {
-        var input = """
+        var options =
+            new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion },
+                { CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion },
+            };
+
+        await TestInRegularAndScriptAsync(
+            initialMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -401,9 +397,8 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """,
+            expectedMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -438,18 +433,7 @@ public partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProviderBas
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var options =
-            new OptionsCollection(GetLanguage())
-            {
-                { CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion },
-                { CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion },
-            };
-
-        await TestInRegularAndScriptAsync(
-            initialMarkup: input,
-            expectedMarkup: expected,
-            options: options);
+            """,
+            new(options: options));
     }
 }

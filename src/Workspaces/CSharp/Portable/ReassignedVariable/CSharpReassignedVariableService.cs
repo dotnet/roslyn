@@ -8,12 +8,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable;
 
 [ExportLanguageService(typeof(IReassignedVariableService), LanguageNames.CSharp), Shared]
-internal class CSharpReassignedVariableService : AbstractReassignedVariableService<
+internal sealed class CSharpReassignedVariableService : AbstractReassignedVariableService<
     ParameterSyntax,
     VariableDeclaratorSyntax,
     SingleVariableDesignationSyntax,

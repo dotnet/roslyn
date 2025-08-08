@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
@@ -129,6 +129,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        {
+            Debug.Assert(extensions.Count == 0);
+
+            // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, test this flag (see TestUnusedExtensionMarksImportsAsUsed)
+            bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
+
+            foreach (var nsOrType in this.GetUsings(basesBeingResolved: null))
+            {
+                if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
+                {
+                    var count = extensions.Count;
+                    ns.GetExtensionContainers(extensions);
+                    // If we found any extension declarations, then consider this using as used.
+                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
+                    if (extensions.Count != count)
+                    {
+                        MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                    }
+                }
+                // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, clarify expected behavior for `using Extension;` or `using static Extension;`.
+                //            If/when we do such a scenario, we have to remove duplicates (see GetCandidateExtensionMethods).
+            }
+        }
+
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -170,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lookup via "using static" ignores extension methods and non-static methods
                 case SymbolKind.Method:
-                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod)
+                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/79440: using directives, Test this code path with new extensions
                     {
                         return false;
                     }

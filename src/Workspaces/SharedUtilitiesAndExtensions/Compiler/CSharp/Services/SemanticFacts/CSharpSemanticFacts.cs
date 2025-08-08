@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -405,7 +406,11 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         };
 
     private static IPreprocessingSymbol? CreatePreprocessingSymbol(SemanticModel model, SyntaxToken identifier)
+#if !ROSLYN_4_12_OR_LOWER
         => model.Compilation.CreatePreprocessingSymbol(identifier.ValueText);
+#else
+        => null;
+#endif
 
     private static bool IsInPreprocessingSymbolContext(SyntaxNode node)
         => node.Ancestors().Any(n => n.Kind() is
@@ -414,7 +419,10 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
             SyntaxKind.DefineDirectiveTrivia or
             SyntaxKind.UndefDirectiveTrivia);
 
-#if !CODE_STYLE
+    public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
+        => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
+
+#if CSHARP_WORKSPACE
 
     public async Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
     {

@@ -15,50 +15,50 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration;
+
+internal sealed partial class DidChangeConfigurationNotificationHandler
 {
-    internal partial class DidChangeConfigurationNotificationHandler
-    {
-        public static readonly ImmutableArray<IOption2> SupportedOptions =
-        [
-            SymbolSearchOptionsStorage.SearchReferenceAssemblies,
-            ImplementTypeOptionsStorage.InsertionBehavior,
-            ImplementTypeOptionsStorage.PropertyGenerationBehavior,
-            CompletionOptionsStorage.ShowNameSuggestions,
-            CompletionOptionsStorage.ProvideRegexCompletions,
-            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
-            CompletionOptionsStorage.TriggerInArgumentLists,
-            QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
-            MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
-            HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
-            HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor,
-            InlineHintsOptionsStorage.EnabledForParameters,
-            InlineHintsOptionsStorage.ForLiteralParameters,
-            InlineHintsOptionsStorage.ForIndexerParameters,
-            InlineHintsOptionsStorage.ForObjectCreationParameters,
-            InlineHintsOptionsStorage.ForOtherParameters,
-            InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix,
-            InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent,
-            InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName,
-            InlineHintsOptionsStorage.EnabledForTypes,
-            InlineHintsOptionsStorage.ForImplicitVariableTypes,
-            InlineHintsOptionsStorage.ForLambdaParameterTypes,
-            InlineHintsOptionsStorage.ForImplicitObjectCreation,
-            InlineHintsOptionsStorage.ForCollectionExpressions,
-            FormattingOptions2.TabSize,
-            FormattingOptions2.IndentationSize,
-            FormattingOptions2.UseTabs,
-            FormattingOptions2.NewLine,
-            FormattingOptions2.InsertFinalNewLine,
-            SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
-            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
-            LspOptionsStorage.LspEnableReferencesCodeLens,
-            LspOptionsStorage.LspEnableTestsCodeLens,
-            LspOptionsStorage.LspEnableAutoInsert,
-            LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
-            LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
-            MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
-            LspOptionsStorage.LspOrganizeImportsOnFormat,
-        ];
-    }
+    public static readonly ImmutableArray<IOption2> SupportedOptions =
+    [
+        SymbolSearchOptionsStorage.SearchReferenceAssemblies,
+        ImplementTypeOptionsStorage.InsertionBehavior,
+        ImplementTypeOptionsStorage.PropertyGenerationBehavior,
+        CompletionOptionsStorage.ShowNameSuggestions,
+        CompletionOptionsStorage.ProvideRegexCompletions,
+        CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
+        CompletionOptionsStorage.TriggerInArgumentLists,
+        QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
+        MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
+        HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
+        HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor,
+        InlineHintsOptionsStorage.EnabledForParameters,
+        InlineHintsOptionsStorage.ForLiteralParameters,
+        InlineHintsOptionsStorage.ForIndexerParameters,
+        InlineHintsOptionsStorage.ForObjectCreationParameters,
+        InlineHintsOptionsStorage.ForOtherParameters,
+        InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix,
+        InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent,
+        InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName,
+        InlineHintsOptionsStorage.EnabledForTypes,
+        InlineHintsOptionsStorage.ForImplicitVariableTypes,
+        InlineHintsOptionsStorage.ForLambdaParameterTypes,
+        InlineHintsOptionsStorage.ForImplicitObjectCreation,
+        InlineHintsOptionsStorage.ForCollectionExpressions,
+        FormattingOptions2.TabSize,
+        FormattingOptions2.IndentationSize,
+        FormattingOptions2.UseTabs,
+        FormattingOptions2.NewLine,
+        FormattingOptions2.InsertFinalNewLine,
+        SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+        SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+        LspOptionsStorage.LspEnableReferencesCodeLens,
+        LspOptionsStorage.LspEnableTestsCodeLens,
+        LspOptionsStorage.LspEnableAutoInsert,
+        LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
+        LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
+        LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms,
+        MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
+        LspOptionsStorage.LspOrganizeImportsOnFormat,
+    ];
 }

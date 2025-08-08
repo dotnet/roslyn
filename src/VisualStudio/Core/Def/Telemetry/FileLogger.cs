@@ -5,7 +5,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -111,6 +110,6 @@ internal sealed class FileLogger : ILogger
             File.AppendAllText(_logFilePath, buffer.ToString());
         });
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

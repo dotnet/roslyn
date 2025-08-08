@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FindUsages;
 using PartDescription = (string tag, string text, TaggedTextStyle style, string? target, string? hint);
 
 [UseExportProvider]
-public class DefinitionItemFactoryTests
+public sealed class DefinitionItemFactoryTests
 {
     private static string Inspect(DocumentSpan span)
         => $"{span.Document.Name} {span.SourceSpan}";
@@ -36,7 +36,9 @@ public class DefinitionItemFactoryTests
         => string.Join(" | ", e.ToString().Split(',').Select(s => $"{typeof(TEnum).Name}.{s.Trim()}"));
 
     private static string Inspect(string? str)
-        => (str == null) ? "null" : $"\"{str.Replace(@"\", @"\\").Replace("\"", "\\\"")}\"";
+        => (str == null) ? "null" : $"""
+        "{str.Replace(@"\", @"\\").Replace("\"", "\\\"")}"
+        """;
 
     private static string InspectValueAsExpression(string? value, IReadOnlyDictionary<string, string> expressionMap)
         => value != null && expressionMap.TryGetValue(value, out var syntax) ? syntax : Inspect(value);

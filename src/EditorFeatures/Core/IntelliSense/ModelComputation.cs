@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -147,8 +148,19 @@ internal sealed class ModelComputation<TModel> where TModel : class
         {
             // Ensure we're on the BG before doing any model transformation work.
             await TaskScheduler.Default;
-            var model = await lastTask.ConfigureAwait(false);
-            return await transformModelAsync(model, _stopCancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                var model = await lastTask.ConfigureAwait(false);
+                return await transformModelAsync(model, _stopCancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Also, ensure we yield during exception stack unwinding so that we don't end up with an enormously
+                // long chain of tasks unwinding.  That can otherwise cause a stack overflow if this chain gets too long.
+                await Task.Yield().ConfigureAwait(false);
+                throw;
+            }
         }
     }
 

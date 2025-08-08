@@ -4,7 +4,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -12,6 +11,7 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
+
 public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
@@ -70,8 +70,8 @@ public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? tes
             }
             """;
 
-            var testDocument = new EditorTestHostDocument(text: source, displayName: @$"C:\SomeFile{i}.cs", exportProvider: testLspServer.TestWorkspace.ExportProvider, filePath: @$"C:\SomeFile{i}.cs");
-            testLspServer.TestWorkspace.AddTestProject(new EditorTestHostProject(testLspServer.TestWorkspace, documents: [testDocument]));
+            var testDocument = new TestHostDocument(text: source, displayName: @$"C:\SomeFile{i}.cs", exportProvider: testLspServer.TestWorkspace.ExportProvider, filePath: @$"C:\SomeFile{i}.cs");
+            testLspServer.TestWorkspace.AddTestProject(new TestHostProject(testLspServer.TestWorkspace, documents: [testDocument]));
         }
 
         await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,8 +23,12 @@ using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues;
 
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
+    CSharpRemoveUnusedValuesCodeFixProvider>;
+
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveUnusedParametersTests(ITestOutputHelper logger)
       : base(logger)
@@ -37,62 +43,88 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
             new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
 
     // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
-    private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions? parseOptions = null)
-        => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
-    private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
-    private Task TestDiagnosticMissingAsync(string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions = null)
-        => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true));
-    private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection options, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
-    private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
+    private static Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup)
+        => TestDiagnosticMissingAsync(initialMarkup, options: null);
+    private static Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup)
+        => TestDiagnosticsAsync(initialMarkup, options: null);
+    private static async Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options)
+    {
+        var test = new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestCode = initialMarkup,
+            DisabledDiagnostics =
+            {
+                IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
+                IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
+            },
+        };
+
+        if (options is not null)
+            test.Options.AddRange(options);
+
+        await test.RunAsync();
+    }
+
+    private static async Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options)
+    {
+        var test = new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestCode = initialMarkup,
+            DisabledDiagnostics =
+            {
+                IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
+                IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
+            },
+        };
+
+        if (options is not null)
+            test.Options.AddRange(options);
+
+        await test.RunAsync();
+    }
 
     [Fact]
-    public async Task Parameter_Used()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_Used()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(int [|p|])
+                void M(int p)
                 {
                     var x = p;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_Unused()
-    {
-        await TestDiagnosticsAsync(
+    public Task Parameter_Unused()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Theory]
     [InlineData("public", "public")]
     [InlineData("public", "protected")]
-    public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccessibility, string methodAccessibility)
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccessibility, string methodAccessibility)
+        => TestDiagnosticMissingAsync(
             $$"""
             {{typeAccessibility}} class C
             {
-                {{methodAccessibility}} void M(int [|p|])
+                {{methodAccessibility}} void M(int p)
                 {
                 }
             }
             """, NonPublicMethodsOnly);
-    }
 
     [Theory]
     [InlineData("public", "private")]
@@ -101,19 +133,16 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
     [InlineData("internal", "public")]
     [InlineData("internal", "internal")]
     [InlineData("internal", "protected")]
-    public async Task Parameter_Unused_NonPublicMethod(string typeAccessibility, string methodAccessibility)
-    {
-        await TestDiagnosticsAsync(
+    public Task Parameter_Unused_NonPublicMethod(string typeAccessibility, string methodAccessibility)
+        => TestDiagnosticsAsync(
             $$"""
             {{typeAccessibility}} class C
             {
-                {{methodAccessibility}} void M(int [|p|])
+                {{methodAccessibility}} void M(int {|IDE0060:p|})
                 {
                 }
             }
-            """, NonPublicMethodsOnly,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """, NonPublicMethodsOnly);
 
     [Fact]
     public async Task Parameter_Unused_UnusedExpressionAssignment_PreferNone()
@@ -125,7 +154,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|])
+                void M(int p)
                 {
                     var x = p;
                 }
@@ -134,46 +163,39 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
     }
 
     [Fact]
-    public async Task Parameter_WrittenOnly()
-    {
-        await TestDiagnosticsAsync(
+    public Task Parameter_WrittenOnly()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                     p = 1;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task Parameter_WrittenThenRead()
-    {
-        await TestDiagnosticsAsync(
+    public Task Parameter_WrittenThenRead()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                     p = 1;
                     var x = p;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task Parameter_WrittenOnAllControlPaths_BeforeRead()
-    {
-        await TestDiagnosticsAsync(
+    public Task Parameter_WrittenOnAllControlPaths_BeforeRead()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(int [|p|], bool flag)
+                void M(int {|IDE0060:p|}, bool flag)
                 {
                     if (flag)
                     {
@@ -187,18 +209,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     var x = p;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task Parameter_WrittenOnSomeControlPaths_BeforeRead()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_WrittenOnSomeControlPaths_BeforeRead()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(int [|p|], bool flag, bool flag2)
+                void M(int p, bool flag, bool flag2)
                 {
                     if (flag)
                     {
@@ -216,145 +235,126 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OptionalParameter_Unused()
-    {
-        await TestDiagnosticsAsync(
+    public Task OptionalParameter_Unused()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(int [|p|] = 0)
+                void M(int {|IDE0060:p|} = 0)
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task Parameter_UsedInConstructorInitializerOnly()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_UsedInConstructorInitializerOnly()
+        => TestDiagnosticMissingAsync(
             """
             class B
             {
-                protected B(int p) { }
+                protected B(int _) { }
             }
 
             class C: B
             {
-                C(int [|p|])
+                C(int p)
                 : base(p)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_NotUsedInConstructorInitializer_UsedInConstructorBody()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_NotUsedInConstructorInitializer_UsedInConstructorBody()
+        => TestDiagnosticMissingAsync(
             """
             class B
             {
-                protected B(int p) { }
+                protected B(int _) { }
             }
 
             class C: B
             {
-                C(int [|p|])
+                C(int p)
                 : base(0)
                 {
                     var x = p;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_UsedInConstructorInitializerAndConstructorBody()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_UsedInConstructorInitializerAndConstructorBody()
+        => TestDiagnosticMissingAsync(
             """
             class B
             {
-                protected B(int p) { }
+                protected B(int _) { }
             }
 
             class C: B
             {
-                C(int [|p|])
+                C(int p)
                 : base(p)
                 {
                     var x = p;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedLocalFunctionParameter()
-    {
-        await TestDiagnosticsAsync(
+    public Task UnusedLocalFunctionParameter()
+        => TestDiagnosticsAsync(
             """
             class C
             {
                 void M(int y)
                 {
                     LocalFunction(y);
-                    void LocalFunction(int [|p|])
-                    {
-                    }
-                }
-            }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
-
-    [Fact]
-    public async Task UnusedLocalFunctionParameter_02()
-    {
-        await TestDiagnosticsAsync(
-            """
-            class C
-            {
-                void M()
-                {
-                    LocalFunction(0);
-                    void LocalFunction(int [|p|])
-                    {
-                    }
-                }
-            }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
-
-    [Fact]
-    public async Task UnusedLocalFunctionParameter_Discard()
-    {
-        await TestDiagnosticMissingAsync(
-            """
-            class C
-            {
-                void M()
-                {
-                    LocalFunction(0);
-                    void LocalFunction(int [|_|])
+                    void LocalFunction(int {|IDE0060:p|})
                     {
                     }
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedLocalFunctionParameter_PassedAsDelegateArgument()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedLocalFunctionParameter_02()
+        => TestDiagnosticsAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    LocalFunction(0);
+                    void LocalFunction(int {|IDE0060:p|})
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task UnusedLocalFunctionParameter_Discard()
+        => TestDiagnosticMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    LocalFunction(0);
+                    void LocalFunction(int _)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task UnusedLocalFunctionParameter_PassedAsDelegateArgument()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -363,7 +363,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M()
                 {
                     M2(LocalFunction);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int p)
                     {
                     }
                 }
@@ -371,198 +371,168 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M2(Action<int> a) => a(0);
             }
             """);
-    }
 
     [Fact]
-    public async Task UsedInLambda_ReturnsDelegate()
-    {
-        // Currently we bail out from analysis for method returning delegate types.
-        await TestDiagnosticMissingAsync(
+    public Task UsedInLambda_ReturnsDelegate()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private static Action<int> M(object [|p|] = null, Action<object> myDelegate)
+                private static Action<int> M(object p, Action<object> myDelegate)
                 {
                     return d => { myDelegate(p); };
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedInLambda_ReturnsDelegate()
-    {
-        // We bail out from unused value analysis for method returning delegate types.
-        // We should still report unused parameters.
-        await TestDiagnosticsAsync(
+    public Task UnusedInLambda_ReturnsDelegate()
+        => TestDiagnosticsAsync(
             """
             using System;
 
             class C
             {
-                private static Action M(object [|p|])
+                private static Action M(object {|IDE0060:p|})
                 {
                     return () => { };
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task UnusedInLambda_LambdaPassedAsArgument()
-    {
-        // We bail out from unused value analysis when lambda is passed as argument.
-        // We should still report unused parameters.
-        await TestDiagnosticsAsync(
+    public Task UnusedInLambda_LambdaPassedAsArgument()
+        => TestDiagnosticsAsync(
             """
             using System;
 
             class C
             {
-                private static void M(object [|p|])
+                private static void M(object {|IDE0060:p|})
                 {
                     M2(() => { });
                 }
 
-                private static void M2(Action a) { }
+                private static void M2(Action _) { }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task ReadInLambda_LambdaPassedAsArgument()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task ReadInLambda_LambdaPassedAsArgument()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private static void M(object [|p|])
+                private static void M(object p)
                 {
                     M2(() => { M3(p); });
                 }
 
-                private static void M2(Action a) { }
+                private static void M2(Action _) { }
 
-                private static void M3(object o) { }
+                private static void M3(object _) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task OnlyWrittenInLambda_LambdaPassedAsArgument()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OnlyWrittenInLambda_LambdaPassedAsArgument()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private static void M(object [|p|])
+                private static void M(object p)
                 {
                     M2(() => { M3(out p); });
                 }
 
-                private static void M2(Action a) { }
+                private static void M2(Action _) { }
 
                 private static void M3(out object o) { o = null; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
-    public async Task UnusedInExpressionTree_PassedAsArgument()
-    {
-        await TestDiagnosticsAsync(
+    public Task UnusedInExpressionTree_PassedAsArgument()
+        => TestDiagnosticsAsync(
             """
             using System;
             using System.Linq.Expressions;
 
             class C
             {
-                public static void M1(object [|p|])
+                public static void M1(object {|IDE0060:p|})
                 {
                     M2(x => x.M3());
                 }
 
-                private static C M2(Expression<Func<C, int>> a) { return null; }
+                private static C M2(Expression<Func<C, int>> _) { return null; }
                 private int M3() { return 0; }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
-    public async Task ReadInExpressionTree_PassedAsArgument()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task ReadInExpressionTree_PassedAsArgument()
+        => TestDiagnosticMissingAsync(
             """
             using System;
             using System.Linq.Expressions;
 
             class C
             {
-                public static void M1(object [|p|])
+                public static void M1(object p)
                 {
                     M2(x => x.M3(p));
                 }
 
-                private static C M2(Expression<Func<C, int>> a) { return null; }
-                private int M3(object o) { return 0; }
+                private static C M2(Expression<Func<C, int>> _) { return null; }
+                private int M3(object _) { return 0; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
-    public async Task OnlyWrittenInExpressionTree_PassedAsArgument()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OnlyWrittenInExpressionTree_PassedAsArgument()
+        => TestDiagnosticMissingAsync(
             """
             using System;
             using System.Linq.Expressions;
 
             class C
             {
-                public static void M1(object [|p|])
+                public static void M1(object p)
                 {
                     M2(x => x.M3(out p));
                 }
 
-                private static C M2(Expression<Func<C, int>> a) { return null; }
+                private static C M2(Expression<Func<C, int>> _) { return null; }
                 private int M3(out object o) { o = null; return 0; }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsedInLambda_AssignedToField()
-    {
-        // Currently we bail out from analysis if we have a delegate creation that is not assigned
-        // too a local/parameter.
-        await TestDiagnosticMissingAsync(
+    public Task UsedInLambda_AssignedToField()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private Action _field;
-                private static void M(object [|p|])
+                private static Action _field;
+                private static void M(object p)
                 {
                     _field = () => { Console.WriteLine(p); };
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodWithLockAndControlFlow()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task MethodWithLockAndControlFlow()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -570,7 +540,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 private static readonly object s_gate = new object();
 
-                public static C M(object [|p|], bool flag, C c1, C c2)
+                public static C M(object p, int flag, C c1, C c2)
                 {
                     C c;
                     lock (s_gate)
@@ -582,15 +552,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     return c;
                 }
 
-                private void M2(object p) { }
+                private void M2(object _) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedLambdaParameter()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedLambdaParameter()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -598,7 +566,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int> myLambda = [|p|] =>
+                    Action<int> myLambda = p =>
                     {
                     };
 
@@ -606,12 +574,10 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedLambdaParameter_Discard()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedLambdaParameter_Discard()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -619,7 +585,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int> myLambda = [|_|] =>
+                    Action<int> myLambda = _ =>
                     {
                     };
 
@@ -627,12 +593,10 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedLambdaParameter_DiscardTwo()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedLambdaParameter_DiscardTwo()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -640,7 +604,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int, int> myLambda = ([|_|], _) =>
+                    Action<int, int> myLambda = (_, _) =>
                     {
                     };
 
@@ -648,12 +612,10 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedLocalFunctionParameter_DiscardTwo()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedLocalFunctionParameter_DiscardTwo()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -661,7 +623,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    void local([|_|], _)
+                    void local(int _1, int _2)
                     {
                     }
 
@@ -669,18 +631,16 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnusedMethodParameter_DiscardTwo()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedMethodParameter_DiscardTwo()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                void M([|_|], _)
+                void M(int _1, int _2)
                 {
                 }
 
@@ -690,31 +650,27 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsedLocalFunctionParameter()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UsedLocalFunctionParameter()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
                 void M(int y)
                 {
                     LocalFunction(y);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int p)
                     {
                         var x = p;
                     }
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsedLambdaParameter()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UsedLambdaParameter()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -722,245 +678,210 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int> myLambda = [|p|] =>
+                    Action<int> myLambda = p =>
                     {
                         var x = p;
-                    }
+                    };
 
                     myLambda(y);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OptionalParameter_Used()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OptionalParameter_Used()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(int [|p = 0|])
+                void M(int p = 0)
                 {
                     var x = p;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InParameter()
-    {
-        await TestDiagnosticsAsync(
+    public Task InParameter()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(in int [|p|])
+                void M(in int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task RefParameter_Unused()
-    {
-        await TestDiagnosticsAsync(
+    public Task RefParameter_Unused()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task RefParameter_WrittenOnly()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_WrittenOnly()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     p = 0;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefParameter_ReadOnly()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_ReadOnly()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     var x = p;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefParameter_ReadThenWritten()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_ReadThenWritten()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     var x = p;
                     p = 1;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefParameter_WrittenAndThenRead()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_WrittenAndThenRead()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     p = 1;
                     var x = p;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RefParameter_WrittenTwiceNotRead()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_WrittenTwiceNotRead()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     p = 0;
                     p = 1;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OutParameter_Unused()
-    {
-        await TestDiagnosticsAsync(
+    public Task OutParameter_Unused()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(out int [|p|])
+                void {|CS0177:M|}(out int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact]
-    public async Task OutParameter_WrittenOnly()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OutParameter_WrittenOnly()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(out int [|p|])
+                void M(out int p)
                 {
                     p = 0;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OutParameter_WrittenAndThenRead()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OutParameter_WrittenAndThenRead()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(out int [|p|])
+                void M(out int p)
                 {
                     p = 0;
                     var x = p;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OutParameter_WrittenTwiceNotRead()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OutParameter_WrittenTwiceNotRead()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(out int [|p|])
+                void M(out int p)
                 {
                     p = 0;
                     p = 1;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_ExternMethod()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_ExternMethod()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
                 [System.Runtime.InteropServices.DllImport(nameof(M))]
-                static extern void M(int [|p|]);
+                static extern void M(int p);
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_AbstractMethod()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_AbstractMethod()
+        => TestDiagnosticMissingAsync(
             """
             abstract class C
             {
-                protected abstract void M(int [|p|]);
+                protected abstract void M(int p);
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_VirtualMethod()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_VirtualMethod()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                protected virtual void M(int [|p|])
+                protected virtual void M(int p)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_OverriddenMethod()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_OverriddenMethod()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -972,17 +893,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class D : C
             {
-                protected override void M(int [|p|])
+                protected override void M(int p)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_ImplicitInterfaceImplementationMethod()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_ImplicitInterfaceImplementationMethod()
+        => TestDiagnosticMissingAsync(
             """
             interface I
             {
@@ -990,17 +909,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             }
             class C: I
             {
-                public void M(int [|p|])
+                public void M(int p)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_ExplicitInterfaceImplementationMethod()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_ExplicitInterfaceImplementationMethod()
+        => TestDiagnosticMissingAsync(
             """
             interface I
             {
@@ -1008,36 +925,32 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             }
             class C: I
             {
-                void I.M(int [|p|])
+                void I.M(int p)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_IndexerMethod()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_IndexerMethod()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                int this[int [|p|]]
+                int this[int p]
                 {
                     get { return 0; }
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_ConditionalDirective()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_ConditionalDirective()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(int [|p|])
+                void M(int p)
                 {
             #if DEBUG
                     System.Console.WriteLine(p);
@@ -1045,40 +958,34 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_EventHandler_FirstParameter()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_EventHandler_FirstParameter()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                public void MyHandler(object [|obj|], System.EventArgs args)
+                public void MyHandler(object obj, System.EventArgs args)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_EventHandler_SecondParameter()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_EventHandler_SecondParameter()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                public void MyHandler(object obj, System.EventArgs [|args|])
+                public void MyHandler(object obj, System.EventArgs args)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_MethodUsedAsEventHandler()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_MethodUsedAsEventHandler()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -1093,17 +1000,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     c.myDel += Handler;
                 }
 
-                void Handler(int [|x|])
+                void Handler(int x)
                 {
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Parameter_CustomEventArgs()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_CustomEventArgs()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -1111,12 +1016,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                 }
 
-                public void MyHandler(object [|obj|], CustomEventArgs args)
+                public void MyHandler(object obj, CustomEventArgs args)
                 {
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData(@"[System.Diagnostics.Conditional(nameof(M))]")]
@@ -1125,26 +1029,23 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
     [InlineData(@"[System.Runtime.Serialization.OnDeserializedAttribute]")]
     [InlineData(@"[System.Runtime.Serialization.OnSerializingAttribute]")]
     [InlineData(@"[System.Runtime.Serialization.OnSerializedAttribute]")]
-    public async Task Parameter_MethodsWithSpecialAttributes(string attribute)
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_MethodsWithSpecialAttributes(string attribute)
+        => TestDiagnosticMissingAsync(
             $$"""
             class C
             {
                 {{attribute}}
-                void M(int [|p|])
+                void M(int p)
                 {
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("System.Composition", "ImportingConstructorAttribute")]
     [InlineData("System.ComponentModel.Composition", "ImportingConstructorAttribute")]
-    public async Task Parameter_ConstructorsWithSpecialAttributes(string attributeNamespace, string attributeName)
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_ConstructorsWithSpecialAttributes(string attributeNamespace, string attributeName)
+        => TestDiagnosticMissingAsync(
             $$"""
             namespace {{attributeNamespace}}
             {
@@ -1154,17 +1055,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             class C
             {
                 [{{attributeNamespace}}.{{attributeName}}()]
-                public C(int [|p|])
+                public C(int p)
                 {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32133")]
-    public async Task Parameter_SerializationConstructor()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_SerializationConstructor()
+        => TestDiagnosticMissingAsync(
             """
             using System;
             using System.Runtime.Serialization;
@@ -1181,7 +1080,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 private readonly NonSerializable _nonSerializable;
 
-                public CustomSerializingType(SerializationInfo info, StreamingContext [|context|])
+                public CustomSerializingType(SerializationInfo info, StreamingContext context)
                 {
                     _nonSerializable = new NonSerializable(info.GetString("KEY"));
                 }
@@ -1192,7 +1091,6 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [ConditionalFact(typeof(IsEnglishLocal))]
     public async Task Parameter_DiagnosticMessages()
@@ -1241,14 +1139,45 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         Assert.Equal("Parameter 'p5' can be removed; its initial value is never used", sortedDiagnostics[4].GetMessage());
     }
 
+    [Theory]
+    [InlineData("int[]")]
+    [InlineData("Span<int>")]
+    public Task Parameter_ArrayLikeUsedForReading(string arrayLikeType)
+        => TestDiagnosticMissingAsync(
+            $$"""
+            using System;
+            class C
+            {
+                void M({{arrayLikeType}} p)
+                {
+                    var x = p[0];
+                }
+            }
+            """);
+
+    [Theory]
+    [InlineData("int[]")]
+    [InlineData("Span<int>")]
+    public Task Parameter_ArrayLikeUsedForWriting(string arrayLikeType)
+        => TestDiagnosticMissingAsync(
+            $$"""
+            using System;
+            class C
+            {
+                void M({{arrayLikeType}} p)
+                {
+                    p[0] = new();
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32287")]
-    public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(object [|o|])
+                void M(object o)
                 {
                     if (o is int _)
                     {
@@ -1256,63 +1185,54 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32851")]
-    public async Task Parameter_Unused_SpecialNames()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_Unused_SpecialNames()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                [|void M(int _, char _1, C _3)|]
+                void M(int _, char _1, C _3)
                 {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32851")]
-    public async Task Parameter_Used_SemanticError()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Parameter_Used_SemanticError()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                void M(int [|x|])
+                void M(int x)
                 {
                     // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
                     Invoke<string>(() => x);
 
-                    T Invoke<T>(Func<T> a) { return a(); }
+                    T Invoke<T>({|CS0246:Func<T>|} a) { return a(); }
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32851")]
-    public async Task Parameter_Unused_SemanticError()
-    {
-        await TestDiagnosticsAsync(
+    public Task Parameter_Unused_SemanticError()
+        => TestDiagnosticsAsync(
             """
             class C
             {
-                void M(int [|x|])
+                void M(int {|IDE0060:x|})
                 {
                     // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
                     Invoke<string>(() => 0);
 
-                    T Invoke<T>(Func<T> a) { return a(); }
+                    T Invoke<T>({|CS0246:Func<T>|} a) { return a(); }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
-    public async Task OutParameter_LocalFunction()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OutParameter_LocalFunction()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -1320,7 +1240,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     return LocalFunction(out x);
 
-                    bool LocalFunction(out int [|y|])
+                    bool LocalFunction(out int y)
                     {
                         y = 0;
                         return true;
@@ -1328,12 +1248,10 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
-    public async Task RefParameter_Unused_LocalFunction()
-    {
-        await TestDiagnosticsAsync(
+    public Task RefParameter_Unused_LocalFunction()
+        => TestDiagnosticsAsync(
             """
             class C
             {
@@ -1341,20 +1259,17 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     return LocalFunction(ref x);
 
-                    bool LocalFunction(ref int [|y|])
+                    bool LocalFunction(ref int {|IDE0060:y|})
                     {
                         return true;
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
-    public async Task RefParameter_Used_LocalFunction()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_Used_LocalFunction()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -1362,7 +1277,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     return LocalFunction(ref x);
 
-                    bool LocalFunction(ref int [|y|])
+                    bool LocalFunction(ref int y)
                     {
                         y = 0;
                         return true;
@@ -1370,27 +1285,23 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
-    public async Task NullCoalesceAssignment()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task NullCoalesceAssignment()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
-                public static void M(C [|x|])
+                public static void M(C x)
                 {
                     x ??= new C();
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34301")]
-    public async Task GenericLocalFunction()
-    {
-        await TestDiagnosticsAsync(
+    public Task GenericLocalFunction()
+        => TestDiagnosticsAsync(
             """
             class C
             {
@@ -1398,25 +1309,22 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     LocalFunc(0);
 
-                    void LocalFunc<T>(T [|value|])
+                    void LocalFunc<T>(T {|IDE0060:value|})
                     {
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
-    public async Task GenericLocalFunction_02()
-    {
-        await TestDiagnosticsAsync(
+    public Task GenericLocalFunction_02()
+        => TestDiagnosticsAsync(
             """
             using System.Collections.Generic;
 
             class C
             {
-                void M(object [|value|])
+                void M(object {|IDE0060:value|})
                 {
                     try
                     {
@@ -1435,21 +1343,18 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
-    public async Task GenericLocalFunction_03()
-    {
-        await TestDiagnosticsAsync(
+    public Task GenericLocalFunction_03()
+        => TestDiagnosticMissingAsync(
             """
             using System;
             using System.Collections.Generic;
 
             class C
             {
-                void M(object [|value|])
+                void M(object value)
                 {
                     Func<object, IEnumerable<object>> myDel = LocalFunc;
                     try
@@ -1470,7 +1375,6 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34830")]
     public async Task RegressionTest_ShouldReportUnusedParameter()
@@ -1489,7 +1393,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 private readonly Task<I> task;
 
-                public C(Task<I> [|task|])
+                public C(Task<I> task)
                 {
                     this.task = task;
                     Task.Run(async () => (await task).MyAction += myAction);
@@ -1537,15 +1441,14 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 #endif
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37483")]
-    public async Task MethodUsedAsDelegateInGeneratedCode_NoDiagnostic()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task MethodUsedAsDelegateInGeneratedCode_NoDiagnostic()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             public partial class C
             {
-                private void M(int [|x|])
+                private void M(int x)
                 {
                 }
             }
@@ -1559,28 +1462,24 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37483")]
-    public async Task UnusedParameterInGeneratedCode_NoDiagnostic()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedParameterInGeneratedCode_NoDiagnostic()
+        => TestDiagnosticMissingAsync(
             """
             public partial class C
             {
                 [System.CodeDom.Compiler.GeneratedCodeAttribute("", "")]
-                private void M(int [|x|])
+                private void M(int x)
                 {
                 }
             }
             """);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/57814")]
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-    public async Task UnusedParameterInPartialMethodImplementation_NoDiagnostic()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedParameterInPartialMethodImplementation_NoDiagnostic()
+        => TestDiagnosticMissingAsync(
             """
             public partial class C
             {
@@ -1589,202 +1488,171 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             public partial class C
             {
-                public partial void M(int [|x|])
+                public partial void M(int x)
                 {
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-    public async Task ParameterInPartialMethodDefinition_NoDiagnostic()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task ParameterInPartialMethodDefinition_NoDiagnostic()
+        => TestDiagnosticMissingAsync(
             """
             public partial class C
             {
-                public partial void M(int [|x|]);
+                partial void M(int x);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36817")]
-    public async Task ParameterWithoutName_NoDiagnostic()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task ParameterWithoutName_NoDiagnostic()
+        => TestDiagnosticMissingAsync(
             """
             public class C
             {
-                public void M[|(int )|]
+                public void M(int {|CS1001:)|}
                 {
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
-    public async Task NotImplementedException_NoDiagnostic1()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task NotImplementedException_NoDiagnostic1()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int i)
                 {
                     throw new NotImplementedException();
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
-    public async Task NotImplementedException_NoDiagnostic2()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task NotImplementedException_NoDiagnostic2()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int i)
                     => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
-    public async Task NotImplementedException_NoDiagnostic3()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task NotImplementedException_NoDiagnostic3()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                public C(int [|i|])
+                public C(int i)
                     => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56317")]
-    public async Task NotImplementedException_NoDiagnostic4()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task NotImplementedException_NoDiagnostic4()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private int Goo(int [|i|])
+                private int Goo(int i)
                     => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56317")]
-    public async Task NotImplementedException_NoDiagnostic5()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task NotImplementedException_NoDiagnostic5()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
             class C
             {
-                private int Goo(int [|i|])
+                private int Goo(int i)
                 {
                     throw new NotImplementedException();
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
-    public async Task NotImplementedException_MultipleStatements1()
-    {
-        await TestDiagnosticsAsync(
+    public Task NotImplementedException_MultipleStatements1()
+        => TestDiagnosticsAsync(
             """
             using System;
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int {|IDE0060:i|})
                 {
                     throw new NotImplementedException();
                     return;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
-    public async Task NotImplementedException_MultipleStatements2()
-    {
-        await TestDiagnosticsAsync(
+    public Task NotImplementedException_MultipleStatements2()
+        => TestDiagnosticsAsync(
             """
             using System;
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int {|IDE0060:i|})
                 {
                     if (true)
                         throw new NotImplementedException();
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
-    public async Task Record_PrimaryConstructorParameter()
-    {
-        await TestMissingAsync(
+    public Task Record_PrimaryConstructorParameter()
+        => TestMissingAsync(
             @"record A(int [|X|]);");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
-    public async Task Record_NonPrimaryConstructorParameter()
-    {
-        await TestDiagnosticsAsync(
+    public Task Record_NonPrimaryConstructorParameter()
+        => TestDiagnosticsAsync(
             """
             record A
             {
-                public A(int [|X|])
+                public A(int {|IDE0060:X|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
-    public async Task Record_DelegatingPrimaryConstructorParameter()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Record_DelegatingPrimaryConstructorParameter()
+        => TestDiagnosticMissingAsync(
             """
             record A(int X);
-            record B(int X, int [|Y|]) : A(X);
+            record B(int X, int Y) : A(X);
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47174")]
-    public async Task RecordPrimaryConstructorParameter_PublicRecord()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RecordPrimaryConstructorParameter_PublicRecord()
+        => TestDiagnosticMissingAsync(
             """
             public record Base(int I) { }
-            public record Derived(string [|S|]) : Base(42) { }
+            public record Derived(string S) : Base(42) { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45743")]
-    public async Task RequiredGetInstanceMethodByICustomMarshaler()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task RequiredGetInstanceMethodByICustomMarshaler()
+        => TestDiagnosticMissingAsync("""
             using System;
             using System.Runtime.InteropServices;
 
@@ -1806,250 +1674,191 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 public object MarshalNativeToManaged(IntPtr pNativeData)
                     => throw new NotImplementedException();
 
-                public static ICustomMarshaler GetInstance(string [|s|])
+                public static ICustomMarshaler GetInstance(string s)
                     => null;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
-    public async Task TestMethodWithUnusedParameterThrowsExpressionBody()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestMethodWithUnusedParameterThrowsExpressionBody()
+        => TestDiagnosticMissingAsync(
             """
             public class Class
             {
-                public void Method(int [|x|]) => throw new System.Exception();
+                public void Method(int x) => throw new System.Exception();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
-    public async Task TestMethodWithUnusedParameterThrowsMethodBody()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestMethodWithUnusedParameterThrowsMethodBody()
+        => TestDiagnosticMissingAsync(
             """
             public class Class
             {
-                public void Method(int [|x|])
+                public void Method(int x)
                 {
                     throw new System.Exception();
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
-    public async Task TestMethodWithUnusedParameterThrowsConstructorBody()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestMethodWithUnusedParameterThrowsConstructorBody()
+        => TestDiagnosticMissingAsync(
             """
             public class Class
             {
-                public Class(int [|x|])
+                public Class(int x)
                 {
                     throw new System.Exception();
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
-    public async Task TestMethodWithUnusedParameterThrowsConstructorExpressionBody()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestMethodWithUnusedParameterThrowsConstructorExpressionBody()
+        => TestDiagnosticMissingAsync(
             """
             public class Class
             {
-                public Class(int [|x|]) => throw new System.Exception();
+                public Class(int x) => throw new System.Exception();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65275")]
-    public async Task TestMethodWithUnusedParameterThrowsLocalFunctionExpressionBody()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestMethodWithUnusedParameterThrowsLocalFunctionExpressionBody()
+        => TestDiagnosticMissingAsync(
             """
             public class Class
             {
                 public void Method()
                 {
-                    void LocalMethod(int [|x|]) => throw new System.Exception();
+                    void LocalMethod(int x) => throw new System.Exception();
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
-    public async Task Test_PrimaryConstructor1()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Test_PrimaryConstructor1()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
-            class C(int [|a100|])
+            class C(int a100)
             {
             }
             """);
-    }
 
     [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
-    public async Task Test_PrimaryConstructor2()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task Test_PrimaryConstructor2()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
-            class C(int [|a100|]) : Object()
+            class C(int a100) : Object()
             {
                 int M1() => a100;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70276")]
-    public async Task TestMethodWithNameOf()
-    {
-        await TestDiagnosticsAsync("""
+    public Task TestMethodWithNameOf()
+        => TestDiagnosticsAsync("""
             class C
             {
-                void M(int [|x|])
+                void M(int {|IDE0060:x|})
                 {
                     const string y = nameof(C);
                 }
             }
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
-    public async Task TestInterpolatedStringHandler_TwoIntParameters_FirstParameter()
-    {
-        await TestDiagnosticMissingAsync("""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+    public Task TestInterpolatedStringHandler_TwoIntParameters_FirstParameter()
+        => TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler(int [|literalLength|], int formattedCount)
+                public MyInterpolatedStringHandler(int literalLength, int formattedCount)
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
-    public async Task TestInterpolatedStringHandler_TwoIntParameters_SecondParameter()
-    {
-        await TestDiagnosticMissingAsync("""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+    public Task TestInterpolatedStringHandler_TwoIntParameters_SecondParameter()
+        => TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler(int literalLength, int [|formattedCount|])
+                public MyInterpolatedStringHandler(int literalLength, int formattedCount)
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
     [MemberData(nameof(NonIntTypes))]
-    public async Task TestInterpolatedStringHandler_TwoParameters_FirstNonIntParameter(string nonIntType)
-    {
-        await TestDiagnosticsAsync($$"""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+    public Task TestInterpolatedStringHandler_TwoParameters_FirstNonIntParameter(string nonIntType)
+        => TestDiagnosticsAsync($$"""
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler({{nonIntType}} [|literalLength|], int formattedCount)
+                public MyInterpolatedStringHandler({{nonIntType}} {|IDE0060:literalLength|}, int formattedCount)
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
     [MemberData(nameof(NonIntTypes))]
-    public async Task TestInterpolatedStringHandler_TwoParameters_SecondNonIntParameter(string nonIntType)
-    {
-        await TestDiagnosticsAsync($$"""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+    public Task TestInterpolatedStringHandler_TwoParameters_SecondNonIntParameter(string nonIntType)
+        => TestDiagnosticsAsync($$"""
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler(int literalLength, {{nonIntType}} [|formattedCount|])
+                public MyInterpolatedStringHandler(int literalLength, {{nonIntType}} {|IDE0060:formattedCount|})
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
-    public async Task TestInterpolatedStringHandler_OneIntParameter()
-    {
-        await TestDiagnosticMissingAsync("""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+    public Task TestInterpolatedStringHandler_OneIntParameter()
+        => TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler(int [|literalLength|])
+                public MyInterpolatedStringHandler(int literalLength)
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
     [MemberData(nameof(NonIntTypes))]
-    public async Task TestInterpolatedStringHandler_OneNonIntParameter(string nonIntType)
-    {
-        await TestDiagnosticsAsync($$"""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+    public Task TestInterpolatedStringHandler_OneNonIntParameter(string nonIntType)
+        => TestDiagnosticsAsync($$"""
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler({{nonIntType}} [|p|])
+                public MyInterpolatedStringHandler({{nonIntType}} {|IDE0060:p|})
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
-    }
+            """);
 
     public static IEnumerable<object[]> NonIntTypes()
     {

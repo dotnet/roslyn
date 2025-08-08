@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
@@ -43,7 +41,7 @@ internal interface ITaggerEventSource
 
     /// <summary>
     /// An event has happened on the thing the tagger is attached to.  The tagger should
-    /// recompute tags.
+    /// recompute tags. May be raised on any thread.
     /// </summary>
     event EventHandler<TaggerEventArgs> Changed;
 }

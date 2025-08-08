@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -163,13 +161,13 @@ internal static partial class IMethodSymbolExtensions
             method,
             containingType: method.ContainingType,
             explicitInterfaceImplementations: method.ExplicitInterfaceImplementations,
-            attributes: method.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
+            attributes: method.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg: arg),
             parameters: method.Parameters.SelectAsArray(static (p, arg) =>
                 CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    p.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
+                    p.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg: arg),
                     p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                     p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
-            returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg));
+            returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg: arg));
 
         static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] removeAttributeTypes, ISymbol accessibleWithin) arg)
             => arg.removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||

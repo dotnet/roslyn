@@ -10,13 +10,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed class NonLocalDocumentDiagnosticSource(TextDocument document, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+internal sealed class NonLocalDocumentDiagnosticSource(
+    TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
     : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
     private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
-
-    public override bool IsLiveSource()
-        => true;
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         RequestContext context,
@@ -25,9 +23,9 @@ internal sealed class NonLocalDocumentDiagnosticSource(TextDocument document, ID
         // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of non-local diagnostics for this
         // document including those reported as a compilation end diagnostic.  These are not included in document pull
         // (uses GetDiagnosticsForSpan) due to cost.
-        var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-            Document.Project.Solution, Document.Project.Id, Document.Id,
-            diagnosticIds: null, _shouldIncludeAnalyzer,
+        var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var diagnostics = await service.GetDiagnosticsForIdsAsync(
+            Document.Project, Document.Id, diagnosticIds: null, _shouldIncludeAnalyzer,
             includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
         // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning

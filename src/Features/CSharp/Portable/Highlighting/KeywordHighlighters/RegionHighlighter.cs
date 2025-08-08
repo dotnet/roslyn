@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class RegionHighlighter : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
+internal sealed class RegionHighlighter : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

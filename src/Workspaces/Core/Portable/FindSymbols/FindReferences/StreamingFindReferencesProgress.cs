@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +58,7 @@ internal sealed class StreamingFindReferencesProgressAdapter : IStreamingFindRef
         foreach (var (_, symbol, location) in references)
             _progress.OnReferenceFound(symbol, location);
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask OnStartedAsync(CancellationToken cancellationToken)

@@ -18,17 +18,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 using static ImplementHelpers;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     private sealed partial class ImplementInterfaceGenerator
     {
@@ -50,7 +44,7 @@ internal abstract partial class AbstractImplementInterfaceService
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var disposedValueField = await CreateDisposedValueFieldAsync(
-                document, this.Service.SyntaxFormatting, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
+                document, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
 
             var disposeMethod = TryGetIDisposableDispose(compilation)!;
             var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, disposeMethod, disposedValueField);
@@ -232,14 +226,13 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private static async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
             Document document,
-            ISyntaxFormatting syntaxFormatting,
             INamedTypeSymbol containingType,
             CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
                 SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
 
-            var options = await document.GetSyntaxFormattingOptionsAsync(syntaxFormatting, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
             var accessibilityLevel = options.AccessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault

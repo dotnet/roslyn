@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public sealed class XmlDocumentationProviderTests
 {
-    public class XmlDocumentationProviderTests
+    [Fact]
+    public void XmlDocumentationProviderReturnsEntireMemberNode()
     {
-        [Fact]
-        public void XmlDocumentationProviderReturnsEntireMemberNode()
-        {
-            var roslynCompilersLocation = typeof(Compilation).Assembly.Location;
-            var roslynCompilersXmlFilePath = Path.ChangeExtension(roslynCompilersLocation, ".xml");
-            var documentationProvider = XmlDocumentationProvider.CreateFromBytes(Encoding.UTF8.GetBytes("""
+        var roslynCompilersLocation = typeof(Compilation).Assembly.Location;
+        var roslynCompilersXmlFilePath = Path.ChangeExtension(roslynCompilersLocation, ".xml");
+        var documentationProvider = XmlDocumentationProvider.CreateFromBytes(Encoding.UTF8.GetBytes("""
 <?xml version="1.0"?>
 <doc>
     <assembly>
@@ -33,16 +33,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
     </members>
 </doc>
 """));
-            var portableExecutableReference = MetadataReference.CreateFromFile(roslynCompilersLocation, documentation: documentationProvider);
+        var portableExecutableReference = MetadataReference.CreateFromFile(roslynCompilersLocation, documentation: documentationProvider);
 
-            var compilation = CSharpCompilation.Create(nameof(XmlDocumentationProviderReturnsEntireMemberNode), references: [portableExecutableReference]);
+        var compilation = CSharpCompilation.Create(nameof(XmlDocumentationProviderReturnsEntireMemberNode), references: [portableExecutableReference]);
 
-            // Verify we can parse it and it contains a single node
-            var xml = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.AdditionalTextFile")!.GetDocumentationCommentXml();
-            AssertEx.NotNull(xml);
-            var xmlDocument = XDocument.Parse(xml);
-            Assert.Equal("member", xmlDocument.Root!.Name.LocalName);
-            Assert.Equal("T:Microsoft.CodeAnalysis.AdditionalTextFile", xmlDocument.Root!.Attribute("name")!.Value);
-        }
+        // Verify we can parse it and it contains a single node
+        var xml = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.AdditionalTextFile")!.GetDocumentationCommentXml();
+        AssertEx.NotNull(xml);
+        var xmlDocument = XDocument.Parse(xml);
+        Assert.Equal("member", xmlDocument.Root!.Name.LocalName);
+        Assert.Equal("T:Microsoft.CodeAnalysis.AdditionalTextFile", xmlDocument.Root!.Attribute("name")!.Value);
     }
 }

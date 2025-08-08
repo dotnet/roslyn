@@ -10,62 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Collections</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+KeyCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+PrivateMarshal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+Builder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+PrivateMarshal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+ValueBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedListExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+Builder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+PrivateMarshal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+ValueBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\ArraySortHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\BitHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\HashHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionCalls.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionCalls`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionDebugView`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\IDictionaryCalls.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\IDictionaryDebugView`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\IEnumerableCalls.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\IEnumerableCalls`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\IListCalls.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\InsertionBehavior.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\RoslynUnsafe.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedArrayHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedArraySegment`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedHashSetEqualityComparer`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\ThrowHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RoslynEnumerable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1+PrivateMarshal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedCollectionsMarshal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2+PrivateMarshal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedHashSet`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SegmentedList`1.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" ManifestResourceName="Microsoft.CodeAnalysis.Internal.Strings" />
+    <Compile Include="$(MSBuildThisFileDirectory)**/*.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

@@ -2,7 +2,7 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(NetRoslyn);netstandard2.0</TargetFrameworks>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
     <GenerateDependencyFile>false</GenerateDependencyFile>
@@ -20,19 +20,12 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- ⚠ Consuming projects will be required to manually reproduce the APIs for any linked files added here -->
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="External\NullableAttributes.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="External\ExceptionUtilities.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="External\FatalError.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="External\InterpolatedStringHandlerArgumentAttribute.cs"/>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="External\InterpolatedStringHandlerAttribute.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="External\Contract.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.InterpolatedStringHandlers.cs" Link="External\Contract.InterpolatedStringHandlers.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Threading.Channels" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
   <Import Project="..\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
   <Import Project="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

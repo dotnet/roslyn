@@ -11,22 +11,21 @@ internal enum ModuleUpdateStatus
 {
     /// <summary>
     /// No change made.
+    /// Pending solution update is not created.
+    /// Committed solution snapshot is advanced.
     /// </summary>
     None = 0,
 
     /// <summary>
-    /// All changes are valid, can be applied.
+    /// Changes can be applied (project might need rebuild in presence of transient errors).
+    /// A pending solution update is created and has to be committed (commited solution snapshot is advanced at that point) or discarded.
     /// </summary>
     Ready = 1,
 
     /// <summary>
-    /// Changes require restarting the application in order to be applied.
-    /// </summary>
-    RestartRequired = 2,
-
-    /// <summary>
     /// Some changes are errors that block rebuild of the module.
     /// This means that the code is in a broken state that cannot be resolved by restarting the application.
+    /// Pending solution update is not created.
     /// </summary>
-    Blocked = 3
+    Blocked = 2
 }

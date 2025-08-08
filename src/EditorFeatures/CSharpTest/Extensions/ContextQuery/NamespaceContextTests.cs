@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class NamespaceContextTests : AbstractContextTests
+public sealed class NamespaceContextTests : AbstractContextTests
 {
     protected override void CheckResult(bool validLocation, int position, SyntaxTree syntaxTree)
         => Assert.Equal(validLocation, syntaxTree.IsNamespaceContext(position, CancellationToken.None));
@@ -27,13 +27,11 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void InactiveRegion()
-    {
-        VerifyFalse("""
+        => VerifyFalse("""
             #if false 
             $$
             #endif
             """);
-    }
 
     [Fact]
     public void SingleLineComment1()
@@ -41,13 +39,11 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void SingleLineComment2()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class C { 
             //
             $$
             """);
-    }
 
     [Fact]
     public void MultiLineComment()
@@ -79,12 +75,10 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void TypeAttribute()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             [$$]
             class CL {}
             """);
-    }
 
     [Fact]
     public void TypeParamAttribute()
@@ -92,34 +86,28 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void MethodAttribute()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 [$$]
                 void Method() {}
             }
             """);
-    }
 
     [Fact]
     public void MethodTypeParamAttribute()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL{
                 void Method<[A$$]T> () {}
             }
             """);
-    }
 
     [Fact]
     public void MethodParamAttribute()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL{
                 void Method ([$$]int i) {}
             }
             """);
-    }
 
     [Fact]
     public void NamespaceName()
@@ -131,13 +119,11 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void OutsideOfType()
-    {
-        VerifyFalse("""
+        => VerifyFalse("""
             namespace NS {
             class CL {}
             $$
             """);
-    }
 
     [Fact]
     public void AfterDot()
@@ -153,21 +139,17 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void IncompleteMember()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$
             """);
-    }
 
     [Fact]
     public void IncompleteMemberAccessibility()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 public $$
             """);
-    }
 
     [Fact]
     public void BadStatement()
@@ -227,129 +209,101 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void FieldDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ i
             """);
-    }
 
     [Fact]
     public void EventFieldDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 event $$
             """);
-    }
 
     [Fact]
     public void ConversionOperatorDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 explicit operator $$
             """);
-    }
 
     [Fact]
     public void ConversionOperatorDeclarationNoToken()
-    {
-        VerifyFalse("""
+        => VerifyFalse("""
             class CL {
                 explicit $$
             """);
-    }
 
     [Fact]
     public void PropertyDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ Prop {
             """);
-    }
 
     [Fact]
     public void EventDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 event $$ Event {
             """);
-    }
 
     [Fact]
     public void IndexerDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ this
             """);
-    }
 
     [Fact]
     public void Parameter()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 void Method($$
             """);
-    }
 
     [Fact]
     public void ArrayType()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ [
             """);
-    }
 
     [Fact]
     public void PointerType()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ *
             """);
-    }
 
     [Fact]
     public void NullableType()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ ?
             """);
-    }
 
     [Fact]
     public void DelegateDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 delegate $$
             """);
-    }
 
     [Fact]
     public void MethodDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ M(
             """);
-    }
 
     [Fact]
     public void OperatorDeclaration()
-    {
-        VerifyTrue("""
+        => VerifyTrue("""
             class CL {
                 $$ operator
             """);
-    }
 
     [Fact]
     public void ParenthesizedExpression()
@@ -513,13 +467,11 @@ public class NamespaceContextTests : AbstractContextTests
 
     [Fact]
     public void SwitchLabelCase()
-    {
-        VerifyTrue(AddInsideMethod("""
+        => VerifyTrue(AddInsideMethod("""
             switch(i)
                 {
                     case $$
             """));
-    }
 
     [Fact]
     public void InitializerExpression()

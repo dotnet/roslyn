@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSaveRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class TextDocumentSaveRegistrationOptions : TextDocumentRegistrationOptions
+internal sealed class TextDocumentSaveRegistrationOptions : TextDocumentRegistrationOptions
 {
     /// <summary>
     /// The client is supposed to include the content on save.

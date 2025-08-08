@@ -19,11 +19,10 @@ using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
+internal sealed partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 {
     public sealed class Tagger : IAccurateTagger<IClassificationTag>, IDisposable
     {

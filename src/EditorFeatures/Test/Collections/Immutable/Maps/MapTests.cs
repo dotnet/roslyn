@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps;
 
-public class MapTests
+public sealed class MapTests
 {
     [Fact]
     public void TestEnumerator()
@@ -82,7 +82,9 @@ public class MapTests
     [Fact]
     public void TestPathology()
     {
-        var map = ImmutableDictionary.Create<string, int>(new PathologicalComparer<string>())
+        var comparer = EqualityComparer<string>.Create(EqualityComparer<string>.Default.Equals, _ => 0);
+
+        var map = ImmutableDictionary.Create<string, int>(comparer)
             .Add("1", 1)
             .Add("2", 2)
             .Add("3", 3)
@@ -117,14 +119,5 @@ public class MapTests
 
         map = map.Remove("5");
         Assert.Empty(map);
-    }
-
-    private class PathologicalComparer<T> : IEqualityComparer<T>
-    {
-        public bool Equals(T x, T y)
-            => EqualityComparer<T>.Default.Equals(x, y);
-
-        public int GetHashCode(T obj)
-            => 0;
     }
 }

@@ -70,6 +70,12 @@ internal enum EditAndContinueCapabilities
     /// The runtime supports adding to InterfaceImpl table.
     /// </summary>
     AddExplicitInterfaceImplementation = 1 << 10,
+
+    /// <summary>
+    /// The runtime supports adding FieldRva table entry. This allows compiler to emit better code for certain features including
+    /// array initializers, collection expressions, UTF8 string literals and data section string literals.
+    /// </summary>
+    AddFieldRva = 1 << 11,
 }
 
 internal static class EditAndContinueCapabilitiesParser
@@ -93,6 +99,7 @@ internal static class EditAndContinueCapabilitiesParser
                 nameof(EditAndContinueCapabilities.GenericUpdateMethod) => EditAndContinueCapabilities.GenericUpdateMethod,
                 nameof(EditAndContinueCapabilities.GenericAddFieldToExistingType) => EditAndContinueCapabilities.GenericAddFieldToExistingType,
                 nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation) => EditAndContinueCapabilities.AddExplicitInterfaceImplementation,
+                nameof(EditAndContinueCapabilities.AddFieldRva) => EditAndContinueCapabilities.AddFieldRva,
 
                 // To make it eaiser for  runtimes to specify more broad capabilities
                 "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
@@ -131,6 +138,9 @@ internal static class EditAndContinueCapabilitiesParser
 
         if (capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
             builder.Add(nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
+
+        if (capabilities.HasFlag(EditAndContinueCapabilities.AddFieldRva))
+            builder.Add(nameof(EditAndContinueCapabilities.AddFieldRva));
 
         return builder.ToImmutableAndClear();
     }

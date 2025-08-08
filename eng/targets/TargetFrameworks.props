@@ -15,7 +15,7 @@
     <NetRoslyn>net9.0</NetRoslyn>
     <NetRoslynAll>net8.0;net9.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
-    <NetVSCode>net8.0</NetVSCode>
+    <NetVSCode>net9.0</NetVSCode>
     <NetVSShared>net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
     <NetRoslynNext>net9.0</NetRoslynNext>
@@ -35,7 +35,7 @@
         bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
         the toolset must support that.
     -->
-    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' != 'true'">
+    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildFromVMR)' != 'true'">
       <PropertyGroup>
         <!-- TODO until we figure out what is up with NetPrevious -->
         <NetPrevious>$(NetMinimum)</NetPrevious>
@@ -50,7 +50,7 @@
     <!--
       2. Source build the product: this is the all up build of the product which needs only NetCurrent
     -->
-    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' == 'true'">
+    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildFromVMR)' == 'true'">
       <PropertyGroup>
         <NetRoslyn>$(NetCurrent)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>

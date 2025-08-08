@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     //String and character literals can contain any Unicode character. They are not limited
                     //to valid UTF-16 characters. So if we get the SlidingTextWindow's sentinel value,
                     //double check that it was not real user-code contents. This will be rare.
-                    Debug.Assert(TextWindow.Width > 0);
+                    Debug.Assert(this.CurrentLexemeWidth > 0);
                     this.AddError(ErrorCode.ERR_NewlineInConst);
                     break;
                 }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (quoteCharacter == '\'')
             {
-                info.Text = TextWindow.GetText(intern: true);
+                info.Text = this.GetInternedLexemeText();
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
                 {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.Kind = SyntaxKind.StringLiteralToken;
                 }
 
-                info.Text = TextWindow.GetText(intern: true);
+                info.Text = this.GetInternedLexemeText();
 
                 if (_builder.Length > 0)
                 {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 info.Kind = SyntaxKind.StringLiteralToken;
             }
 
-            info.Text = TextWindow.GetText(intern: false);
+            info.Text = this.GetNonInternedLexemeText();
             info.StringValue = _builder.ToString();
         }
 
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             subScanner.ScanInterpolatedStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
-            info.Text = TextWindow.GetText(intern: false);
+            info.Text = this.GetNonInternedLexemeText();
         }
 
         /// <summary>
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 out int startingQuoteCount)
             {
                 // Handles reading the start of the interpolated string literal (up to where the content begins)
-                var window = _lexer.TextWindow;
+                ref var window = ref _lexer.TextWindow;
                 var start = window.Position;
 
                 if ((window.PeekChar(0), window.PeekChar(1), window.PeekChar(2)) is ('$', '@', '"') or ('@', '$', '"'))

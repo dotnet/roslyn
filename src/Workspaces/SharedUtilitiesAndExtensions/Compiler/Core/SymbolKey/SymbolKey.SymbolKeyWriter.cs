@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -290,12 +289,10 @@ internal partial struct SymbolKey
         // annotating WriteStringArray and WriteLocationArray as allowing null elements
         // then causes issues where we can't pass ImmutableArrays of non-null elements
 
-#nullable disable
-
-        internal void WriteStringArray(ImmutableArray<string> strings)
+        internal void WriteStringArray(ImmutableArray<string?> strings)
             => WriteArray(strings, _writeString);
 
-        internal void WriteLocationArray(ImmutableArray<Location> array)
+        internal void WriteLocationArray(ImmutableArray<Location?> array)
             => WriteArray(array, _writeLocation);
 
 #nullable enable

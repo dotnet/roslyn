@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 [Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
+internal sealed class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
 {
     private static readonly string s_hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
 
-    public record TelemetryInfo
+    public sealed record TelemetryInfo
     {
         public ImmutableArray<CommandLineReference> MetadataReferences { get; init; }
         public OutputKind OutputKind { get; init; }
@@ -103,8 +103,7 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
         var sourceFiles = projectFileInfo.Documents
             .Concat(projectFileInfo.AdditionalDocuments)
             .Concat(projectFileInfo.AnalyzerConfigDocuments)
-            .Where(d => !d.IsGenerated)
-            .SelectAsArray(d => d.FilePath);
+            .SelectAsArray(d => !d.IsGenerated, d => d.FilePath);
         var allFiles = contentFiles.Concat(sourceFiles);
         var fileCounts = new Dictionary<string, int>();
         foreach (var file in allFiles)

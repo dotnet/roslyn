@@ -14,6 +14,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
@@ -2603,6 +2604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
+            options As EmitDifferenceOptions,
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2614,6 +2616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken)
         End Function

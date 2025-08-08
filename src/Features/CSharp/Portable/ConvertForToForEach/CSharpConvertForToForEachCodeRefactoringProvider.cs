@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach;
 using static CSharpSyntaxTokens;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForToForEach), Shared]
-internal class CSharpConvertForToForEachCodeRefactoringProvider :
+internal sealed class CSharpConvertForToForEachCodeRefactoringProvider :
     AbstractConvertForToForEachCodeRefactoringProvider<
         StatementSyntax,
         ForStatementSyntax,

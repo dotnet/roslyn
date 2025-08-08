@@ -14,7 +14,7 @@ using System.Linq;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider(ILspServices lspServices, AbstractTypeRefResolver typeRefResolver) : AbstractHandlerProvider
+internal sealed class HandlerProvider(ILspServices lspServices, AbstractTypeRefResolver typeRefResolver) : AbstractHandlerProvider
 {
     private readonly ILspServices _lspServices = lspServices;
     private readonly AbstractTypeRefResolver _typeRefResolver = typeRefResolver;
@@ -134,5 +134,5 @@ internal class HandlerProvider(ILspServices lspServices, AbstractTypeRefResolver
         }
     }
 
-    private static readonly IReadOnlyList<string> RequiredMethods = new List<string> { "initialize", "initialized", "shutdown", "exit" };
+    private static readonly IReadOnlyList<string> RequiredMethods = ["initialize", "initialized", "shutdown", "exit"];
 }

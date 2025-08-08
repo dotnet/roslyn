@@ -8,14 +8,13 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
+namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
+
+[Guid(Guids.RoslynOptionPagePerformanceFunctionIdIdString)]
+internal sealed class PerformanceFunctionIdPage : AbstractOptionPage
 {
-    [Guid(Guids.RoslynOptionPagePerformanceFunctionIdIdString)]
-    internal class PerformanceFunctionIdPage : AbstractOptionPage
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-        {
-            return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
-        }
+        return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
     }
 }

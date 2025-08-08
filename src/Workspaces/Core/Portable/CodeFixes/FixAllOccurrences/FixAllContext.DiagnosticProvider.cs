@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -79,7 +79,7 @@ public partial class FixAllContext
                     {
                         case FixAllScope.Project:
                             var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
-                            return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(project, diagnostics)]);
+                            return ImmutableDictionary.CreateRange([KeyValuePair.Create(project, diagnostics)]);
 
                         case FixAllScope.Solution:
                             return await ProducerConsumer<(Project project, ImmutableArray<Diagnostic> diagnostics)>.RunParallelAsync(
@@ -93,7 +93,7 @@ public partial class FixAllContext
                                 {
                                     var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
 
-                                    await foreach (var (project, diagnostics) in results)
+                                    await foreach (var (project, diagnostics) in results.ConfigureAwait(false))
                                     {
                                         if (diagnostics.Any())
                                             projectsAndDiagnostics.Add(project, diagnostics);

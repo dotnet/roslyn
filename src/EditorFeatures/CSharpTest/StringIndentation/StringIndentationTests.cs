@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.StringIndentation)]
-public class StringIndentationTests
+public sealed class StringIndentationTests
 {
     private static async Task TestAsync(string contents)
     {
@@ -69,259 +69,258 @@ public class StringIndentationTests
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
-    public async Task TestLiteralError1(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        // not enough lines in literal
-        var v = """"""
-                """"""{suffix};
-    }}
-}}");
-    }
+    public Task TestLiteralError1(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    // not enough lines in literal
+                    var v = """
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
-    public async Task TestLiteralError2(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        // invalid literal
-        var v = """"""
-            text too early
-                """"""{suffix};
-    }}
-}}");
-    }
+    public Task TestLiteralError2(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    // invalid literal
+                    var v = """
+                        text too early
+                            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
-    public async Task TestZeroColumn1(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-goo
-""""""{suffix};
-    }}
-}}");
-    }
+    public Task TestZeroColumn1(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+            goo
+            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
-    public async Task TestZeroColumn2(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-    goo
-""""""{suffix};
-    }}
-}}");
-    }
+    public Task TestZeroColumn2(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                goo
+            """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
-    public async Task TestOneColumn1(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-|goo
- """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestOneColumn2(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-|   goo
- """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestCase1(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-                """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestCase2(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-               |bar
-                """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestCase3(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-               |bar
-               |baz
-                """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestCase4(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-               |goo
-               |
-               |baz
-                """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestCase5(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v = """"""
-           |    goo
-           |
-           |    baz
-            """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestCase6(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-            $""""""
-           |goo
-            """"""{suffix};
-    }}
-}}");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("u8")]
-    public async Task TestCase7(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-            $""""""
+    public Task TestOneColumn1(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
             |goo
-             """"""{suffix};
-    }}
-}}");
-    }
+             """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
-    public async Task TestCase8(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-            $""""""""
-            |goo
-             """"""""{suffix};
-    }}
-}}");
-    }
+    public Task TestOneColumn2(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+            |   goo
+             """{{suffix}};
+                }
+            }
+            """");
 
     [Theory]
     [InlineData("")]
     [InlineData("u8")]
-    public async Task TestCase9(string suffix)
-    {
-        await TestAsync($@"class C
-{{
-    void M()
-    {{
-        var v =
-             """"""""
-            |goo
-             """"""""{suffix};
-    }}
-}}");
-    }
+    public Task TestCase1(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                            """{{suffix}};
+                }
+            }
+            """");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase2(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                           |bar
+                            """{{suffix}};
+                }
+            }
+            """");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase3(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                           |bar
+                           |baz
+                            """{{suffix}};
+                }
+            }
+            """");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase4(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                           |goo
+                           |
+                           |baz
+                            """{{suffix}};
+                }
+            }
+            """");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase5(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v = """
+                       |    goo
+                       |
+                       |    baz
+                        """{{suffix}};
+                }
+            }
+            """");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase6(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                        $"""
+                       |goo
+                        """{{suffix}};
+                }
+            }
+            """");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase7(string suffix)
+        => TestAsync($$""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                        $"""
+                        |goo
+                         """{{suffix}};
+                }
+            }
+            """");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase8(string suffix)
+        => TestAsync($$"""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                        $""""
+                        |goo
+                         """"{{suffix}};
+                }
+            }
+            """"");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("u8")]
+    public Task TestCase9(string suffix)
+        => TestAsync($$"""""
+            class C
+            {
+                void M()
+                {
+                    var v =
+                         """"
+                        |goo
+                         """"{{suffix}};
+                }
+            }
+            """"");
 
     [Fact]
-    public async Task TestCase10()
-    {
-        await TestAsync("""""
+    public Task TestCase10()
+        => TestAsync("""""
             class C
             {
                 void M()
@@ -333,12 +332,10 @@ goo
                 }
             }
             """"");
-    }
 
     [Fact]
-    public async Task TestCase11()
-    {
-        await TestAsync("""""
+    public Task TestCase11()
+        => TestAsync("""""
             class C
             {
                 void M()
@@ -350,12 +347,10 @@ goo
                 }
             }
             """"");
-    }
 
     [Fact]
-    public async Task TestCase12()
-    {
-        await TestAsync("""""
+    public Task TestCase12()
+        => TestAsync("""""
             class C
             {
                 void M()
@@ -367,12 +362,10 @@ goo
                 }
             }
             """"");
-    }
 
     [Fact]
-    public async Task TestWithHoles1()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles1()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -385,12 +378,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles2()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles2()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -403,12 +394,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles3()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles3()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -421,12 +410,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles4()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles4()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -439,12 +426,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles5()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles5()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -458,12 +443,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles6()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles6()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -477,12 +460,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles7()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles7()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -496,12 +477,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles8()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles8()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -513,12 +492,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles9()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles9()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -532,12 +509,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithHoles10()
-    {
-        await TestAsync(""""
+    public Task TestWithHoles10()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -551,12 +526,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithNestedHoles1()
-    {
-        await TestAsync(""""
+    public Task TestWithNestedHoles1()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -574,12 +547,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithNestedHoles2()
-    {
-        await TestAsync(""""
+    public Task TestWithNestedHoles2()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -600,12 +571,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithNestedHoles3()
-    {
-        await TestAsync(""""
+    public Task TestWithNestedHoles3()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -626,12 +595,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithNestedHoles4()
-    {
-        await TestAsync(""""
+    public Task TestWithNestedHoles4()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -652,12 +619,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithNestedHoles5()
-    {
-        await TestAsync(""""
+    public Task TestWithNestedHoles5()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -675,12 +640,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithNestedHoles6()
-    {
-        await TestAsync(""""
+    public Task TestWithNestedHoles6()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -701,12 +664,10 @@ goo
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithNestedHoles7()
-    {
-        await TestAsync(""""
+    public Task TestWithNestedHoles7()
+        => TestAsync(""""
             class C
             {
                 void M()
@@ -727,7 +688,6 @@ goo
                 }
             }
             """");
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1542623")]
     public async Task TestWithManyConcatenatedStrings()

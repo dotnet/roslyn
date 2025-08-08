@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class ImmutableDictionaryExtensionsTests
+public sealed class ImmutableDictionaryExtensionsTests
 {
     [Fact]
     public void KeysEqual()

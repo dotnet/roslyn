@@ -6,12 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -96,21 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Return False
-        End Function
-
-        Protected Overrides Function GetVariableUseSites(roots As IEnumerable(Of SyntaxNode), localOrParameter As ISymbol, model As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
-            Debug.Assert(TypeOf localOrParameter Is IParameterSymbol OrElse TypeOf localOrParameter Is ILocalSymbol OrElse TypeOf localOrParameter Is IRangeVariableSymbol)
-
-            ' Not supported (it's non trivial to find all places where "this" is used):
-            Debug.Assert(Not localOrParameter.IsThisParameter())
-
-            Return From root In roots
-                   From node In root.DescendantNodesAndSelf()
-                   Where node.IsKind(SyntaxKind.IdentifierName)
-                   Let identifier = DirectCast(node, IdentifierNameSyntax)
-                   Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
-                         If(model.GetSymbolInfo(identifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
-                   Select node
         End Function
 
         Friend Shared Function FindStatementAndPartner(
@@ -479,7 +463,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return False
                     End If
 
+                    ' Const field initializers do not contribute to constructors
                     Dim declarator = DirectCast(declaration.Parent, VariableDeclaratorSyntax)
+                    If declarator.Parent.IsKind(SyntaxKind.FieldDeclaration) AndAlso
+                        DirectCast(declarator.Parent, FieldDeclarationSyntax).Modifiers.Any(SyntaxKind.ConstKeyword) Then
+                        Return False
+                    End If
 
                     Dim identifier = DirectCast(declaration, ModifiedIdentifierSyntax)
                     Return identifier.ArrayBounds IsNot Nothing OrElse
@@ -693,15 +682,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             editKind As EditKind,
             oldNode As SyntaxNode,
             newNode As SyntaxNode,
-            oldModel As SemanticModel,
-            newModel As SemanticModel,
+            oldModel As DocumentSemanticModel,
+            newModel As DocumentSemanticModel,
             cancellationToken As CancellationToken) As OneOrMany(Of (oldSymbol As ISymbol, newSymbol As ISymbol))
 
             Dim oldSymbols = OneOrMany(Of ISymbol).Empty
             Dim newSymbols = OneOrMany(Of ISymbol).Empty
 
-            If oldNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
-               newNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
+            If oldNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel.RequiredModel, oldSymbols, cancellationToken) OrElse
+               newNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel.RequiredModel, newSymbols, cancellationToken) Then
                 Return OneOrMany(Of (ISymbol, ISymbol)).Empty
             End If
 
@@ -736,8 +725,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             oldSymbol As ISymbol,
             newNode As SyntaxNode,
             newSymbol As ISymbol,
-            oldModel As SemanticModel,
-            newModel As SemanticModel,
+            oldModel As DocumentSemanticModel,
+            newModel As DocumentSemanticModel,
             topMatch As Match(Of SyntaxNode),
             editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind),
             symbolCache As SymbolInfoCache,
@@ -751,10 +740,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                newNode.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso newNode.IsParentKind(SyntaxKind.Parameter) Then
 
                 ' parameter list, member, Or type declaration
-                Dim oldContainingMemberOrType = GetParameterContainingMemberOrType(oldNode, newNode, oldModel, topMatch.ReverseMatches, cancellationToken)
-                Dim newContainingMemberOrType = GetParameterContainingMemberOrType(newNode, oldNode, newModel, topMatch.Matches, cancellationToken)
+                Dim oldContainingMemberOrType = GetParameterContainingMemberOrType(oldNode, newNode, oldModel.RequiredModel, topMatch.ReverseMatches, cancellationToken)
+                Dim newContainingMemberOrType = GetParameterContainingMemberOrType(newNode, oldNode, newModel.RequiredModel, topMatch.Matches, cancellationToken)
 
-                Dim matchingNewContainingMemberOrType = GetSemanticallyMatchingNewSymbol(oldContainingMemberOrType, newContainingMemberOrType, newModel, symbolCache, cancellationToken)
+                Dim matchingNewContainingMemberOrType = GetSemanticallyMatchingNewSymbol(oldContainingMemberOrType, newContainingMemberOrType, newModel.Compilation, symbolCache, cancellationToken)
 
                 ' Any change to a constraint should be analyzed as an update of the type parameter
                 Dim isTypeConstraint = TypeOf oldNode Is TypeParameterConstraintClauseSyntax OrElse
@@ -957,6 +946,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides ReadOnly Property IsNotLambda As Func(Of SyntaxNode, Boolean)
             Get
                 Return AddressOf LambdaUtilities.IsNotLambda
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property DescendantTokensIgnoringLambdaBodies As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))
+            Get
+                Return AddressOf LambdaUtilities.DescendantTokensIgnoringLambdaBodies
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property AreTokensEquivalent As Func(Of SyntaxToken, SyntaxToken, Boolean)
+            Get
+                Return AddressOf SyntaxFactory.AreEquivalent
             End Get
         End Property
 
@@ -1688,7 +1689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private Structure EditClassifier
 
             Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
-            Private ReadOnly _diagnostics As ArrayBuilder(Of RudeEditDiagnostic)
+            Private ReadOnly _diagnostics As RudeEditDiagnosticsBuilder
             Private ReadOnly _match As Match(Of SyntaxNode)
             Private ReadOnly _oldNode As SyntaxNode
             Private ReadOnly _newNode As SyntaxNode
@@ -1696,7 +1697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private ReadOnly _span As TextSpan?
 
             Public Sub New(analyzer As VisualBasicEditAndContinueAnalyzer,
-                           diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+                           diagnostics As RudeEditDiagnosticsBuilder,
                            oldNode As SyntaxNode,
                            newNode As SyntaxNode,
                            kind As EditKind,
@@ -1888,7 +1889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Structure
 
         Friend Overrides Sub ReportTopLevelSyntacticRudeEdits(
-            diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+            diagnostics As RudeEditDiagnosticsBuilder,
             match As Match(Of SyntaxNode),
             edit As Edit(Of SyntaxNode),
             editMap As Dictionary(Of SyntaxNode, EditKind))
@@ -1965,7 +1966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Function)
         End Function
 
-        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newSymbol As ISymbol, newNode As SyntaxNode, insertingIntoExistingContainingType As Boolean)
+        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As RudeEditDiagnosticsBuilder, newSymbol As ISymbol, newNode As SyntaxNode, insertingIntoExistingContainingType As Boolean)
             Dim kind = GetInsertedMemberSymbolRudeEditKind(newSymbol, insertingIntoExistingContainingType)
 
             If kind <> RudeEditKind.None Then
@@ -2076,7 +2077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return result
         End Function
 
-        Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As RudeEditDiagnosticsBuilder,
                                                                        exceptionHandlingEdits As IEnumerable(Of Edit(Of SyntaxNode)),
                                                                        oldStatement As SyntaxNode,
                                                                        newStatementSpan As TextSpan)
@@ -2268,14 +2269,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Rude Edits around Active Statement"
 
-        Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As RudeEditDiagnosticsBuilder,
                                                                        forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        oldBody As DeclarationBody,
-                                                                       oldModel As SemanticModel,
+                                                                       oldModel As DocumentSemanticModel,
                                                                        newActiveStatement As SyntaxNode,
                                                                        newBody As DeclarationBody,
-                                                                       newModel As SemanticModel,
+                                                                       newModel As DocumentSemanticModel,
                                                                        isNonLeaf As Boolean,
                                                                        cancellationToken As CancellationToken)
 
@@ -2306,14 +2307,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Nothing
         End Function
 
-        Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+        Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As RudeEditDiagnosticsBuilder,
                                                                             forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
                                                                             oldEncompassingAncestor As SyntaxNode,
-                                                                            oldModel As SemanticModel,
+                                                                            oldModel As DocumentSemanticModel,
                                                                             newActiveStatement As SyntaxNode,
                                                                             newEncompassingAncestor As SyntaxNode,
-                                                                            newModel As SemanticModel,
+                                                                            newModel As DocumentSemanticModel,
                                                                             cancellationToken As CancellationToken)
 
             ' Rude Edits for Using/SyncLock/With/ForEach statements that are added/updated around an active statement.
@@ -2356,5 +2357,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Sub
 
 #End Region
+
+        Protected Overrides Iterator Function GetParseOptionsRudeEdits(oldOptions As ParseOptions, newOptions As ParseOptions) As IEnumerable(Of Diagnostic)
+            For Each rudeEdit In MyBase.GetParseOptionsRudeEdits(oldOptions, newOptions)
+                Yield rudeEdit
+            Next
+
+            Dim oldVBOptions = DirectCast(oldOptions, VisualBasicParseOptions)
+            Dim newVBOptions = DirectCast(newOptions, VisualBasicParseOptions)
+
+            If oldVBOptions.LanguageVersion <> newVBOptions.LanguageVersion Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.LangVersion,
+                                            oldVBOptions.SpecifiedLanguageVersion.ToDisplayString(),
+                                            newVBOptions.SpecifiedLanguageVersion.ToDisplayString())
+            End If
+
+            If Not oldVBOptions.PreprocessorSymbols.SequenceEqual(newVBOptions.PreprocessorSymbols) Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.DefineConstants,
+                                            GetPreprocessorSymbolsDisplay(oldVBOptions.PreprocessorSymbols),
+                                            GetPreprocessorSymbolsDisplay(newVBOptions.PreprocessorSymbols))
+            End If
+        End Function
+
+        Private Shared Function GetPreprocessorSymbolsDisplay(symbols As ImmutableArray(Of KeyValuePair(Of String, Object))) As String
+            Return String.Join(",", symbols.Select(Function(kvp) kvp.Key & "=" & kvp.Value.ToString()))
+        End Function
+
+        Protected Overrides Iterator Function GetCompilationOptionsRudeEdits(oldOptions As CompilationOptions, newOptions As CompilationOptions) As IEnumerable(Of Diagnostic)
+            For Each rudeEdit In MyBase.GetCompilationOptionsRudeEdits(oldOptions, newOptions)
+                Yield rudeEdit
+            Next
+
+            Dim oldVBOptions = DirectCast(oldOptions, VisualBasicCompilationOptions)
+            Dim newVBOptions = DirectCast(newOptions, VisualBasicCompilationOptions)
+
+            If oldVBOptions.RootNamespace <> newVBOptions.RootNamespace Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.RootNamespace, oldVBOptions.RootNamespace, newVBOptions.RootNamespace)
+            End If
+
+            If oldVBOptions.OptionStrict <> newVBOptions.OptionStrict Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionStrict, oldVBOptions.OptionStrict.ToString(), newVBOptions.OptionStrict.ToString())
+            End If
+
+            If oldVBOptions.OptionInfer <> newVBOptions.OptionInfer Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionInfer, GetOptionDisplay(oldVBOptions.OptionInfer), GetOptionDisplay(newVBOptions.OptionInfer))
+            End If
+
+            If oldVBOptions.OptionExplicit <> newVBOptions.OptionExplicit Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionExplicit, GetOptionDisplay(oldVBOptions.OptionExplicit), GetOptionDisplay(newVBOptions.OptionExplicit))
+            End If
+
+            If oldVBOptions.OptionCompareText <> newVBOptions.OptionCompareText Then
+                Yield CreateProjectRudeEdit(ProjectSettingKind.OptionCompare, GetOptionCompareTextDisplay(oldVBOptions.OptionCompareText), GetOptionCompareTextDisplay(newVBOptions.OptionCompareText))
+            End If
+        End Function
+
+        Private Shared Function GetOptionDisplay(value As Boolean) As String
+            Return If(value, "On", "Off")
+        End Function
+
+        Private Shared Function GetOptionCompareTextDisplay(value As Boolean) As String
+            Return If(value, "Text", "Binary")
+        End Function
     End Class
 End Namespace

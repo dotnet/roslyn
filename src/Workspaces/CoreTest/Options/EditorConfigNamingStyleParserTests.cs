@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,7 +13,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles;
 
-public class EditorConfigNamingStyleParserTests
+public sealed class EditorConfigNamingStyleParserTests
 {
     [Fact]
     public void TestPascalCaseRule()
@@ -415,8 +414,8 @@ public class EditorConfigNamingStyleParserTests
         var csharpResult = OptionsTestHelpers.ParseNamingStylePreferences(charpRule);
         var vbResult = OptionsTestHelpers.ParseNamingStylePreferences(vbRule);
 
-        Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifier)),
-                     vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifier)));
+        Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifiers)),
+                     vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifiers)));
         Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)),
                      vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)));
     }

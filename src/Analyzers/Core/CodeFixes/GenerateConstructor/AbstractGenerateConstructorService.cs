@@ -4,18 +4,19 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
@@ -30,18 +31,18 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
     protected abstract bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract bool IsImplicitObjectCreation(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
 
-    protected abstract bool TryInitializeImplicitObjectCreation(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
-    protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
-    protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
-    protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
+    protected abstract bool TryInitializeImplicitObjectCreation(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn);
+    protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn);
+    protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn);
+    protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn);
 
     protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, Argument<TExpressionSyntax> argument, CancellationToken cancellationToken);
     protected abstract string GenerateNameForExpression(SemanticModel semanticModel, TExpressionSyntax expression, CancellationToken cancellationToken);
 
     protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
 
-    protected abstract IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
-    protected abstract IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken);
+    protected abstract IMethodSymbol? GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
+    protected abstract IMethodSymbol? GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken);
 
     protected bool WillCauseConstructorCycle(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken)
     {
@@ -62,13 +63,14 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         // We need ensure that delegating constructor won't cause circular dependency.
         // The chain of dependency can not exceed the number for constructors
         var constructorsCount = delegatedConstructor.ContainingType.InstanceConstructors.Length;
+        var currentDelegatedConstructor = delegatedConstructor;
         for (var i = 0; i < constructorsCount; i++)
         {
-            delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
-            if (delegatedConstructor == null)
+            currentDelegatedConstructor = GetDelegatedConstructor(document.SemanticModel, currentDelegatedConstructor, cancellationToken);
+            if (currentDelegatedConstructor == null)
                 return false;
 
-            if (delegatedConstructor.Equals(currentConstructor))
+            if (currentDelegatedConstructor.Equals(currentConstructor))
                 return true;
         }
 

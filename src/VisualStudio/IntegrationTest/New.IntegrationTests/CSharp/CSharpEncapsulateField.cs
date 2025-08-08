@@ -22,18 +22,20 @@ public class CSharpEncapsulateField : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.CSharp;
 
-    private const string TestSource = @"
-namespace myNamespace
-{
-    class Program
-    {
-        private static int? $$param = 0;
-        static void Main(string[] args)
+    private const string TestSource = """
+
+        namespace myNamespace
         {
-            param = 80;
+            class Program
+            {
+                private static int? $$param = 0;
+                static void Main(string[] args)
+                {
+                    param = 80;
+                }
+            }
         }
-    }
-}";
+        """;
 
     [IdeFact]
     public async Task EncapsulateThroughCommand()
@@ -64,21 +66,23 @@ namespace myNamespace
             await TestServices.EditorVerifier.CodeActionAsync("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
         }
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-namespace myNamespace
-{
-    class Program
-    {
-        private static int? param = 0;
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-        public static int? Param { get => param; set => param = value; }
+            namespace myNamespace
+            {
+                class Program
+                {
+                    private static int? param = 0;
 
-        static void Main(string[] args)
-        {
-            Param = 80;
-        }
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+                    public static int? Param { get => param; set => param = value; }
+
+                    static void Main(string[] args)
+                    {
+                        Param = 80;
+                    }
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -94,20 +98,22 @@ namespace myNamespace
             await TestServices.EditorVerifier.CodeActionAsync("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
         }
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-namespace myNamespace
-{
-    class Program
-    {
-        private static int? param = 0;
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-        public static int? Param { get => param; set => param = value; }
+            namespace myNamespace
+            {
+                class Program
+                {
+                    private static int? param = 0;
 
-        static void Main(string[] args)
-        {
-            param = 80;
-        }
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+                    public static int? Param { get => param; set => param = value; }
+
+                    static void Main(string[] args)
+                    {
+                        param = 80;
+                    }
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

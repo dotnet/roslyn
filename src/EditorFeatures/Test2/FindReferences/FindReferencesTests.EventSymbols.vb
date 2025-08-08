@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
@@ -461,6 +460,30 @@ class C3_2 : I3
     </Project>
 </Workspace>
             Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PartialEvent(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+partial class Program
+{
+    public static partial event Action {|Definition:Event|};
+    public static partial event Action {|Definition:E$$vent|} { add { } remove { } }
+
+    static void Main(string[] args)
+    {
+        Program.[|Event|] += null;
+        Program.[|Event|] -= null;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

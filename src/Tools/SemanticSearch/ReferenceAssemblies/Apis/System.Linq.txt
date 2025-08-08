@@ -1,4 +1,4 @@
-# Generated, do not update manually
+﻿# Generated, do not update manually
 System.Linq.Enumerable
 System.Linq.Enumerable.Aggregate``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``0,``0})
 System.Linq.Enumerable.Aggregate``2(System.Collections.Generic.IEnumerable{``0},``1,System.Func{``1,``0,``1})

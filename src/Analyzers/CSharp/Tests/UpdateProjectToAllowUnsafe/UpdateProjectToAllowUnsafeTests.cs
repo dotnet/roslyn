@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateProjectToAllowUnsafe;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
-public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public UpdateProjectToAllowUnsafeTests(ITestOutputHelper logger)
        : base(logger)
@@ -29,7 +29,7 @@ public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderB
 
     private async Task TestAllowUnsafeEnabledIfDisabledAsync(string initialMarkup)
     {
-        var parameters = new TestParameters();
+        var parameters = TestParameters.Default;
         using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
         {
             var (_, action) = await GetCodeActionsAsync(workspace, parameters);
@@ -45,20 +45,17 @@ public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderB
     }
 
     [Fact]
-    public async Task OnUnsafeClass()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeClass()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             unsafe class [|C|] // The compiler reports this on the name, not the 'unsafe' keyword.
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task OnUnsafeMethod()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeMethod()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             class C
             {
@@ -67,12 +64,10 @@ public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OnUnsafeLocalFunction()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeLocalFunction()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             class C
             {
@@ -84,12 +79,10 @@ public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OnUnsafeBlock()
-    {
-        await TestAllowUnsafeEnabledIfDisabledAsync(
+    public Task OnUnsafeBlock()
+        => TestAllowUnsafeEnabledIfDisabledAsync(
             """
             class C
             {
@@ -101,12 +94,10 @@ public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotInsideUnsafeBlock()
-    {
-        await TestMissingAsync(
+    public Task NotInsideUnsafeBlock()
+        => TestMissingAsync(
             """
             class C
             {
@@ -119,5 +110,4 @@ public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 }

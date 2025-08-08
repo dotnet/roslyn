@@ -17,23 +17,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal static partial class ProtocolConversions
 {
+    internal static ImmutableArray<DiagnosticData> AddBuildTagIfNotPresent(ImmutableArray<DiagnosticData> diagnostics)
+    {
+        return diagnostics.SelectAsArray(static d =>
+        {
+            if (d.CustomTags.Contains(WellKnownDiagnosticTags.Build))
+                return d;
+
+            return d.WithCustomTags(d.CustomTags.Add(WellKnownDiagnosticTags.Build));
+        });
+    }
+
     /// <summary>
     /// Converts from <see cref="DiagnosticData"/> to <see cref="LSP.Diagnostic"/>
     /// </summary>
     /// <param name="diagnosticData">The diagnostic to convert</param>
     /// <param name="supportsVisualStudioExtensions">Whether the client is Visual Studio</param>
     /// <param name="project">The project the diagnostic is relevant to</param>
-    /// <param name="isLiveSource">Whether the diagnostic is considered "live" and should supersede others</param>
     /// <param name="potentialDuplicate">Whether the diagnostic is potentially a duplicate to a build diagnostic</param>
     /// <param name="globalOptionService">The global options service</param>
-    public static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions, Project project, bool isLiveSource, bool potentialDuplicate, IGlobalOptionService globalOptionService)
+    public static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions, Project project, bool potentialDuplicate, IGlobalOptionService globalOptionService)
     {
         if (!ShouldIncludeHiddenDiagnostic(diagnosticData, supportsVisualStudioExtensions))
         {
             return [];
         }
 
-        var diagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions);
+        var diagnostic = CreateLspDiagnostic(diagnosticData, project, potentialDuplicate, supportsVisualStudioExtensions);
 
         // Check if we need to handle the unnecessary tag (fading).
         if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
@@ -65,7 +75,7 @@ internal static partial class ProtocolConversions
             diagnosticsBuilder.Add(diagnostic);
             foreach (var location in unnecessaryLocations)
             {
-                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions);
+                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, potentialDuplicate, supportsVisualStudioExtensions);
                 additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                 additionalDiagnostic.Range = GetRange(location);
                 additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
@@ -82,7 +92,7 @@ internal static partial class ProtocolConversions
                 Location = new LSP.Location
                 {
                     Range = GetRange(l),
-                    Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
+                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(l.UnmappedFileSpan.Path)
                 },
                 Message = diagnostic.Message
             }).ToArray();
@@ -94,7 +104,6 @@ internal static partial class ProtocolConversions
     private static LSP.VSDiagnostic CreateLspDiagnostic(
         DiagnosticData diagnosticData,
         Project project,
-        bool isLiveSource,
         bool potentialDuplicate,
         bool supportsVisualStudioExtensions)
     {
@@ -107,8 +116,8 @@ internal static partial class ProtocolConversions
             Code = diagnosticData.Id,
             CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
             Message = diagnosticData.Message,
-            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, supportsVisualStudioExtensions),
-            Tags = ConvertTags(diagnosticData, isLiveSource, potentialDuplicate),
+            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
+            Tags = ConvertTags(diagnosticData, potentialDuplicate),
             DiagnosticRank = ConvertRank(diagnosticData),
             Range = GetRange(diagnosticData.DataLocation)
         };
@@ -207,14 +216,13 @@ internal static partial class ProtocolConversions
         return null;
     }
 
-    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, bool supportsVisualStudioExtensions)
+    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
         => severity switch
         {
             // Hidden is translated in ConvertTags to pass along appropriate _ms tags
             // that will hide the item in a client that knows about those tags.
             DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-            // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
-            DiagnosticSeverity.Info => supportsVisualStudioExtensions ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
+            DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Information,
             DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
             _ => throw ExceptionUtilities.UnexpectedValue(severity),
@@ -224,7 +232,7 @@ internal static partial class ProtocolConversions
     /// If you make change in this method, please also update the corresponding file in
     /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
     /// </summary>
-    private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource, bool potentialDuplicate)
+    private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
     {
         using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -247,11 +255,8 @@ internal static partial class ProtocolConversions
         if (potentialDuplicate)
             result.Add(VSDiagnosticTags.PotentialDuplicate);
 
-        // Mark this also as a build error.  That way an explicitly kicked off build from a source like CPS can
+        // If tagged as build, mark this also as a build error.  That way an explicitly kicked off build from a source like CPS can
         // override it.
-        if (!isLiveSource)
-            result.Add(VSDiagnosticTags.BuildError);
-
         result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
             ? VSDiagnosticTags.BuildError
             : VSDiagnosticTags.IntellisenseError);

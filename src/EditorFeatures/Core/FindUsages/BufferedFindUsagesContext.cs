@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindUsages;
 /// </summary>
 internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreamingProgressTracker
 {
-    private class State
+    private sealed class State
     {
         public int TotalItemCount;
         public int ItemsCompleted;
@@ -28,6 +29,7 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         public string? InformationalMessage;
         public string? SearchTitle;
         public ImmutableArray<DefinitionItem>.Builder Definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
+        public ImmutableArray<SourceReferenceItem>.Builder References = ImmutableArray.CreateBuilder<SourceReferenceItem>();
     }
 
     /// <summary>
@@ -107,6 +109,8 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
 
         foreach (var definition in _state.Definitions)
             await presenterContext.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+
+        await presenterContext.OnReferencesFoundAsync(_state.References.AsAsyncEnumerable(), cancellationToken).ConfigureAwait(false);
 
         // Now swap over to the presenter being the sink for all future callbacks, and clear any buffered data.
         _streamingPresenterContext = presenterContext;
@@ -199,11 +203,18 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         }
     }
 
-    ValueTask IFindUsagesContext.OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
+    async ValueTask IFindUsagesContext.OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
     {
-        // Entirely ignored.  These features do not show references.
-        Contract.Fail("GoToImpl/Base should never report a reference.");
-        return ValueTaskFactory.CompletedTask;
+        using var _ = await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false);
+        if (IsSwapped)
+        {
+            await _streamingPresenterContext.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            await foreach (var reference in references.ConfigureAwait(false))
+                _state.References.Add(reference);
+        }
     }
 
     #endregion

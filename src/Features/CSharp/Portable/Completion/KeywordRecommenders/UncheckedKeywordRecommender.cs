@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class UncheckedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class UncheckedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.UncheckedKeyword)
 {
-    public UncheckedKeywordRecommender()
-        : base(SyntaxKind.UncheckedKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return

@@ -6,9 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,59 +22,33 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 internal readonly struct DiagnosticAnalysisResult
 {
     public readonly ProjectId ProjectId;
-    public readonly VersionStamp Version;
-
-    /// <summary>
-    /// The set of documents that has any kind of diagnostics on it.
-    /// </summary>
-    public readonly ImmutableHashSet<DocumentId>? DocumentIds;
-    public readonly bool IsEmpty;
 
     /// <summary>
     /// Syntax diagnostics from this file.
     /// </summary>
-    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _syntaxLocals;
+    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _syntaxLocals;
 
     /// <summary>
     /// Semantic diagnostics from this file.
     /// </summary>
-    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _semanticLocals;
+    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _semanticLocals;
 
     /// <summary>
     /// Diagnostics that were produced for these documents, but came from the analysis of other files.
     /// </summary>
-    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _nonLocals;
+    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
 
     /// <summary>
-    /// Diagnostics that don't have locations.
+    /// Diagnostics that don't have document locations (but are still associated with this <see cref="ProjectId"/>).
     /// </summary>
     private readonly ImmutableArray<DiagnosticData> _others;
 
     private DiagnosticAnalysisResult(
         ProjectId projectId,
-        VersionStamp version,
-        ImmutableHashSet<DocumentId>? documentIds,
-        bool isEmpty)
-    {
-        ProjectId = projectId;
-        Version = version;
-        DocumentIds = documentIds;
-        IsEmpty = isEmpty;
-
-        _syntaxLocals = null;
-        _semanticLocals = null;
-        _nonLocals = null;
-        _others = default;
-    }
-
-    private DiagnosticAnalysisResult(
-        ProjectId projectId,
-        VersionStamp version,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
-        ImmutableArray<DiagnosticData> others,
-        ImmutableHashSet<DocumentId>? documentIds)
+        ImmutableArray<DiagnosticData> others)
     {
         Debug.Assert(!others.IsDefault);
         Debug.Assert(!syntaxLocals.Values.Any(item => item.IsDefault));
@@ -81,46 +56,29 @@ internal readonly struct DiagnosticAnalysisResult
         Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
 
         ProjectId = projectId;
-        Version = version;
 
         _syntaxLocals = syntaxLocals;
         _semanticLocals = semanticLocals;
         _nonLocals = nonLocals;
         _others = others;
-
-        DocumentIds = documentIds ?? GetDocumentIds(syntaxLocals, semanticLocals, nonLocals);
-        IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
     }
 
-    public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
+    public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId)
     {
         return new DiagnosticAnalysisResult(
             projectId,
-            version,
-            documentIds: [],
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             others: []);
     }
 
-    public static DiagnosticAnalysisResult CreateInitialResult(ProjectId projectId)
-    {
-        return new DiagnosticAnalysisResult(
-            projectId,
-            version: VersionStamp.Default,
-            documentIds: null,
-            isEmpty: true);
-    }
-
     public static DiagnosticAnalysisResult Create(
         Project project,
-        VersionStamp version,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
-        ImmutableArray<DiagnosticData> others,
-        ImmutableHashSet<DocumentId>? documentIds)
+        ImmutableArray<DiagnosticData> others)
     {
         VerifyDocumentMap(project, syntaxLocalMap);
         VerifyDocumentMap(project, semanticLocalMap);
@@ -128,34 +86,21 @@ internal readonly struct DiagnosticAnalysisResult
 
         return new DiagnosticAnalysisResult(
             project.Id,
-            version,
             syntaxLocalMap,
             semanticLocalMap,
             nonLocalMap,
-            others,
-            documentIds);
+            others);
     }
 
     public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
     {
         return Create(
             builder.Project,
-            builder.Version,
             builder.SyntaxLocals,
             builder.SemanticLocals,
             builder.NonLocals,
-            builder.Others,
-            builder.DocumentIds);
+            builder.Others);
     }
-
-    // aggregated form means it has aggregated information but no actual data.
-    public bool IsAggregatedForm => _syntaxLocals == null;
-
-    // default analysis result
-    public bool IsDefault => DocumentIds == null;
-
-    // make sure we don't return null
-    public ImmutableHashSet<DocumentId> DocumentIdsOrEmpty => DocumentIds ?? [];
 
     private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? GetMap(AnalysisKind kind)
         => kind switch
@@ -168,108 +113,44 @@ internal readonly struct DiagnosticAnalysisResult
 
     public ImmutableArray<DiagnosticData> GetAllDiagnostics()
     {
-        // PERF: don't allocation anything if not needed
-        if (IsAggregatedForm || IsEmpty)
-        {
-            return [];
-        }
+        using var result = TemporaryArray<DiagnosticData>.Empty;
 
-        Contract.ThrowIfNull(_syntaxLocals);
-        Contract.ThrowIfNull(_semanticLocals);
-        Contract.ThrowIfNull(_nonLocals);
-        Contract.ThrowIfTrue(_others.IsDefault);
+        foreach (var (_, data) in _syntaxLocals)
+            result.AddRange(data);
 
-        using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
+        foreach (var (_, data) in _semanticLocals)
+            result.AddRange(data);
 
-        foreach (var data in _syntaxLocals.Values)
-            builder.AddRange(data);
+        foreach (var (_, data) in _nonLocals)
+            result.AddRange(data);
 
-        foreach (var data in _semanticLocals.Values)
-            builder.AddRange(data);
+        result.AddRange(_others);
 
-        foreach (var data in _nonLocals.Values)
-            builder.AddRange(data);
-
-        foreach (var data in _others)
-            builder.AddRange(data);
-
-        return builder.ToImmutableAndClear();
+        return result.ToImmutableAndClear();
     }
 
     public ImmutableArray<DiagnosticData> GetDocumentDiagnostics(DocumentId documentId, AnalysisKind kind)
     {
-        if (IsAggregatedForm || IsEmpty)
-        {
-            return [];
-        }
-
         var map = GetMap(kind);
         Contract.ThrowIfNull(map);
 
-        if (map.TryGetValue(documentId, out var diagnostics))
-        {
-            Debug.Assert(DocumentIds != null && DocumentIds.Contains(documentId));
-            return diagnostics;
-        }
-
-        return [];
+        return map.TryGetValue(documentId, out var diagnostics) ? diagnostics : [];
     }
 
     public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
-        => (IsAggregatedForm || IsEmpty) ? [] : _others;
+        => _others;
 
-    public DiagnosticAnalysisResult ToAggregatedForm()
-        => new(ProjectId, Version, DocumentIds, IsEmpty);
-
+    /// <summary>
+    /// Returns a new result instance with no diagnostics except syntax.
+    /// </summary>
+    /// <returns></returns>
     public DiagnosticAnalysisResult DropExceptSyntax()
-    {
-        // quick bail out
-        if (_syntaxLocals == null || _syntaxLocals.Count == 0)
-        {
-            return CreateEmpty(ProjectId, Version);
-        }
-
-        // keep only syntax errors
-        return new DiagnosticAnalysisResult(
+        => new(
            ProjectId,
-           Version,
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-           others: [],
-           documentIds: null);
-    }
-
-    private static ImmutableHashSet<DocumentId> GetDocumentIds(
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? syntaxLocals,
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? semanticLocals,
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? nonLocals)
-    {
-        // quick bail out
-        var allEmpty = syntaxLocals ?? semanticLocals ?? nonLocals;
-        if (allEmpty == null)
-        {
-            return [];
-        }
-
-        var documents = SpecializedCollections.EmptyEnumerable<DocumentId>();
-        if (syntaxLocals != null)
-        {
-            documents = documents.Concat(syntaxLocals.Keys);
-        }
-
-        if (semanticLocals != null)
-        {
-            documents = documents.Concat(semanticLocals.Keys);
-        }
-
-        if (nonLocals != null)
-        {
-            documents = documents.Concat(nonLocals.Keys);
-        }
-
-        return [.. documents];
-    }
+           others: []);
 
     [Conditional("DEBUG")]
     private static void VerifyDocumentMap(Project project, ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> map)

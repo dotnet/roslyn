@@ -2,23 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 
-public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper? logger)
+    : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor<
+        TestHostDocument,
+        TestHostProject,
+        TestHostSolution,
+        TestWorkspace>(logger)
 {
     private static readonly CSharpParseOptions Script = new(kind: SourceCodeKind.Script);
-
-    protected AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
 
     protected override ParseOptions GetScriptOptions() => Script;
 
@@ -154,4 +155,37 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
     internal OptionsCollection IgnoreAllParentheses => ParenthesesOptionsProvider.IgnoreAllParentheses;
     internal OptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
     internal OptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
+
+    internal new Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        int index = 0,
+        TestParameters? parameters = null)
+    {
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, parameters);
+    }
+
+    internal new Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        TestParameters parameters)
+    {
+        return base.TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parameters);
+    }
+
+    protected new Task TestMissingInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        TestParameters? parameters = null,
+        int codeActionIndex = 0)
+    {
+        return base.TestMissingInRegularAndScriptAsync(initialMarkup, parameters, codeActionIndex);
+    }
+
+    protected new Task TestMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        TestParameters? parameters = null,
+        int codeActionIndex = 0)
+    {
+        return base.TestMissingAsync(initialMarkup, parameters, codeActionIndex);
+    }
 }

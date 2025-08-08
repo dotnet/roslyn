@@ -26,7 +26,7 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
-internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
+internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

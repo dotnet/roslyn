@@ -237,6 +237,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        public override void VisitMethod(MethodSymbol symbol)
+        {
+            if (symbol is SourceExtensionImplementationMethodSymbol implementation)
+            {
+                MethodSymbol underlyingMethod = implementation.UnderlyingMethod;
+                Symbol symbolForDocComment = underlyingMethod.IsAccessor()
+                    ? underlyingMethod.AssociatedSymbol
+                    : underlyingMethod;
+
+                if (!hasDocumentationTrivia(symbolForDocComment))
+                {
+                    return;
+                }
+
+                WriteLine("<member name=\"{0}\">", symbol.GetEscapedDocumentationCommentId());
+                Indent();
+                WriteLine("<inheritdoc cref=\"{0}\"/>", symbolForDocComment.GetEscapedDocumentationCommentId());
+                Unindent();
+                WriteLine("</member>");
+                return;
+            }
+
+            base.VisitMethod(symbol);
+            return;
+
+            static bool hasDocumentationTrivia(Symbol symbol)
+            {
+                foreach (SyntaxReference reference in symbol.DeclaringSyntaxReferences)
+                {
+                    foreach (var trivia in reference.GetSyntax().GetLeadingTrivia())
+                    {
+                        if (trivia.IsDocumentationCommentTrivia)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// Compile documentation comments on the symbol and write them to the stream if one is provided.
@@ -258,13 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool shouldSkipPartialDefinitionComments = false;
             if (symbol.IsPartialDefinition())
             {
-                Symbol? implementationPart = symbol switch
-                {
-                    MethodSymbol method => method.PartialImplementationPart,
-                    SourcePropertySymbol property => property.PartialImplementationPart,
-                    _ => null
-                };
-
+                Symbol? implementationPart = symbol.GetPartialImplementationPart();
                 if (implementationPart is not null)
                 {
                     Visit(implementationPart);
@@ -296,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
                 string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
-                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetEscapedDocumentationCommentId()));
                 return;
             }
 
@@ -346,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
                 string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
-                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetEscapedDocumentationCommentId()));
                 return;
             }
 
@@ -432,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(paramTags.Count > 0);
 
             BeginTemporaryString();
-            WriteLine("<member name=\"{0}\">", recordPropertySymbol.GetDocumentationCommentId());
+            WriteLine("<member name=\"{0}\">", recordPropertySymbol.GetEscapedDocumentationCommentId());
             Indent();
             var substitutedTextBuilder = PooledStringBuilder.GetInstance();
             var includeElementNodesBuilder = _processIncludes ? ArrayBuilder<CSharpSyntaxNode>.GetInstance() : null;
@@ -538,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // because we need to have XML to process.
                     if (!shouldSkipPartialDefinitionComments || _processIncludes)
                     {
-                        WriteLine("<member name=\"{0}\">", symbol.GetDocumentationCommentId());
+                        WriteLine("<member name=\"{0}\">", symbol.GetEscapedDocumentationCommentId());
                         Indent();
                     }
 
@@ -1061,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Does not respect DocumentationMode, so use a temporary bag if diagnostics are not desired.
         /// </remarks>
-        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, BindingDiagnosticBag diagnostics)
+        private static string GetEscapedDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, BindingDiagnosticBag diagnostics)
         {
             if (crefSyntax.ContainsDiagnostics)
             {
@@ -1100,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.AddDependencies(symbol as TypeSymbol ?? symbol.ContainingType);
             }
 
-            return symbol.OriginalDefinition.GetDocumentationCommentId();
+            return symbol.OriginalDefinition.GetEscapedDocumentationCommentId();
         }
 
         /// <summary>

@@ -11,9 +11,9 @@ using Microsoft.Extensions.Logging;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+
 internal static class ProjectDependencyHelper
 {
     internal const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";
@@ -135,6 +135,6 @@ internal static class ProjectDependencyHelper
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 
-    private record UnresolvedDependenciesParams(
+    private sealed record UnresolvedDependenciesParams(
         [property: JsonPropertyName("projectFilePaths")] string[] ProjectFilePaths);
 }

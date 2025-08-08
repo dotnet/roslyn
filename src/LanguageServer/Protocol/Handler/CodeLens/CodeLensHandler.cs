@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using LSP = Roslyn.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
@@ -42,11 +42,13 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLensParams request)
         => request.TextDocument;
 
-    public async Task<LSP.CodeLens[]?> HandleRequestAsync(LSP.CodeLensParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<LSP.CodeLens[]?> HandleRequestAsync(LSP.CodeLensParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetCodeLensAsync(request.TextDocument, context.GetRequiredDocument(), _globalOptionService, cancellationToken);
+
+    internal static async Task<LSP.CodeLens[]?> GetCodeLensAsync(LSP.TextDocumentIdentifier textDocumentIdentifier, Document document, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
-        var referencesCodeLensEnabled = _globalOptionService.GetOption(LspOptionsStorage.LspEnableReferencesCodeLens, document.Project.Language);
-        var testsCodeLensEnabled = _globalOptionService.GetOption(LspOptionsStorage.LspEnableTestsCodeLens, document.Project.Language);
+        var referencesCodeLensEnabled = globalOptionService.GetOption(LspOptionsStorage.LspEnableReferencesCodeLens, document.Project.Language);
+        var testsCodeLensEnabled = globalOptionService.GetOption(LspOptionsStorage.LspEnableTestsCodeLens, document.Project.Language);
 
         if (!referencesCodeLensEnabled && !testsCodeLensEnabled)
         {
@@ -67,13 +69,13 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
 
         if (referencesCodeLensEnabled)
         {
-            await AddReferencesCodeLensAsync(codeLenses, members, document, text, request.TextDocument, cancellationToken).ConfigureAwait(false);
+            await AddReferencesCodeLensAsync(codeLenses, members, document, text, textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
         }
 
-        if (!_globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures) && testsCodeLensEnabled)
+        if (!globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures) && testsCodeLensEnabled)
         {
             // Only return test codelenses if we're not using devkit.
-            AddTestCodeLens(codeLenses, members, document, text, request.TextDocument);
+            AddTestCodeLens(codeLenses, members, document, text, textDocumentIdentifier);
         }
 
         return codeLenses.ToArray();

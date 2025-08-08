@@ -9,20 +9,23 @@ Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
-
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class CodeFixServiceTests
@@ -54,11 +57,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim project = workspace.CurrentSolution.Projects(0)
 
-                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
-                Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
-                    diagnosticService,
                     logger,
                     {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                         Function() workspaceCodeFixProvider,
@@ -126,11 +127,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim project = workspace.CurrentSolution.Projects(0)
 
-                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
-                Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
-                    diagnosticService,
                     logger,
                     {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                         Function() workspaceCodeFixProvider,
@@ -315,7 +314,15 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult(True)
             End Function
 
-            Public Function IsOnTheFlyDocsOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsOnTheFlyDocsOptionEnabledASync
+            Public Function IsOnTheFlyDocsOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsOnTheFlyDocsOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsGenerateDocumentationCommentOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsGenerateDocumentationCommentOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsImplementNotImplementedExceptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsImplementNotImplementedExceptionEnabledAsync
                 Return Task.FromResult(True)
             End Function
         End Class
@@ -351,12 +358,28 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.CompletedTask
             End Function
 
-            Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of (responseString As String, isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
-                Return Task.FromResult(("", False))
-            End Function
-
             Public Function IsFileExcludedAsync(filePath As String, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsFileExcludedAsync
                 Return Task.FromResult(False)
+            End Function
+
+            Public Function GetDocumentationCommentAsync(proposal As DocumentationCommentProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
+                Return Task.FromResult((New Dictionary(Of String, String), False))
+            End Function
+
+            Public Function GetOnTheFlyDocsPromptAsync(onTheFlyDocsInfo As OnTheFlyDocsInfo, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsPromptAsync
+                Return Task.FromResult(String.Empty)
+            End Function
+
+            Public Function GetOnTheFlyDocsResponseAsync(prompt As String, cancellationToken As CancellationToken) As Task(Of (responseString As String, isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsResponseAsync
+                Return Task.FromResult((String.Empty, False))
+            End Function
+
+            Public Function IsImplementNotImplementedExceptionsAvailableAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsImplementNotImplementedExceptionsAvailableAsync
+                Return Task.FromResult(False)
+            End Function
+
+            Public Function ImplementNotImplementedExceptionsAsync(document As Document, methodOrProperties As ImmutableDictionary(Of SyntaxNode, ImmutableArray(Of ReferencedSymbol)), cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of SyntaxNode, ImplementationDetails)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionsAsync
+                Return Task.FromResult(ImmutableDictionary(Of SyntaxNode, ImplementationDetails).Empty)
             End Function
         End Class
     End Class

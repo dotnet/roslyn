@@ -20,13 +20,12 @@ internal sealed class HotReloadDiagnosticSource(IHotReloadDiagnosticSource sourc
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
     {
         var diagnostics = await source.GetDiagnosticsAsync(new HotReloadRequestContext(context), cancellationToken).ConfigureAwait(false);
-        var result = diagnostics.Select(diagnostic => DiagnosticData.Create(diagnostic, textDocument)).ToImmutableArray();
+        var result = diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, textDocument));
         return result;
     }
 
-    public TextDocumentIdentifier? GetDocumentIdentifier() => new() { Uri = textDocument.GetURI() };
+    public TextDocumentIdentifier? GetDocumentIdentifier() => new() { DocumentUri = textDocument.GetURI() };
     public ProjectOrDocumentId GetId() => new(textDocument.Id);
     public Project GetProject() => textDocument.Project;
-    public bool IsLiveSource() => true;
     public string ToDisplayString() => $"{this.GetType().Name}: {textDocument.FilePath ?? textDocument.Name} in {textDocument.Project.Name}";
 }

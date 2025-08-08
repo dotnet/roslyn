@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -470,7 +471,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
                     // handle partially filled bags.
                     CustomAttributesBag<CSharpAttributeData>? temp = null;
-                    LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true);
+                    Binder rootBinder = GetAttributeBinder(indexerNameAttributeLists, DeclaringCompilation);
+                    LoadAndValidateAttributes(
+                        OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true,
+                        binderOpt: rootBinder,
+                        attributeMatchesOpt: this.GetIsNewExtensionMember() ? isPossibleIndexerNameAttributeInExtension : isPossibleIndexerNameAttribute);
                     if (temp != null)
                     {
                         Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
@@ -487,6 +492,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return _lazySourceName;
+
+                static bool isPossibleIndexerNameAttribute(AttributeSyntax node, Binder? rootBinderOpt)
+                {
+                    Debug.Assert(rootBinderOpt is not null);
+                    QuickAttributeChecker checker = rootBinderOpt.QuickAttributeChecker;
+                    return checker.IsPossibleMatch(node, QuickAttributes.IndexerName);
+                }
+
+                static bool isPossibleIndexerNameAttributeInExtension(AttributeSyntax node, Binder? rootBinderOpt)
+                {
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Temporarily limit binding to a string literal argument in order to avoid a binding cycle.
+                    if (node.ArgumentList?.Arguments is not [{ NameColon: null, NameEquals: null, Expression: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } }])
+                    {
+                        return false;
+                    }
+
+                    return isPossibleIndexerNameAttribute(node, rootBinderOpt);
+                }
             }
         }
 #nullable disable
@@ -1039,6 +1062,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+
+            if (this.GetIsNewExtensionMember())
+            {
+                ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
+            }
         }
 
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
@@ -1109,6 +1137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
+            }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, location, Name);
             }
             else if (ContainingType.IsStatic && !IsStatic)
             {
@@ -1444,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return (null, null);
             }
-            else if (IsIndexer && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+            else if ((IsIndexer || this.GetIsNewExtensionMember()) && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
             {
                 (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out var hasAnyDiagnostics);
 
@@ -1696,12 +1728,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, node.ArgumentList.Arguments[0].Location, node.GetErrorDisplayName());
                 }
+                else if (this.GetIsNewExtensionMember() && SourceName != indexerName)
+                {
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Report more descriptive error
+                    // error CS8078: An expression is too long or complex to compile
+                    diagnostics.Add(ErrorCode.ERR_InsufficientStack, node.ArgumentList.Arguments[0].Location);
+                }
             }
         }
 
         internal sealed override int TryGetOverloadResolutionPriority()
         {
-            Debug.Assert(this.IsIndexer);
+            Debug.Assert(this.IsIndexer || this.GetIsNewExtensionMember());
             return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
         }
 

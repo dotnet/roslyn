@@ -548,7 +548,7 @@ internal static class CastSimplifier
             }
         }
 
-        // We can safely remove convertion to object in interpolated strings regardless of nullability
+        // We can safely remove conversion to object in interpolated strings regardless of nullability
         if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
             return true;
 
@@ -919,14 +919,18 @@ internal static class CastSimplifier
                 return false;
 
             // Check if 'y' has the same type as 'z'.
-            if (!otherSideType.Equals(thisSideRewrittenType))
+            if (!otherSideType.Equals(thisSideRewrittenType, SymbolEqualityComparer.IncludeNullability))
                 return false;
 
-            // Now check that with the (T) cast removed, that the outer `x ? y : z` is still immediately converted to a
-            // 'T'. If so, we can remove this inner (T) cast.
+            // Now check that with the (T) cast removed, that the outer `x ? y : z` is still
+            // immediately implicitly converted to a 'T'. If so, we can remove this inner (T) cast.
 
             var rewrittenConditionalConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken).ConvertedType;
             if (rewrittenConditionalConvertedType is null)
+                return false;
+
+            var outerConversion = rewrittenSemanticModel.GetConversion(rewrittenConditionalExpression, cancellationToken);
+            if (!outerConversion.IsImplicit)
                 return false;
 
             return rewrittenConditionalConvertedType.Equals(conversionOperation.Type);
@@ -937,7 +941,7 @@ internal static class CastSimplifier
         => IsNullOrErrorType(info.Type) || IsNullOrErrorType(info.ConvertedType);
 
     private static bool IsNullOrErrorType([NotNullWhen(false)] ITypeSymbol? type)
-        => type is null || type is IErrorTypeSymbol;
+        => type is null or IErrorTypeSymbol;
 
     private static bool CastRemovalWouldCauseUnintendedReferenceComparisonWarning(
         ExpressionSyntax expression,

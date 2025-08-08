@@ -2,6 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -13,13 +20,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     // We're re-getting the namespace, rather than using the one containing
                     // the current frame method, because we want the merged namespace.
-                    @namespace = @namespace.GetNestedNamespace(namespaceName);
+                    @namespace = @namespace.GetNestedNamespace(namespaceName)!;
                     RoslynDebug.AssertNotNull(@namespace);
                 }
                 else

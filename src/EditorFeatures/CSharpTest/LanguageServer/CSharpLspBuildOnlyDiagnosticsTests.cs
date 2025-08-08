@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LanguageServer;
 
-public class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDiagnosticsTests
+public sealed class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDiagnosticsTests
 {
     protected override Type ErrorCodeType => typeof(ErrorCode);
 
@@ -21,7 +21,7 @@ public class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDiagnostic
     {
         get
         {
-            var errorCodes = Enum.GetValues(typeof(ErrorCode));
+            var errorCodes = Enum.GetValues<ErrorCode>();
             var supported = new CSharpCompilerDiagnosticAnalyzer().GetSupportedErrorCodes();
             var builder = ImmutableArray.CreateBuilder<string>();
             foreach (int errorCode in errorCodes)

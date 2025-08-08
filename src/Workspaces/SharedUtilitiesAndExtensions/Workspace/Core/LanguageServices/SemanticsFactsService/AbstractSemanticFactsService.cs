@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +36,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
         s is { Kind: SymbolKind.NamedType, IsStatic: true };
 
     public SyntaxToken GenerateUniqueName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -45,7 +44,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     }
 
     public SyntaxToken GenerateUniqueName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -53,7 +52,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     }
 
     public SyntaxToken GenerateUniqueLocalName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -61,7 +60,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     }
 
     public SyntaxToken GenerateUniqueLocalName(
-        SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+        SemanticModel semanticModel, SyntaxNode location, SyntaxNode? containerOpt,
         string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken)
     {
         return GenerateUniqueName(
@@ -70,10 +69,15 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
 
     public SyntaxToken GenerateUniqueName(
         SemanticModel semanticModel,
-        SyntaxNode location, SyntaxNode containerOpt,
-        string baseName, Func<ISymbol, bool> filter,
-        IEnumerable<string> usedNames, CancellationToken cancellationToken)
+        SyntaxNode location,
+        SyntaxNode? containerOpt,
+        string baseName,
+        Func<ISymbol, bool>? filter,
+        IEnumerable<string>? usedNames,
+        CancellationToken cancellationToken)
     {
+        usedNames ??= [];
+
         var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
             a => BlockFacts.IsExecutableBlock(a) || SyntaxFacts.IsParameterList(a) || SyntaxFacts.IsMethodBody(a));
 
@@ -88,7 +92,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     /// A symbol can possibly collide with the location if it is available to that location and/or
     /// could cause a compiler error if its name is re-used at that location.
     /// </summary>
-    protected virtual IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+    protected virtual IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode? container, CancellationToken cancellationToken)
         => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetAllDeclaredSymbols(container, cancellationToken));
 
     public SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames)
@@ -97,8 +101,6 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
             NameGenerator.EnsureUniqueness(
                 baseName, usedNames, this.SyntaxFacts.IsCaseSensitive));
     }
-
-#nullable enable
 
     protected static IMethodSymbol? FindDisposeMethod(Compilation compilation, ITypeSymbol? type, bool isAsync)
     {
@@ -166,8 +168,6 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
         }
     }
 
-#nullable disable
-
     #region ISemanticFacts implementation
 
     public bool SupportsImplicitInterfaceImplementation => SemanticFacts.SupportsImplicitInterfaceImplementation;
@@ -176,31 +176,31 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
 
     public bool ExposesAnonymousFunctionParameterNames => SemanticFacts.ExposesAnonymousFunctionParameterNames;
 
-    public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode? node, CancellationToken cancellationToken)
         => SemanticFacts.IsWrittenTo(semanticModel, node, cancellationToken);
 
-    public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode? node, CancellationToken cancellationToken)
         => SemanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken);
 
-    public bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    public bool IsInOutContext(SemanticModel semanticModel, SyntaxNode? node, CancellationToken cancellationToken)
         => SemanticFacts.IsInOutContext(semanticModel, node, cancellationToken);
 
-    public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode? node, CancellationToken cancellationToken)
         => SemanticFacts.IsInRefContext(semanticModel, node, cancellationToken);
 
-    public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    public bool IsInInContext(SemanticModel semanticModel, SyntaxNode? node, CancellationToken cancellationToken)
         => SemanticFacts.IsInInContext(semanticModel, node, cancellationToken);
 
-    public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
+    public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode? expression, CancellationToken cancellationToken)
         => SemanticFacts.CanReplaceWithRValue(semanticModel, expression, cancellationToken);
 
-    public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+    public ISymbol? GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         => SemanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
 
     public bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol)
         => SemanticFacts.LastEnumValueHasInitializer(namedTypeSymbol);
 
-    public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
+    public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, [NotNullWhen(true)] out SemanticModel? speculativeModel)
         => SemanticFacts.TryGetSpeculativeSemanticModel(oldSemanticModel, oldNode, newNode, out speculativeModel);
 
     public ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken)
@@ -212,7 +212,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         => SemanticFacts.GetCollectionInitializerSymbolInfo(semanticModel, node, cancellationToken);
 
-    public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
+    public IMethodSymbol? GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
         => SemanticFacts.GetGetAwaiterMethod(semanticModel, node);
 
     public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
@@ -227,39 +227,42 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
         => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
-    public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+    public IParameterSymbol? FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
         => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
 
-    public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+    public IParameterSymbol? FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
         => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
 
-    public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+    public ISymbol? FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
         => SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argumentNode, cancellationToken);
 
-    public ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+    public ISymbol? FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
         => SemanticFacts.FindFieldOrPropertyForAttributeArgument(semanticModel, argumentNode, cancellationToken);
 
-    public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+    public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken)
         => SemanticFacts.GetBestOrAllSymbols(semanticModel, node, token, cancellationToken);
 
-    public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode? node, CancellationToken cancellationToken)
         => SemanticFacts.IsInsideNameOfExpression(semanticModel, node, cancellationToken);
 
     public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
         => SemanticFacts.GetLocalFunctionSymbols(compilation, symbol, cancellationToken);
 
-    public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+    public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken)
         => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
 
     public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
         => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
 
-    public IPreprocessingSymbol GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node)
+    public IPreprocessingSymbol? GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node)
         => SemanticFacts.GetPreprocessingSymbol(semanticModel, node);
 
-#if !CODE_STYLE
+    public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
+        => SemanticFacts.TryGetPrimaryConstructor(typeSymbol, out primaryConstructor);
 
-    public Task<ISymbol> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
+#if WORKSPACE
+
+    public Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
         => SemanticFacts.GetInterceptorSymbolAsync(document, position, cancellationToken);
 
 #endif

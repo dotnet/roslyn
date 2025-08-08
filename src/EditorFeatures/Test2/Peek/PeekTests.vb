@@ -4,11 +4,9 @@
 
 Imports System.IO
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Peek
-Imports Microsoft.CodeAnalysis.Editor.Peek
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
@@ -204,15 +202,15 @@ public class D
     }
 }
                                                           ]]></Document>
-                                                          <Document FilePath="Test.razor.g.cs"><![CDATA[
+                                                          <Document FilePath="Test.razor.g.cs">
 public class Component
 {
-#line 4 "Test.razor"
+#line 4 "<%= Path.Combine(TestWorkspace.RootDirectory, "Test.razor") %>"
     public void M()
     {
     }
 }
-                                                          ]]></Document>
+                                                          </Document>
                                                       </Project>
                                                   </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
@@ -234,13 +232,13 @@ public partial class D
         $$PartialMethod();
     }
 
-    partial void PartialMethod();
+    partial void {|Identifier:PartialMethod|}();
 }
                                                           ]]></Document>
                                                           <Document><![CDATA[
 public partial class D
 {
-    partial void {|Identifier:PartialMethod|}() { }
+    partial void PartialMethod() { }
 }
                                                           ]]></Document>
                                                       </Project>
@@ -289,7 +287,7 @@ public partial class D
         End Sub
 
         Private Shared Function CreateTestWorkspace(element As XElement) As EditorTestWorkspace
-            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeatures)
         End Function
 
         Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
@@ -308,11 +306,12 @@ public partial class D
             Dim textBuffer = document.GetTextBuffer()
             Dim textView = document.GetTextView()
 
-            Dim peekableItemSource As New PeekableItemSource(textBuffer,
-                                                             workspace.GetService(Of IPeekableItemFactory),
-                                                             New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IThreadingContext),
-                                                             workspace.GetService(Of IUIThreadOperationExecutor))
+            Dim peekableItemSource As New PeekableItemSource(
+                textBuffer,
+                workspace.GetService(Of PeekableItemFactory),
+                New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
+                workspace.GetService(Of IThreadingContext),
+                workspace.GetService(Of IUIThreadOperationExecutor))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)
             Dim triggerPoint = New SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value)

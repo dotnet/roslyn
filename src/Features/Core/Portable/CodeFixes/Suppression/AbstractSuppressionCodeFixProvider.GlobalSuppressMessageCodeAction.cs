@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -16,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
 {
     internal sealed class GlobalSuppressMessageCodeAction(
-        ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute,
+        ISymbol targetSymbol,
+        INamedTypeSymbol suppressMessageAttribute,
         Project project, Diagnostic diagnostic,
         AbstractSuppressionCodeFixProvider fixer) : AbstractGlobalSuppressMessageCodeAction(fixer, project)
     {
@@ -27,7 +25,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         {
             var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);
             var services = suppressionsDoc.Project.Solution.Services;
-            var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var suppressionsRoot = await suppressionsDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
             var options = await suppressionsDoc.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 

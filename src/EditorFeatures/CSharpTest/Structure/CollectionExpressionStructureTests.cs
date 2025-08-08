@@ -13,16 +13,15 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class CollectionExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<CollectionExpressionSyntax>
+public sealed class CollectionExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<CollectionExpressionSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider()
         => new CollectionExpressionStructureProvider();
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71932")]
-    public async Task TestOuterCollectionExpression()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestOuterCollectionExpression()
+        => VerifyBlockSpansAsync(
              """
                 class C
                 {
@@ -37,13 +36,11 @@ public class CollectionExpressionStructureTests : AbstractCSharpSyntaxNodeStruct
                 }
                 """,
              Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71932")]
-    public async Task TestInnerCollectionExpressionWithoutComma()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestInnerCollectionExpressionWithoutComma()
+        => VerifyBlockSpansAsync(
              """
                 class C
                 {
@@ -61,13 +58,11 @@ public class CollectionExpressionStructureTests : AbstractCSharpSyntaxNodeStruct
                 }
                 """,
              Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71932")]
-    public async Task TestInnerCollectionExpressionWithComma()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestInnerCollectionExpressionWithComma()
+        => VerifyBlockSpansAsync(
              """
                 class C
                 {
@@ -85,5 +80,4 @@ public class CollectionExpressionStructureTests : AbstractCSharpSyntaxNodeStruct
                 }
                 """,
              Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

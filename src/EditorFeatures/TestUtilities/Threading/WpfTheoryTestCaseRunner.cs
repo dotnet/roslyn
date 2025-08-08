@@ -11,31 +11,30 @@ using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public sealed class WpfTheoryTestCaseRunner : XunitTheoryTestCaseRunner
 {
-    public class WpfTheoryTestCaseRunner : XunitTheoryTestCaseRunner
+    public WpfTestSharedData SharedData { get; }
+
+    public WpfTheoryTestCaseRunner(
+        WpfTestSharedData sharedData,
+        IXunitTestCase testCase,
+        string displayName,
+        string skipReason,
+        object[] constructorArguments,
+        IMessageSink diagnosticMessageSink,
+        IMessageBus messageBus,
+        ExceptionAggregator aggregator,
+        CancellationTokenSource cancellationTokenSource)
+    : base(testCase, displayName, skipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource)
     {
-        public WpfTestSharedData SharedData { get; }
+        SharedData = sharedData;
+    }
 
-        public WpfTheoryTestCaseRunner(
-            WpfTestSharedData sharedData,
-            IXunitTestCase testCase,
-            string displayName,
-            string skipReason,
-            object[] constructorArguments,
-            IMessageSink diagnosticMessageSink,
-            IMessageBus messageBus,
-            ExceptionAggregator aggregator,
-            CancellationTokenSource cancellationTokenSource)
-        : base(testCase, displayName, skipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource)
-        {
-            SharedData = sharedData;
-        }
-
-        protected override XunitTestRunner CreateTestRunner(ITest test, IMessageBus messageBus, Type testClass, object[] constructorArguments, MethodInfo testMethod, object[] testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-        {
-            var runner = new WpfTestRunner(SharedData, test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource);
-            return runner;
-        }
+    protected override XunitTestRunner CreateTestRunner(ITest test, IMessageBus messageBus, Type testClass, object[] constructorArguments, MethodInfo testMethod, object[] testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+    {
+        var runner = new WpfTestRunner(SharedData, test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource);
+        return runner;
     }
 }

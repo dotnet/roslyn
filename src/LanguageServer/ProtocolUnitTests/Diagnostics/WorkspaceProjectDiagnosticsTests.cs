@@ -14,7 +14,8 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
+
+public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
     public WorkspaceProjectDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -29,8 +30,8 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -46,8 +47,8 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         var initialSolution = testLspServer.GetCurrentSolution();
         var newSolution = initialSolution.RemoveProject(initialSolution.Projects.First().Id);
@@ -67,7 +68,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
         => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockProjectDiagnosticAnalyzer()]));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
-    private class MockProjectDiagnosticAnalyzer : DiagnosticAnalyzer
+    private sealed class MockProjectDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string Id = "MockProjectDiagnostic";
         private readonly DiagnosticDescriptor _descriptor = new(Id, "MockProjectDiagnostic", "MockProjectDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");

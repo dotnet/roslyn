@@ -12,45 +12,36 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumMemberDeclarationSyntax>
+public sealed class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumMemberDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumMemberDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        var code = """
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 enum E
                 {
                     $$Goo,
                     Bar
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
-    }
+                """);
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        var code = """
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 enum E
                 {
                     {|hint:{|textspan:[Blah]
                     |}$$Goo|},
                     Bar
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        var code = """
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 enum E
                 {
                     {|hint:{|textspan:// Summary:
@@ -59,9 +50,6 @@ public class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNodeStruc
                     |}$$Goo|},
                     Bar
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

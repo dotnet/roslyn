@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -329,13 +331,13 @@ namespace Microsoft.Cci
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

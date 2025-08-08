@@ -100,6 +100,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // data section string literal holders (key is the full string literal)
         private readonly ConcurrentDictionary<string, DataSectionStringType> _dataSectionStringLiteralTypes = new ConcurrentDictionary<string, DataSectionStringType>();
 
+        // map of data section string literal generated type names (<S> + hash) to the full text
+        private readonly ConcurrentDictionary<string, string> _dataSectionStringLiteralNames = new ConcurrentDictionary<string, string>();
+
         private ImmutableArray<Cci.INestedTypeDefinition> _orderedNestedTypes;
 
         internal PrivateImplementationDetails(
@@ -324,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue(
             string text,
             CommonPEModuleBuilder moduleBuilder,
-            SyntaxNode syntaxNode,
+            SyntaxNode? syntaxNode,
             DiagnosticBag diagnostics)
         {
             if (!text.TryGetUtf8ByteRepresentation(out byte[]? data, out _))
@@ -333,15 +336,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             var @this = moduleBuilder.GetPrivateImplClass(syntaxNode, diagnostics);
-            return @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
+            return @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (text, arg) =>
             {
-                var (@this, data, diagnostics) = arg;
+                var (@this, data, syntaxNode, diagnostics) = arg;
 
-                string name = "<S>" + DataToHexViaXxHash128(data);
+                string name = "<S>" + @this.DataToHexViaXxHash128(data);
 
                 MappedField dataField = @this.GetOrAddDataField(data, alignment: 1);
 
                 Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(diagnostics);
+
+                var previousText = @this._dataSectionStringLiteralNames.GetOrAdd(name, text);
+                if (previousText != text)
+                {
+                    // If there is a hash collision, we cannot fallback to normal string literal emit strategy
+                    // because the selection of which literal would get which emit strategy would not be deterministic.
+                    var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
+                    diagnostics.Add(messageProvider.CreateDiagnostic(
+                        messageProvider.ERR_DataSectionStringLiteralHashCollision,
+                        syntaxNode?.GetLocation() ?? Location.None,
+                        previousText[..Math.Min(previousText.Length, 500)]));
+                }
 
                 return new DataSectionStringType(
                     name: name,
@@ -350,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bytesToStringHelper: bytesToStringHelper,
                     diagnostics: diagnostics);
             },
-            (@this, ImmutableCollectionsMarshal.AsImmutableArray(data), diagnostics)).Field;
+            (@this, ImmutableCollectionsMarshal.AsImmutableArray(data), syntaxNode, diagnostics)).Field;
         }
 
         /// <summary>
@@ -367,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var encodingGetString = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__GetString);
 
                 TryAddSynthesizedMethod(BytesToStringHelper.Create(
-                    moduleBuilder: (ITokenDeferral)ModuleBuilder,
+                    moduleBuilder: ModuleBuilder,
                     containingType: this,
                     encodingUtf8: encodingUtf8,
                     encodingGetString: encodingGetString,
@@ -548,8 +563,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return HashToHex(hash.AsSpan());
         }
 
-        private static string DataToHexViaXxHash128(ImmutableArray<byte> data)
+        private string DataToHexViaXxHash128(ImmutableArray<byte> data)
         {
+            if (ModuleBuilder.EmitOptions.TestOnly_DataToHexViaXxHash128 is { } handler)
+            {
+                return handler(data);
+            }
+
             Span<byte> hash = stackalloc byte[sizeof(ulong) * 2];
             int bytesWritten = XxHash128.Hash(data.AsSpan(), hash);
             Debug.Assert(bytesWritten == hash.Length);
@@ -723,14 +743,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             var stringField = new DataSectionStringField("s", this);
 
-            var staticConstructor = synthesizeStaticConstructor((ITokenDeferral)containingType.ModuleBuilder, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
+            var staticConstructor = synthesizeStaticConstructor(containingType.ModuleBuilder, this, dataField, stringField, bytesToStringHelper, diagnostics);
 
             _fields = [stringField];
             _methods = [staticConstructor];
 
             static Cci.IMethodDefinition synthesizeStaticConstructor(
-                ITokenDeferral module,
-                Cci.INamespaceTypeDefinition containingType,
+                CommonPEModuleBuilder module,
+                Cci.ITypeDefinition containingType,
                 MappedField dataField,
                 DataSectionStringField stringField,
                 Cci.IMethodDefinition bytesToStringHelper,
@@ -739,23 +759,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var ilBuilder = new ILBuilder(
                     module,
                     new LocalSlotManager(slotAllocator: null),
+                    diagnostics,
                     OptimizationLevel.Release,
                     areLocalsZeroed: false);
 
                 // Push the `byte*` field's address.
                 ilBuilder.EmitOpCode(ILOpCode.Ldsflda);
-                ilBuilder.EmitToken(dataField, null, diagnostics);
+                ilBuilder.EmitToken(dataField, null);
 
                 // Push the byte size.
                 ilBuilder.EmitIntConstant(dataField.MappedData.Length);
 
                 // Call `<PrivateImplementationDetails>.BytesToString(byte*, int)`.
                 ilBuilder.EmitOpCode(ILOpCode.Call, -1);
-                ilBuilder.EmitToken(bytesToStringHelper, null, diagnostics);
+                ilBuilder.EmitToken(bytesToStringHelper, null);
 
                 // Store into the corresponding `string` field.
                 ilBuilder.EmitOpCode(ILOpCode.Stsfld);
-                ilBuilder.EmitToken(stringField, null, diagnostics);
+                ilBuilder.EmitToken(stringField, null);
 
                 ilBuilder.EmitRet(isVoid: true);
                 ilBuilder.Realize();
@@ -897,13 +918,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
     }
 
@@ -1111,13 +1132,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
     }
 
@@ -1153,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public static BytesToStringHelper Create(
-            ITokenDeferral moduleBuilder,
+            CommonPEModuleBuilder moduleBuilder,
             Cci.INamespaceTypeDefinition containingType,
             Cci.IMethodReference encodingUtf8,
             Cci.IMethodReference encodingGetString,
@@ -1162,12 +1183,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var ilBuilder = new ILBuilder(
                 moduleBuilder,
                 new LocalSlotManager(slotAllocator: null),
+                diagnostics,
                 OptimizationLevel.Release,
                 areLocalsZeroed: false);
 
             // Call `Encoding.get_UTF8()`.
             ilBuilder.EmitOpCode(ILOpCode.Call, 1);
-            ilBuilder.EmitToken(encodingUtf8, null, diagnostics);
+            ilBuilder.EmitToken(encodingUtf8, null);
 
             // Push the `byte*`.
             ilBuilder.EmitOpCode(ILOpCode.Ldarg_0);
@@ -1177,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Call `Encoding.GetString(byte*, int)`.
             ilBuilder.EmitOpCode(ILOpCode.Callvirt, -2);
-            ilBuilder.EmitToken(encodingGetString, null, diagnostics);
+            ilBuilder.EmitToken(encodingGetString, null);
 
             // Return.
             ilBuilder.EmitRet(isVoid: false);

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -154,12 +155,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
             ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Public NotOverridable Overrides Function GetHashCode() As Integer
             ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Conditional("DEBUG")>

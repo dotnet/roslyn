@@ -20,9 +20,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UsePrimaryConstructorTests
 {
     [Fact]
-    public async Task TestInCSharp12()
-    {
-        await new VerifyCS.Test
+    public Task TestInCSharp12()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -39,12 +38,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp11()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp11()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -56,12 +53,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp11,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonPublicConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonPublicConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -73,12 +68,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStruct()
-    {
-        await new VerifyCS.Test
+    public Task TestStruct()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct C
@@ -95,12 +88,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithUnchainedConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithUnchainedConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -116,12 +107,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithThisChainedConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestWithThisChainedConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -145,12 +134,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i)
@@ -182,12 +169,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i)
@@ -219,12 +204,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i, int j)
@@ -258,12 +241,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor4()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i, int j)
@@ -297,12 +278,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithBaseChainedConstructor5()
-    {
-        await new VerifyCS.Test
+    public Task TestWithBaseChainedConstructor5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B(int i, int j)
@@ -338,12 +317,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithBadExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithBadExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -354,12 +331,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithBadBlockBody()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithBadBlockBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -372,12 +347,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithExpressionBodyAssignmentToField1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExpressionBodyAssignmentToField1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -396,12 +369,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithExpressionBodyAssignmentToProperty1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExpressionBodyAssignmentToProperty1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -420,12 +391,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithExpressionBodyAssignmentToField2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExpressionBodyAssignmentToField2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -444,12 +413,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithExpressionBodyAssignmentToField3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExpressionBodyAssignmentToField3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -468,12 +435,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithAssignmentToBaseField1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithAssignmentToBaseField1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B
@@ -489,12 +454,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithAssignmentToBaseField2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithAssignmentToBaseField2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class B
@@ -510,12 +473,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithCompoundAssignmentToField()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithCompoundAssignmentToField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -528,12 +489,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithTwoWritesToTheSameMember()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithTwoWritesToTheSameMember()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -549,12 +508,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithComplexRightSide1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithComplexRightSide1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -573,12 +530,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestBlockWithMultipleAssignments1()
-    {
-        await new VerifyCS.Test
+    public Task TestBlockWithMultipleAssignments1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -602,12 +557,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestBlockWithMultipleAssignments2()
-    {
-        await new VerifyCS.Test
+    public Task TestBlockWithMultipleAssignments2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -629,12 +582,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembers1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembers1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -657,12 +608,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembers2()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembers2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -685,12 +634,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersOnlyWithMatchingType()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersOnlyWithMatchingType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -714,12 +661,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotRemovePublicMembers1()
-    {
-        await new VerifyCS.Test
+    public Task TestDoNotRemovePublicMembers1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -737,12 +682,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotRemoveMembersUsedInNestedTypes()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveMembersUsedInNestedTypes()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -792,12 +735,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersUpdateReferences1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersUpdateReferences1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -831,12 +772,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersUpdateReferences2()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersUpdateReferences2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -870,12 +809,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersUpdateReferencesWithRename1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersUpdateReferencesWithRename1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -909,12 +846,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersOnlyPrivateMembers()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersOnlyPrivateMembers()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -950,12 +885,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersOnlyMembersWithoutAttributes()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersOnlyMembersWithoutAttributes()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -993,12 +926,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersAccessedOffThis()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersAccessedOffThis()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1036,12 +967,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenRightSideReferencesThis1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenRightSideReferencesThis1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1058,12 +987,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenRightSideReferencesThis2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenRightSideReferencesThis2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1080,12 +1007,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWhenRightSideDoesNotReferenceThis()
-    {
-        await new VerifyCS.Test
+    public Task TestWhenRightSideDoesNotReferenceThis()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1110,12 +1035,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_1()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1146,12 +1069,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_IfDef1()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorDocCommentWhenNothingOnType_IfDef1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1186,12 +1107,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_2()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1216,12 +1135,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_1()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1264,12 +1181,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_2()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1308,12 +1223,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_3()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1348,12 +1261,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorParamDocCommentsIntoTypeDocComments1()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorParamDocCommentsIntoTypeDocComments1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1397,12 +1308,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorParamDocCommentsIntoTypeDocComments2()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorParamDocCommentsIntoTypeDocComments2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1444,12 +1353,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1486,12 +1393,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments_MembersWithDifferentNames1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments_MembersWithDifferentNames1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1528,12 +1433,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenTypeDocComments1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersMoveDocComments_WhenTypeDocComments1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1576,12 +1479,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersKeepConstructorDocs1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersKeepConstructorDocs1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1624,12 +1525,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersKeepConstructorDocs2()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersKeepConstructorDocs2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1671,12 +1570,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRemoveMembersKeepConstructorDocs3()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveMembersKeepConstructorDocs3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -1720,12 +1617,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1753,12 +1648,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1785,12 +1678,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1826,12 +1717,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll4()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1887,12 +1776,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             NumberOfFixAllIterations = 1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes1()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes1()
+        => new VerifyCS.Test
         {
             TestCode = """
                using System;
@@ -1913,12 +1800,10 @@ public sealed class UsePrimaryConstructorTests
                """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes1A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes1A()
+        => new VerifyCS.Test
         {
             TestCode = """
                using System;
@@ -1941,12 +1826,10 @@ public sealed class UsePrimaryConstructorTests
                """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes2()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1975,12 +1858,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes2A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes2A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2011,12 +1892,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes3()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2048,12 +1927,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes3A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes3A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2087,12 +1964,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes4()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2119,12 +1994,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMoveConstructorAttributes4A()
-    {
-        await new VerifyCS.Test
+    public Task TestMoveConstructorAttributes4A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2154,12 +2027,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove1()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2182,12 +2053,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove1A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove1A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2216,12 +2085,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove2()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2246,12 +2113,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove2A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove2A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2282,12 +2147,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove3()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2310,12 +2173,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove3A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove3A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2344,12 +2205,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove4()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2374,12 +2233,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleParametersMove4A()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleParametersMove4A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2410,12 +2267,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType1()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2439,12 +2294,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType2()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -2472,12 +2325,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType3()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2501,12 +2352,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToNestedType4()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -2534,12 +2383,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70586")]
-    public async Task TestReferenceToNestedType5()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToNestedType5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class B(B.A a)
@@ -2564,12 +2411,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonAutoProperty()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNonAutoProperty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2585,12 +2430,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInParameter1()
-    {
-        await new VerifyCS.Test
+    public Task TestInParameter1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2611,12 +2454,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInParameter2()
-    {
-        await new VerifyCS.Test
+    public Task TestInParameter2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2637,12 +2478,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2659,12 +2498,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2681,12 +2518,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion3()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2705,12 +2540,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion4()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2729,12 +2562,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion5()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2753,12 +2584,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion6()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2777,12 +2606,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion7()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion7()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2803,12 +2630,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPreprocessorRegion8()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPreprocessorRegion8()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -2829,12 +2654,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithRegionDirective1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithRegionDirective1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2862,12 +2685,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithRegionDirective2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithRegionDirective2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2903,12 +2724,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSeeTag1()
-    {
-        await new VerifyCS.Test
+    public Task TestSeeTag1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 /// <summary>
@@ -2935,12 +2754,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSeeTag2()
-    {
-        await new VerifyCS.Test
+    public Task TestSeeTag2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 /// <summary>
@@ -2967,12 +2784,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToConstantInParameterInitializer1()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToConstantInParameterInitializer1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -2995,12 +2810,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToConstantInParameterInitializer2()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToConstantInParameterInitializer2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3023,12 +2836,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceToConstantInParameterInitializer3()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceToConstantInParameterInitializer3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C<T>
@@ -3051,12 +2862,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMergeConstructorSummaryIntoTypeDocComment()
-    {
-        await new VerifyCS.Test
+    public Task TestMergeConstructorSummaryIntoTypeDocComment()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -3128,12 +2937,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
-    public async Task TestPartialType1()
-    {
-        await new VerifyCS.Test
+    public Task TestPartialType1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Base(int i)
@@ -3166,12 +2973,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
-    public async Task TestPartialType2()
-    {
-        await new VerifyCS.Test
+    public Task TestPartialType2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -3211,12 +3016,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
-    public async Task TestPartialType3()
-    {
-        await new VerifyCS.Test
+    public Task TestPartialType3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Base(int i)
@@ -3249,12 +3052,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
-    public async Task TestPartialType4()
-    {
-        await new VerifyCS.Test
+    public Task TestPartialType4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -3291,12 +3092,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects1()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3320,12 +3119,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects1_A()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects1_A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3342,12 +3139,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects2()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3369,12 +3164,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects2_A()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects2_A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3390,12 +3183,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects3()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3419,12 +3210,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects3_A()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects3_A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3441,12 +3230,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects4()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 partial class C
@@ -3467,12 +3254,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects5()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3496,12 +3281,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects5_A()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects5_A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3525,12 +3308,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects6()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3554,12 +3335,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
-    public async Task TestSideEffects6_A()
-    {
-        await new VerifyCS.Test
+    public Task TestSideEffects6_A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -3583,12 +3362,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAbstractClass1()
-    {
-        await new VerifyCS.Test
+    public Task TestAbstractClass1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 abstract class C
@@ -3605,12 +3382,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAbstractClass2()
-    {
-        await new VerifyCS.Test
+    public Task TestAbstractClass2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 abstract class C
@@ -3627,12 +3402,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAbstractClass3()
-    {
-        await new VerifyCS.Test
+    public Task TestAbstractClass3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 abstract class C
@@ -3644,12 +3417,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71117")]
-    public async Task TestNullableMismatch()
-    {
-        await new VerifyCS.Test
+    public Task TestNullableMismatch()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -3691,12 +3462,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionsVerifier = actions => Assert.Single(actions),
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
-    public async Task TestPragma1()
-    {
-        await new VerifyCS.Test
+    public Task TestPragma1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class Test
@@ -3727,12 +3496,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
-    public async Task TestPragma2()
-    {
-        await new VerifyCS.Test
+    public Task TestPragma2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class Test
@@ -3764,12 +3531,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
-    public async Task TestOutVariableInConstructor1()
-    {
-        await new VerifyCS.Test
+    public Task TestOutVariableInConstructor1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class Test
@@ -3790,12 +3555,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
-    public async Task TestOutVariableInConstructor2()
-    {
-        await new VerifyCS.Test
+    public Task TestOutVariableInConstructor2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class Test
@@ -3812,12 +3575,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
-    public async Task TestPatternVariableInConstructor1()
-    {
-        await new VerifyCS.Test
+    public Task TestPatternVariableInConstructor1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class Test
@@ -3838,12 +3599,10 @@ public sealed class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
-    public async Task TestMemberReferenceInAttribute1()
-    {
-        await new VerifyCS.Test
+    public Task TestMemberReferenceInAttribute1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -3869,12 +3628,10 @@ public sealed class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
-    public async Task TestMemberReferenceInAttribute2()
-    {
-        await new VerifyCS.Test
+    public Task TestMemberReferenceInAttribute2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -3912,12 +3669,10 @@ public sealed class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
-    public async Task TestMemberReferenceInAttribute3()
-    {
-        await new VerifyCS.Test
+    public Task TestMemberReferenceInAttribute3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -3955,12 +3710,10 @@ public sealed class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
-    public async Task TestMemberReferenceInAttribute4()
-    {
-        await new VerifyCS.Test
+    public Task TestMemberReferenceInAttribute4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -3998,12 +3751,10 @@ public sealed class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71749")]
-    public async Task TestNotOnSuppressedAssignmentToAnotherField()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnSuppressedAssignmentToAnotherField()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -4027,12 +3778,10 @@ public sealed class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72784")]
-    public async Task TestQualifyNestedEnum()
-    {
-        await new VerifyCS.Test
+    public Task TestQualifyNestedEnum()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class MyClass
@@ -4070,12 +3819,10 @@ public sealed class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73695")]
-    public async Task TestAttributeOnEmptyConstructor()
-    {
-        await new VerifyCS.Test
+    public Task TestAttributeOnEmptyConstructor()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -4096,15 +3843,12 @@ public sealed class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            CodeActionIndex = 0,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73614")]
-    public async Task TestNotWithRefStruct()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithRefStruct()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -4126,12 +3870,10 @@ public sealed class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment1()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4158,12 +3900,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment2()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4187,12 +3927,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment3()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4219,12 +3957,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment4()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4248,12 +3984,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment5()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment5()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4279,12 +4013,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment6()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment6()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4307,12 +4039,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment7()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment7()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4340,12 +4070,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment8()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment8()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4370,12 +4098,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment9()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment9()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4404,12 +4130,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment10()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment10()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4435,12 +4159,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment11()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment11()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4467,12 +4189,10 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
-    public async Task TestLeadingComment12()
-    {
-        await new VerifyCS.Test
+    public Task TestLeadingComment12()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -4502,5 +4222,4 @@ public sealed class UsePrimaryConstructorTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 }

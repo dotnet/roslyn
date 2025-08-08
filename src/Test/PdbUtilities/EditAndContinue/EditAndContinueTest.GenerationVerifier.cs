@@ -11,7 +11,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -182,11 +181,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             internal void VerifyCustomDebugInformation(string qualifiedMemberName, string expectedPdb)
                 => VerifyPdb(qualifiedMemberName, expectedPdb, PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeScopes);
 
-            internal void VerifyIL(string expectedIL)
+            internal void VerifyEncFieldRvaData(string expected)
                 => Verify(() =>
                 {
                     Debug.Assert(generationInfo.CompilationDifference != null);
-                    generationInfo.CompilationDifference.VerifyIL(expectedIL);
+
+                    var actual = ILValidation.DumpEncDeltaFieldData(generationInfo.CompilationDifference.ILDelta, readers);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual, escapeQuotes: false);
+                });
+
+            internal void VerifyIL(string expected)
+                => Verify(() =>
+                {
+                    Debug.Assert(generationInfo.CompilationDifference != null);
+
+                    var actual = ILValidation.DumpEncDeltaMethodBodies(generationInfo.CompilationDifference.ILDelta, readers);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual, escapeQuotes: false);
                 });
 
             internal void VerifyIL(string qualifiedMemberName, string expectedIL)

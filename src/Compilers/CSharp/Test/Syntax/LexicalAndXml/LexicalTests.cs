@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -4571,6 +4572,67 @@ class C
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
+        public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
+        {
+            // Make a file that looks effectively like:
+            //
+            //      ////// <long stream of slashes>
+            //      ;
+            //      ..0;
+            //
+            // We want both dots at the end of the window.  When we lex the first dot, we'll peek ahead to see if we're
+            // on a number, and we don't want that to move the window forward.  Then when we lex the second dot, we will
+            // peek forward, making the text window point at "0;".
+            //
+            // Because we will have seen `.0` we will attempt to peek backwards to see if the prior token was a dot.
+            // This will involve reading back a chunk that includes that dot.
+            var windowEnd = "\r\n;\r\n..";
+            var code = new string('/', SlidingTextWindow.DefaultWindowLength - windowEnd.Length) + windowEnd + "0;";
+
+            var sourceText = SourceText.From(code);
+
+            {
+                // Run a full parse, and validate the tree returned).
+
+                using var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
+
+                using var parser = new LanguageParser(lexer, oldTree: null, changes: null);
+
+                Microsoft.CodeAnalysis.SyntaxTreeExtensions.VerifySource(
+                    sourceText, parser.ParseCompilationUnit().CreateRed());
+            }
+
+            {
+                // Now, replicate the same conditions that hte parser runs through by driving the a new lexer here
+                // directly.  That ensures that we are actually validating exactly the conditions that led to the bug
+                // (a dot token starting a number, right at the start of the character window).
+                var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
+
+                var mode = LexerMode.Syntax;
+                var token1 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.SemicolonToken, token1.Kind);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, token1.FullWidth);
+
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                var token2 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token2.Kind);
+
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                var token3 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token3.Kind);
+
+                // We will have jumped the window backwards to be able to read the prior dot.
+                Assert.Equal(code.IndexOf('.'), SlidingTextWindow.TestAccessor.GetCharacterWindowStartPositionInText(lexer.TextWindow));
+                Assert.Equal(2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                Assert.StartsWith("..0;", SlidingTextWindow.TestAccessor.GetCharacterWindow(lexer.TextWindow).AsSpan().ToString());
+
+                var token4 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.NumericLiteralToken, token4.Kind);
+                Assert.Equal("0", token4.ValueText);
+            }
         }
     }
 }

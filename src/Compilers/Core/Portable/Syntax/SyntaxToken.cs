@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 

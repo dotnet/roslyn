@@ -3,16 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
-Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Test.Utilities
@@ -106,7 +105,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
             Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.CSharp, viewModel, True)
             Assert.False(options.IsCancelled)
-            Assert.Equal("TestClassHelpers.cs", options.FileName)
+            Assert.Equal("TestClassHelpers.cs", options.FilePath)
             Assert.Equal("TestClassHelpers", options.TypeName)
             Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
         End Function
@@ -425,7 +424,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(options.IsCancelled)
             Assert.NotNull(options.Destination)
             Assert.Equal("TestNs.ConflictingClassName", options.Destination.ToDisplayString())
-            Assert.Equal("TestFile.cs", options.FileName)
+            Assert.Equal(Path.Combine(TestWorkspace.RootDirectory, "TestFile.cs"), options.FilePath)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70896")>
@@ -550,7 +549,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
             Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.VisualBasic, viewModel, True)
             Assert.False(options.IsCancelled)
-            Assert.Equal("TestClassHelpers.vb", options.FileName)
+            Assert.Equal("TestClassHelpers.vb", options.FilePath)
             Assert.Equal("TestClassHelpers", options.TypeName)
             Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
         End Function
@@ -865,7 +864,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(options.IsCancelled)
             Assert.NotNull(options.Destination)
             Assert.Equal("TestNs.ConflictingClassName", options.Destination.ToDisplayString())
-            Assert.Equal("TestFile.vb", options.FileName)
+            Assert.Equal(Path.Combine(TestWorkspace.RootDirectory, "TestFile.vb"), options.FilePath)
         End Function
 #End Region
     End Class

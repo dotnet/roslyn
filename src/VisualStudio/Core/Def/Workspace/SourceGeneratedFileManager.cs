@@ -234,7 +234,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private readonly SourceGeneratedFileManager _fileManager;
         private readonly ITextBuffer _textBuffer;
         private readonly SourceGeneratedDocumentIdentity _documentIdentity;
-        private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
         /// <summary>
         /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -262,6 +261,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private VisualStudioInfoBar.InfoBarMessage? _currentInfoBarMessage;
 
         private InfoBarInfo? _infoToShow = null;
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, SourceGeneratedDocumentIdentity documentIdentity)
         {
@@ -269,7 +269,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             _fileManager = fileManager;
             _textBuffer = textBuffer;
             _documentIdentity = documentIdentity;
-            _workspaceConfigurationService = this.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
             // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
             // while we're doing edits.
@@ -284,7 +283,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 readOnlyRegionEdit.Apply();
             }
 
-            this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workspaceChangedDisposer = this.Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
 
             _batchingWorkQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromSeconds(1),
@@ -311,7 +310,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             _fileManager._threadingContext.ThrowIfNotOnUIThread();
 
-            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
 
             // Disconnect the buffer from the workspace before making it eligible for edits
             DisconnectFromWorkspaceIfOpen();
@@ -422,7 +422,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             await EnsureWindowFrameInfoBarUpdatedAsync(cancellationToken).ConfigureAwait(true);
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
         {
             var projectId = _documentIdentity.DocumentId.ProjectId;
 

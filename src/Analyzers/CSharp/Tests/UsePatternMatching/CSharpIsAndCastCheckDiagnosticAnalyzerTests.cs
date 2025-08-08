@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public CSharpIsAndCastCheckDiagnosticAnalyzerTests(ITestOutputHelper logger)
       : base(logger)
@@ -31,9 +31,8 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
         => (new CSharpIsAndCastCheckDiagnosticAnalyzer(), new CSharpIsAndCastCheckCodeFixProvider());
 
     [Fact]
-    public async Task InlineTypeCheck1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheck1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -57,12 +56,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInCSharp6()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInCSharp6()
+        => TestMissingAsync(
             """
             class C
             {
@@ -75,12 +72,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestMissingInWrongName()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInWrongName()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -93,12 +88,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInWrongType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInWrongType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -111,12 +104,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnMultiVar()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnMultiVar()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -129,12 +120,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -147,12 +136,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnAsExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnAsExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -165,12 +152,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckComplexExpression1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckComplexExpression1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -194,12 +179,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInlineTypeCheckWithElse()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInlineTypeCheckWithElse()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -229,12 +212,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComments1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -260,12 +241,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComments2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -290,12 +269,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComments3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -322,12 +299,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17126")]
-    public async Task TestComments4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestComments4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             namespace N {
@@ -364,12 +339,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckParenthesized1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckParenthesized1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -393,12 +366,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckParenthesized2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckParenthesized2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -422,12 +393,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckParenthesized3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckParenthesized3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -451,12 +420,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckScopeConflict1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task InlineTypeCheckScopeConflict1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -473,12 +440,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckScopeConflict2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task InlineTypeCheckScopeConflict2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -496,12 +461,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckScopeConflict3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task InlineTypeCheckScopeConflict3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -519,12 +482,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InlineTypeCheckScopeNonConflict1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task InlineTypeCheckScopeNonConflict1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -560,12 +521,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18053")]
-    public async Task TestMissingWhenTypesDoNotMatch()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWhenTypesDoNotMatch()
+        => TestMissingInRegularAndScriptAsync(
             """
             class SyntaxNode
             {
@@ -593,12 +552,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
-    public async Task TestMissingWithNullableType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWithNullableType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -613,12 +570,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21172")]
-    public async Task TestMissingWithDynamic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWithDynamic()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -633,7 +588,6 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestSeverity()
@@ -663,9 +617,8 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24287")]
-    public async Task TestWithVariableDesignation1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithVariableDesignation1()
+        => TestInRegularAndScriptAsync(
             """
             public class Test
             {
@@ -695,12 +648,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24287")]
-    public async Task TestWithVariableDesignation2()
-    {
-        await TestMissingAsync(
+    public Task TestWithVariableDesignation2()
+        => TestMissingAsync(
             """
             public class Test
             {
@@ -716,12 +667,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24287")]
-    public async Task TestWithVariableDesignation3()
-    {
-        await TestMissingAsync(
+    public Task TestWithVariableDesignation3()
+        => TestMissingAsync(
             """
             public class Test
             {
@@ -742,12 +691,10 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42462")]
-    public async Task TestWithLocalInsideTryBlock()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithLocalInsideTryBlock()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -789,5 +736,4 @@ public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCShar
                 }
             }
             """);
-    }
 }

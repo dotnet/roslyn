@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
-        <source>CleearStackTraceExplorerCommandName</source>
-        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <source>ClearStackTraceExplorerCommandName</source>
+        <target state="needs-review-translation">CleearStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
@@ -60,96 +60,6 @@
       <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
         <source>ShowStackTraceExplorer</source>
         <target state="translated">ShowStackTraceExplorer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
-        <source>&amp;Current Document</source>
-        <target state="translated">現在のドキュメント(&amp;C)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
-        <source>AnalysisScopeCurrentDocument</source>
-        <target state="translated">AnalysisScopeCurrentDocument</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
-        <source>Current Document</source>
-        <target state="translated">現在のドキュメント</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
-        <source>&amp;Default</source>
-        <target state="translated">既定(&amp;D)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
-        <source>AnalysisScopeDefault</source>
-        <target state="translated">AnalysisScopeDefault</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
-        <source>Default</source>
-        <target state="translated">既定値</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
-        <source>&amp;Entire Solution</source>
-        <target state="translated">ソリューション全体(&amp;E)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
-        <source>AnalysisScopeEntireSolution</source>
-        <target state="translated">AnalysisScopeEntireSolution</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
-        <source>Entire Solution</source>
-        <target state="translated">ソリューション全体</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
-        <source>&amp;None</source>
-        <target state="translated">なし(&amp;N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
-        <source>AnalysisScopeNone</source>
-        <target state="translated">AnalysisScopeNone</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
-        <source>None</source>
-        <target state="translated">なし</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
-        <source>&amp;Open Documents</source>
-        <target state="translated">開かれているドキュメント(&amp;O)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
-        <source>AnalysisScopeOpenDocuments</source>
-        <target state="translated">AnalysisScopeOpenDocuments</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
-        <source>Open Documents</source>
-        <target state="translated">開かれているドキュメント</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
-        <source>Set Analysis Scope</source>
-        <target state="translated">分析スコープの設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
-        <source>Set Analysis Scope</source>
-        <target state="translated">分析スコープの設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
-        <source>SetAnalysisScope</source>
-        <target state="translated">SetAnalysisScope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
@@ -675,6 +585,46 @@
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
         <target state="translated">実装に移動</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
+        <source>Solution Explorer Symbol Tree</source>
+        <target state="new">Solution Explorer Symbol Tree</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
+        <source>Solution Explorer Symbol Tree</source>
+        <target state="new">Solution Explorer Symbol Tree</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
+        <source>Find All References</source>
+        <target state="new">Find All References</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|LocCanonicalName">
+        <source>FindAllReferences</source>
+        <target state="new">FindAllReferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemGoToBase|ButtonText">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemGoToBase|LocCanonicalName">
+        <source>GoToBase</source>
+        <target state="new">GoToBase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemGoToImplementation|ButtonText">
+        <source>Go To Implementation</source>
+        <target state="new">Go To Implementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemGoToImplementation|LocCanonicalName">
+        <source>GoToImplementation</source>
+        <target state="new">GoToImplementation</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|ButtonText">

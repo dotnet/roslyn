@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -14,13 +15,12 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
-using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 
-public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestCodeActionHandlerAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -57,7 +57,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         AssertJsonEquals(expected, useImplicitType);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestCodeActionHandlerAsync_NestedAction(bool mutatingLspWorkspace)
     {
         var markup =
@@ -90,13 +90,13 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
 
         var topLevelAction = Assert.Single(results, action => action.Title == titlePath[0]);
-        var introduceConstant = topLevelAction.Children.FirstOrDefault(
+        var introduceConstant = topLevelAction.Children!.FirstOrDefault(
             r => JsonSerializer.Deserialize<CodeActionResolveData>((JsonElement)r.Data!, ProtocolConversions.LspJsonSerializerOptions)!.UniqueIdentifier == titlePath[1]);
 
         AssertJsonEquals(expected, introduceConstant);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestCodeActionHasCorrectDiagnostics(bool mutatingLspWorkspace)
     {
         var markup =
@@ -114,7 +114,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -134,11 +134,11 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
         var addImport = results.FirstOrDefault(r => r.Title.Contains($"using System.Threading.Tasks"));
-        Assert.Equal(1, addImport.Diagnostics!.Length);
+        Assert.Equal(1, addImport!.Diagnostics!.Length);
         Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code!.Value);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestNoSuppressionFixerInStandardLSP(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -155,7 +155,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -175,7 +175,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Make method synchronous", results[0].Title);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -195,7 +195,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -204,7 +204,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
         var inline = results.FirstOrDefault(r => r.Title.Contains($"Inline 'A()'"));
-        var data = GetCodeActionResolveData(inline);
+        var data = GetCodeActionResolveData(inline!);
         Assert.NotNull(data);
 
         // Asserts that there are NestedActions on Inline
@@ -218,10 +218,10 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Inline and keep 'A()'", nestedActionData!.CodeActionPath[1]);
 
         // Asserts that there is a Command present on an action with nested actions
-        Assert.NotNull(inline.Command);
+        Assert.NotNull(inline?.Command);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedFixAllCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -238,7 +238,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -266,7 +266,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Fix All: in Source", data.NestedCodeActions!.Value[1].Title);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedResolveTopLevelCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -286,7 +286,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -296,7 +296,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
         // Assert that nested code actions aren't enumerated.
         var inline = results.FirstOrDefault(r => r.Title.Contains($"Inline 'A()'"));
-        var resolvedAction = await RunGetCodeActionResolveAsync(testLspServer, inline);
+        var resolvedAction = await RunGetCodeActionResolveAsync(testLspServer, inline!);
         Assert.Null(resolvedAction.Edit);
     }
 
@@ -306,7 +306,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
     {
         var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
             LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
-        return [.. result.Cast<VSInternalCodeAction>()];
+        return [.. result!.Cast<VSInternalCodeAction>()];
     }
 
     private static async Task<VSInternalCodeAction> RunGetCodeActionResolveAsync(
@@ -327,7 +327,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
         => new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
