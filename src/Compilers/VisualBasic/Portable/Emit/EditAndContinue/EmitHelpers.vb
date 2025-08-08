@@ -166,54 +166,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Return False
         End Function
-
-        Friend Function MapToCompilation(
-            compilation As VisualBasicCompilation,
-            moduleBeingBuilt As PEDeltaAssemblyBuilder) As EmitBaseline
-
-            Dim previousGeneration = moduleBeingBuilt.PreviousGeneration
-            Debug.Assert(previousGeneration.Compilation IsNot compilation)
-
-            If previousGeneration.Ordinal = 0 Then
-                ' Initial generation, nothing to map. (Since the initial generation
-                ' is always loaded from metadata in the context of the current
-                ' compilation, there's no separate mapping step.)
-                Return previousGeneration
-            End If
-
-            Dim currentSynthesizedTypes = moduleBeingBuilt.GetAllSynthesizedTypes()
-            Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
-            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers
-
-            ' Mapping from previous compilation to the current.
-            Dim previousSourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-
-            Dim matcher = New VisualBasicSymbolMatcher(
-                sourceAssembly:=previousSourceAssembly,
-                otherAssembly:=compilation.SourceAssembly,
-                otherSynthesizedTypes:=currentSynthesizedTypes,
-                otherSynthesizedMembers:=currentSynthesizedMembers,
-                otherDeletedMembers:=currentDeletedMembers)
-
-            Dim mappedSynthesizedTypes = matcher.MapSynthesizedTypes(previousGeneration.SynthesizedTypes, currentSynthesizedTypes)
-            Dim mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping:=False)
-            Dim mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping:=True)
-
-            ' TODO can we reuse some data from the previous matcher?
-            Dim matcherWithAllSynthesizedTypesAndMembers = New VisualBasicSymbolMatcher(
-                sourceAssembly:=previousSourceAssembly,
-                otherAssembly:=compilation.SourceAssembly,
-                otherSynthesizedTypes:=mappedSynthesizedTypes,
-                otherSynthesizedMembers:=mappedSynthesizedMembers,
-                otherDeletedMembers:=mappedDeletedMembers)
-
-            Return matcherWithAllSynthesizedTypesAndMembers.MapBaselineToCompilation(
-                previousGeneration,
-                compilation,
-                moduleBeingBuilt,
-                mappedSynthesizedTypes,
-                mappedSynthesizedMembers,
-                mappedDeletedMembers)
-        End Function
     End Module
 End Namespace

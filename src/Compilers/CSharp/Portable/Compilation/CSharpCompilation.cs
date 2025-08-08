@@ -3598,8 +3598,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private protected override EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt)
-            => EmitHelpers.MapToCompilation(this, (PEDeltaAssemblyBuilder)moduleBeingBuilt);
+        private protected override SymbolMatcher CreatePreviousToCurrentSourceAssemblyMatcher(
+            EmitBaseline previousGeneration,
+            SynthesizedTypeMaps otherSynthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherDeletedMembers)
+        {
+            return new CSharpSymbolMatcher(
+                sourceAssembly: ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
+                SourceAssembly,
+                otherSynthesizedTypes,
+                otherSynthesizedMembers,
+                otherDeletedMembers);
+        }
 
         private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
         {

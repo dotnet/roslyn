@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -103,16 +104,21 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private static ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(
-            ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue> previousTypes,
-            ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue> newTypes)
+        /// <summary>
+        /// Merges anonymous types/delegates generated during lowering, or emit, of the current compilation with aggregate
+        /// types/delegates from all previous source generations (gen >= 1) similarly to <see cref="MapSynthesizedOrDeletedMembers"/>
+        /// </summary>
+        private static ImmutableSegmentedDictionary<TKey, TValue> MapAnonymousTypesAndDelegatesWithUniqueKey<TKey, TValue>(
+            ImmutableSegmentedDictionary<TKey, TValue> previousTypes,
+            ImmutableSegmentedDictionary<TKey, TValue> newTypes)
+            where TKey : IEquatable<TKey>
         {
             if (previousTypes.Count == 0)
             {
                 return newTypes;
             }
 
-            var builder = ImmutableSegmentedDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<TKey, TValue>();
             builder.AddRange(newTypes);
 
             foreach (var (key, previousValue) in previousTypes)
@@ -128,31 +134,10 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
-        private static ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(
-            ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> previousDelegates,
-            ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> newDelegates)
-        {
-            if (previousDelegates.Count == 0)
-            {
-                return newDelegates;
-            }
-
-            var builder = ImmutableSegmentedDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
-            builder.AddRange(newDelegates);
-
-            foreach (var (key, previousValue) in previousDelegates)
-            {
-                if (newDelegates.ContainsKey(key))
-                {
-                    continue;
-                }
-
-                builder.Add(key, previousValue);
-            }
-
-            return builder.ToImmutable();
-        }
-
+        /// <summary>
+        /// Merges anonymous delegates with indexed names generated during lowering, or emit, of the current compilation with aggregate
+        /// delegates from all previous source generations (gen >= 1) similarly to <see cref="MapSynthesizedOrDeletedMembers"/>
+        /// </summary>
         private ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> MapAnonymousDelegatesWithIndexedNames(
             ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> previousDelegates,
             ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> newDelegates)
@@ -201,8 +186,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal SynthesizedTypeMaps MapSynthesizedTypes(SynthesizedTypeMaps previousTypes, SynthesizedTypeMaps newTypes)
             => new SynthesizedTypeMaps(
-                MapAnonymousTypes(previousTypes.AnonymousTypes, newTypes.AnonymousTypes),
-                MapAnonymousDelegates(previousTypes.AnonymousDelegates, newTypes.AnonymousDelegates),
+                MapAnonymousTypesAndDelegatesWithUniqueKey(previousTypes.AnonymousTypes, newTypes.AnonymousTypes),
+                MapAnonymousTypesAndDelegatesWithUniqueKey(previousTypes.AnonymousDelegates, newTypes.AnonymousDelegates),
                 MapAnonymousDelegatesWithIndexedNames(previousTypes.AnonymousDelegatesWithIndexedNames, newTypes.AnonymousDelegatesWithIndexedNames));
 
         /// <summary>
@@ -218,6 +203,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// 
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
+        /// 
+        /// Note that the results may include symbols declared in different compilations (previous generations).
         /// </remarks>
         internal IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedOrDeletedMembers(
             IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,

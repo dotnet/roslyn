@@ -2534,8 +2534,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Protected Overrides Function MapToCompilation(moduleBeingBuilt As CommonPEModuleBuilder) As EmitBaseline
-            Return EmitHelpers.MapToCompilation(Me, DirectCast(moduleBeingBuilt, PEDeltaAssemblyBuilder))
+        Private Protected Overrides Function CreatePreviousToCurrentSourceAssemblyMatcher(
+            previousGeneration As EmitBaseline,
+            otherSynthesizedTypes As SynthesizedTypeMaps,
+            otherSynthesizedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+            otherDeletedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))) As SymbolMatcher
+
+            Return New VisualBasicSymbolMatcher(
+                sourceAssembly:=DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly,
+                otherAssembly:=SourceAssembly,
+                otherSynthesizedTypes,
+                otherSynthesizedMembers,
+                otherDeletedMembers)
         End Function
 
         Friend Overrides Function GenerateResources(
