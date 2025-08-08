@@ -76,15 +76,13 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         public static readonly DiagnosticAnalyzerComparer Instance = new();
 
         public bool Equals(DiagnosticAnalyzer? x, DiagnosticAnalyzer? y)
-        {
-            if (x is null && y is null)
-                return true;
-
-            if (x is null || y is null)
-                return false;
-
-            return x.GetAnalyzerIdAndVersion().GetHashCode() == y.GetAnalyzerIdAndVersion().GetHashCode();
-        }
+            => (x, y) switch
+            {
+                (null, null) => true,
+                (null, _) => false,
+                (_, null) => false,
+                _ => x.GetAnalyzerIdAndVersion() == y.GetAnalyzerIdAndVersion()
+            };
 
         public int GetHashCode(DiagnosticAnalyzer obj) => obj.GetAnalyzerIdAndVersion().GetHashCode();
     }
