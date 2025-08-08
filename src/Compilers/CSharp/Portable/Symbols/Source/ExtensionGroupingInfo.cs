@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Extension block symbols declared in a class are grouped by their corresponding grouping type metadata name (top level key),
             // then grouped by their corresponding extension marker type metadata name (the secondary key used by MultiDictionary).
-            // <see cref="SourceNamedTypeSymbol"/>s are the extension blocks.
+            // SourceNamedTypeSymbols are the extension blocks.
             var groupingMap = new Dictionary<string, MultiDictionary<string, SourceNamedTypeSymbol>>(EqualityComparer<string>.Default);
 
             foreach (var type in container.GetTypeMembers(""))
