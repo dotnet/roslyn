@@ -71,7 +71,6 @@ public sealed class IDEDiagnosticIDConfigurationTests
     {
         if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
                 or "IDE1007"
-                or "IDE0360" // Documentation for this diagnostic is coming soon.
                 or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
                 or "IDE0005_gen" // this diagnostic is hidden and not configurable.
                 or "RE0001"

@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MoveToResx;
 
@@ -46,8 +47,8 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         if (node is null)
             return;
 
-        var allResx = GetAllResxFiles(context.Document.Project).ToList();
-        if (allResx.Count == 0)
+        var validResxFiles = await GetValidResxFilesAsync(context.Document.Project, context.CancellationToken).ConfigureAwait(false);
+        if (validResxFiles.IsEmpty)
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
@@ -58,16 +59,15 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             return;
         }
 
-        var nestedActions = allResx
-            .Select(resx =>
+        var nestedActions = validResxFiles
+            .SelectAsArray(resx =>
             {
                 var resxName = Path.GetFileName(resx.FilePath) ?? CSharpFeaturesResources.Unnamed_Resource;
                 return CodeAction.Create(
                     title: resxName,
-                    createChangedSolution: c => MoveStringToResxAndReplaceLiteralAsync(context.Document, node, resx, c),
+                    createChangedSolution: cancellationToken => MoveStringToResxAndReplaceLiteralAsync(context.Document, node, resx, cancellationToken),
                     equivalenceKey: $"MoveStringTo_{resxName}");
-            })
-            .ToImmutableArray();
+            });
 
         context.RegisterCodeFix(
             CodeAction.Create(
@@ -77,10 +77,43 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private static IEnumerable<TextDocument> GetAllResxFiles(Project project)
+    /// <summary>
+    /// Gets all valid .resx files in the project that can be parsed successfully.
+    /// </summary>
+    private static async Task<ImmutableArray<TextDocument>> GetValidResxFilesAsync(
+        Project project,
+        CancellationToken cancellationToken)
     {
-        return project.AdditionalDocuments
-            .Where(f => f.FilePath != null && string.Equals(".resx", Path.GetExtension(f.FilePath), StringComparison.OrdinalIgnoreCase));
+        using var _ = ArrayBuilder<TextDocument>.GetInstance(out var validFiles);
+
+        foreach (var document in project.AdditionalDocuments)
+        {
+            // First check if it's a .resx file by extension
+            if (document.FilePath != null &&
+                !string.IsNullOrEmpty(Path.GetFileName(document.FilePath)) &&
+                string.Equals(".resx", Path.GetExtension(document.FilePath), StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    // Then validate the XML content
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var xdoc = XDocument.Parse(sourceText.ToString());
+
+                    // Check that the document has a root element and basic resx structure
+                    if (xdoc.Root != null)
+                    {
+                        validFiles.Add(document);
+                    }
+                }
+                catch (System.Xml.XmlException)
+                {
+                    // Skip this file - it has invalid XML
+                    continue;
+                }
+            }
+        }
+
+        return validFiles.ToImmutable();
     }
 
     private static async Task<Solution> MoveStringToResxAndReplaceLiteralAsync(
@@ -103,13 +136,17 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static string ToDeterministicResourceKey(string value, int maxLength = 60)
+    /// <summary>
+    /// Generates a deterministic resource key from a string value.
+    /// </summary>
+    /// <param name="value">The string value to convert to a resource key.</param>
+    /// <param name="maxKeyLength">The maximum length of the final generated key.</param>
+    /// <returns>A resource key following the pattern Word_Word_Word with each word capitalized.</returns>
+    private static string ToDeterministicResourceKey(string value, int maxKeyLength = 60)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return "emptyString";
-
         var words = new List<string>();
-        var stringBuilder = new StringBuilder();
+        using var _ = PooledStringBuilder.GetInstance(out var stringBuilder);
+
         foreach (var c in value)
         {
             if (char.IsLetterOrDigit(c))
@@ -118,52 +155,47 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             }
             else if (stringBuilder.Length > 0)
             {
-                words.Add(stringBuilder.ToString().ToLowerInvariant());
+                words.Add(stringBuilder.ToString());
                 stringBuilder.Clear();
             }
         }
-        if (stringBuilder.Length > 0)
-            words.Add(stringBuilder.ToString().ToLowerInvariant());
 
-        using var _ = PooledStringBuilder.GetInstance(out var keyBuilder);
+        if (stringBuilder.Length > 0)
+            words.Add(stringBuilder.ToString());
+
+        // Reuse the same stringBuilder - clear it and use for building the key
+        stringBuilder.Clear();
+
         for (var i = 0; i < words.Count; i++)
         {
             var word = words[i];
-            if (i == 0)
-            {
-                // Check if adding the first word would exceed maxLength
-                if (word.Length > maxLength)
-                {
-                    keyBuilder.Append(word.Substring(0, maxLength));
-                    break;
-                }
-                keyBuilder.Append(word);
-            }
-            else if (word.Length > 0)
-            {
-                var capitalizedWord = char.ToUpperInvariant(word[0]) + word.Substring(1);
+            if (word.Length == 0)
+                continue;
 
-                // Check if adding this word would exceed maxLength
-                if (keyBuilder.Length + capitalizedWord.Length > maxLength)
-                {
-                    // Add as much of the word as possible without exceeding maxLength
-                    var remainingLength = maxLength - keyBuilder.Length;
-                    if (remainingLength > 0)
-                    {
-                        keyBuilder.Append(capitalizedWord.Substring(0, remainingLength));
-                    }
-                    break;
-                }
+            // Calculate what the length would be if we add this word
+            var separator = i > 0 ? "_" : "";
+            var capitalizedWord = char.ToUpperInvariant(word[0]) + (word.Length > 1 ? word.Substring(1).ToLowerInvariant() : "");
+            var potentialAddition = separator + capitalizedWord;
 
-                keyBuilder.Append(capitalizedWord);
+            // Check if adding this word would exceed maxKeyLength
+            if (stringBuilder.Length + potentialAddition.Length > maxKeyLength)
+            {
+                // Don't add this word if it would exceed the limit
+                break;
             }
+
+            stringBuilder.Append(potentialAddition);
         }
 
-        var key = keyBuilder.ToString();
-        if (key.Length == 0)
-            key = "emptyString";
-        else if (char.IsDigit(key[0]))
-            key = "_" + key;
+        var key = stringBuilder.ToString();
+
+        // Ensure it starts with a letter if it starts with a digit
+        if (key.Length > 0 && char.IsDigit(key[0]))
+        {
+            key = "Resource_" + key;
+            if (key.Length > maxKeyLength)
+                key = key.Substring(0, maxKeyLength);
+        }
 
         return key;
     }
@@ -224,15 +256,8 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             // Check for cancellation before starting XML parsing
             cancellationToken.ThrowIfCancellationRequested();
 
-            XDocument xdoc;
-            try
-            {
-                xdoc = XDocument.Parse(resxSourceText.ToString());
-            }
-            catch (System.Xml.XmlException)
-            {
-                return Task.FromResult(ResxUpdateResult.Failed());
-            }
+            // Since we validate .resx files before offering the code fix, we can assume valid XML here
+            var xdoc = XDocument.Parse(resxSourceText.ToString());
 
             if (xdoc.Root == null)
             {
@@ -383,7 +408,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                 => new(true, updatedText, requiresUpdate);
 
             public static ResxUpdateResult Failed()
-                => new(false, null, false);
+                => default;
         }
 
         /// <summary>
@@ -392,10 +417,10 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         private readonly record struct DocumentUpdateResult(SyntaxNode UpdatedRoot);
     }
 
-    private class CSharpMoveToResxFixAllProvider : FixAllProvider
+    private sealed class CSharpMoveToResxFixAllProvider : FixAllProvider
     {
         public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => new[] { FixAllScope.Document };
+            => [FixAllScope.Document];
 
         public override async Task<CodeAction?> GetFixAsync(FixAllContext context)
         {
@@ -409,37 +434,24 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                 return null;
 
             var project = document.Project;
-            var allResx = GetAllResxFiles(project).ToList();
-            if (allResx.Count == 0)
+            var validResxFiles = await GetValidResxFilesAsync(project, context.CancellationToken).ConfigureAwait(false);
+            if (validResxFiles.IsEmpty)
                 return null;
 
-            var resx = allResx.First();
+            var resx = validResxFiles[0];
 
             return CodeAction.Create(
                 CSharpFeaturesResources.Move_all_strings_to_resx_resource,
-                async ct =>
+                async cancellationToken =>
                 {
                     // Collect all string literals and their operations
-                    var root = await document.GetRequiredSyntaxRootAsync(ct).ConfigureAwait(false);
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var resourceOperations = new List<ResourceOperation>();
                     var replacementOperations = new List<ReplacementOperation>();
 
-                    // First pass: collect all operations and determine actual resource keys
-                    var resxSourceText = await resx.GetTextAsync(ct).ConfigureAwait(false);
-                    XDocument xdoc;
-                    try
-                    {
-                        xdoc = XDocument.Parse(resxSourceText.ToString());
-                    }
-                    catch (System.Xml.XmlException)
-                    {
-                        return project.Solution;
-                    }
-
-                    if (xdoc.Root == null)
-                    {
-                        return project.Solution;
-                    }
+                    // We can now safely parse the resx since we've validated it
+                    var resxSourceText = await resx.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var xdoc = XDocument.Parse(resxSourceText.ToString());
 
                     foreach (var diagnostic in diagnostics)
                     {
@@ -466,7 +478,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                         resx,
                         resourceOperations,
                         replacementOperations,
-                        ct).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                 },
                 nameof(CSharpMoveToResxFixAllProvider));
         }

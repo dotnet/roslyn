@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,27 +14,25 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.MoveToResx;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
+internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    public const string DiagnosticId = IDEDiagnosticIds.MoveToResxDiagnosticId;
-
-    private static readonly LocalizableString Title = new LocalizableResourceString(nameof(CSharpFeaturesResources.Move_to_Resx), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-    private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_Resx_for_user_facing_strings), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-    private const string Category = "Usage";
-
-    private static readonly DiagnosticDescriptor s_moveToResxRule = new DiagnosticDescriptor(
-        DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_moveToResxRule);
-
-    public override void Initialize(AnalysisContext context)
+    public CSharpMoveToResxDiagnosticAnalyzer()
+        : base(IDEDiagnosticIds.MoveToResxDiagnosticId,
+               EnforceOnBuild.Never,
+               option: null, // No specific EditorConfig option for this analyzer
+               new LocalizableResourceString(nameof(CSharpFeaturesResources.Move_to_Resx), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
+               new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_Resx_for_user_facing_strings), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
+    }
+
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+    protected override void InitializeWorker(AnalysisContext context)
+    {
         context.RegisterSyntaxNodeAction(AnalyzeStringLiteral, SyntaxKind.StringLiteralExpression);
     }
 
-    private static void AnalyzeStringLiteral(SyntaxNodeAnalysisContext context)
+    private void AnalyzeStringLiteral(SyntaxNodeAnalysisContext context)
     {
         var stringLiteral = (LiteralExpressionSyntax)context.Node;
         var valueText = stringLiteral.Token.ValueText;
@@ -55,7 +54,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
             return;
 
         // If it passes all filters, it's likely a user-facing string
-        var diagnostic = Diagnostic.Create(s_moveToResxRule, stringLiteral.GetLocation(), valueText);
+        var diagnostic = Diagnostic.Create(Descriptor, stringLiteral.GetLocation(), valueText);
         context.ReportDiagnostic(diagnostic);
     }
 
@@ -100,6 +99,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
             var parts = valueText.Split('.');
             // Check if it looks like a namespace (multiple PascalCase parts)
             if (parts.Length >= 3 && parts.All(part => part.Length > 0 && char.IsUpper(part[0])))
+
                 return true;
         }
 
@@ -151,6 +151,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
 
         // 10. Ignore base64-like strings and hashes
         if (valueText.Length > 20 && valueText.All(c => char.IsLetterOrDigit(c) || c == '+' || c == '/' || c == '='))
+
             return true;
 
         // 11. Enhanced technical environment/configuration values
@@ -162,6 +163,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
         // 12. Common search/query patterns
         if (valueText.Contains("-") && valueText.All(c => char.IsLetterOrDigit(c) || c == '-' || c == '_') &&
             (valueText.Contains("search") || valueText.Contains("query") || valueText.Contains("filter")))
+
         {
             return true;
         }
@@ -255,7 +257,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
         if (invoked.Contains("Serialize") || invoked.Contains("Deserialize") ||
             invoked.Contains("JsonConvert") || invoked.Contains("XmlSerializer") ||
             invoked.Contains("DataReader") || invoked.Contains("SqlCommand") ||
-            invoked.Contains("ExecuteScalar") || invoked.Contains("ExecuteNonQuery"))
+            invoked.Contains("ExecuteScalar") | invoked.Contains("ExecuteNonQuery"))
         {
             return true;
         }
@@ -298,6 +300,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
         // Search and query operations (technical)
         if (invoked.Contains("ExecuteSearch") || invoked.Contains("ExecuteQuery") ||
             invoked.Contains("Search") && (invoked.Contains("Database") || invoked.Contains("Index") || invoked.Contains("Engine")))
+
         {
             return true;
         }
@@ -358,9 +361,15 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
 
     private static bool IsInPreprocessorContext(LiteralExpressionSyntax stringLiteral)
     {
-        // Check if we're in a preprocessor directive
-        var token = stringLiteral.GetFirstToken();
-        return token.HasLeadingTrivia && token.LeadingTrivia.Any(t => t.IsKind(SyntaxKind.PreprocessingMessageTrivia));
+        // Walk up the syntax tree to see if we're inside a preprocessor directive
+        var current = stringLiteral.Parent;
+        while (current != null)
+        {
+            if (current is DirectiveTriviaSyntax)
+                return true;
+            current = current.Parent;
+        }
+        return false;
     }
 
     private static bool IsInExceptionContext(LiteralExpressionSyntax stringLiteral)
@@ -368,15 +377,8 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
         var parent = stringLiteral.Parent;
         while (parent != null)
         {
-            if (parent is ThrowStatementSyntax)
+            if (parent is ThrowStatementSyntax or ThrowExpressionSyntax)
                 return true;
-
-            if (parent is ObjectCreationExpressionSyntax objCreation)
-            {
-                var typeName = objCreation.Type?.ToString();
-                if (typeName != null && typeName.Contains("Exception"))
-                    return true;
-            }
 
             parent = parent.Parent;
         }
@@ -410,6 +412,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
         // 4. Color codes and hex values
         if (valueText.StartsWith("#") && valueText.Length > 1 &&
             valueText.Skip(1).All(c => char.IsDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')))
+
         {
             return true;
         }
@@ -445,6 +448,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DiagnosticAnalyzer
             valueText.All(c => char.IsLetterOrDigit(c) || c == '-') &&
             (valueText.Contains("config") || valueText.Contains("api") || valueText.Contains("db") ||
              valueText.Contains("sql") || valueText.Contains("json") || valueText.Contains("xml")))
+
         {
             return true;
         }
