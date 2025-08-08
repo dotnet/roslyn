@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Extensions)]
 public partial class ExtensionTests : CompilingTestBase
 {
-
     internal string ExtensionMarkerNameAttributeIL = """
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerNameAttribute

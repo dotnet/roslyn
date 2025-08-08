@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
@@ -60,6 +61,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Sort();
 
             _groupingTypes = builder.ToImmutableAndFree();
+            AssertInvariants(container);
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertInvariants(SourceMemberContainerTypeSymbol container)
+        {
+            ImmutableArray<NamedTypeSymbol> typeMembers = container.GetTypeMembers("");
+
+            for (int i = 0; i < typeMembers.Length; i++)
+            {
+                var type1 = (SourceNamedTypeSymbol)typeMembers[i];
+                if (!type1.IsExtension)
+                {
+                    continue;
+                }
+
+                for (int j = i + 1; j < typeMembers.Length; j++)
+                {
+                    var type2 = (SourceNamedTypeSymbol)typeMembers[j];
+                    if (!type2.IsExtension)
+                    {
+                        continue;
+                    }
+
+                    bool groupingNamesMatch = type1.ComputeExtensionGroupingRawName() == type2.ComputeExtensionGroupingRawName();
+                    Debug.Assert(groupingNamesMatch || !HaveSameILSignature(type1, type2),
+                            "If the IL-level comparer considers two extensions equal, then they must have the same grouping name.");
+
+                    bool markerNamesMatch = type1.ComputeExtensionMarkerRawName() == type2.ComputeExtensionMarkerRawName();
+                    Debug.Assert(markerNamesMatch || !HaveSameCSharpSignature(type1, type2),
+                            "If the C#-level comparer considers two extensions equal, then they must have the same marker name.");
+
+                    Debug.Assert(groupingNamesMatch || !markerNamesMatch, "If the marker names are equal, then the grouping names must also be equal.");
+                }
+            }
         }
 
         public ImmutableArray<Cci.INestedTypeDefinition> GetGroupingTypes()
@@ -169,6 +205,276 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var markerType in groupingType.ExtensionMarkerTypes)
                 {
                     yield return markerType.UnderlyingExtensions;
+                }
+            }
+        }
+
+        internal static bool HaveSameILSignature(SourceNamedTypeSymbol extension1, SourceNamedTypeSymbol extension2)
+        {
+            Debug.Assert(extension1.IsExtension);
+            Debug.Assert(extension2.IsExtension);
+
+            if (extension1.Arity != extension2.Arity)
+            {
+                return false;
+            }
+
+            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
+            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
+            if (extension1.Arity > 0
+                && !MemberSignatureComparer.HaveSameConstraints(extension1.TypeParameters, typeMap1, extension2.TypeParameters, typeMap2, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            ParameterSymbol? parameter1 = extension1.ExtensionParameter;
+            ParameterSymbol? parameter2 = extension2.ExtensionParameter;
+            if (parameter1 is null || parameter2 is null)
+            {
+                return parameter1 is null && parameter2 is null;
+            }
+
+            if (!MemberSignatureComparer.HaveSameParameterType(parameter1, typeMap1, parameter2, typeMap2,
+                refKindCompareMode: MemberSignatureComparer.RefKindCompareMode.IgnoreRefKind,
+                considerDefaultValues: false, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool HaveSameCSharpSignature(SourceNamedTypeSymbol extension1, SourceNamedTypeSymbol extension2)
+        {
+            Debug.Assert(extension1.IsExtension);
+            Debug.Assert(extension2.IsExtension);
+
+            int arity1 = extension1.Arity;
+            if (arity1 != extension2.Arity)
+            {
+                return false;
+            }
+
+            TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
+            TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
+            if (arity1 > 0)
+            {
+                ImmutableArray<TypeParameterSymbol> typeParams1 = extension1.TypeParameters;
+                ImmutableArray<TypeParameterSymbol> typeParams2 = extension2.TypeParameters;
+
+                if (!typeParams1.SequenceEqual(typeParams2, (p1, p2) => p1.Name == p2.Name))
+                {
+                    return false;
+                }
+
+                if (!typeParams1.SequenceEqual(typeParams2, (p1, p2) => hasSameAttributes(p1.GetAttributes(), p2.GetAttributes())))
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < arity1; i++)
+                {
+                    if (!haveSameConstraints(typeParams1[i], typeMap1, typeParams2[i], typeMap2))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            ParameterSymbol? parameter1 = extension1.ExtensionParameter;
+            ParameterSymbol? parameter2 = extension2.ExtensionParameter;
+            if (parameter1 is null)
+            {
+                return parameter2 is null;
+            }
+            else if (parameter2 is null)
+            {
+                return parameter1 is null;
+            }
+
+            if (parameter1.DeclaredScope != parameter2.DeclaredScope)
+            {
+                return false;
+            }
+
+            if (parameter1.Name != parameter2.Name)
+            {
+                return false;
+            }
+
+            if (!MemberSignatureComparer.HaveSameParameterType(parameter1, typeMap1, parameter2, typeMap2,
+                refKindCompareMode: MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                considerDefaultValues: false, TypeCompareKind.ConsiderEverything))
+            {
+                return false;
+            }
+
+            if (!hasSameAttributes(parameter1.GetAttributes(), parameter2.GetAttributes()))
+            {
+                return false;
+            }
+
+            return true;
+
+            static bool hasSameAttributes(ImmutableArray<CSharpAttributeData> attributes1, ImmutableArray<CSharpAttributeData> attributes2)
+            {
+                if (attributes1.IsEmpty && attributes2.IsEmpty)
+                {
+                    return true;
+                }
+
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : optimization, consider using a pool
+                var comparer = CommonAttributeDataComparer.InstanceIgnoringNamedArgumentOrder;
+                var counts = new Dictionary<CSharpAttributeData, int>(comparer);
+
+                foreach (var attribute in attributes1)
+                {
+                    if (attribute.IsConditionallyOmitted)
+                    {
+                        continue;
+                    }
+
+                    counts[attribute] = counts.TryGetValue(attribute, out var foundCount) ? foundCount + 1 : 1;
+                }
+
+                foreach (var attribute in attributes2)
+                {
+                    if (attribute.IsConditionallyOmitted)
+                    {
+                        continue;
+                    }
+
+                    if (!counts.TryGetValue(attribute, out var foundCount) || foundCount == 0)
+                    {
+                        return false;
+                    }
+
+                    counts[attribute] = foundCount - 1;
+                }
+
+                return counts.Values.All(c => c == 0);
+            }
+
+            static bool haveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2)
+            {
+                if ((typeParameter1.HasConstructorConstraint != typeParameter2.HasConstructorConstraint) ||
+                    (typeParameter1.HasReferenceTypeConstraint != typeParameter2.HasReferenceTypeConstraint) ||
+                    (typeParameter1.HasValueTypeConstraint != typeParameter2.HasValueTypeConstraint) ||
+                    (typeParameter1.AllowsRefLikeType != typeParameter2.AllowsRefLikeType) ||
+                    (typeParameter1.HasUnmanagedTypeConstraint != typeParameter2.HasUnmanagedTypeConstraint) ||
+                    (typeParameter1.Variance != typeParameter2.Variance) ||
+                    (typeParameter1.HasNotNullConstraint != typeParameter2.HasNotNullConstraint))
+                {
+                    return false;
+                }
+
+                return haveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2);
+            }
+
+            static bool haveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2)
+            {
+                // Since the purpose is to ensure that we can safely round-trip metadata
+                // and since top-level nullability is encoded per type constraint
+                // we need to check nullability (including top-level nullability) per type constraint.
+
+                ImmutableArray<TypeWithAnnotations> constraintTypes1 = typeParameter1.ConstraintTypesNoUseSiteDiagnostics;
+                ImmutableArray<TypeWithAnnotations> constraintTypes2 = typeParameter2.ConstraintTypesNoUseSiteDiagnostics;
+
+                if (constraintTypes1.IsEmpty && constraintTypes2.IsEmpty)
+                {
+                    return true;
+                }
+
+                var comparer = TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer;
+                var substitutedTypes1 = new HashSet<TypeWithAnnotations>(comparer);
+                var substitutedTypes2 = new HashSet<TypeWithAnnotations>(comparer);
+
+                substituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
+                substituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
+
+                return areConstraintTypesSubset(substitutedTypes1, substitutedTypes2, typeParameter2) &&
+                    areConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
+            }
+
+            static bool areConstraintTypesSubset(HashSet<TypeWithAnnotations> constraintTypes1, HashSet<TypeWithAnnotations> constraintTypes2, TypeParameterSymbol typeParameter2)
+            {
+                foreach (TypeWithAnnotations constraintType in constraintTypes1)
+                {
+                    if (!constraintTypes2.Contains(constraintType))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            static void substituteConstraintTypes(ImmutableArray<TypeWithAnnotations> types, TypeMap? typeMap, HashSet<TypeWithAnnotations> result)
+            {
+                foreach (TypeWithAnnotations type in types)
+                {
+                    result.Add(MemberSignatureComparer.SubstituteType(typeMap, type));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Reports diagnostic when:
+        /// two extension blocks grouped into a single grouping type have different IL-level signatures, or
+        /// two extension blocks grouped into a single marker type have different C#-level signatures.
+        /// </summary>
+        internal void CheckSignatureCollisions(BindingDiagnosticBag diagnostics)
+        {
+            PooledHashSet<SourceNamedTypeSymbol>? alreadyReportedExtensions = null;
+
+            foreach (ExtensionGroupingType groupingType in _groupingTypes)
+            {
+                checkCollisions(enumerateExtensionsInGrouping(groupingType), HaveSameILSignature, ref alreadyReportedExtensions, diagnostics);
+            }
+
+            foreach (ImmutableArray<SourceNamedTypeSymbol> mergedBlocks in EnumerateMergedExtensionBlocks())
+            {
+                checkCollisions(mergedBlocks, HaveSameCSharpSignature, ref alreadyReportedExtensions, diagnostics);
+            }
+
+            alreadyReportedExtensions?.Free();
+            return;
+
+            static IEnumerable<SourceNamedTypeSymbol> enumerateExtensionsInGrouping(ExtensionGroupingType groupingType)
+            {
+                foreach (var marker in groupingType.ExtensionMarkerTypes)
+                {
+                    foreach (var extension in marker.UnderlyingExtensions)
+                    {
+                        yield return extension;
+                    }
+                }
+            }
+
+            static void checkCollisions(IEnumerable<SourceNamedTypeSymbol> extensions, Func<SourceNamedTypeSymbol, SourceNamedTypeSymbol, bool> compare,
+                ref PooledHashSet<SourceNamedTypeSymbol>? alreadyReportedExtensions, BindingDiagnosticBag diagnostics)
+            {
+                SourceNamedTypeSymbol? first = null;
+
+                foreach (SourceNamedTypeSymbol extension in extensions)
+                {
+                    Debug.Assert(extension.IsExtension);
+                    Debug.Assert(extension.IsDefinition);
+
+                    if (first is null)
+                    {
+                        first = extension;
+                        continue;
+                    }
+
+                    if (!compare(first, extension))
+                    {
+                        alreadyReportedExtensions ??= PooledHashSet<SourceNamedTypeSymbol>.GetInstance();
+                        if (alreadyReportedExtensions.Add(extension))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, extension.Locations[0]);
+                        }
+                    }
                 }
             }
         }

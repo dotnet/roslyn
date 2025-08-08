@@ -555,7 +555,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             candidate.TypeParameters,
                             typeMap1: null,
                             combinedTypeParameters,
-                            typeMap))
+                            typeMap,
+                            TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         return candidate;
                     }
@@ -3177,11 +3178,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var containingTypeMap = new TypeMap(containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
                 var nestedTypeMap = new TypeMap(nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
 
+                const TypeCompareKind compareKind = TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
                 for (int i = 0; i < n; i++)
                 {
                     var containingTypeParameter = containingTypeParameters[i];
                     var nestedTypeParameter = nestedTypeParameters[i];
-                    if (!MemberSignatureComparer.HaveSameConstraints(containingTypeParameter, containingTypeMap, nestedTypeParameter, nestedTypeMap))
+                    if (!MemberSignatureComparer.HaveSameConstraints(containingTypeParameter, containingTypeMap, nestedTypeParameter, nestedTypeMap, compareKind))
                     {
                         return false;
                     }

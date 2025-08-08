@@ -2122,12 +2122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
                 // Report any mismatched method constraints.
+                const TypeCompareKind compareKind = TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
                 for (int i = 0; i < arity; i++)
                 {
                     var typeParameter1 = typeParameters1[i];
                     var typeParameter2 = typeParameters2[i];
 
-                    if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                    if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, compareKind))
                     {
                         // If the matching method for the interface member is defined on the implementing type,
                         // the matching method location is used for the error. Otherwise, the location of the
