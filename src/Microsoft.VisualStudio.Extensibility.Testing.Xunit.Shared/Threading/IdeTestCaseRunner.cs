@@ -43,15 +43,16 @@ namespace Xunit.Threading
 
         protected override XunitTestRunner CreateTestRunner(ITest test, IMessageBus messageBus, Type testClass, object?[] constructorArguments, MethodInfo testMethod, object?[]? testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
         {
-            if (Process.GetCurrentProcess().ProcessName == "devenv")
+            if (SharedData.Exception is not null)
+            {
+                // There was an exception in the test harness running this test previously. Report the failure in we saw in the test harness.
+                return new ErrorReportingIdeTestRunner(SharedData.Exception, test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource);
+            }
+            else if (Process.GetCurrentProcess().ProcessName == "devenv")
             {
                 // We are already running inside Visual Studio
                 // TODO: Verify version under test
                 return new InProcessIdeTestRunner(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource);
-            }
-            else if (SharedData.Exception is not null)
-            {
-                return new ErrorReportingIdeTestRunner(SharedData.Exception, test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource);
             }
             else
             {
