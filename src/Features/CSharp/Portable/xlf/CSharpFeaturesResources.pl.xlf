@@ -212,6 +212,36 @@
         <target state="translated">Ustawiaj pola prywatne jako tylko do odczytu, gdy to możliwe</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_all_strings_to_resx_resource">
+        <source>Move all strings to .resx resource</source>
+        <target state="new">Move all strings to .resx resource</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_string_to_resx_resource">
+        <source>Move string to .resx resource</source>
+        <target state="new">Move string to .resx resource</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_Resx">
+        <source>Move to Resx</source>
+        <target state="new">Move to Resx</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_resx_file_found_Please_create_a_resx_file_in_your_project_or_folder">
+        <source>No .resx file found. Please create a .resx file in your project or folder.</source>
+        <target state="new">No .resx file found. Please create a .resx file in your project or folder.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Resx_Name">
+        <source>Rename Resx Name</source>
+        <target state="new">Rename Resx Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_resource_and_update_Resx">
+        <source>Rename resource and update .resx</source>
+        <target state="new">Rename resource and update .resx</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">Odwróć instrukcję „for”</target>
@@ -230,6 +260,16 @@
       <trans-unit id="Selection_cannot_include_top_level_statements">
         <source>Selection cannot include top-level statements</source>
         <target state="translated">Zaznaczenie nie może zawierać instrukcji najwyższego poziomu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnamed_Resource">
+        <source>Unnamed Resource</source>
+        <target state="new">Unnamed Resource</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Resx_for_user_facing_strings">
+        <source>Use Resx for user facing strings</source>
+        <target state="new">Use Resx for user facing strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">

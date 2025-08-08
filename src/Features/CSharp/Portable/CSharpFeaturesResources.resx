@@ -587,4 +587,28 @@
   <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
     <value>Convert all extension methods in '{0}' to extension</value>
   </data>
+  <data name="Move_to_Resx" xml:space="preserve">
+    <value>Move to Resx</value>
+  </data>
+  <data name="Use_Resx_for_user_facing_strings" xml:space="preserve">
+    <value>Use Resx for user facing strings</value>
+  </data>
+  <data name="Rename_Resx_Name" xml:space="preserve">
+    <value>Rename Resx Name</value>
+  </data>
+  <data name="Rename_resource_and_update_Resx" xml:space="preserve">
+    <value>Rename resource and update .resx</value>
+  </data>
+  <data name="No_resx_file_found_Please_create_a_resx_file_in_your_project_or_folder" xml:space="preserve">
+    <value>No .resx file found. Please create a .resx file in your project or folder.</value>
+  </data>
+  <data name="Move_string_to_resx_resource" xml:space="preserve">
+    <value>Move string to .resx resource</value>
+  </data>
+  <data name="Move_all_strings_to_resx_resource" xml:space="preserve">
+    <value>Move all strings to .resx resource</value>
+  </data>
+  <data name="Unnamed_Resource" xml:space="preserve">
+    <value>Unnamed Resource</value>
+  </data>
 </root>
