@@ -35,7 +35,7 @@ internal static class CopilotEditorUtilities
                 return (null, "NonRoslynDocumentAffected");
 
             // Only bother for languages we can actually process semantics for.
-            if (document.SupportsSemanticModel)
+            if (!document.SupportsSemanticModel)
                 return (null, "NonSemanticDocumentAffected");
 
             var currentSolution = document.Project.Solution;
