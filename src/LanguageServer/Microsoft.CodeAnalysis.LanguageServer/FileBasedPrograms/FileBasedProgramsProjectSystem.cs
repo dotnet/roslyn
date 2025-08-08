@@ -117,6 +117,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
+        if (Path.GetExtension(documentPath) != ".cs")
+        {
+            // We only support loading C# file-based programs.
+            _logger.LogInformation($"Skipping loading of non-C# file-based program: {documentPath}");
+            return null;
+        }
+
         var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _logger, cancellationToken);
         if (content is not var (virtualProjectContent, diagnostics))
         {
