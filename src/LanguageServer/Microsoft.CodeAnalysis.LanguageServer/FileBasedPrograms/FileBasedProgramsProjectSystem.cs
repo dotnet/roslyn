@@ -69,12 +69,17 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = GetDocumentFilePath(uri);
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
+        {
+            Contract.Fail($"Could not find language information for {uri} with absolute path {documentFilePath}");
+        }
 
         var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
         Contract.ThrowIfNull(primordialDoc.FilePath);
 
         var doDesignTimeBuild = uri.ParsedUri?.IsFile is true
-            && primordialDoc.Project.Language == LanguageNames.CSharp
+            && languageInformation.LanguageName == LanguageNames.CSharp
             && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
         await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
 
@@ -82,12 +87,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         TextDocument AddPrimordialDocument(DocumentUri uri, SourceText documentText, string languageId)
         {
-            var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-            if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
-            {
-                Contract.Fail($"Could not find language information for {uri} with absolute path {documentFilePath}");
-            }
-
             var workspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
@@ -117,13 +116,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
-        if (Path.GetExtension(documentPath) != ".cs")
-        {
-            // We only support loading C# file-based programs.
-            _logger.LogInformation($"Skipping loading of non-C# file-based program: {documentPath}");
-            return null;
-        }
-
         var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _logger, cancellationToken);
         if (content is not var (virtualProjectContent, diagnostics))
         {
