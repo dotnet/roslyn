@@ -169,20 +169,11 @@ namespace Microsoft.CodeAnalysis
         {
             switch (items.Length)
             {
-                case 0:
-                    return ImmutableArray<TResult>.Empty;
-
-                case 1:
-                    return ImmutableArray.Create(map(items[0], 0, arg));
-
-                case 2:
-                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg));
-
-                case 3:
-                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg));
-
-                case 4:
-                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg));
+                case 0: return [];
+                case 1: return [map(items[0], 0, arg)];
+                case 2: return [map(items[0], 0, arg), map(items[1], 1, arg)];
+                case 3: return [map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg)];
+                case 4: return [map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg)];
 
                 default:
                     var builder = new FixedSizeArrayBuilder<TResult>(items.Length);
@@ -207,17 +198,13 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
         {
             if (array.Length == 0)
-            {
-                return ImmutableArray<TResult>.Empty;
-            }
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
             {
                 if (predicate(item))
-                {
                     builder.Add(selector(item));
-                }
             }
 
             return builder.ToImmutableAndFree();
@@ -237,17 +224,13 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, bool> predicate, Func<TItem, TArg, TResult> selector, TArg arg)
         {
             if (array.Length == 0)
-            {
-                return ImmutableArray<TResult>.Empty;
-            }
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
             {
                 if (predicate(item, arg))
-                {
                     builder.Add(selector(item, arg));
-                }
             }
 
             return builder.ToImmutableAndFree();
@@ -264,7 +247,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, IEnumerable<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -284,7 +267,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, ImmutableArray<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -304,13 +287,11 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, OneOrMany<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
-            {
                 selector(item).AddRangeTo(builder);
-            }
 
             return builder.ToImmutableAndFree();
         }
@@ -327,7 +308,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, IEnumerable<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -351,7 +332,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, ImmutableArray<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -375,7 +356,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, OneOrMany<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -400,7 +381,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, bool> predicate, Func<TItem, TArg, OneOrMany<TResult>> selector, TArg arg)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -418,16 +399,13 @@ namespace Microsoft.CodeAnalysis
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
             if (array.IsEmpty)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
-            var builder = new TResult[array.Length];
+            var builder = new FixedSizeArrayBuilder<TResult>(array.Length);
+            foreach (var item in array)
+                builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
 
-            for (var i = 0; i < array.Length; i++)
-            {
-                builder[i] = await selector(array[i], cancellationToken).ConfigureAwait(false);
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -436,29 +414,22 @@ namespace Microsoft.CodeAnalysis
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
             if (array.IsEmpty)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
-            var builder = new TResult[array.Length];
+            var builder = new FixedSizeArrayBuilder<TResult>(array.Length);
+            foreach (var item in array)
+                builder.Add(await selector(item, arg, cancellationToken).ConfigureAwait(false));
 
-            for (var i = 0; i < array.Length; i++)
-            {
-                builder[i] = await selector(array[i], arg, cancellationToken).ConfigureAwait(false);
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return builder.MoveToImmutable();
         }
 
         public static ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<ImmutableArray<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
         {
             if (source.Length == 0)
-            {
-                return new ValueTask<ImmutableArray<TResult>>(ImmutableArray<TResult>.Empty);
-            }
+                return new ValueTask<ImmutableArray<TResult>>([]);
 
             if (source.Length == 1)
-            {
                 return selector(source[0], arg, cancellationToken);
-            }
 
             return CreateTaskAsync();
 
@@ -484,27 +455,16 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(self.Length == other.Length);
             switch (self.Length)
             {
-                case 0:
-                    return ImmutableArray<TResult>.Empty;
-
-                case 1:
-                    return ImmutableArray.Create(map(self[0], other[0]));
-
-                case 2:
-                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]));
-
-                case 3:
-                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]));
-
-                case 4:
-                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]), map(self[3], other[3]));
+                case 0: return [];
+                case 1: return [map(self[0], other[0])];
+                case 2: return [map(self[0], other[0]), map(self[1], other[1])];
+                case 3: return [map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2])];
+                case 4: return [map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]), map(self[3], other[3])];
 
                 default:
                     var builder = new TResult[self.Length];
-                    for (int i = 0; i < self.Length; i++)
-                    {
+                    for (var i = 0; i < self.Length; i++)
                         builder[i] = map(self[i], other[i]);
-                    }
 
                     return ImmutableCollectionsMarshal.AsImmutableArray(builder);
             }
@@ -514,9 +474,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(self.Length == other.Length);
             if (self.IsEmpty)
-            {
-                return ImmutableArray<TResult>.Empty;
-            }
+                return [];
 
             var builder = new FixedSizeArrayBuilder<TResult>(self.Length);
             for (int i = 0; i < self.Length; i++)
@@ -614,15 +572,10 @@ namespace Microsoft.CodeAnalysis
 
         public static async Task<bool> AnyAsync<T>(this ImmutableArray<T> array, Func<T, Task<bool>> predicateAsync)
         {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            foreach (var item in array)
             {
-                var a = array[i];
-
-                if (await predicateAsync(a).ConfigureAwait(false))
-                {
+                if (await predicateAsync(item).ConfigureAwait(false))
                     return true;
-                }
             }
 
             return false;
@@ -630,15 +583,10 @@ namespace Microsoft.CodeAnalysis
 
         public static async Task<bool> AnyAsync<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, Task<bool>> predicateAsync, TArg arg)
         {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            foreach (var item in array)
             {
-                var a = array[i];
-
-                if (await predicateAsync(a, arg).ConfigureAwait(false))
-                {
+                if (await predicateAsync(item, arg).ConfigureAwait(false))
                     return true;
-                }
             }
 
             return false;
@@ -646,15 +594,10 @@ namespace Microsoft.CodeAnalysis
 
         public static async ValueTask<T?> FirstOrDefaultAsync<T>(this ImmutableArray<T> array, Func<T, Task<bool>> predicateAsync)
         {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            foreach (var item in array)
             {
-                var a = array[i];
-
-                if (await predicateAsync(a).ConfigureAwait(false))
-                {
-                    return a;
-                }
+                if (await predicateAsync(item).ConfigureAwait(false))
+                    return item;
             }
 
             return default;
@@ -759,9 +702,7 @@ namespace Microsoft.CodeAnalysis
             where TKey : notnull
         {
             if (dictionary.Count == 0)
-            {
-                return ImmutableArray<TValue>.Empty;
-            }
+                return [];
 
             var builder = ArrayBuilder<TValue>.GetInstance();
 
@@ -1031,99 +972,6 @@ namespace Microsoft.CodeAnalysis
             set.Free();
             return true;
         }
-
-        #region Binary Compat
-
-        // These helpers should be in System.Linq namespace below.  However, they are currently
-        // used by partners with IVT access to Roslyn, so they have to stay here for now.
-
-        /// <summary>
-        /// Specialization of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/> for <see cref="ImmutableArray{T}"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-            => first.AddRange(second);
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
-        {
-            var builder = new T[first.Length + second.Length + third.Length];
-
-            var index = 0;
-            first.CopyTo(builder, index);
-            index += first.Length;
-            second.CopyTo(builder, index);
-            index += second.Length;
-            third.CopyTo(builder, index);
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
-
-            var index = 0;
-            first.CopyTo(builder, index);
-            index += first.Length;
-            second.CopyTo(builder, index);
-            index += second.Length;
-            third.CopyTo(builder, index);
-            index += third.Length;
-            fourth.CopyTo(builder, index);
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
-
-            var index = 0;
-            first.CopyTo(builder, index);
-            index += first.Length;
-            second.CopyTo(builder, index);
-            index += second.Length;
-            third.CopyTo(builder, index);
-            index += third.Length;
-            fourth.CopyTo(builder, index);
-            index += fourth.Length;
-            fifth.CopyTo(builder, index);
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
-
-            var index = 0;
-            first.CopyTo(builder, index);
-            index += first.Length;
-            second.CopyTo(builder, index);
-            index += second.Length;
-            third.CopyTo(builder, index);
-            index += third.Length;
-            fourth.CopyTo(builder, index);
-            index += fourth.Length;
-            fifth.CopyTo(builder, index);
-            index += fifth.Length;
-            sixth.CopyTo(builder, index);
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        #endregion
     }
 }
 
@@ -1146,9 +994,7 @@ namespace System.Linq
             foreach (var val in array)
             {
                 if (predicate(val, arg))
-                {
                     return val;
-                }
             }
 
             return default;
@@ -1222,17 +1068,13 @@ namespace System.Linq
         public static int Count<T>(this ImmutableArray<T> items, Func<T, bool> predicate)
         {
             if (items.IsEmpty)
-            {
                 return 0;
-            }
 
-            int count = 0;
-            for (int i = 0; i < items.Length; ++i)
+            var count = 0;
+            foreach (var item in items)
             {
-                if (predicate(items[i]))
-                {
+                if (predicate(item))
                     ++count;
-                }
             }
 
             return count;
@@ -1263,10 +1105,79 @@ namespace System.Linq
         }
 
         /// <summary>
+        /// Specialization of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/> for <see cref="ImmutableArray{T}"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+            => first.AddRange(second);
+
+        /// <summary>
         /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
         /// </summary>
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
             => first.Add(second);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
+        {
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length);
+
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+
+            return builder.MoveToImmutable();
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
+        {
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length + fourth.Length);
+
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+            builder.AddRange(fourth);
+
+            return builder.MoveToImmutable();
+
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
+        {
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length + fourth.Length + fifth.Length);
+
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+            builder.AddRange(fourth);
+            builder.AddRange(fifth);
+
+            return builder.MoveToImmutable();
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
+        {
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length);
+
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+            builder.AddRange(fourth);
+            builder.AddRange(fifth);
+            builder.AddRange(sixth);
+
+            return builder.MoveToImmutable();
+        }
 
         /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.
@@ -1303,15 +1214,10 @@ namespace System.Linq
         /// </summary>
         public static bool Any<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
         {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            foreach (var item in array)
             {
-                var a = array[i];
-
-                if (predicate(a, arg))
-                {
+                if (predicate(item, arg))
                     return true;
-                }
             }
 
             return false;
@@ -1322,15 +1228,10 @@ namespace System.Linq
         /// </summary>
         public static bool All<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
         {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            foreach (var item in array)
             {
-                var a = array[i];
-
-                if (!predicate(a, arg))
-                {
+                if (!predicate(item, arg))
                     return false;
-                }
             }
 
             return true;

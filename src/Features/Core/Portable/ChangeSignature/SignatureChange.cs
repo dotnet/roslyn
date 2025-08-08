@@ -104,8 +104,8 @@ internal sealed class SignatureChange
 
     private static bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
     {
-        var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(updatedListOfParameters.Contains).ToImmutableArray();
-        var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(originalListOfParameters.Contains).ToImmutableArray();
+        var originalListWithoutRemovedOrAdded = originalListOfParameters.WhereAsArray(updatedListOfParameters.Contains);
+        var updatedListWithoutRemovedOrAdded = updatedListOfParameters.WhereAsArray(originalListOfParameters.Contains);
 
         for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
         {

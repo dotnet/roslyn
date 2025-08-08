@@ -51,7 +51,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             {
             }
             """,
-            options: s_options.ClassNamesArePascalCase);
+            new(options: s_options.ClassNamesArePascalCase));
 
     [Theory]
     [InlineData("M_bar", "bar")]
@@ -86,7 +86,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 int [|{{correctedName}}|];
             }
             """,
-            options: s_options.FieldNamesAreCamelCase);
+            new(options: s_options.FieldNamesAreCamelCase));
 
     [Theory]
     [InlineData("M_bar", "_bar")]
@@ -122,7 +122,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 int [|{{correctedName}}|];
             }
             """,
-            options: s_options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+            new(options: s_options.FieldNamesAreCamelCaseWithUnderscorePrefix));
 
     [Fact]
     public Task TestPascalCaseMethod_CorrectName()
@@ -173,7 +173,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """, options: s_options.MethodNamesWithAccessibilityArePascalCase(accessibilities: default));
+            """, new(options: s_options.MethodNamesWithAccessibilityArePascalCase(accessibilities: default)));
     }
 
     [Theory]
@@ -215,7 +215,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             {
                 {{pascalCaseSymbol}}
             }
-            """, options: s_options.SymbolKindsArePascalCase(symbolKinds: default));
+            """, new(options: s_options.SymbolKindsArePascalCase(symbolKinds: default)));
     }
 
     [Theory]
@@ -275,7 +275,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             {
                 {{pascalCaseSymbol}}
             }
-            """, options: s_options.AccessibilitiesArePascalCase([accessibility]));
+            """, new(options: s_options.AccessibilitiesArePascalCase([accessibility])));
     }
 
     [Fact]
@@ -297,7 +297,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.MethodNamesArePascalCase);
+            new(options: s_options.MethodNamesArePascalCase));
 
     [Fact]
     public Task TestPascalCaseMethod_ConstructorsAreIgnored()
@@ -371,7 +371,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.ParameterNamesAreCamelCase);
+            new(options: s_options.ParameterNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_LocalDeclaration1()
@@ -394,7 +394,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_LocalDeclaration2()
@@ -417,7 +417,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_UsingVariable1()
@@ -444,7 +444,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_UsingVariable2()
@@ -471,7 +471,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_ForVariable1()
@@ -498,7 +498,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_ForVariable2()
@@ -525,7 +525,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_ForEachVariable()
@@ -552,7 +552,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_CatchVariable()
@@ -587,7 +587,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_CatchWithoutVariableIgnored()
@@ -650,7 +650,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_Deconstruction2()
@@ -675,7 +675,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_ForEachDeconstruction1()
@@ -700,7 +700,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_ForEachDeconstruction2()
@@ -725,7 +725,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_OutVariable()
@@ -750,7 +750,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_PatternVariable()
@@ -775,7 +775,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalNamesAreCamelCase);
+            new(options: s_options.LocalNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocals_QueryFromClauseIgnored()
@@ -879,7 +879,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 const int FIELD = 0;
             }
             """,
-            options: s_options.ConstantsAreUpperCase);
+            new(options: s_options.ConstantsAreUpperCase));
 
     [Fact]
     public Task TestUpperCaseConstants_ConstLocal()
@@ -902,7 +902,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.ConstantsAreUpperCase);
+            new(options: s_options.ConstantsAreUpperCase));
 
     [Fact]
     public Task TestUpperCaseConstants_NonConstFieldIgnored()
@@ -948,7 +948,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalsAreCamelCaseConstantsAreUpperCase);
+            new(options: s_options.LocalsAreCamelCaseConstantsAreUpperCase));
 
     [Fact]
     public Task TestCamelCaseLocalsUpperCaseConstants_NonConstLocal()
@@ -971,7 +971,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalsAreCamelCaseConstantsAreUpperCase);
+            new(options: s_options.LocalsAreCamelCaseConstantsAreUpperCase));
 
     [Fact]
     public Task TestCamelCaseLocalFunctions()
@@ -998,7 +998,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.LocalFunctionNamesAreCamelCase);
+            new(options: s_options.LocalFunctionNamesAreCamelCase));
 
     [Fact]
     public Task TestCamelCaseLocalFunctions_MethodIsIgnored()
@@ -1031,7 +1031,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.AsyncFunctionNamesEndWithAsync);
+            new(options: s_options.AsyncFunctionNamesEndWithAsync));
 
     [Fact]
     public Task TestAsyncFunctions_AsyncLocalFunction()
@@ -1058,7 +1058,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """,
-            options: s_options.AsyncFunctionNamesEndWithAsync);
+            new(options: s_options.AsyncFunctionNamesEndWithAsync));
 
     [Fact]
     public Task TestAsyncFunctions_NonAsyncMethodIgnored()
@@ -1115,7 +1115,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 public void M() { }
             }
             """,
-            options: s_options.MethodNamesArePascalCase);
+            new(options: s_options.MethodNamesArePascalCase));
 
     [Fact]
     public Task TestPascalCaseMethod_InInterfaceWithExplicitImplementation()
@@ -1142,7 +1142,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 void I.M() { }
             }
             """,
-            options: s_options.MethodNamesArePascalCase);
+            new(options: s_options.MethodNamesArePascalCase));
 
     [Fact]
     public Task TestPascalCaseMethod_NotInImplicitInterfaceImplementation()
@@ -1199,7 +1199,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 public override void M() { }
             }
             """,
-            options: s_options.MethodNamesArePascalCase);
+            new(options: s_options.MethodNamesArePascalCase));
 
     [Fact]
     public Task TestPascalCaseMethod_NotInAbstractMethodImplementation()
@@ -1241,7 +1241,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 public int P { get { return 1; } set { } }
             }
             """,
-            options: s_options.PropertyNamesArePascalCase);
+            new(options: s_options.PropertyNamesArePascalCase));
 
     [Fact]
     public Task TestPascalCaseProperty_NotInImplicitInterfaceImplementation()
@@ -1285,7 +1285,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
     public Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI1()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             interface [|InputStream|] { }
             """, """
             interface IInputStream { }
@@ -1293,7 +1293,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
     public Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI2()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             interface [|Stream|] { }
             """, """
             interface IStream { }
@@ -1407,9 +1407,9 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47508")]
     public Task TestRecordParameter_ParameterFormattedAsProperties()
         => TestInRegularAndScriptAsync(
-@"public record Foo(int [|myInt|]);",
-@"public record Foo(int [|MyInt|]);",
-            options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+            @"public record Foo(int [|myInt|]);",
+            @"public record Foo(int [|MyInt|]);",
+            new(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
 
     [Theory]
     [InlineData("_")]

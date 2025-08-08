@@ -20,8 +20,7 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
     [Fact]
     public Task MoveType_NamespaceScope_SingleItem()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 class [||]Class1
@@ -36,12 +35,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """, expectOperation: false);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_SingleItemNamespaceComment()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             // Comment on the namespace
             namespace N1
             {
@@ -58,12 +55,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """, expectOperation: false);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtTop()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 class [||]Class1
@@ -89,12 +84,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtTopNamespaceComment()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             // Comment on the namespace
             namespace N1
             {
@@ -122,12 +115,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtTopWithComments()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 // Class1 Comment
@@ -157,12 +148,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtTopWithXmlComments()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 /// <summary>
@@ -200,12 +189,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtBottom()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 class Class1
@@ -231,12 +218,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtBottomNamespaceComments()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             // Comment on the namespace
             namespace N1
             {
@@ -264,12 +249,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtBottomWithComments()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 // Class1 comment
@@ -299,12 +282,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemAtBottomWithXmlComments()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 /// <summary>
@@ -342,12 +323,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemInMiddle()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 class Class1
@@ -400,12 +379,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemInMiddleNamespaceComment()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             // Comment on the namespace
             namespace N1
             {
@@ -460,12 +437,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemInMiddleWithComments()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 // Class1 comment
@@ -528,12 +503,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemInMiddleWithXmlComments()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 /// <summary>
@@ -616,12 +589,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemInMiddleWithInterface()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 // Class1 comment
@@ -688,12 +659,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_TwoItemsInDifferentNamespace()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 class [||]Class1
@@ -722,12 +691,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """, expectOperation: false);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_ItemsInDifferentNamespace()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 interface IClass1
@@ -767,12 +734,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_NestedNamespaces()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 namespace N2
@@ -812,12 +777,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MoveType_NamespaceScope_NestedNamespaces2()
-    {
-        return TestNamespaceMove("""
+        => TestNamespaceMove("""
             namespace N1
             {
                 namespace N2
@@ -874,7 +837,6 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
     {

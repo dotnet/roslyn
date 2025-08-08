@@ -147,30 +147,24 @@ public sealed class GlyphExtensionsTests : TestBase
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545015")]
     public void TestRegularOperatorGlyph()
-    {
-        TestGlyph(
+        => TestGlyph(
             StandardGlyphGroup.GlyphGroupOperator,
             SymbolKind.Method,
             methodKind: MethodKind.UserDefinedOperator);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545015")]
     public void TestConversionOperatorGlyph()
-    {
-        TestGlyph(
+        => TestGlyph(
             StandardGlyphGroup.GlyphGroupOperator,
             SymbolKind.Method,
             methodKind: MethodKind.Conversion);
-    }
 
     [Fact]
     public void TestWithEventsMemberGlyph()
-    {
-        TestGlyph(
+        => TestGlyph(
             StandardGlyphGroup.GlyphGroupField,
             SymbolKind.Property,
             isWithEvents: true);
-    }
 
     private static void TestGlyph(
         StandardGlyphGroup expectedGlyphGroup,

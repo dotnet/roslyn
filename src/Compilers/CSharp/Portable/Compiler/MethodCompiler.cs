@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
+                            // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
                                 _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }

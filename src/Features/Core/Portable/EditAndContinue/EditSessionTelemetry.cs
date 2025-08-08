@@ -87,7 +87,7 @@ internal sealed class EditSessionTelemetry
     public void LogSyntaxError()
         => _hadSyntaxErrors = true;
 
-    public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, IEnumerable<Diagnostic> diagnostics)
+    public void LogProjectAnalysisSummary(ProjectAnalysisSummary? summary, Guid projectTelemetryId, IEnumerable<Diagnostic> diagnostics)
     {
         lock (_guard)
         {
@@ -110,6 +110,10 @@ internal sealed class EditSessionTelemetry
 
             switch (summary)
             {
+                case null:
+                    // report diagnostics only
+                    break;
+
                 case ProjectAnalysisSummary.NoChanges:
                     break;
 

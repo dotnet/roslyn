@@ -81,8 +81,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         Contract.ThrowIfNull(statement);
 
         var firstToken = objectCreation.GetFirstToken();
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-            this.SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var newStatement = GetNewStatement(statement, objectCreation, formattingOptions, matches).WithAdditionalAnnotations(Formatter.Annotation);
 

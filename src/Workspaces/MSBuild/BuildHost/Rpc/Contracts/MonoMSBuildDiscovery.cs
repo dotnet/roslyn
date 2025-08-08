@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -17,6 +18,7 @@ internal static class MonoMSBuildDiscovery
     private static string? s_monoRuntimeExecutablePath;
     private static string? s_monoLibDirPath;
     private static string? s_monoMSBuildDirectory;
+    private static string? s_monoVersionString;
 
     private static IEnumerable<string> GetSearchPaths()
     {
@@ -143,7 +145,7 @@ internal static class MonoMSBuildDiscovery
             if (!monoMSBuildDir.Exists)
                 return null;
 
-            // Inside this is either a Current directory or a 15.0 directory, so find it; the previous code at 
+            // Inside this is either a Current directory or a 15.0 directory, so find it; the previous code at
             // https://github.com/OmniSharp/omnisharp-roslyn/blob/dde8119c40f4e3920eb5ea894cbca047033bd9aa/src/OmniSharp.Host/MSBuild/Discovery/MSBuildInstanceProvider.cs#L48-L58
             // ensured we had a correctly normalized path in case the underlying file system might have been case insensitive.
             var versionDirectory =
@@ -158,5 +160,33 @@ internal static class MonoMSBuildDiscovery
         }
 
         return s_monoMSBuildDirectory;
+    }
+
+    public static string? GetMonoMSBuildVersion()
+    {
+        Contract.ThrowIfTrue(PlatformInformation.IsWindows);
+
+        if (s_monoVersionString == null)
+        {
+            var monoMSBuildDirectory = GetMonoMSBuildDirectory();
+            if (monoMSBuildDirectory == null)
+            {
+                return null;
+            }
+
+            // Look for Microsoft.Build.dll in the tools path. If it isn't there, this is likely a Mono layout on Linux
+            // where the 'msbuild' package has not been installed.
+            var monoMSBuildPath = Path.Combine(monoMSBuildDirectory, "Microsoft.Build.dll");
+            try
+            {
+                var msbuildVersionInfo = FileVersionInfo.GetVersionInfo(monoMSBuildPath);
+                s_monoVersionString = msbuildVersionInfo.ProductVersion;
+            }
+            catch (FileNotFoundException)
+            {
+            }
+        }
+
+        return s_monoVersionString;
     }
 }

@@ -55,7 +55,7 @@ internal sealed partial class WorkspacePullDiagnosticHandler(
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-        => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
+        => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).SelectAsArray(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!));
 
     protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
     {

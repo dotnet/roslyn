@@ -89,7 +89,7 @@ internal abstract class ExportProviderBuilder(
 
         // Verify we only have expected errors.
 
-        ThrowOnUnexpectedErrors(config, catalog);
+        ReportCompositionErrors(config, catalog);
 
         // Try to cache the composition.
         _ = WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken).ReportNonFatalErrorAsync();
@@ -180,25 +180,28 @@ internal abstract class ExportProviderBuilder(
         }
     }
 
-    protected abstract bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions);
+    protected abstract bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts);
 
-    private void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
+    private void ReportCompositionErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
     {
+        foreach (var exception in catalog.DiscoveredParts.DiscoveryErrors)
+        {
+            LogError($"Encountered exception in the MEF composition: {exception.Message}");
+        }
+
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
 
-        if (ContainsUnexpectedErrors(erroredParts, catalog.DiscoveredParts.DiscoveryErrors))
+        if (ContainsUnexpectedErrors(erroredParts))
         {
             try
             {
-                catalog.DiscoveredParts.ThrowOnErrors();
                 configuration.ThrowOnErrors();
             }
             catch (CompositionFailedException ex)
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
-                throw;
+                LogError($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
             }
         }
     }

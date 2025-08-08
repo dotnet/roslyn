@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public abstract class RecommenderTests : TestBase
 {
     protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
-    protected static readonly CSharpParseOptions CSharpNextParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
-    protected static readonly CSharpParseOptions CSharpNextScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+    protected static readonly CSharpParseOptions CSharpNextParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
+    protected static readonly CSharpParseOptions CSharpNextScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersion.CSharp14);
 
     protected abstract string KeywordText { get; }
     internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>>? RecommendKeywordsAsync;
@@ -172,7 +172,9 @@ public abstract class RecommenderTests : TestBase
         await VerifyWorkerAsync(text, absent: false, options: scriptOptions ?? Options.Script);
     }
 
-    protected async Task VerifyKeywordAsync(SourceCodeKind kind, string text)
+    protected async Task VerifyKeywordAsync(
+        SourceCodeKind kind,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text)
     {
         switch (kind)
         {
@@ -211,7 +213,9 @@ public abstract class RecommenderTests : TestBase
         }
     }
 
-    protected static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
+    protected static string AddInsideMethod(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text,
+        bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
     {
         if (topLevelStatement)
         {

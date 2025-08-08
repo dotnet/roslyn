@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -26,24 +27,6 @@ internal static class DiagnosticAnalyzerExtensions
             : descriptor.GetEffectiveSeverity(options);
     }
 
-    public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
-    {
-        // Get the unique ID for given diagnostic analyzer.
-        // note that we also put version stamp so that we can detect changed analyzer.
-        var typeInfo = analyzer.GetType().GetTypeInfo();
-        return (analyzer.GetAnalyzerId(), GetAnalyzerVersion(typeInfo.Assembly.Location));
-    }
-
-    private static VersionStamp GetAnalyzerVersion(string path)
-    {
-        if (path == null || !File.Exists(path))
-        {
-            return VersionStamp.Default;
-        }
-
-        return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
-    }
-
     public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
         => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable();
 
@@ -58,4 +41,17 @@ internal static class DiagnosticAnalyzerExtensions
 
     public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
         => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
+
+    public static ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(
+        this Project project,
+        AnalyzerReference analyzerReference)
+    {
+        var diagnosticAnalyzerService = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        var descriptors = analyzerReference
+            .GetAnalyzers(project.Language)
+            .SelectManyAsArray(a => diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a));
+
+        return descriptors;
+    }
 }

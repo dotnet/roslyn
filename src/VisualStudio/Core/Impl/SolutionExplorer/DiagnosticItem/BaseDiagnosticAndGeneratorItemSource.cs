@@ -115,13 +115,11 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             return;
         }
 
-        // Currently only project analyzers show in Solution Explorer, so isHostAnalyzer is always false.
-        var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference, isHostAnalyzer: false);
-        var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
-            project, analyzerReference).ConfigureAwait(false);
+        var (latestDiagnosticItems, latestSourceGeneratorItems) = await GetLatestItemsAsync(
+            project, analyzerReference, cancellationToken).ConfigureAwait(false);
 
         // If we computed the same set of items as the last time, we can bail out now.
-        if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
+        if (_items.SequenceEqual([.. latestDiagnosticItems, .. latestSourceGeneratorItems]))
             return;
 
         // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
@@ -131,28 +129,36 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         try
         {
             _items.Clear();
-            _items.AddRange(newDiagnosticItems);
-            _items.AddRange(newSourceGeneratorItems);
+            _items.AddRange(latestDiagnosticItems);
+            _items.AddRange(latestSourceGeneratorItems);
         }
         finally
         {
             _items.EndBulkOperation();
         }
+    }
 
-        return;
+    private async Task<(ImmutableArray<BaseItem>, ImmutableArray<BaseItem>)> GetLatestItemsAsync(
+        Project project,
+        AnalyzerReference analyzerReference,
+        CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
 
-        ImmutableArray<BaseItem> GenerateDiagnosticItems(
-            Project project,
-            AnalyzerReference analyzerReference,
-            bool isHostAnalyzer)
+        var latestDiagnosticItems = await GenerateDiagnosticItemsAsync().ConfigureAwait(false);
+        var latestSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync().ConfigureAwait(false);
+
+        return (latestDiagnosticItems, latestSourceGeneratorItems);
+
+        async Task<ImmutableArray<BaseItem>> GenerateDiagnosticItemsAsync()
         {
             var generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
             var specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            var diagnosticAnalyzerService = this.Workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-            return analyzerReference.GetAnalyzers(project.Language)
-                .SelectMany(a => diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
+            var descriptors = await GetDiagnosticDescriptorsAsync().ConfigureAwait(false);
+
+            return descriptors
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .SelectAsArray(g =>
@@ -160,15 +166,37 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(
                         project.CompilationOptions!,
-                        isHostAnalyzer ? analyzerConfigOptions?.ConfigOptionsWithFallback : analyzerConfigOptions?.ConfigOptionsWithoutFallback,
+                        analyzerConfigOptions?.ConfigOptionsWithoutFallback,
                         analyzerConfigOptions?.TreeOptions);
                     return (BaseItem)new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 });
         }
 
-        async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync(
-            Project project,
-            AnalyzerReference analyzerReference)
+        async ValueTask<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync()
+        {
+            // Call out to oop to do this if possible.  This way we don't actually load the analyzers in proc.
+            // this also allows 
+            if (client is not null &&
+                analyzerReference is AnalyzerFileReference analyzerFileReference)
+            {
+                var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticDescriptorData>>(
+                    project,
+                    (service, solutionChecksum, cancellationToken) => service.GetDiagnosticDescriptorsAsync(
+                        solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                // If the call fails, the OOP substrate will have already reported an error
+                if (!result.HasValue)
+                    return [];
+
+                return result.Value.SelectAsArray(d => d.ToDiagnosticDescriptor());
+            }
+
+            // Otherwise, do the work in process.
+            return project.GetDiagnosticDescriptors(analyzerReference);
+        }
+
+        async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync()
         {
             var identifies = await GetIdentitiesAsync().ConfigureAwait(false);
             return identifies.SelectAsArray(
@@ -179,23 +207,20 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         {
             // Can only remote AnalyzerFileReferences over to the oop side.  If we have another form of reference (like
             // in tests), we'll just fall back to loading these in process.
-            if (analyzerReference is AnalyzerFileReference analyzerFileReference)
+            if (client is not null &&
+                analyzerReference is AnalyzerFileReference analyzerFileReference)
             {
-                var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client is not null)
-                {
-                    var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
-                        project,
-                        (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
-                            solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
+                    project,
+                    (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
+                        solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-                    // If the call fails, the OOP substrate will have already reported an error
-                    if (!result.HasValue)
-                        return [];
+                // If the call fails, the OOP substrate will have already reported an error
+                if (!result.HasValue)
+                    return [];
 
-                    return result.Value;
-                }
+                return result.Value;
             }
 
             // Do the work in process.

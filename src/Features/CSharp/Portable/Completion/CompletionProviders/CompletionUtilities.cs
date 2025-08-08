@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
@@ -220,20 +218,20 @@ internal static class CompletionUtilities
                     if (propertyDeclaration.AccessorList is { Accessors: [var firstAccessor, ..] })
                     {
                         // select the last statement of the first accessor
-                        var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
-                            firstAccessor.ExpressionBody!.Expression;
-                        return firstAccessorStatement.Span;
+                        if (firstAccessor.Body is { Statements: [.., var lastStatement] })
+                            return lastStatement.Span;
+
+                        if (firstAccessor.ExpressionBody is { Expression: { } expression })
+                            return expression.Span;
                     }
-                    else if (propertyDeclaration is PropertyDeclarationSyntax propertyDeclarationSyntax && propertyDeclarationSyntax.ExpressionBody.Expression is ExpressionSyntax expression)
+                    else if (propertyDeclaration is PropertyDeclarationSyntax { ExpressionBody.Expression: { } expression })
                     {
                         // expression-bodied property: select the expression
                         return expression.Span;
                     }
-                    else
-                    {
-                        // property: no accessors; move caret to the end of the declaration
-                        return new TextSpan(propertyDeclaration.Span.End, 0);
-                    }
+
+                    // property: no accessors; move caret to the end of the declaration
+                    return new TextSpan(propertyDeclaration.Span.End, 0);
                 }
 
             default:

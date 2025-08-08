@@ -21,20 +21,15 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
 {
     [WpfFact]
     public void AddComment_EmptyCaret()
-    {
-        ToggleComment(@"$$", @"[|/**/|]");
-    }
+        => ToggleComment(@"$$", @"[|/**/|]");
 
     [WpfFact]
     public void AddComment_EmptySelection()
-    {
-        ToggleComment(@"[| |]", @"[|/* */|]");
-    }
+        => ToggleComment(@"[| |]", @"[|/* */|]");
 
     [WpfFact]
     public void AddComment_SingleLineSelected()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -51,12 +46,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_SingleLineWithWhitespaceSelected()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -73,12 +66,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretInsideSingleLine()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -95,12 +86,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_PartialLineSelected()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -117,12 +106,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretInsideToken()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -139,12 +126,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretInsideOperatorToken()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -161,12 +146,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretInsideNewline()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -183,12 +166,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_MultiLineSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -209,12 +190,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_MultiLineSelectionWithWhitespace()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -239,12 +218,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_SingleLineCommentInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -263,12 +240,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_BlockCommentBetweenCodeInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -291,12 +266,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_SequentialBlockCommentBetweenCodeInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -321,12 +294,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_SequentialBlockCommentsAndWhitespaceBetweenCodeInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -355,12 +326,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CodeBetweenBlockCommentsInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -385,12 +354,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CodeThenCommentInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -411,12 +378,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CodeThenCommentAndWhitespaceInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -439,12 +404,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CloseCommentOnlyInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -465,12 +428,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CodeThenPartialCommentInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -491,12 +452,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CommentThenCodeInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -517,12 +476,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CommentAndWhitespaceThenCodeInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -545,12 +502,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CommentCloseMarkerThenCodeInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -571,12 +526,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CodeThenCommentStartMarkerInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -597,12 +550,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_PartialCommentThenCodeInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -623,12 +574,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretBeforeBlockOnNewLine()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -645,12 +594,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretBeforeCodeAndBlock()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -667,12 +614,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretAfterBlockOnNewLine()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -691,12 +636,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_CaretAfterBlockAndCode()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -713,12 +656,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_BlockSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -739,12 +680,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_BlockSelectionPartiallyCommented()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -765,12 +704,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_DirectiveInsideSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -795,12 +732,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void AddComment_WithProjectionBuffer()
-    {
-        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
+        => ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
             {|S1:class C
             {
                 void M()
@@ -817,18 +752,14 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_AtBeginningOfFile()
-    {
-        ToggleComment(@"[|/**/|]", @"");
-    }
+        => ToggleComment(@"[|/**/|]", @"");
 
     [WpfFact]
     public void RemoveComment_CaretInsideBlock()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -849,12 +780,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CaretInsideSequentialBlock()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -875,12 +804,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CaretBeforeBlockOnlyWhitespace()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -901,12 +828,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CaretBeforeMultipleBlocksOnlyWhitespace()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -927,12 +852,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CaretAfterBlockOnlyWhitespace()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -951,12 +874,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CaretAfterMultipleBlocksOnlyWhitespace()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -975,12 +896,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CaretInsideUnclosedBlock()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1001,12 +920,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }|]
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CommentInsideSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1027,12 +944,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CommentAndWhitespaceInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1055,12 +970,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CommentWithSingleLineCommentInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1081,12 +994,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_SequentialBlockInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1107,12 +1018,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_SequentialBlockAndWhitespaceInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1137,12 +1046,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_CommentPartiallyInsideSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1163,12 +1070,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_PartialSequentialBlockInSelection()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1189,12 +1094,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_BlockSelectionWithMultipleComments()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1215,12 +1118,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_BlockSelectionWithOneComment()
-    {
-        ToggleComment("""
+        => ToggleComment("""
             class C
             {
                 void M()
@@ -1241,12 +1142,10 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void RemoveComment_WithProjectionBuffer()
-    {
-        ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
+        => ToggleCommentWithProjectionBuffer(@"&lt; html &gt;@{|S1:|}", """
             {|S1:class C
             {
                 void M()
@@ -1263,7 +1162,6 @@ public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommen
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void ToggleComment_MultiLineSelection()

@@ -696,14 +696,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:101:102").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = +s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 18)
+                // (6,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = !s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 18)
                 );
 
             var opName = UnaryOperatorName(op);
@@ -720,7 +720,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -1087,17 +1087,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1:102:-1").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:102:-1").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = +s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 18),
-                // (11,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = +s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(11, 14)
+                // (6,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = !s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 18),
+                // (11,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = !s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(11, 14)
                 );
         }
 
@@ -1623,17 +1623,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = -c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "-c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //             _ = -c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-c1").WithArguments("extensions").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "-c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -2186,17 +2186,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:true:operator1:false").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if (s1)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(6, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if (s1)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
 
             var src3 = $$$"""
@@ -2212,7 +2212,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -2747,14 +2747,14 @@ class Program
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) == (s1, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) == (s1, 1)").WithArguments("extensions").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) == (s1, 1)").WithArguments("extensions", "14.0").WithLocation(6, 13)
                 );
         }
 
@@ -4768,17 +4768,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 9),
-                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(10, 18)
+                // (6,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 9),
+                // (10,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(10, 18)
                 );
 
             var opName = UnaryOperatorName(op);
@@ -4795,7 +4795,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -4886,7 +4886,7 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -4914,7 +4914,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -4992,7 +4992,7 @@ class Program
             var comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:102:True:operator1:102:103:True:True").VerifyDiagnostics();
 
-            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:102:True:operator1:102:103:True:True").VerifyDiagnostics();
 
             comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -6271,35 +6271,35 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1:101:102:operator1:102:103:103:-1:-1:-1 | operator1:101:102:operator1:102:102:103:-1:-1:-1").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103:-1:-1:-1 | operator1:101:102:operator1:102:102:103:-1:-1:-1").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 9),
-                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(10, 18),
-                // (17,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(17, 9),
-                // (20,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(20, 14),
-                // (28,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(28, 9),
-                // (32,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(32, 14),
-                // (39,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(39, 9),
-                // (42,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(42, 14)
+                // (6,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 9),
+                // (10,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(10, 18),
+                // (17,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(17, 9),
+                // (20,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(20, 14),
+                // (28,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(28, 9),
+                // (32,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(32, 14),
+                // (39,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(39, 9),
+                // (42,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(42, 14)
                 );
         }
 
@@ -7430,17 +7430,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = ++c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             _ = ++c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "c1").WithArguments("extensions").WithLocation(10, 17)
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = --c1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //             _ = --c1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -7485,7 +7485,7 @@ class Program
             var comp1 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -8385,17 +8385,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:102:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(6, 9),
-                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1++").WithArguments("extensions", "14.0").WithLocation(6, 9),
+                // (10,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         var s2 = s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1++").WithArguments("extensions", "14.0").WithLocation(10, 18)
                 );
         }
 
@@ -8456,7 +8456,7 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -11557,14 +11557,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 18)
+                // (7,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -11581,7 +11581,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -11986,23 +11986,23 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 13),
-                // (8,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(8, 13),
-                // (11,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(11, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(12, 13)
+                // (7,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 - s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 13),
+                // (8,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 - s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(8, 13),
+                // (11,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 - s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(11, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 - s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
         }
 
@@ -12048,23 +12048,23 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 13),
-                // (8,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(8, 13),
-                // (11,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(11, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(12, 13)
+                // (7,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 13),
+                // (8,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 != s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(8, 13),
+                // (11,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(11, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 != s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
         }
 
@@ -13131,17 +13131,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + " c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + " c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //             _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + " c1").WithArguments("extensions").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + " c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -13799,14 +13799,14 @@ operator2:True::True
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: expected).VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (11,23): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,23): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //                 Print(s1 && s2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 " + op + " s2").WithArguments("extensions").WithLocation(11, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1 " + op + " s2").WithArguments("extensions", "14.0").WithLocation(11, 23)
                 );
         }
 
@@ -15495,14 +15495,14 @@ operator2:null::null
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: expected).VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: expected).VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (11,23): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,23): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //                 Print(s1 && s2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 " + op + " s2").WithArguments("extensions").WithLocation(11, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1 " + op + " s2").WithArguments("extensions", "14.0").WithLocation(11, 23)
                 );
         }
 
@@ -18777,23 +18777,23 @@ class Program
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: "operator1: ==:operator1: !=:operator2: ==:operator2: !=").VerifyDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1: ==:operator1: !=:operator2: ==:operator2: !=").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (8,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) == (s1, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) == (s1, 1)").WithArguments("extensions").WithLocation(8, 13),
-                // (15,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) == (s1, 1)").WithArguments("extensions", "14.0").WithLocation(8, 13),
+                // (15,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) == (s2, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) == (s2, 1)").WithArguments("extensions").WithLocation(15, 13),
-                // (24,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) == (s2, 1)").WithArguments("extensions", "14.0").WithLocation(15, 13),
+                // (24,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) != (s1, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) != (s1, 1)").WithArguments("extensions").WithLocation(24, 13),
-                // (33,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) != (s1, 1)").WithArguments("extensions", "14.0").WithLocation(24, 13),
+                // (33,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) != (s2, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) != (s2, 1)").WithArguments("extensions").WithLocation(33, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) != (s2, 1)").WithArguments("extensions", "14.0").WithLocation(33, 13)
                 );
 
             var src3 = $$$"""
@@ -18902,14 +18902,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 18)
+                // (7,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -18927,7 +18927,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -19029,14 +19029,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 18)
+                // (7,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -19054,7 +19054,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -20323,17 +20323,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (8,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s11 += s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(8, 9),
-                // (15,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 += s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(15, 18)
+                // (8,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s11 -= s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(8, 9),
+                // (15,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 -= s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(15, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -20350,7 +20350,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -20450,7 +20450,7 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -20477,7 +20477,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -20564,7 +20564,7 @@ class Program
             var comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:202:303:202:True:operator1:303:202:505:202:True:True").VerifyDiagnostics();
 
-            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:202:303:202:True:operator1:303:202:505:202:True:True").VerifyDiagnostics();
 
             comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -21807,23 +21807,23 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1:").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s11 -= s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(7, 13),
-                // (10,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(7, 13),
+                // (10,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s11 -= s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(10, 13),
-                // (11,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(10, 13),
+                // (11,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s12 -= s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + "= s11").WithArguments("extensions").WithLocation(11, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + "= s11").WithArguments("extensions", "14.0").WithLocation(11, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s11 -= s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s11").WithArguments("extensions").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s11").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
         }
 
@@ -23510,17 +23510,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + "= c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + "= c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //             _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + "= c1").WithArguments("extensions").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + "= c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -23567,7 +23567,7 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);

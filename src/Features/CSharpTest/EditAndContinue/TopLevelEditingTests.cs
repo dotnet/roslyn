@@ -950,8 +950,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
     public void Type_Modifiers_Unsafe_DeleteInsert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { unsafe void F() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { void F() { } }")],
             [
                 DocumentResults(),
@@ -960,7 +959,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"))
                 ]),
             ]);
-    }
 
     [Fact]
     public void Type_Modifiers_Ref_Add()
@@ -1821,8 +1819,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Type_Base_Partial_InsertDeleteAndUpdate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", ""), GetTopEdits("", "partial class C : D { }"), GetTopEdits("partial class C { }", "partial class C { }")],
             [
                 DocumentResults(),
@@ -1832,7 +1829,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Type_Base_InsertDelete()
@@ -2287,8 +2283,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Interface_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 interface I
@@ -2319,7 +2314,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("M"))
                     ]),
             ]);
-    }
 
     [Fact]
     public void Type_Generic_Insert_StatelessMembers()
@@ -2600,8 +2594,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Type_Delete()
-    {
-        GetTopEdits("""
+        => GetTopEdits("""
 
             class C { void F() {} }
             struct S { void F() {} }
@@ -2611,7 +2604,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "C")),
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.struct_, "S")),
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.interface_, "I")));
-    }
 
     [Fact]
     public void Type_Delete_Reloadable()
@@ -2625,8 +2617,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Type_Partial_DeleteDeclaration()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { void F() {} void M() { } }", ""), GetTopEdits("partial class C { void G() {} }", "partial class C { void G() {} void M() { } }")],
             [
                 DocumentResults(
@@ -2641,20 +2632,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("M")),
                     ])
             ]);
-    }
 
     [Fact]
     public void Type_Partial_InsertFirstDeclaration()
-    {
-        GetTopEdits("", "partial class C { void F() {}  }").VerifySemantics(
+        => GetTopEdits("", "partial class C { void F() {}  }").VerifySemantics(
             [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C"), preserveLocalVariables: false)],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Type_Partial_InsertSecondDeclaration()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { void F() {} }", "partial class C { void F() {} }"), GetTopEdits("", "partial class C { void G() {} }")],
             [
                 DocumentResults(),
@@ -2666,7 +2653,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Type_Partial_Reloadable()
@@ -2780,8 +2766,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Type_Attribute_NonInsertableMembers_DeleteInsert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 abstract class C
@@ -2829,12 +2814,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ])
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Type_DeleteInsert_DataMembers()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 class C
@@ -2867,12 +2850,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true),
                     ])
             ]);
-    }
 
     [Fact]
     public void Type_DeleteInsert_DataMembers_PartialSplit()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 class C
@@ -2909,7 +2890,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ])
             ]);
-    }
 
     [Fact]
     public void Type_DeleteInsert_DataMembers_PartialMerge()
@@ -4372,8 +4352,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Record_Property_DeleteInsert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C(int X) { public int Y { get; init; } }", "partial record C(int X);"), GetTopEdits("partial record C;", "partial record C { public int Y { get; init; } }")],
             [
                 DocumentResults(),
@@ -4384,7 +4363,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.Y").SetMethod)
                     ]),
             ]);
-    }
 
     #endregion
 
@@ -4500,8 +4478,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Enum_Member_Attribute_InsertDeleteAndUpdate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("", "enum N { [System.Obsolete]A = 1 }"), GetTopEdits("enum N { A = 1 }", "")],
             [
                 DocumentResults(semanticEdits:
@@ -4511,7 +4488,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults()
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Enum_Rename()
@@ -5953,19 +5929,16 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { enum N { A = 1 } }"), GetTopEdits("partial struct S { enum N { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(),
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDeleteAndUpdateMember()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { enum N { A = 2 } }"), GetTopEdits("partial struct S { enum N { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -5976,12 +5949,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDeleteAndUpdateBase()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { enum N : int { A = 1 } }"), GetTopEdits("partial struct S { enum N : uint { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -5992,12 +5963,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50876")]
     public void NestedEnumInPartialType_InsertDeleteAndInsertMember()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { enum N { A = 1, B = 2 } }"), GetTopEdits("partial struct S { enum N { A = 1 } }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -6005,12 +5974,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { delegate void D(); }"), GetTopEdits("partial struct S { delegate void D(); }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -6019,12 +5986,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDeleteAndChangeParameters()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { delegate void D(int x); }"), GetTopEdits("partial struct S { delegate void D(); }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -6032,12 +5997,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDeleteAndChangeReturnType()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { delegate ref readonly int D(); }"), GetTopEdits("partial struct S { delegate ref int D(); }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -6048,12 +6011,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedDelegateInPartialType_InsertDeleteAndChangeOptionalParameterValue()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { delegate void D(int x = 2); }"), GetTopEdits("partial struct S { delegate void D(int x = 1); }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -6064,12 +6025,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void NestedPartialTypeInPartialType_InsertDeleteAndChange()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { partial class C { void F1() {} } }", "partial struct S { partial class C { void F1() {} } }"), GetTopEdits("partial struct S { partial class C { void F2(byte x) {} } }", "partial struct S { }"), GetTopEdits("partial struct S { }", "partial struct S { partial class C { void F2(int x) {} } }")],
             [
                 DocumentResults(),
@@ -6084,12 +6043,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.C.F2").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol)])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Type_Insert_Partial_Multiple()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("", "partial class C { }"), GetTopEdits("", "partial class C { }")],
             [
                 DocumentResults(semanticEdits:
@@ -6102,24 +6059,20 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 ]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Type_Delete_Partial_Multiple()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", ""), GetTopEdits("partial class C { }", "")],
             [
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.Delete, null, GetResource("class", "C"))]),
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.Delete, null, GetResource("class", "C"))]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteAndChange_Attribute()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", ""), GetTopEdits("", "[A]partial class C { }"), GetTopEdits("partial class C { }", "partial class C { }")],
             [
                 DocumentResults(),
@@ -6130,7 +6083,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteAndChange_TypeParameterAttribute()
@@ -6176,8 +6128,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Type_Partial_InsertDeleteAndChange_Constraint()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C<T> { }", ""), GetTopEdits("", "partial class C<T> where T : new() { }"), GetTopEdits("partial class C<T> { }", "partial class C<T> { }")],
             [
                 DocumentResults(),
@@ -6190,7 +6141,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteRefactor()
@@ -6242,8 +6192,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Type_Partial_InsertDeleteRefactor_AttributeListSplitting()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { void F() { } }", ""), GetTopEdits("[A,B]partial class C { void G() { } }", ""), GetTopEdits("", "[A]partial class C { void F() { } }"), GetTopEdits("", "[B]partial class C { void G() { } }")],
             [
                 DocumentResults(),
@@ -6257,24 +6206,20 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.G"))
                 ]),
             ]);
-    }
 
     [Fact]
     public void Type_Partial_InsertDeleteChangeMember()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { void F(int y = 1) { } }", ""), GetTopEdits("partial class C { void G(int x = 1) { } }", "partial class C { void G(int x = 2) { } }"), GetTopEdits("", "partial class C { void F(int y = 2) { } }")],
             [
                 DocumentResults(),
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.InitializerUpdate, "int x = 2", FeaturesResources.parameter)]),
                 DocumentResults(diagnostics: [Diagnostic(RudeEditKind.InitializerUpdate, "int y = 2", FeaturesResources.parameter)]),
             ]);
-    }
 
     [Fact]
     public void NestedPartialTypeInPartialType_InsertDeleteAndInsertVirtual()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial interface I { partial class C { virtual void F1() {} } }", "partial interface I { partial class C { } }"), GetTopEdits("partial interface I { partial class C { virtual void F2() {} } }", ""), GetTopEdits("partial interface I { partial class C { } }", "partial interface I { partial class C { virtual void F1() {} } }"), GetTopEdits("partial interface I { partial class C { } }", "partial interface I { partial class C { virtual void N1() {} } }"), GetTopEdits("partial interface I { }", "partial interface I { partial class C { virtual void F2() {} } }"), GetTopEdits("partial interface I { }", "partial interface I { partial class C { virtual void N2() {} } }")],
             [
                 // A
@@ -6299,7 +6244,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.InsertVirtual, "virtual void N2()", FeaturesResources.method)]),
             ]);
-    }
 
     #endregion
 
@@ -6716,8 +6660,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Namespace_Update_MultiplePartials1()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }")],
             [
                 DocumentResults(
@@ -6732,12 +6675,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Namespace_Update_MultiplePartials2()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }")],
             [
                 DocumentResults(diagnostics:
@@ -6750,7 +6691,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 ]),
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
-    }
 
     [Fact]
     public void Namespace_Update_MultiplePartials_MergeInNewNamspace()
@@ -6981,8 +6921,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void PartialMember_InsertDelete_MultipleDocuments()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { void F() {} }"), GetTopEdits("partial class C { void F() {} }", "partial class C { }")],
             [
                 DocumentResults(
@@ -6993,12 +6932,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_MultipleDocuments()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { void F() {} }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { void F() {} }")],
             [
                 DocumentResults(),
@@ -7009,7 +6946,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
                     ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_GenericMethod()
@@ -7075,8 +7011,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void PartialMember_DeleteInsert_Destructor()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { ~C() {} }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { ~C() {} }")],
             [
                 DocumentResults(),
@@ -7087,12 +7022,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("Finalize"), preserveLocalVariables: false),
                     ])
             ]);
-    }
 
     [Fact]
     public void PartialNestedType_InsertDeleteAndChange()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { class D : I { void M() {} } interface I { } }"), GetTopEdits("partial class C { class D { void M() {} } interface I { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -7103,12 +7036,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults()
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_RenameInsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { void F1() {} }", "partial class C { void F2() {} }"), GetTopEdits("partial class C { void F2() {} }", "partial class C { void F1() {} }")],
             [
                 DocumentResults(semanticEdits:
@@ -7123,7 +7054,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_RenameInsertDelete_SameFile()
@@ -7161,8 +7091,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_SignatureChangeInsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { void F(byte x) {} }", "partial class C { void F(char x) {} }"), GetTopEdits("partial class C { void F(char x) {} }", "partial class C { void F(byte x) {} }")],
             [
                 DocumentResults(
@@ -7171,12 +7100,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.F").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Byte }]))]),
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void PartialMember_SignatureChangeInsertDelete_Indexer()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int this[byte x] { get => 1; set {} } }", "partial class C { int this[char x] { get => 1; set {} } }"), GetTopEdits("partial class C { int this[char x] { get => 1; set {} } }", "partial class C { int this[byte y] { get => 1; set {} } }")],
             [
                 DocumentResults(semanticEdits:
@@ -7194,12 +7121,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("C.this[]").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Byte }]).SetMethod),
                     ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdateMethodBodyError()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 using System.Collections.Generic;
@@ -7243,12 +7168,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 ])
             ],
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdatePropertyAccessors()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int P { get => 1; set { Console.WriteLine(1); } } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int P { get => 2; set { Console.WriteLine(2); } } }")],
             [
                 DocumentResults(),
@@ -7258,12 +7181,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdateAutoProperty()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int P => 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int P => 2; }")],
             [
                 DocumentResults(),
@@ -7272,12 +7193,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_AddFieldInitializer()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int f; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int f = 1; }")],
             [
                 DocumentResults(),
@@ -7286,12 +7205,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_RemoveFieldInitializer()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int f = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int f; }")],
             [
                 DocumentResults(),
@@ -7300,12 +7217,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_ConstructorWithInitializers()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int f = 1; C(int x) { f = x; } }", "partial class C { int f = 1; }"), GetTopEdits("partial class C { }", "partial class C { C(int x) { f = x + 1; } }")],
             [
                 DocumentResults(),
@@ -7314,12 +7229,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), partialType: "C", preserveLocalVariables: true)
                 ])
             ]);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_MethodAddParameter()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { void F(int x) {} }"), GetTopEdits("partial struct S { void F() {} }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -7335,12 +7248,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_UpdateMethodParameterType()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { void F(byte x); }"), GetTopEdits("partial struct S { void F(int x); }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -7356,12 +7267,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void PartialMember_DeleteInsert_MethodAddTypeParameter()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial struct S { }", "partial struct S { void F<T>(); }"), GetTopEdits("partial struct S { void F(); }", "partial struct S { }")],
             [
                 DocumentResults(
@@ -7377,7 +7286,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.GenericAddMethodToExistingType);
-    }
 
     #endregion
 
@@ -8381,8 +8289,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
     public void ExternMethod_Attribute_DeleteInsert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 using System;
@@ -8424,7 +8331,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 ])
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Method_Reorder()
@@ -10381,8 +10287,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Method_Partial_DeleteInsert_DefinitionPart()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial void F(); }", "partial class C { }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { partial void F() { } }"), GetTopEdits("partial class C { }", "partial class C { partial void F(); }")],
             [
                 DocumentResults(),
@@ -10390,12 +10295,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteInsert_ImplementationPart()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial void F(); }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(),
@@ -10403,12 +10306,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")]
     public void Method_Partial_Swap_ImplementationAndDefinitionParts()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial void F(); }", "partial class C { partial void F() { } }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { partial void F(); }")],
             [
                 DocumentResults(
@@ -10416,12 +10317,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteImplementation()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial void F(); }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }")],
             [
                 DocumentResults(),
@@ -10432,7 +10331,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
                     ]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteDefinition()
@@ -10447,20 +10345,17 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Method_Partial_DeleteBoth()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial void F(); }", "partial class C { }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }")],
             [
                 DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Method_Partial_DeleteInsertBoth()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial void F(); }", "partial class C { }"), GetTopEdits("partial class C { partial void F() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(),
@@ -10470,12 +10365,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")])
             ]);
-    }
 
     [Fact]
     public void Method_Partial_Insert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { partial void F(); }"), GetTopEdits("partial class C { }", "partial class C { partial void F() { } }")],
             [
                 DocumentResults(),
@@ -10483,7 +10376,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart)]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Method_Partial_Insert_Reloadable()
@@ -11212,8 +11104,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Parameter_Update_Type_Primary_PartialMove()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C(bool a);", "partial class C;"), GetTopEdits("partial class C;", "partial class C(int a);")],
             [
                 DocumentResults(
@@ -11229,7 +11120,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Constructor_Parameter_Update_Type_Record()
@@ -11998,8 +11888,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Parameter_Insert_Primary_Record_WithCustomDeconstructor_Delete_Partial()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C(int X       ) { public partial void Deconstruct(out int X) => X = 1; }", "partial record C(int X, int Y);"), GetTopEdits("partial record C               { public partial void Deconstruct(out int X); }", "partial record C;")],
             [
                 DocumentResults(
@@ -12018,7 +11907,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
-    }
 
     [Fact]
     public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_NotLifted()
@@ -12438,8 +12326,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingPrimaryWithNonPrimary_Record()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C(int P);", "partial record C;"), GetTopEdits("partial record C;", "partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }")],
             [
                 DocumentResults(),
@@ -12457,12 +12344,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "P"}]), partialType: "C", preserveLocalVariables: true),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingNonPrimaryWithPrimary_Record()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P);")],
             [
                 DocumentResults(),
@@ -12480,12 +12365,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingNonPrimaryWithPrimary_WithExplicitPropertyAdded_Record()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C        { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P) { public int P { get; init; } }")],
             [
                 DocumentResults(),
@@ -12503,12 +12386,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingNonPrimaryWithPrimary_WithExplicitFieldAdded_Record()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P) { public int P; }")],
             [
                 DocumentResults(semanticEdits:
@@ -12531,12 +12412,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_SwappingNonPrimaryWithPrimary_Record()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C(int P) { public C() : this(1) { } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C() { public C(int P) : this() { } }")],
             [
                 DocumentResults(
@@ -12559,12 +12438,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Parameter_DeleteInsert_ReplacingPropertyWithField_Record()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial record C(int P) { public int P { get; init; } }", "partial record C;"), GetTopEdits("partial record C;", "partial record C(int P) { public int P; }")],
             [
                 DocumentResults(
@@ -12586,7 +12463,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ]),
             ], capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68458")]
     [CombinatorialData]
@@ -13240,8 +13116,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Instance_Insert_ReplacingDefault_WithStackAllocInMemberInitializer_Partial()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int a = G(stackalloc int[10]); }", "partial class C { int a = G(stackalloc int[10]); }"), GetTopEdits("partial class C { static int G(System.Span<int> span) => 1; }", "partial class C { static int G(System.Span<int> span) => 1; public C() { } }")],
             [
                 DocumentResults(),
@@ -13252,12 +13127,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         Diagnostic(RudeEditKind.StackAllocUpdate, "public C()", GetResource("constructor"))
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Delete_ReplacingDefault_Partial()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { public C(int a) { } }"), GetTopEdits("partial class C { }", "partial class C { public C(int a, int b) { } }")],
             [
                 DocumentResults(
@@ -13275,12 +13148,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Constructor_Instance_Insert_ReplacingExplicitWithDefault_WithStackAllocInMemberInitializer_Partial()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int a = G(stackalloc int[10]); }", "partial class C { int a = G(stackalloc int[10]); }"), GetTopEdits("partial class C { static int G(System.Span<int> span) => 1; public C() { } }", "partial class C { static int G(System.Span<int> span) => 1; }")],
             [
                 DocumentResults(),
@@ -13291,7 +13162,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         Diagnostic(RudeEditKind.StackAllocUpdate, "partial class C", GetResource("constructor", "C()"))
                     ]),
             ]);
-    }
 
     [Theory, CombinatorialData]
     public void Constructor_Instance_Insert_UpdatingImplicit(
@@ -13740,8 +13610,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Instance_Delete_Public_PartialWithInitializerUpdate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { public C() { } }", "partial class C { }"), GetTopEdits("partial class C { int x = 1; }", "partial class C { int x = 2; }")],
             [
                 DocumentResults(
@@ -13750,7 +13619,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)])
             ]);
-    }
 
     [Theory, CombinatorialData]
     public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized(
@@ -13814,8 +13682,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_Partial()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { public C(int a) { } }", "partial class C { }"), GetTopEdits("partial class C { public C(int a, int b) { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -13824,7 +13691,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters.Length == 2), deletedSymbolContainerProvider: c => c.GetMember("C"))])
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Delete_Primary_ReplacingWithSynthesized()
@@ -13936,8 +13802,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Instance_Partial_DeletePrivateInsertPrivate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { C() { } }", "partial class C { }"), GetTopEdits("partial class C {  }", "partial class C { C() { } }")],
             [
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
@@ -13949,12 +13814,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_DeletePublicInsertPublic()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { public C() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { public C() { } }")],
             [
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
@@ -13966,12 +13829,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_DeletePrivateInsertPublic()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { C() { } }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { public C() { } }")],
             [
                 // delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed accessibility
@@ -13981,12 +13842,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     diagnostics: [Diagnostic(RudeEditKind.ChangingAccessibility, "public C()", FeaturesResources.constructor)]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertPublicDeletePublic()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { public C() { } }"), GetTopEdits("partial class C { public C() { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -13998,12 +13857,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertPrivateDeletePrivate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { private C() { } }"), GetTopEdits("partial class C { private C() { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -14015,12 +13872,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_DeleteInternalInsertInternal()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { internal C() { } }"), GetTopEdits("partial class C { internal C() { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -14032,12 +13887,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertInternalDeleteInternal_WithBody()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { internal C() { Console.WriteLine(1); } }"), GetTopEdits("partial class C { internal C() { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -14049,12 +13902,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertPublicDeletePrivate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { public C() { } }"), GetTopEdits("partial class C { private C() { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -14063,12 +13914,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 // delete of the constructor in partial part will be reported as rude in the the other document where it was inserted with changed accessibility
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_InsertInternalDeletePrivate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { internal C() { } }"), GetTopEdits("partial class C { private C() { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -14076,7 +13925,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_Update_LambdaInInitializer1()
@@ -14424,8 +14272,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Instance_Partial_Explicit_Update_SemanticError()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 using System;
@@ -14475,12 +14322,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 // We just should not crash.
                 DocumentResults(diagnostics: [])
             ]);
-    }
 
     [Fact]
     public void Constructor_Instance_Partial_Implicit_Update()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int F = 1; }", "partial class C { int F = 2; }"), GetTopEdits("partial class C { int G = 1; }", "partial class C { int G = 2; }")],
             [
                 DocumentResults(
@@ -14494,12 +14339,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void PartialDeclaration_Delete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { public C() { } void F() { } }", ""), GetTopEdits("partial class C { int x = 1; }", "partial class C { int x = 2; void F() { } }")],
             [
                 DocumentResults(
@@ -14512,12 +14355,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void PartialDeclaration_Insert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("", "partial class C { public C() { } void F() { } }"), GetTopEdits("partial class C { int x = 1; void F() { } }", "partial class C { int x = 2; }")],
             [
                 DocumentResults(
@@ -14530,7 +14371,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
             ]);
-    }
 
     [Fact]
     public void PartialDeclaration_Insert_Reloadable()
@@ -14608,8 +14448,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void Constructor_Static_Partial_DeleteInsert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { static C() { } }", "partial class C { }"), GetTopEdits("partial class C {  }", "partial class C { static C() { } }")],
             [
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
@@ -14621,12 +14460,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void Constructor_Static_Partial_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { static C() { } }"), GetTopEdits("partial class C { static C() { } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -14638,7 +14475,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Constructor_Static_Update()
@@ -14833,8 +14669,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void MemberInitializer_Update_Remove_Partial_Field()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int F = 1; }", "partial class C {  }"), GetTopEdits("partial class C { }", "partial class C { int F ; }")],
             [
                 DocumentResults(),
@@ -14844,12 +14679,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Update_Remove_Partial_Property()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int F { get; } = 1; }", "partial class C {  }"), GetTopEdits("partial class C { }", "partial class C { int F { get; } }")],
             [
                 DocumentResults(),
@@ -14860,12 +14693,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_F"))
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Update_DeleteInsert_Field()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int F = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int F = 2; }")],
             [
                 DocumentResults(),
@@ -14875,12 +14706,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Update_DeleteInsert_Property()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int F { get; } = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int F { get; } = 2; }")],
             [
                 DocumentResults(),
@@ -14891,7 +14720,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
                     ]),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_PropertyUpdate2()
@@ -14912,8 +14740,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     [Fact]
     public void MemberInitializer_PropertyInsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { int a { get { return 1; } } }"), GetTopEdits("partial class C { int a { get; } = 1; }", "partial class C { }")],
             [
                 DocumentResults(
@@ -14924,7 +14751,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     ]),
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void MemberInitializer_Field_Update3()
@@ -16832,8 +16658,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Field_Modifier_Add_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { static int F; }"), GetTopEdits("partial class C { int F; }", "partial class C { }")],
             [
                 DocumentResults(
@@ -16844,12 +16669,10 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Field_Attribute_Add_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { [System.Obsolete]int F; }"), GetTopEdits("partial class C { int F; }", "partial class C { }")],
             [
                 DocumentResults(
@@ -16861,7 +16684,6 @@ class C() : B{{initializer}}
                 DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Field_FixedSize_Update()
@@ -17665,8 +17487,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Field_Attribute_DeleteInsertUpdate_WithInitializer()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int a = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { [System.Obsolete]int a = 2; }")],
             [
                 DocumentResults(),
@@ -17678,7 +17499,6 @@ class C() : B{{initializer}}
                     ]),
             ],
             capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
-    }
 
     [Fact]
     public void Field_Delete1()
@@ -19537,8 +19357,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Property_Partial_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { int P { get => 1; set { } } }"), GetTopEdits("partial class C { int P { get => 1; set { } } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -19550,12 +19369,10 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void PropertyInit_Partial_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { int Q { get => 1; init { } }}"), GetTopEdits("partial class C { int Q { get => 1; init { } }}", "partial class C { }")],
             [
                 DocumentResults(
@@ -19567,7 +19384,6 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Property_Auto_Partial_InsertDelete()
@@ -19613,8 +19429,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Property_WithExpressionBody_Partial_InsertDeleteUpdate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { int P => 2; }"), GetTopEdits("partial class C { int P => 1; }", "partial class C { }")],
             [
                 DocumentResults(
@@ -19622,7 +19437,6 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Property_Auto_ReadOnly_Add()
@@ -19799,8 +19613,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Property_Partial_DeleteInsert_DefinitionPart()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { partial int P => 1; }"), GetTopEdits("partial class C { }", "partial class C { partial int P { get; } }")],
             [
                 DocumentResults(),
@@ -19808,12 +19621,10 @@ class C() : B{{initializer}}
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_DeleteInsert_ImplementationPart()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { partial int P { get; } }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial int P => 1; }")],
             [
                 DocumentResults(),
@@ -19821,24 +19632,20 @@ class C() : B{{initializer}}
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_Swap_ImplementationAndDefinitionParts()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { partial int P => 1; }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { partial int P { get; } }")],
             [
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_DeleteBoth()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { }")],
             [
                 DocumentResults(),
@@ -19849,12 +19656,10 @@ class C() : B{{initializer}}
                         SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
                     ]),
             ]);
-    }
 
     [Fact]
     public void Property_Partial_DeleteInsertBoth()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { partial int P { get; } }", "partial class C { }"), GetTopEdits("partial class C { partial int P => 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { partial int P { get; } }"), GetTopEdits("partial class C { }", "partial class C { partial int P => 1; }")],
             [
                 DocumentResults(),
@@ -19864,12 +19669,10 @@ class C() : B{{initializer}}
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")])
             ]);
-    }
 
     [Fact]
     public void Property_Partial_Insert()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { partial int P { get; } }"), GetTopEdits("partial class C { }", "partial class C { partial int P => 1; }")],
             [
                 DocumentResults(),
@@ -19877,7 +19680,6 @@ class C() : B{{initializer}}
                     semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart)]),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
-    }
 
     [Fact]
     public void Property_Partial_Insert_Reloadable()
@@ -21082,8 +20884,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Indexer_Partial_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { int this[int x] { get => 1; set { } } }"), GetTopEdits("partial class C { int this[int x] { get => 1; set { } } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -21096,12 +20897,10 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void IndexerInit_Partial_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { int this[int x] { get => 1; init { } }}"), GetTopEdits("partial class C { int this[int x] { get => 1; init { } }}", "partial class C { }")],
             [
                 DocumentResults(
@@ -21114,7 +20913,6 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void AutoIndexer_Partial_InsertDelete()
@@ -21486,8 +21284,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Event_Partial_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { }", "partial class C { event int E { add { } remove { } } }"), GetTopEdits("partial class C { event int E { add { } remove { } } }", "partial class C { }")],
             [
                 DocumentResults(
@@ -21499,7 +21296,6 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Event_InMutableStruct_ReadOnly_Add()
@@ -22023,8 +21819,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void EventField_Partial_InsertDelete()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { static void F() {} }", "partial class C { static void F() {} event System.Action E = F; }"), GetTopEdits("partial class C { event System.Action E = F; }", "partial class C { }")],
             [
                 DocumentResults(
@@ -22035,7 +21830,6 @@ class C() : B{{initializer}}
 
                 DocumentResults(),
             ]);
-    }
 
     #endregion
 
@@ -22466,8 +22260,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void Parameter_Initializer_InsertDeleteUpdate()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits(@"partial class C { }", @"partial class C { public static void F(int x = 2) {} }"), GetTopEdits(@"partial class C { public static void F(int x = 1) {} }", @"partial class C { }")],
             [
                 DocumentResults(
@@ -22477,7 +22270,6 @@ class C() : B{{initializer}}
                     ]),
                 DocumentResults(),
             ]);
-    }
 
     [Fact]
     public void Parameter_Attribute_Insert()
@@ -24204,8 +23996,7 @@ class C() : B{{initializer}}
 
     [Fact]
     public void TopLevelStatements_MoveToOtherFile()
-    {
-        EditAndContinueValidation.VerifySemantics(
+        => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("""
 
                 using System;
@@ -24245,7 +24036,6 @@ class C() : B{{initializer}}
                     semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))],
                     diagnostics: [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console", GetResource("top-level code"))]),
             ]);
-    }
 
     [Fact]
     public void TopLevelStatements_BlockReorder()

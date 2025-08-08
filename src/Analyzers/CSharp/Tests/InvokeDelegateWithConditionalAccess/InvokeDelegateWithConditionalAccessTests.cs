@@ -23,7 +23,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task Test1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -81,11 +81,11 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             Action a = null;
 
             a?.Invoke();
-            """, parseOptions: CSharpParseOptions.Default);
+            """, new(parseOptions: CSharpParseOptions.Default));
 
     [Fact]
     public Task TestOnIf()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -115,7 +115,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestOnInvoke()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -164,7 +164,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestInvertedIf()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -194,7 +194,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestIfWithNoBraces()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -222,7 +222,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestWithComplexExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -299,7 +299,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
     /// </remarks>
     [Fact]
     public Task TestLocationWhereOfferedWithMultipleVariables()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -360,7 +360,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
     /// </remarks>
     [Fact]
     public Task TestLocationWhereOfferedIfUsedOutside()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -395,7 +395,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestSimpleForm1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -428,7 +428,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestSimpleForm2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -461,7 +461,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestInElseClause1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -503,7 +503,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestInElseClause2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -540,7 +540,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestTrivia1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -570,7 +570,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact]
     public Task TestTrivia2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -599,7 +599,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
     public Task TestTrivia3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -628,7 +628,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
     public Task TestTrivia4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -657,7 +657,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
     /// </remarks>
     [Fact]
     public Task TestFixOfferedOnIf()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -690,7 +690,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
     /// </remarks>
     [Fact]
     public Task TestFixOfferedInsideIf()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -833,7 +833,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
     /// </remarks>
     [Fact]
     public Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -885,7 +885,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
     public Task TestWithLambdaInitializer()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -916,7 +916,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
     public Task TestWithLambdaInitializer2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -947,7 +947,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
     public Task TestForWithAnonymousMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -978,7 +978,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
     public Task TestWithMethodReference()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1009,7 +1009,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
     public Task TestWithExplicitInvokeCall1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1040,7 +1040,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
     public Task TestWithExplicitInvokeCall2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

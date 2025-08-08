@@ -2532,6 +2532,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType
                 or ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
+                or ErrorCode.ERR_MemberNameSameAsExtendedType
+                or ErrorCode.ERR_FeatureNotAvailableInVersion14
                 or ErrorCode.ERR_ExtensionBlockCollision
                     => false,
             };
