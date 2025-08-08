@@ -28872,5 +28872,787 @@ static class E
             //     extension(object)
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(3, 15));
     }
+
+    [Fact]
+    public void CollectionExpression_01()
+    {
+        var src = """
+C c = [1, 2];
+
+static class E
+{
+    extension(C c)
+    {
+        public void Add(int i) { System.Console.Write(i); }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_02()
+    {
+        var src = """
+C c = [1];
+
+static class E
+{
+    extension(C c)
+    {
+        public void Add<T>(int i) { System.Console.Write(i); }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS9215: Collection expression type 'C' must have an instance or extension method 'Add' that can be called with a single argument.
+            // C c = [1];
+            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1]").WithArguments("C").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void CollectionExpression_03()
+    {
+        var src = """
+C c = [1, 2];
+
+static class E
+{
+    extension(C c)
+    {
+        public void Add<T>(T t) { System.Console.Write(t); }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_04()
+    {
+        var src = """
+C c = [1, 2];
+
+static class E
+{
+    extension<T>(C c)
+    {
+        public void Add(int i) { System.Console.Write(i); }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS9215: Collection expression type 'C' must have an instance or extension method 'Add' that can be called with a single argument.
+            // C c = [1, 2];
+            Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("C").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void CollectionExpression_05()
+    {
+        var src = """
+C c = [1, 2];
+
+static class E
+{
+    extension<T>(C c)
+    {
+        public void Add(T t) { System.Console.Write(t); }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_06()
+    {
+        // Based on the following, but without an implementation method
+        //public static class E
+        //{
+        //    extension(C c)
+        //    {
+        //        public void Add<T>(T t) { }
+        //    }
+        //}
+        //public class C : System.Collections.IEnumerable
+        //{
+        //    public System.Collections.IEnumerator GetEnumerator() => null;
+        //}
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$73AD9F89912BC4337338E3DE7182B785'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( class C c ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig instance void Add<T> ( !!T t ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+}
+.class public auto ansi beforefieldinit C
+    extends System.Object
+    implements [mscorlib]System.Collections.IEnumerable
+{
+    .method public final hidebysig newslot virtual instance class [mscorlib]System.Collections.IEnumerator GetEnumerator () cil managed 
+    {
+        ldnull
+        ret
+    }
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var src = """
+C c = [1];
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS0570: 'E.extension(C).Add<T>(T)' is not supported by the language
+            // C c = [1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "[1]").WithArguments("E.extension(C).Add<T>(T)").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void CollectionExpression_07()
+    {
+        // Based on the following, but without an implementation method
+        //public static class E
+        //{
+        //    extension(C c)
+        //    {
+        //        public void Add<T>(T t) { }
+        //    }
+        //}
+        //public class C : System.Collections.IEnumerable
+        //{
+        //    public System.Collections.IEnumerator GetEnumerator() => null;
+        //}
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$73AD9F89912BC4337338E3DE7182B785'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( class C c ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig instance void Add<T> ( !!T t ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+}
+.class public auto ansi beforefieldinit C
+    extends System.Object
+    implements [mscorlib]System.Collections.IEnumerable
+{
+    .method public final hidebysig newslot virtual instance class [mscorlib]System.Collections.IEnumerator GetEnumerator () cil managed 
+    {
+        ldnull
+        ret
+    }
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var src = """
+C c = [1];
+
+public static class E2
+{
+    extension(C c)
+    {
+        public void Add(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_08()
+    {
+        var src = """
+int[] i = new[] { 1, 2 };
+C c = /*<bind>*/ [1, .. i] /*</bind>*/;
+
+static class E1
+{
+    extension(C c)
+    {
+        public void Add(int i) { }
+    }
+}
+
+static class E2
+{
+    extension(C c)
+    {
+        public void Add(int i) { }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,19): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(C).Add(int)' and 'E2.extension(C).Add(int)'
+            // C c = /*<bind>*/ [1, .. i] /*</bind>*/;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "1").WithArguments("E1.extension(C).Add(int)", "E2.extension(C).Add(int)").WithLocation(2, 19),
+            // (2,25): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(C).Add(int)' and 'E2.extension(C).Add(int)'
+            // C c = /*<bind>*/ [1, .. i] /*</bind>*/;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "i").WithArguments("E1.extension(C).Add(int)", "E2.extension(C).Add(int)").WithLocation(2, 25));
+
+        VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, """
+ICollectionExpressionOperation (2 elements, ConstructMethod: C..ctor()) (OperationKind.CollectionExpression, Type: C, IsInvalid) (Syntax: '[1, .. i]')
+  Elements(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '.. i')
+        Operand:
+          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32[], IsInvalid) (Syntax: 'i')
+        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          (Identity)
+""");
+    }
+
+    [Fact]
+    public void CollectionExpression_09()
+    {
+        // Element type cannot be determined from a GetEnumerator extension method
+        // new extension
+        string src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> c = [];
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection<T>
+{
+}
+
+class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+}
+
+static class E
+{
+    extension<T>(MyCollection<T> c)
+    {
+        public IEnumerator<T> GetEnumerator() => default;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (5,23): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+            // MyCollection<int> c = [];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(5, 23));
+
+        // classic extension
+        src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> c = [];
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection<T>
+{
+}
+
+class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+}
+
+static class E
+{
+    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => default;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (5,23): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+            // MyCollection<int> c = [];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(5, 23));
+
+        // non-extension method
+        src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> c = [];
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection<T>
+{
+    public IEnumerator<T> GetEnumerator() => default;
+}
+
+class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+}
+
+static class E
+{
+    extension<T>(MyCollection<T> c)
+    {
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_10()
+    {
+        var src = """
+C c = [1, 2];
+
+static class E
+{
+    extension(C c)
+    {
+        public static void Add(int i) { }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS1921: The best overloaded method match for 'E.extension(C).Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
+            // C c = [1, 2];
+            Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "[1, 2]").WithArguments("E.extension(C).Add(int)").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void CollectionExpression_11()
+    {
+        var src = """
+C c = [1, 2];
+
+static class E
+{
+    extension(C c)
+    {
+        public static void Add() { }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS1501: No overload for method 'Add' takes 1 arguments
+            // C c = [1, 2];
+            Diagnostic(ErrorCode.ERR_BadArgCount, "[1, 2]").WithArguments("Add", "1").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void CollectionExpression_12()
+    {
+        var src = """
+D d = [1, 2];
+
+static class E
+{
+    extension(C c)
+    {
+        public void Add(int i) { System.Console.Write(i); }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+
+public class D : C { }
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_13()
+    {
+        var src = """
+C c = new C();
+D d = [.. c];
+
+static class E
+{
+    extension(C c)
+    {
+        public System.Collections.Generic.IEnumerator<int> GetEnumerator()
+        {
+            yield return 1;
+            yield return 2; 
+        }
+    }
+}
+
+public class C { }
+
+public class D : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+    public void Add(int i) { System.Console.Write(i); }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_14()
+    {
+        // Static Create extension methods does not count as a blessed Create method
+        string src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> c1 = [];
+MyCollection<int> c2 = [1];
+
+[CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+class MyCollection<T>
+{
+    public IEnumerator<T> GetEnumerator() => default;
+}
+
+class MyCollectionBuilder
+{
+}
+
+static class E
+{
+    extension(MyCollectionBuilder)
+    {
+        public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // MyCollection<int> c1 = [];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 24),
+            // (6,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // MyCollection<int> c2 = [1];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 24));
+    }
+
+    [Fact]
+    public void CollectionExpression_15()
+    {
+        // extension countable property
+        var src = """
+C c = new C();
+int[] i = [.. c];
+System.Console.Write((i[0], i[1]));
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 2;
+    }
+}
+
+public class C 
+{ 
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator()
+    {
+        yield return 1;
+        yield return 2; 
+    }
+}
+
+public class D : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+    public void Add(int i) { System.Console.Write(i); }
+}
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2)").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       82 (0x52)
+  .maxstack  3
+  .locals init (int[] V_0, //i
+                System.Collections.Generic.List<int> V_1,
+                System.Collections.Generic.IEnumerator<int> V_2,
+                int V_3)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  newobj     "System.Collections.Generic.List<int>..ctor()"
+  IL_000a:  stloc.1
+  IL_000b:  callvirt   "System.Collections.Generic.IEnumerator<int> C.GetEnumerator()"
+  IL_0010:  stloc.2
+  .try
+  {
+    IL_0011:  br.s       IL_0021
+    IL_0013:  ldloc.2
+    IL_0014:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_0019:  stloc.3
+    IL_001a:  ldloc.1
+    IL_001b:  ldloc.3
+    IL_001c:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+    IL_0021:  ldloc.2
+    IL_0022:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0027:  brtrue.s   IL_0013
+    IL_0029:  leave.s    IL_0035
+  }
+  finally
+  {
+    IL_002b:  ldloc.2
+    IL_002c:  brfalse.s  IL_0034
+    IL_002e:  ldloc.2
+    IL_002f:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0034:  endfinally
+  }
+  IL_0035:  ldloc.1
+  IL_0036:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+  IL_003b:  stloc.0
+  IL_003c:  ldloc.0
+  IL_003d:  ldc.i4.0
+  IL_003e:  ldelem.i4
+  IL_003f:  ldloc.0
+  IL_0040:  ldc.i4.1
+  IL_0041:  ldelem.i4
+  IL_0042:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_0047:  box        "System.ValueTuple<int, int>"
+  IL_004c:  call       "void System.Console.Write(object)"
+  IL_0051:  ret
+}
+""");
+
+        // non-extension countable property
+        src = """
+C c = new C();
+int[] i = [.. c];
+System.Console.Write((i[0], i[1]));
+
+public class C 
+{ 
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator()
+    {
+        yield return 1;
+        yield return 2; 
+    }
+
+    public int Length => 2;
+}
+""";
+        comp = CreateCompilation(src);
+        verifier = CompileAndVerify(comp, expectedOutput: "(1, 2)").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       88 (0x58)
+  .maxstack  3
+  .locals init (int[] V_0, //i
+                int V_1,
+                int[] V_2,
+                System.Collections.Generic.IEnumerator<int> V_3,
+                int V_4)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  ldc.i4.0
+  IL_0006:  stloc.1
+  IL_0007:  dup
+  IL_0008:  callvirt   "int C.Length.get"
+  IL_000d:  newarr     "int"
+  IL_0012:  stloc.2
+  IL_0013:  callvirt   "System.Collections.Generic.IEnumerator<int> C.GetEnumerator()"
+  IL_0018:  stloc.3
+  .try
+  {
+    IL_0019:  br.s       IL_002c
+    IL_001b:  ldloc.3
+    IL_001c:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_0021:  stloc.s    V_4
+    IL_0023:  ldloc.2
+    IL_0024:  ldloc.1
+    IL_0025:  ldloc.s    V_4
+    IL_0027:  stelem.i4
+    IL_0028:  ldloc.1
+    IL_0029:  ldc.i4.1
+    IL_002a:  add
+    IL_002b:  stloc.1
+    IL_002c:  ldloc.3
+    IL_002d:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0032:  brtrue.s   IL_001b
+    IL_0034:  leave.s    IL_0040
+  }
+  finally
+  {
+    IL_0036:  ldloc.3
+    IL_0037:  brfalse.s  IL_003f
+    IL_0039:  ldloc.3
+    IL_003a:  callvirt   "void System.IDisposable.Dispose()"
+    IL_003f:  endfinally
+  }
+  IL_0040:  ldloc.2
+  IL_0041:  stloc.0
+  IL_0042:  ldloc.0
+  IL_0043:  ldc.i4.0
+  IL_0044:  ldelem.i4
+  IL_0045:  ldloc.0
+  IL_0046:  ldc.i4.1
+  IL_0047:  ldelem.i4
+  IL_0048:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_004d:  box        "System.ValueTuple<int, int>"
+  IL_0052:  call       "void System.Console.Write(object)"
+  IL_0057:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ParamsCollection_01()
+    {
+        var src = """
+local([1, 2]);
+
+void local(params C c)
+{
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public void Add(int i) { }
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,12): error CS9227: 'C' does not contain a definition for a suitable instance 'Add' method
+            // void local(params C c)
+            Diagnostic(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, "params C c").WithArguments("C").WithLocation(3, 12));
+
+        src = """
+local([1, 2]);
+
+void local(params C c)
+{
+}
+
+static class E
+{
+    public static void Add(this C c, int i) { }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,12): error CS9227: 'C' does not contain a definition for a suitable instance 'Add' method
+            // void local(params C c)
+            Diagnostic(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, "params C c").WithArguments("C").WithLocation(3, 12));
+    }
 }
 

@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, TypeParameterSymbol?, bool, bool> s_containsTypeParameterPredicate =
             (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && (parameter is null || TypeSymbol.Equals(type, parameter, TypeCompareKind.ConsiderEverything2));
 
-        public static bool ContainsTypeParameter(this TypeSymbol type, MethodSymbol parameterContainer)
+        public static bool ContainsTypeParameter(this TypeSymbol type, Symbol parameterContainer)
         {
             RoslynDebug.Assert((object)parameterContainer != null);
 
