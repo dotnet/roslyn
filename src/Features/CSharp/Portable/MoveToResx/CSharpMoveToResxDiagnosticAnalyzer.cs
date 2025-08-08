@@ -435,8 +435,9 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeSt
         // 7. Base64 padding patterns (more specific)
         if ((valueText.EndsWith("=") || valueText.EndsWith("==")) && valueText.Length > 8 &&
             valueText.All(c => char.IsLetterOrDigit(c) || c == '+' || c == '/' || c == '='))
-
+        {
             return true;
+        }
 
         // 8. Common technical separators (only if it's ONLY separators)
         if (valueText.Length <= 10 && valueText.All(c => ".,;:|!@#$%^&*()_+-=[]{}\\|`~".Contains(c)))
