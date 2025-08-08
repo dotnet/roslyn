@@ -119,8 +119,6 @@ internal sealed class GoToDefinitionCommandHandler(
             // prevent the background work indicator from functioning properly.
             await TaskScheduler.Default;
 
-            throw new System.Exception("Fail!");
-
             // determine the location first.
             var definitionLocation = await service.GetDefinitionLocationAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
