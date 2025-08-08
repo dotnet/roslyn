@@ -35,10 +35,10 @@ internal sealed class StackFrameLocalMethodResolver : AbstractStackTraceSymbolRe
 
         var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
         var semanticFacts = project.GetRequiredLanguageService<ISemanticFactsService>();
-        var candidateFunctions = type.GetMembers()
+        var candidateFunctions = type
+            .GetMembers()
             .Where(member => member.Name == containingMethodName)
-            .SelectMany(member => semanticFacts.GetLocalFunctionSymbols(compilation, member, cancellationToken))
-            .ToImmutableArray();
+            .SelectMany(member => semanticFacts.GetLocalFunctionSymbols(compilation, member, cancellationToken));
 
         return TryGetBestMatch(candidateFunctions, methodTypeArguments, methodArguments);
     }

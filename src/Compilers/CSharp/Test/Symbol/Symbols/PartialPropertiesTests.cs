@@ -2549,7 +2549,7 @@ public partial class C
         public void InInterface_Virtual(
             [CombinatorialValues("", "public", "private", "protected", "internal", "protected internal", "private protected")] string access,
             [CombinatorialValues("", "virtual", "sealed")] string virt,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion langVersion)
         {
             var source1 = $$"""
                 using System;
@@ -2700,7 +2700,7 @@ public partial class C
         public void InInterface_StaticVirtual(
             [CombinatorialValues("", "public", "private", "protected", "internal", "protected internal", "private protected")] string access,
             [CombinatorialValues("", "virtual", "sealed")] string virt,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion langVersion)
         {
             var source1 = $$"""
                 partial interface I

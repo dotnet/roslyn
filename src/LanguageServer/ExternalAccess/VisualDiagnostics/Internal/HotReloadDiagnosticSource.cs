@@ -20,7 +20,7 @@ internal sealed class HotReloadDiagnosticSource(IHotReloadDiagnosticSource sourc
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
     {
         var diagnostics = await source.GetDiagnosticsAsync(new HotReloadRequestContext(context), cancellationToken).ConfigureAwait(false);
-        var result = diagnostics.Select(diagnostic => DiagnosticData.Create(diagnostic, textDocument)).ToImmutableArray();
+        var result = diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, textDocument));
         return result;
     }
 

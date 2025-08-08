@@ -829,9 +829,8 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         var originalDocument = document;
         var originalDeclStatementsToMoveOrRemove =
             memberDeclaration.DescendantNodes()
-                             .Where(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation) ||
-                                         n.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation))
-                             .ToImmutableArray();
+                             .WhereAsArray(n => n.HasAnnotation(s_newLocalDeclarationStatementAnnotation) ||
+                                         n.HasAnnotation(s_existingLocalDeclarationWithoutInitializerAnnotation));
         if (originalDeclStatementsToMoveOrRemove.IsEmpty)
         {
             return memberDeclaration;
