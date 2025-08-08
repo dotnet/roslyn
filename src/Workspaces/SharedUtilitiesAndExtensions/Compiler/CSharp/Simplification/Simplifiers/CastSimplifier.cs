@@ -836,28 +836,16 @@ internal static class CastSimplifier
         ExpressionSyntax castNode, SemanticModel originalSemanticModel,
         ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
     {
-        if (castNode is not CastExpressionSyntax castExpression)
-            return false;
-
-        var parent = castExpression.WalkUpParentheses();
-        if (parent.Parent is not ConditionalExpressionSyntax originalConditionalExpression)
-            return false;
-
-        if (parent != originalConditionalExpression.WhenFalse && parent != originalConditionalExpression.WhenTrue)
-            return false;
-
-        if (rewrittenExpression.WalkUpParentheses().Parent is not ConditionalExpressionSyntax rewrittenConditionalExpression)
-            return false;
-
         // Defer to common helper to determine if the cast can be removed.  This unified processing of `x ? y : z` and
         // `x switch { .. => y, .. => z, .. => w, ... }` expressions.
         return IsSwitchOrConditionalCastSafeToRemove(
-            castExpression,
+            castNode,
             originalSemanticModel,
             rewrittenExpression,
             rewrittenSemanticModel,
-            originalConditionalExpression,
-            rewrittenConditionalExpression,
+            static parentExpression => parentExpression.Parent is ConditionalExpressionSyntax conditionalExpression && conditionalExpression.Condition != parentExpression
+                ? conditionalExpression
+                : null,
             static conditionalExpression => [conditionalExpression.WhenTrue, conditionalExpression.WhenFalse],
             static (conditionalExpression, armExpression) =>
             {
@@ -873,25 +861,16 @@ internal static class CastSimplifier
         ExpressionSyntax castNode, SemanticModel originalSemanticModel,
         ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
     {
-        if (castNode is not CastExpressionSyntax castExpression)
-            return false;
-
-        var parent = castExpression.WalkUpParentheses();
-        if (parent.Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax originalSwitchExpression })
-            return false;
-
-        if (rewrittenExpression.WalkUpParentheses().Parent is not SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax rewrittenSwitchExpression })
-            return false;
-
         // Defer to common helper to determine if the cast can be removed.  This unified processing of `x ? y : z` and
         // `x switch { .. => y, .. => z, .. => w, ... }` expressions. 
         return IsSwitchOrConditionalCastSafeToRemove(
-            castExpression,
+            castNode,
             originalSemanticModel,
             rewrittenExpression,
             rewrittenSemanticModel,
-            originalSwitchExpression,
-            rewrittenSwitchExpression,
+            static parentExpression => parentExpression.Parent is SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax switchExpression }
+                ? switchExpression
+                : null,
             static switchExpression => switchExpression.Arms.SelectAsArray(a => a.Expression),
             static (switchExpression, armExpression) =>
             {
@@ -908,18 +887,25 @@ internal static class CastSimplifier
     }
 
     private static bool IsSwitchOrConditionalCastSafeToRemove<TConditionalOrSwitchExpression>(
-        CastExpressionSyntax castExpression,
+        ExpressionSyntax castNode,
         SemanticModel originalSemanticModel,
         ExpressionSyntax rewrittenExpression,
         SemanticModel rewrittenSemanticModel,
-        TConditionalOrSwitchExpression originalConditionalOrSwitchExpression,
-        TConditionalOrSwitchExpression rewrittenConditionalOrSwitchExpression,
+        Func<ExpressionSyntax, TConditionalOrSwitchExpression?> getConditionalOrSwitchExpression,
         Func<TConditionalOrSwitchExpression, ImmutableArray<ExpressionSyntax>> getArmExpressions,
         Func<TConditionalOrSwitchExpression, ExpressionSyntax, ExpressionSyntax?> getAlternativeArm,
         CancellationToken cancellationToken)
         where TConditionalOrSwitchExpression : ExpressionSyntax
     {
+        if (castNode is not CastExpressionSyntax castExpression)
+            return false;
+
         var parentExpression = castExpression.WalkUpParentheses();
+
+        var originalConditionalOrSwitchExpression = getConditionalOrSwitchExpression(parentExpression);
+        var rewrittenConditionalOrSwitchExpression = getConditionalOrSwitchExpression(rewrittenExpression.WalkUpParentheses());
+        if (originalConditionalOrSwitchExpression is null || rewrittenConditionalOrSwitchExpression is null)
+            return false;
 
         if (originalSemanticModel.GetOperation(castExpression, cancellationToken) is not IConversionOperation conversionOperation)
             return false;
