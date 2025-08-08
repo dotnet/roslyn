@@ -375,6 +375,26 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         return await IsUseSuggestionModeOnAsync(forDebuggerTextView: IsDebuggerTextView(textView), cancellationToken);
     }
 
+    public async Task SetUseSuggestionModeOnAsync(bool valueToSet, bool forDebuggerTextView, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+        var options = editorOptionsFactory.GlobalOptions;
+
+        EditorOptionKey<bool> optionKey;
+        if (forDebuggerTextView)
+        {
+            optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
+        }
+        else
+        {
+            optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
+        }
+
+        options.SetOptionValue<bool>(optionKey, value: valueToSet);
+    }
+
     public async Task<bool> IsUseSuggestionModeOnAsync(bool forDebuggerTextView, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -415,7 +435,14 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
     {
         if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
         {
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
+            try
+            {
+                await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
+            }
+            catch (Exception)
+            {
+                await SetUseSuggestionModeOnAsync(forDebuggerTextView, value, cancellationToken);
+            }
             if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
             {
                 throw new InvalidOperationException($"{nameof(WellKnownCommands.Edit)}.{nameof(WellKnownCommands.Edit.ToggleCompletionMode)} did not leave the editor in the expected state.");
