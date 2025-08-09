@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -78,4 +79,22 @@ public abstract class VisualStudioWorkspace : Workspace
         => this.Services.GetRequiredService<IMetadataService>().GetReference(filePath, properties);
 
     internal abstract string? TryGetRuleSetPathForProject(ProjectId projectId);
+
+    internal override IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
+    {
+        return new AlwaysThrowAnalyzerAssemblyLoader();
+    }
+
+    private sealed class AlwaysThrowAnalyzerAssemblyLoader
+        : IAnalyzerAssemblyLoader
+    {
+        public void AddDependencyLocation(string fullPath)
+        {
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+        {
+            throw new InvalidOperationException("Should not be loading analyzers within visual studio");
+        }
+    }
 }
