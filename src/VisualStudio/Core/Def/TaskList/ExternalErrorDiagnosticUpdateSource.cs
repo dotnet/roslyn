@@ -369,50 +369,5 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 }));
             }
         }
-
-        //private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
-        //    ProjectId projectId,
-        //    Dictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> diagnosticIdMap,
-        //    Func<AsyncLazy<ImmutableHashSet<string>>> computeDiagnosticIds)
-        //{
-        //    lock (diagnosticIdMap)
-        //    {
-        //        if (diagnosticIdMap.TryGetValue(projectId, out var ids))
-        //        {
-        //            return ids;
-        //        }
-        //    }
-
-        //    var computedIds = computeDiagnosticIds();
-
-        //    lock (diagnosticIdMap)
-        //    {
-        //        diagnosticIdMap[projectId] = computedIds;
-        //        return computedIds;
-        //    }
-        //}
-
-        //private ImmutableHashSet<string> GetOrCreateSupportedDiagnosticIds(ProjectId projectId)
-        //{
-        //    return GetOrCreateDiagnosticIds(projectId, _allDiagnosticIdMap, ComputeSupportedDiagnosticIds);
-
-        //    ImmutableHashSet<string> ComputeSupportedDiagnosticIds()
-        //    {
-        //        var project = Solution.GetProject(projectId);
-        //        if (project == null)
-        //        {
-        //            // projectId no longer exist
-        //            return [];
-        //        }
-
-        //        // set ids set
-        //        var builder = ImmutableHashSet.CreateBuilder<string>();
-        //        var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        //        var descriptorMap = service.GetDiagnosticDescriptorsPerReference(project);
-        //        builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-        //        return builder.ToImmutable();
-        //    }
-        //}
     }
 }
