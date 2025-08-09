@@ -127,9 +127,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             var allErrors = GetExternalErrors(pErrors);
 
             // Then, jump to the background to actually process the errors.
-            var token = this.DiagnosticProvider.Listener.BeginAsyncOperation(nameof(AddNewErrors));
-            var cancellationToken = this.DiagnosticProvider.DisposalToken;
-
             _taskQueue.AddWork(cancellationToken =>
                 AddNewErrorsAsync(project, allErrors, cancellationToken));
         }
@@ -324,7 +321,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         if (project is null)
             return;
 
-        _taskQueue.AddWork(cancellationToken => AddNewErrorsAsync(cancellationToken));
+        _taskQueue.AddWork(AddNewErrorsAsync);
 
         async Task AddNewErrorsAsync(CancellationToken cancellationToken)
         {
