@@ -332,9 +332,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         /// <summary>
         /// Map from project ID to all the possible analyzer diagnostic IDs that can be reported in the project.
         /// </summary>
-        /// <remarks>
-        /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
-        /// </remarks>
         private ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> _allDiagnosticIdMap = ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>>.Empty;
 
         public Solution Solution { get; } = solution;
