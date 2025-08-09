@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isImplicitlyDeclared,
             TupleErrorFieldSymbol correspondingDefaultFieldOpt)
 
-            : base(container, name, isPublic: true, isReadOnly: false, isStatic: false)
+            : base(container, name, DeclarationModifiers.Public, isReadOnly: false, isStatic: false)
         {
             Debug.Assert(name != null);
             _type = type;
