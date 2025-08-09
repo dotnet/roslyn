@@ -13,13 +13,6 @@ efforts behind them.
 | Runtime Async | [runtime-async](https://github.com/dotnet/roslyn/tree/features/runtime-async) | [In Progress](https://github.com/dotnet/roslyn/issues/75960) | [333fred](https://github.com/333fred) | [jcouv](https://github.com/jcouv), [RikkiGibson](https://github.com/RikkiGibson) |  |  |
 | [Dictionary expressions](https://github.com/dotnet/csharplang/issues/8659) | [dictionary-expressions](https://github.com/dotnet/roslyn/tree/features/dictionary-expressions) | [In progress](https://github.com/dotnet/roslyn/issues/76310) | [cston](https://github.com/cston), [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [333fred](https://github.com/333fred), [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 
-# Working Set VB
-
-| Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
-| ------- | ------ | ----- | --------- | -------- | --------- | --------- |
-| Recognizing 'unmanaged' constraint | main | [Merged into 17.13 P2](https://github.com/dotnet/roslyn/pull/75665) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [333fred](https://github.com/333fred) | (no IDE impact) | [jaredpar](https://github.com/jaredpar) |
-| Overload Resolution Priority | main | [Merged into 17.13 P3](https://github.com/dotnet/roslyn/pull/76419) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [cston](https://github.com/cston) | (no IDE impact) | [333fred](https://github.com/333fred) |
-
 # C# 14.0
 
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
@@ -35,6 +28,13 @@ efforts behind them.
 | [Ignored directives](https://github.com/dotnet/csharplang/issues/8617) | [PR](https://github.com/dotnet/roslyn/pull/77696) | Merged into 17.14p3 | [jjonescz](https://github.com/jjonescz) | [RikkiGibson](https://github.com/RikkiGibson), [jaredpar](https://github.com/jaredpar) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jaredpar](https://github.com/jaredpar) |
 | [User Defined Compound Assignment Operators](https://github.com/dotnet/csharplang/issues/9101) | [UserDefinedCompoundAssignment](https://github.com/dotnet/roslyn/tree/features/UserDefinedCompoundAssignment) | [Merged to main](https://github.com/dotnet/roslyn/issues/76934) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [cston](https://github.com/cston) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [AlekseyTs](https://github.com/AlekseyTs) |
 | [Optional and named arguments in `Expression` trees](https://github.com/dotnet/csharplang/issues/9246) | [PR](https://github.com/dotnet/roslyn/pull/77972) | Merged to main(https://github.com/dotnet/roslyn/issues/76934) | [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [AlekseyTs](https://github.com/AlekseyTs) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [cston](https://github.com/cston) |
+
+# VB in .NET 10
+
+| Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- | --------- |
+| Recognizing 'unmanaged' constraint | main | [Merged into 17.13 P2](https://github.com/dotnet/roslyn/pull/75665) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [333fred](https://github.com/333fred) | (no IDE impact) | [jaredpar](https://github.com/jaredpar) |
+| Overload Resolution Priority | main | [Merged into 17.13 P3](https://github.com/dotnet/roslyn/pull/76419) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [cston](https://github.com/cston) | (no IDE impact) | [333fred](https://github.com/333fred) |
 
 # C# 13.0
 
