@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -119,15 +120,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             private IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetSynthesizedMembers()
-                => (generationInfo.CompilationVerifier != null)
-                        ? generationInfo.CompilationVerifier.TestData.Module!.GetAllSynthesizedMembers()
-                        : generationInfo.Baseline.SynthesizedMembers;
+                => generationInfo.CompilationVerifier?.TestData.Module!.GetAllSynthesizedMembers() ?? generationInfo.Baseline.SynthesizedMembers;
+
+            public ImmutableArray<ISymbolInternal> GetSynthesizedTypes()
+            {
+                var map = generationInfo.CompilationVerifier?.TestData.Module!.GetAllSynthesizedTypes() ?? generationInfo.Baseline.SynthesizedTypes;
+
+                return
+                [
+                    .. map.AnonymousTypes.Values.Select(t => t.Type.GetInternalSymbol()!),
+                    .. map.AnonymousDelegates.Values.Select(t => t.Delegate.GetInternalSymbol()!),
+                    .. map.AnonymousDelegatesWithIndexedNames.Values.SelectMany(t => t.Select(d => d.Type.GetInternalSymbol()!))
+                ];
+            }
 
             public void VerifySynthesizedMembers(params string[] expected)
                 => VerifySynthesizedMembers(displayTypeKind: false, expected);
 
             public void VerifySynthesizedMembers(bool displayTypeKind, params string[] expected)
                 => Verify(() => CompilationDifference.VerifySynthesizedMembers(GetSynthesizedMembers(), displayTypeKind, expected));
+
+            public void VerifySynthesizedTypes(params string[] expected)
+                => Verify(() => CompilationDifference.VerifySynthesizedSymbols(GetSynthesizedTypes(), expected));
 
             public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
                 => Verify(() =>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Emit;
+
 namespace Microsoft.CodeAnalysis.Symbols
 {
     internal abstract class CommonAnonymousTypeManager
@@ -24,5 +26,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         {
             _templatesSealed = ThreeState.True;
         }
+
+        internal abstract SynthesizedTypeMaps GetSynthesizedTypeMaps();
     }
 }
