@@ -32,9 +32,6 @@ public partial class Workspace
     internal void EnqueueUpdateSourceGeneratorVersion(ProjectId? projectId, bool forceRegeneration)
         => _updateSourceGeneratorsQueue.AddWork((projectId, forceRegeneration));
 
-    internal virtual IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
-        => assemblyLoaderProvider.SharedShadowCopyLoader;
-
     private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(
         ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds, CancellationToken cancellationToken)
     {
