@@ -161,11 +161,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Function CreatePlaceholderTypeDescriptor(key As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey) As AnonymousTypeDescriptor
-            Dim names = key.Fields.SelectAsArray(Function(f) New AnonymousTypeField(f.Name, Location.None, f.IsKey))
-            Return New AnonymousTypeDescriptor(names, Location.None, True)
-        End Function
-
         ''' <summary>
         ''' Resets numbering in anonymous type names and compiles the
         ''' anonymous type methods. Also seals the collection of templates.
