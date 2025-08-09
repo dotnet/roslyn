@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
@@ -22,14 +23,14 @@ internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressi
     {
         var diagnostics = context.Diagnostics.Where(SuppressionFixProvider.IsFixableDiagnostic);
 
-        var documentDiagnostics = diagnostics.Where(d => d.Location.IsInSource).ToImmutableArray();
+        var documentDiagnostics = diagnostics.WhereAsArray(d => d.Location.IsInSource);
         if (!documentDiagnostics.IsEmpty)
         {
             var suppressionFixes = await SuppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
             RegisterSuppressionFixes(context, suppressionFixes);
         }
 
-        var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
+        var projectDiagnostics = diagnostics.WhereAsArray(d => !d.Location.IsInSource);
         if (!projectDiagnostics.IsEmpty)
         {
             var suppressionFixes = await SuppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);

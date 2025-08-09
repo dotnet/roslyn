@@ -24341,7 +24341,7 @@ class C { }
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
     }
 
@@ -25980,11 +25980,11 @@ _ = c is { Property: 42 };
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (2,12): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,12): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = c is { Property: 42 };
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(2, 12));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Property").WithArguments("extensions", "14.0").WithLocation(2, 12));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
@@ -26547,11 +26547,11 @@ _ = new C() { Property = 42 };
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (1,15): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,15): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = new C() { Property = 42 };
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 15));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Property").WithArguments("extensions", "14.0").WithLocation(1, 15));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
@@ -26701,11 +26701,11 @@ _ = new S() with { Property = 42 };
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (1,20): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,20): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = new S() with { Property = 42 };
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "Property").WithArguments("extensions", "14.0").WithLocation(1, 20));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
@@ -36661,7 +36661,7 @@ public static class E
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         libComp.VerifyEmitDiagnostics();
         var libRef = libComp.EmitToImageReference();
 
@@ -36679,7 +36679,7 @@ E.get_P2();
         var comp = CreateCompilation(srcCompat, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics();
 
-        comp = CreateCompilation(srcCompat, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(srcCompat, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(srcCompat, references: [libRef]);
@@ -36694,37 +36694,37 @@ _ = object.P2;
 """;
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular12);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS9202: Feature 'extensions' is not available in C# 12.0. Please use language version 14.0 or greater.
             // object.M2();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2()").WithArguments("extensions").WithLocation(1, 1),
-            // (2,19): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "object.M2()").WithArguments("extensions", "14.0").WithLocation(1, 1),
+            // (2,19): error CS9202: Feature 'extensions' is not available in C# 12.0. Please use language version 14.0 or greater.
             // System.Action a = object.M2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(2, 19),
-            // (3,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "object.M2").WithArguments("extensions", "14.0").WithLocation(2, 19),
+            // (3,9): error CS9202: Feature 'extensions' is not available in C# 12.0. Please use language version 14.0 or greater.
             // var x = object.M2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(3, 9),
-            // (5,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "object.M2").WithArguments("extensions", "14.0").WithLocation(3, 9),
+            // (5,5): error CS9202: Feature 'extensions' is not available in C# 12.0. Please use language version 14.0 or greater.
             // _ = object.P2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.P2").WithArguments("extensions").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "object.P2").WithArguments("extensions", "14.0").WithLocation(5, 5));
         verifySymbolInfo(comp);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // object.M2();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2()").WithArguments("extensions").WithLocation(1, 1),
-            // (2,19): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "object.M2()").WithArguments("extensions", "14.0").WithLocation(1, 1),
+            // (2,19): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // System.Action a = object.M2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(2, 19),
-            // (3,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "object.M2").WithArguments("extensions", "14.0").WithLocation(2, 19),
+            // (3,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // var x = object.M2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(3, 9),
-            // (5,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "object.M2").WithArguments("extensions", "14.0").WithLocation(3, 9),
+            // (5,5): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = object.P2;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.P2").WithArguments("extensions").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "object.P2").WithArguments("extensions", "14.0").WithLocation(5, 5));
         verifySymbolInfo(comp);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics();
         verifySymbolInfo(comp);
 
@@ -36737,12 +36737,12 @@ _ = new object().P;
 """;
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,5): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = new object().P;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "new object().P").WithArguments("extensions").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "new object().P").WithArguments("extensions", "14.0").WithLocation(1, 5));
         verifySymbolInfo(comp);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics();
         verifySymbolInfo(comp);
 
@@ -36775,7 +36775,7 @@ public static class E
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         libComp.VerifyEmitDiagnostics();
         var libRef = libComp.EmitToImageReference();
 
@@ -36787,7 +36787,7 @@ foreach (var x in new object())
         var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef]);
@@ -36806,7 +36806,7 @@ public static class E
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         libComp.VerifyEmitDiagnostics();
         var libRef = libComp.EmitToImageReference();
 
@@ -36825,7 +36825,7 @@ public class MyCollection : IEnumerable<object>
         var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef]);
@@ -36846,7 +36846,7 @@ public static class E
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         libComp.VerifyEmitDiagnostics();
         var libRef = libComp.EmitToImageReference();
 
@@ -36873,14 +36873,14 @@ static class Classic
         comp = CreateCompilation(src, references: [libRef], options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             //             42.Member();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "42.Member").WithArguments("extensions").WithLocation(7, 13));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "42.Member").WithArguments("extensions", "14.0").WithLocation(7, 13));
     }
 
     [Fact]
@@ -36896,7 +36896,7 @@ public static class E
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         var libRef = libComp.EmitToImageReference(expectedWarnings: null);
 
         var src = """
@@ -36911,7 +36911,7 @@ var x = new object().M<int>;
         var comp = CreateCompilation(src, references: [libRef]);
         comp.VerifyDiagnostics(cannotInferDelegateType);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyDiagnostics(cannotInferDelegateType);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
@@ -36932,7 +36932,7 @@ public static class E
         comp = CreateCompilation(src);
         comp.VerifyDiagnostics(cannotInferDelegateType);
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         comp.VerifyDiagnostics(cannotInferDelegateType);
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
@@ -36961,7 +36961,7 @@ namespace N
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         var libRef = libComp.EmitToImageReference(expectedWarnings: null);
 
         var src = """
@@ -36983,7 +36983,7 @@ public static class E2
         var comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
@@ -37018,7 +37018,7 @@ public static class E2
         comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
@@ -37041,7 +37041,7 @@ public static class E1
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         var libRef = libComp.EmitToImageReference(expectedWarnings: null);
 
         var src = """
@@ -37057,7 +37057,7 @@ public static class E2
         var comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
@@ -37083,7 +37083,7 @@ public static class E2
         comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
@@ -37106,7 +37106,7 @@ public static class E1
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         var libRef = libComp.EmitToImageReference(expectedWarnings: null);
 
         var src = """
@@ -37122,7 +37122,7 @@ public static class E2
         var comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
@@ -37149,7 +37149,7 @@ public static class E2
         comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
@@ -37176,7 +37176,7 @@ public static class E
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         var libRef = libComp.EmitToImageReference(expectedWarnings: null);
 
         var src = """
@@ -37192,7 +37192,7 @@ x();
         var comp = CreateCompilation(src, references: [libRef]);
         comp.VerifyDiagnostics(expected);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyDiagnostics(expected);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
@@ -37215,7 +37215,7 @@ public static class E
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         var libRef = libComp.EmitToImageReference(expectedWarnings: null);
 
         var src = """
@@ -37230,7 +37230,7 @@ var x = new object().M;
         var comp = CreateCompilation(src, references: [libRef]);
         comp.VerifyDiagnostics(expected);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyDiagnostics(expected);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
@@ -37260,7 +37260,7 @@ public static class E
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(expected);
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         comp.VerifyDiagnostics(expected);
 
         comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
@@ -37286,7 +37286,7 @@ namespace N
     }
 }
 """;
-        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.Regular14);
         var libRef = libComp.EmitToImageReference(expectedWarnings: null);
 
         var src = """
@@ -37308,7 +37308,7 @@ public static class E2
         var comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(unnecessaryDirective);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
@@ -42121,7 +42121,7 @@ class C<extension> { }
             // class C<extension> { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "extension").WithArguments("extension").WithLocation(3, 9));
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (1,7): error CS9306: Types and aliases cannot be named 'extension'.
             // using extension = int;
@@ -43085,6 +43085,306 @@ static class E
 
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_PropertyAccess_06()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public S Property { get => throw null!; set => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public S RefReceiverProperty { get => throw null!; set => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s.Property = x;
+        s = x.Property;
+        E.set_Property(s, x);
+        s = E.get_Property(x);
+
+        s.RefReceiverProperty = x;
+        E.set_RefReceiverProperty(ref s, x);
+        s = x.RefReceiverProperty;
+        s = E.get_RefReceiverProperty(ref x);
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+                // (24,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = x.Property;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 13),
+                // (24,13): error CS8347: Cannot use a result of 'E.extension(S).Property' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = x.Property;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x.Property").WithArguments("E.extension(S).Property", "s").WithLocation(24, 13),
+                // (26,13): error CS8347: Cannot use a result of 'E.get_Property(S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = E.get_Property(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Property(x)").WithArguments("E.get_Property(S)", "s").WithLocation(26, 13),
+                // (26,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = E.get_Property(x);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 28),
+                // (28,9): error CS8350: This combination of arguments to 'E.extension(ref S).RefReceiverProperty.set' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         s.RefReceiverProperty = x;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s.RefReceiverProperty = x").WithArguments("E.extension(ref S).RefReceiverProperty.set", "value").WithLocation(28, 9),
+                // (28,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s.RefReceiverProperty = x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 33),
+                // (29,9): error CS8350: This combination of arguments to 'E.set_RefReceiverProperty(ref S, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         E.set_RefReceiverProperty(ref s, x);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_RefReceiverProperty(ref s, x)").WithArguments("E.set_RefReceiverProperty(ref S, S)", "value").WithLocation(29, 9),
+                // (29,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         E.set_RefReceiverProperty(ref s, x);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 42),
+                // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = x.RefReceiverProperty;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
+                // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).RefReceiverProperty' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = x.RefReceiverProperty;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x.RefReceiverProperty").WithArguments("E.extension(ref S).RefReceiverProperty", "s").WithLocation(30, 13),
+                // (31,13): error CS8347: Cannot use a result of 'E.get_RefReceiverProperty(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = E.get_RefReceiverProperty(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_RefReceiverProperty(ref x)").WithArguments("E.get_RefReceiverProperty(ref S)", "s").WithLocation(31, 13),
+                // (31,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = E.get_RefReceiverProperty(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 43)
+
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_PropertyAccess_07()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public ref S Property { get => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public ref S RefReceiverProperty { get => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s.Property = x;
+        x = s.Property;
+        E.get_Property(s) = x;
+        x = E.get_Property(s);
+
+        s.RefReceiverProperty = x;
+        s = x.RefReceiverProperty;
+        E.get_RefReceiverProperty(ref s) = x;
+        s = E.get_RefReceiverProperty(ref x);
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (23,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s.Property = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(23, 22),
+            // (25,29): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_Property(s) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(25, 29),
+            // (28,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s.RefReceiverProperty = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 33),
+            // (29,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = x.RefReceiverProperty;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 13),
+            // (29,13): error CS8347: Cannot use a result of 'E.extension(ref S).RefReceiverProperty' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = x.RefReceiverProperty;
+            Diagnostic(ErrorCode.ERR_EscapeCall, "x.RefReceiverProperty").WithArguments("E.extension(ref S).RefReceiverProperty", "s").WithLocation(29, 13),
+            // (30,44): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_RefReceiverProperty(ref s) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 44),
+            // (31,13): error CS8347: Cannot use a result of 'E.get_RefReceiverProperty(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_RefReceiverProperty(ref x);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_RefReceiverProperty(ref x)").WithArguments("E.get_RefReceiverProperty(ref S)", "s").WithLocation(31, 13),
+            // (31,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_RefReceiverProperty(ref x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 43)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_IndexerAccess_01()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public S this[int i] { get => throw null!; set => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public S this[double d] { get => throw null!; set => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s[0] = x;
+        E.set_Item(s, 0, x);
+        s = x[0];
+        s = e.get_Item(x, 0);
+
+        s[1.0] = x;
+        E.set_Item(ref s, 1.0, x);
+        s = x[1.0];
+        s = E.get_Item(ref x, 1.0);
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (12,18): error CS9282: This member is not allowed in an extension block
+            //         public S this[int i] { get => throw null!; set => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 18),
+            // (17,18): error CS9282: This member is not allowed in an extension block
+            //         public S this[double d] { get => throw null!; set => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 18),
+            // (23,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[0]").WithArguments("S").WithLocation(23, 9),
+            // (25,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("S").WithLocation(25, 13),
+            // (26,13): error CS0103: The name 'e' does not exist in the current context
+            //         s = e.get_Item(x, 0);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(26, 13),
+            // (28,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[1.0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(28, 9),
+            // (29,9): error CS8350: This combination of arguments to 'E.set_Item(ref S, double, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         E.set_Item(ref s, 1.0, x);
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref s, 1.0, x)").WithArguments("E.set_Item(ref S, double, S)", "value").WithLocation(29, 9),
+            // (29,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.set_Item(ref s, 1.0, x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 32),
+            // (30,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[1.0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1.0]").WithArguments("S").WithLocation(30, 13),
+            // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
+            // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
+    public void RefAnalysis_IndexerAccess_02()
+    {
+        string source = """
+using System;
+
+ref struct S
+{
+    public Span<int> field;
+}
+
+static class E
+{
+    extension(S s)
+    {
+        public ref S this[int i] { get => throw null!; }
+    }
+
+    extension(ref S s)
+    {
+        public ref S this[double d] { get => throw null!; }
+    }
+
+    public static void Test1(S s)
+    {
+        var x = new S {  field = stackalloc int[10] };
+        s[0] = x;
+        E.get_Item(s, 0) = x;
+        s = x[0];
+        s = E.get_Item(x, 0);
+
+        s[1.0] = x;
+        E.get_Item(ref s, 1.0) = x;
+        s = x[1.0];
+        s = E.get_Item(ref x, 1.0);
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (12,22): error CS9282: This member is not allowed in an extension block
+            //         public ref S this[int i] { get => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 22),
+            // (17,22): error CS9282: This member is not allowed in an extension block
+            //         public ref S this[double d] { get => throw null!; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 22),
+            // (23,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[0]").WithArguments("S").WithLocation(23, 9),
+            // (24,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_Item(s, 0) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 28),
+            // (25,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("S").WithLocation(25, 13),
+            // (28,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s[1.0] = x;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(28, 9),
+            // (29,34): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.get_Item(ref s, 1.0) = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 34),
+            // (30,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
+            //         s = x[1.0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1.0]").WithArguments("S").WithLocation(30, 13),
+            // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
+            // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_Item(ref x, 1.0);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
+        );
     }
 
     [Fact]

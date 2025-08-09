@@ -188,7 +188,7 @@ internal sealed class CodeRefactoringService(
         {
             using var _ = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
 
-            var orderedProviders = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority).ToImmutableArray();
+            var orderedProviders = GetProviders(document).WhereAsArray(p => priority == null || p.RequestPriority == priority);
 
             var pairs = await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
                 source: orderedProviders,

@@ -284,10 +284,6 @@ internal sealed partial class CodeFixService : ICodeFixService
         return spanToDiagnostics;
     }
 
-    public Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
-        TextDocument document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
-        => GetDocumentFixAllForIdInSpanAsync(document, range, diagnosticId, DiagnosticSeverity.Hidden, cancellationToken);
-
     public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
         TextDocument document, TextSpan range, string diagnosticId, DiagnosticSeverity minimumSeverity, CancellationToken cancellationToken)
     {
@@ -709,7 +705,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     private async IAsyncEnumerable<CodeFixCollection> StreamConfigurationFixesAsync(
         TextDocument document,
         TextSpan diagnosticsSpan,
-        IEnumerable<DiagnosticData> diagnostics,
+        List<DiagnosticData> diagnostics,
         PooledHashSet<string> registeredConfigurationFixTitles,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -744,7 +740,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     private async Task<CodeFixCollection?> TryGetFixesOrConfigurationsAsync<TCodeFixProvider>(
         TextDocument textDocument,
         TextSpan fixesSpan,
-        IEnumerable<DiagnosticData> diagnosticsWithSameSpan,
+        List<DiagnosticData> diagnosticsWithSameSpan,
         bool fixAllForInSpan,
         TCodeFixProvider fixer,
         Func<Diagnostic, bool> hasFix,

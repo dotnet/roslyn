@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 else if (arrayCreation.Initializer is IArrayInitializerOperation arrayInitializer &&
                     arrayInitializer.ElementValues.All(element => element.ConstantValue.HasValue && element.ConstantValue.Value is string))
                 {
-                    customTags = arrayInitializer.ElementValues.Select(element => (string)element.ConstantValue.Value!).ToImmutableArray();
+                    customTags = arrayInitializer.ElementValues.SelectAsArray(element => (string)element.ConstantValue.Value!);
                 }
             }
             finally

@@ -392,8 +392,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _trackedDocuments.Keys.Where(static trackedDocument => trackedDocument.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
                     // We know we have a non null URI with a source generated scheme.
                     .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri.ParsedUri!), _trackedDocuments[uri].Text))
-                    .Where(tuple => tuple.identity.HasValue)
-                    .SelectAsArray(tuple => (tuple.identity!.Value, DateTime.Now, tuple.Text));
+                    .SelectAsArray(
+                        predicate: tuple => tuple.identity.HasValue,
+                        selector: tuple => (tuple.identity!.Value, DateTime.Now, tuple.Text));
 
             // First we check if normal document text matches the workspace solution.
             // This does not look at source generated documents.

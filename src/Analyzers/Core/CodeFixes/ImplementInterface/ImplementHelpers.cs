@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
@@ -25,15 +26,11 @@ internal static class ImplementHelpers
 
         var fields = namedType.GetMembers()
             .OfType<IFieldSymbol>()
-            .Where(f => !f.IsImplicitlyDeclared)
-            .Where(f => includeMemberType(f.Type))
-            .ToImmutableArray();
+            .WhereAsArray(f => !f.IsImplicitlyDeclared && includeMemberType(f.Type));
 
         var properties = namedType.GetMembers()
             .OfType<IPropertySymbol>()
-            .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0 && p.GetMethod != null)
-            .Where(p => includeMemberType(p.Type))
-            .ToImmutableArray();
+            .WhereAsArray(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0 && p.GetMethod != null && includeMemberType(p.Type));
 
         var parameters = GetNonCapturedPrimaryConstructorParameters(fields, properties);
 

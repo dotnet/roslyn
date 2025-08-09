@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Roslyn.Utilities;
@@ -52,21 +51,15 @@ internal abstract class FixAllProviderInfo
     {
         var fixAllProvider = provider.GetFixAllProvider();
         if (fixAllProvider == null)
-        {
             return null;
-        }
 
-        var diagnosticIds = fixAllProvider.GetSupportedFixAllDiagnosticIds(provider);
-        if (diagnosticIds == null || diagnosticIds.IsEmpty())
-        {
+        var diagnosticIds = fixAllProvider.GetSupportedFixAllDiagnosticIds(provider).ToImmutableArrayOrEmpty();
+        if (diagnosticIds.IsEmpty)
             return null;
-        }
 
         var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
-        {
             return null;
-        }
 
         return new CodeFixerFixAllProviderInfo(fixAllProvider, diagnosticIds, scopes);
     }
@@ -115,7 +108,7 @@ internal abstract class FixAllProviderInfo
 
     private sealed class CodeFixerFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
-        IEnumerable<string> supportedDiagnosticIds,
+        ImmutableArray<string> supportedDiagnosticIds,
         ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
     {
         public override bool CanBeFixed(Diagnostic diagnostic)

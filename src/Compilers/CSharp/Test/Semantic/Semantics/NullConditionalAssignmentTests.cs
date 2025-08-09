@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (3,12): warning CS0414: The field 'C.f' is assigned but its value is never used
                 //     string f;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(3, 12),
-                // (6,14): error CS8652: The feature 'null conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,14): error CS9260: Feature 'null conditional assignment' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         c?.f = "a";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("null conditional assignment").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "=").WithArguments("null conditional assignment", "14.0").WithLocation(6, 14));
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,16): warning CS0219: The variable 's' is assigned but its value is never used
                 //         string s = "a";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 16),
-                // (9,21): error CS8652: The feature 'null conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,21): error CS9260: Feature 'null conditional assignment' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         c?[s = "b"] = "c"; // 1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("null conditional assignment").WithLocation(9, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "=").WithArguments("null conditional assignment", "14.0").WithLocation(9, 21));
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
@@ -112,11 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.GetEmitDiagnostics()
-                .Where(diag => diag.Code == (int)ErrorCode.ERR_FeatureInPreview)
+                .Where(diag => diag.Code == (int)ErrorCode.ERR_FeatureNotAvailableInVersion13)
                 .Verify(
-                    // (7,14): error CS8652: The feature 'null conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         c?.F |= new object();
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("null conditional assignment").WithLocation(7, 14));
+                    // (7,14): error CS9260: Feature 'null conditional assignment' is not available in C# 13.0. Please use language version 14.0 or greater.
+                    //         c?.F &= new object();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op).WithArguments("null conditional assignment", "14.0").WithLocation(7, 14));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.GetEmitDiagnostics()

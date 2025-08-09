@@ -173,7 +173,7 @@ public sealed class CodeRefactoringServiceTest
         var txtAdditionalDocument = project.AdditionalDocuments.Single(t => t.Name == "test.txt");
         var txtRefactorings = await refactoringService.GetRefactoringsAsync(txtAdditionalDocument, TextSpan.FromBounds(0, 0), CancellationToken.None);
         Assert.Equal(2, txtRefactorings.Length);
-        var txtRefactoringTitles = txtRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
+        var txtRefactoringTitles = txtRefactorings.SelectAsArray(s => s.CodeActions.Single().action.Title);
         Assert.Contains(refactoring1.Title, txtRefactoringTitles);
         Assert.Contains(refactoring2.Title, txtRefactoringTitles);
 
@@ -212,7 +212,7 @@ public sealed class CodeRefactoringServiceTest
         var editorConfig = project.AnalyzerConfigDocuments.Single(t => t.Name == ".editorconfig");
         var editorConfigRefactorings = await refactoringService.GetRefactoringsAsync(editorConfig, TextSpan.FromBounds(0, 0), CancellationToken.None);
         Assert.Equal(2, editorConfigRefactorings.Length);
-        var editorConfigRefactoringTitles = editorConfigRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
+        var editorConfigRefactoringTitles = editorConfigRefactorings.SelectAsArray(s => s.CodeActions.Single().action.Title);
         Assert.Contains(refactoring1.Title, editorConfigRefactoringTitles);
         Assert.Contains(refactoring2.Title, editorConfigRefactoringTitles);
 
