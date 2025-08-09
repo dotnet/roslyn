@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,31 +23,34 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>
 {
     public AnalyzerSettingsProvider(
+        IThreadingContext threadingContext,
         string fileName,
         AnalyzerSettingsUpdater settingsUpdater,
         Workspace workspace,
         IGlobalOptionService optionService)
-        : base(fileName, settingsUpdater, workspace, optionService)
+        : base(threadingContext, fileName, settingsUpdater, workspace, optionService)
     {
         Update();
     }
 
-    protected override void UpdateOptions(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
+    protected override async Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var analyzerReferences = RoslynEnumerableExtensions.DistinctBy(projectsInScope.SelectMany(p => p.AnalyzerReferences), a => a.Id).ToImmutableArray();
         foreach (var analyzerReference in analyzerReferences)
         {
-            var configSettings = GetSettings(solution, analyzerReference, options.EditorConfigOptions);
+            var configSettings = await GetSettingsAsync(
+                solution, analyzerReference, options.EditorConfigOptions, cancellationToken).ConfigureAwait(false);
             AddRange(configSettings);
         }
     }
 
-    private ImmutableArray<AnalyzerSetting> GetSettings(
-        Solution solution, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions)
+    private async Task<ImmutableArray<AnalyzerSetting>> GetSettingsAsync(
+        Solution solution, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions, CancellationToken cancellationToken)
     {
         var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var map = service.GetDiagnosticDescriptors(solution, analyzerReference);
+        var map = await service.GetDiagnosticDescriptorsAsync(
+            solution, analyzerReference, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<AnalyzerSetting>.GetInstance(out var allSettings);
 

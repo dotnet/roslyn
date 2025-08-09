@@ -138,21 +138,19 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return _incrementalAnalyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
     }
 
-    public TestAccessor GetTestAccessor()
-        => new(this);
-
-    public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(Solution solution, AnalyzerReference analyzerReference, string language)
+    public Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
+        Solution solution, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
     {
         // TODO(cyrusn): Remote this to OOP.
         var descriptors = analyzerReference
             .GetAnalyzers(language)
             .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
 
-        return descriptors;
+        return Task.FromResult(descriptors);
     }
 
-    public ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(
-        Solution solution, AnalyzerReference analyzerReference)
+    public Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsAsync(
+        Solution solution, AnalyzerReference analyzerReference, CancellationToken cancellationToken)
     {
         var mapBuilder = ImmutableDictionary.CreateBuilder<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>();
 
@@ -167,13 +165,14 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         mapBuilder.Add(s_visualBasicLanguageArray, GetDiagnosticDescriptors(visualBasicAnalyzers));
         mapBuilder.Add(s_csharpAndVisualBasicLanguageArray, GetDiagnosticDescriptors(dotnetAnalyzers));
 
-        return mapBuilder.ToImmutable();
+        return Task.FromResult(mapBuilder.ToImmutable());
 
         ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(ImmutableArray<DiagnosticAnalyzer> analyzers)
             => analyzers.SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
     }
 
-    public ImmutableDictionary<string, DiagnosticDescriptor> TryGetDiagnosticDescriptors(Solution solution, ImmutableArray<string> diagnosticIds)
+    public Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
+        Solution solution, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {
         var builder = ImmutableDictionary.CreateBuilder<string, DiagnosticDescriptor>();
         foreach (var diagnosticId in diagnosticIds)
@@ -182,14 +181,14 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
                 builder[diagnosticId] = descriptor;
         }
 
-        return builder.ToImmutable();
+        return Task.FromResult(builder.ToImmutable());
     }
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Solution solution)
-        => solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache);
+    public Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Solution solution, CancellationToken cancellationToken)
+        => Task.FromResult(solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache));
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project)
-        => project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
+    public Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Project project, CancellationToken cancellationToken)
+        => Task.FromResult(project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project));
 
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
     {
@@ -222,6 +221,9 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             return File.GetLastWriteTimeUtc(path);
         }
     }
+
+    public TestAccessor GetTestAccessor()
+        => new(this);
 
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
