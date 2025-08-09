@@ -30,7 +30,7 @@ internal sealed class CommonWhitespaceSettingsProvider : SettingsProviderBase<Se
     }
 
     protected override Task UpdateOptionsAsync(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var defaultOptions = GetDefaultOptions(options, SettingsUpdater);
         AddRange(defaultOptions);

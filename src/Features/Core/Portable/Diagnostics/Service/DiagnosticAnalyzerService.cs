@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -138,20 +139,51 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return _incrementalAnalyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
     }
 
-    public Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
-        Solution solution, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
     {
-        // TODO(cyrusn): Remote this to OOP.
-        var descriptors = analyzerReference
+        // Attempt to compute this OOP.
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null &&
+            analyzerReference is AnalyzerFileReference analyzerFileReference)
+        {
+            var descriptors = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticDescriptorData>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsAsync(solution, projectId, analyzerFileReference.FullPath, language, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!descriptors.HasValue)
+                return [];
+
+            return descriptors.Value.SelectAsArray(d => d.ToDiagnosticDescriptor());
+        }
+
+        // Otherwise, fallback to computing in proc.
+        return analyzerReference
             .GetAnalyzers(language)
             .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
-
-        return Task.FromResult(descriptors);
     }
 
-    public Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsAsync(
-        Solution solution, AnalyzerReference analyzerReference, CancellationToken cancellationToken)
+    public async Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, CancellationToken cancellationToken)
     {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null &&
+            analyzerReference is AnalyzerFileReference analyzerFileReference)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetLanguageKeyedDiagnosticDescriptorsAsync(solution, projectId, analyzerFileReference.FullPath, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!map.HasValue)
+                return ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>.Empty;
+
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
+        }
+
+        // Otherwise, fallback to computing in proc.
         var mapBuilder = ImmutableDictionary.CreateBuilder<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>();
 
         var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
@@ -165,15 +197,31 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         mapBuilder.Add(s_visualBasicLanguageArray, GetDiagnosticDescriptors(visualBasicAnalyzers));
         mapBuilder.Add(s_csharpAndVisualBasicLanguageArray, GetDiagnosticDescriptors(dotnetAnalyzers));
 
-        return Task.FromResult(mapBuilder.ToImmutable());
+        return mapBuilder.ToImmutable();
 
         ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(ImmutableArray<DiagnosticAnalyzer> analyzers)
             => analyzers.SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
     }
 
-    public Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
+    public async Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
         Solution solution, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, DiagnosticDescriptorData>>(
+                solution,
+                (service, solution, cancellationToken) => service.TryGetDiagnosticDescriptorsAsync(solution, diagnosticIds, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!map.HasValue)
+                return ImmutableDictionary<string, DiagnosticDescriptor>.Empty;
+
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.ToDiagnosticDescriptor());
+        }
+
         var builder = ImmutableDictionary.CreateBuilder<string, DiagnosticDescriptor>();
         foreach (var diagnosticId in diagnosticIds)
         {
@@ -181,14 +229,48 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
                 builder[diagnosticId] = descriptor;
         }
 
-        return Task.FromResult(builder.ToImmutable());
+        return builder.ToImmutable();
     }
 
-    public Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Solution solution, CancellationToken cancellationToken)
-        => Task.FromResult(solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache));
+    public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!map.HasValue)
+                return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
 
-    public Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Project project, CancellationToken cancellationToken)
-        => Task.FromResult(project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project));
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
+        }
+
+        return solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache);
+    }
+
+    public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Project project, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>>(
+                project,
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, project.Id, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!map.HasValue)
+                return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
+
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
+        }
+
+        return project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
+    }
 
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
     {

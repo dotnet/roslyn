@@ -51,6 +51,6 @@ internal static class DiagnosticAnalyzerExtensions
     {
         var diagnosticAnalyzerService = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         return diagnosticAnalyzerService.GetDiagnosticDescriptorsAsync(
-            project.Solution, analyzerReference, project.Language, cancellationToken);
+            project.Solution, project.Id, analyzerReference, project.Language, cancellationToken);
     }
 }

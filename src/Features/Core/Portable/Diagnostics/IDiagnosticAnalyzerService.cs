@@ -81,8 +81,9 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
+    /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
-        Solution solution, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns all the descriptors for all <see cref="DiagnosticAnalyzer"/>s defined within <paramref name="analyzerReference"/>.
@@ -90,8 +91,9 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// is defined for.  This can be <c>[<see cref="LanguageNames.CSharp"/>]</c>, <c>[<see cref="LanguageNames.VisualBasic"/>]</c>,
     /// or an array containing both languages if the descriptor is defined for both languages.
     /// </summary>
-    Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsAsync(
-        Solution solution, AnalyzerReference analyzerReference, CancellationToken cancellationToken);
+    /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
+    Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a list of errors ids (like CS1234), attempts to find an associated descriptor for each id.

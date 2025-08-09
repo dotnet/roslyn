@@ -34,7 +34,7 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
     }
 
     protected override Task UpdateOptionsAsync(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var varSettings = GetVarCodeStyleOptions(options, SettingsUpdater);
         AddRange(varSettings);

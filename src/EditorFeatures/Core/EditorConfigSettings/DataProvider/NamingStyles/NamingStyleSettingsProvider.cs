@@ -32,7 +32,7 @@ internal sealed class NamingStyleSettingsProvider : SettingsProviderBase<NamingS
     }
 
     protected override Task UpdateOptionsAsync(
-        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         options.GetInitialLocationAndValue<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var location, out var namingPreferences);
 
