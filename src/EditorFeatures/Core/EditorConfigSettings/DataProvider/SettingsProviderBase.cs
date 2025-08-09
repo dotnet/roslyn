@@ -74,9 +74,8 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             language: LanguageNames.CSharp,
             editorConfigFileName: FileName);
 
-        _threadingContext.JoinableTaskFactory.Run(() =>
-            UpdateOptionsAsync(options, solution, projects, cancellationToken)
-                .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken));
+        _ = UpdateOptionsAsync(options, solution, projects, cancellationToken)
+            .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
