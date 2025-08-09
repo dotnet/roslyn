@@ -206,7 +206,16 @@ public sealed partial class DataProviderTests
 
         // multiple settings may share the same option (e.g. settings representing flags of an enum):
         var optionsForSettings = dataSnapshot.GroupBy(s => s.Key.Option).Select(g => g.Key).ToArray();
-        AssertEx.SetEqual(CSharpFormattingOptions2.EditorConfigOptions, optionsForSettings);
+
+        // This whitespace setting provider only handles basic formatting options, not the advanced wrapping options
+        var expectedWhitespaceOptions = CSharpFormattingOptions2.EditorConfigOptions
+            .Where(option => !option.Name.StartsWith("csharp_wrap_call_chains") &&
+                           !option.Name.StartsWith("csharp_indent_wrapped_call_chains") &&
+                           !option.Name.StartsWith("csharp_parameter_") &&
+                           !option.Name.StartsWith("csharp_binary_expression_wrapping"))
+            .ToArray();
+
+        AssertEx.SetEqual(expectedWhitespaceOptions, optionsForSettings);
     }
 
     [Fact]
