@@ -14,13 +14,11 @@ internal interface ISemanticSearchQueryService
     /// <summary>
     /// Compiles a query. The query has to be executed or discarded.
     /// </summary>
-    /// <param name="targetLanguage">The language of the project to execute the query against, or null to execute against all supported languages.</param>
     /// <param name="query">Query (top-level code).</param>
     /// <param name="referenceAssembliesDir">Directory containing reference assemblies.</param>
     CompileQueryResult CompileQuery(
         SolutionServices services,
         string query,
-        string? targetLanguage,
         string referenceAssembliesDir,
         TraceSource traceSource,
         CancellationToken cancellationToken);
@@ -31,13 +29,11 @@ internal interface ISemanticSearchQueryService
     /// <param name="solution">The solution snapshot.</param>
     /// <param name="queryId">Id of a compiled query.</param>
     /// <param name="observer">Observer of the found symbols.</param>
-    /// <param name="options">Options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<ExecuteQueryResult> ExecuteQueryAsync(
         Solution solution,
         CompiledQueryId queryId,
         ISemanticSearchResultsObserver observer,
-        QueryExecutionOptions options,
         TraceSource traceSource,
         CancellationToken cancellationToken);
 
