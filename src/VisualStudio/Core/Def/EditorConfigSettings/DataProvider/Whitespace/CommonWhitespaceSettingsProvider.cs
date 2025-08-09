@@ -21,7 +21,8 @@ internal sealed class CommonWhitespaceSettingsProvider : SettingsProviderBase<Se
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override void UpdateOptions(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
     {
         var defaultOptions = GetDefaultOptions(options, SettingsUpdater);
         AddRange(defaultOptions);

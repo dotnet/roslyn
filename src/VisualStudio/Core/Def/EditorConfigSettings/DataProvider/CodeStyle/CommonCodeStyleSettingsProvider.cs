@@ -21,7 +21,8 @@ internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<Cod
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override void UpdateOptions(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
     {
         var qualifySettings = GetQualifyCodeStyleOptions(options, SettingsUpdater);
         AddRange(qualifySettings);

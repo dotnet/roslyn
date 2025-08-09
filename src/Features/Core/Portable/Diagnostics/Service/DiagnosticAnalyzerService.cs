@@ -3,8 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -43,13 +47,16 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 {
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
 
-    public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
+    private static readonly ImmutableArray<string> s_csharpLanguageArray = [LanguageNames.CSharp];
+    private static readonly ImmutableArray<string> s_visualBasicLanguageArray = [LanguageNames.VisualBasic];
+    private static readonly ImmutableArray<string> s_csharpAndVisualBasicLanguageArray = [.. s_csharpLanguageArray, .. s_visualBasicLanguageArray];
 
     public IAsynchronousOperationListener Listener { get; }
     private IGlobalOptionService GlobalOptions { get; }
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticIncrementalAnalyzer _incrementalAnalyzer;
+    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -58,11 +65,11 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         IAsynchronousOperationListenerProvider? listenerProvider,
         Workspace workspace)
     {
-        AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
+        _analyzerInfoCache = globalCache.AnalyzerInfoCache;
         Listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
+        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, _analyzerInfoCache, this.GlobalOptions);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {
@@ -133,6 +140,88 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
     public TestAccessor GetTestAccessor()
         => new(this);
+
+    public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(Solution solution, AnalyzerReference analyzerReference, string language)
+    {
+        // TODO(cyrusn): Remote this to OOP.
+        var descriptors = analyzerReference
+            .GetAnalyzers(language)
+            .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
+
+        return descriptors;
+    }
+
+    public ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(
+        Solution solution, AnalyzerReference analyzerReference)
+    {
+        var mapBuilder = ImmutableDictionary.CreateBuilder<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>();
+
+        var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
+        var visualBasicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
+
+        var dotnetAnalyzers = csharpAnalyzers.Intersect(visualBasicAnalyzers, DiagnosticAnalyzerComparer.Instance).ToImmutableArray();
+        csharpAnalyzers = [.. csharpAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
+        visualBasicAnalyzers = [.. visualBasicAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
+
+        mapBuilder.Add(s_csharpLanguageArray, GetDiagnosticDescriptors(csharpAnalyzers));
+        mapBuilder.Add(s_visualBasicLanguageArray, GetDiagnosticDescriptors(visualBasicAnalyzers));
+        mapBuilder.Add(s_csharpAndVisualBasicLanguageArray, GetDiagnosticDescriptors(dotnetAnalyzers));
+
+        return mapBuilder.ToImmutable();
+
+        ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(ImmutableArray<DiagnosticAnalyzer> analyzers)
+            => analyzers.SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
+    }
+
+    public ImmutableDictionary<string, DiagnosticDescriptor> TryGetDiagnosticDescriptors(Solution solution, ImmutableArray<string> diagnosticIds)
+    {
+        var builder = ImmutableDictionary.CreateBuilder<string, DiagnosticDescriptor>();
+        foreach (var diagnosticId in diagnosticIds)
+        {
+            if (this._analyzerInfoCache.TryGetDescriptorForDiagnosticId(diagnosticId, out var descriptor))
+                builder[diagnosticId] = descriptor;
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Solution solution)
+        => solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache);
+
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project)
+        => project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
+
+    private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
+    {
+        public static readonly DiagnosticAnalyzerComparer Instance = new();
+
+        public bool Equals(DiagnosticAnalyzer? x, DiagnosticAnalyzer? y)
+            => (x, y) switch
+            {
+                (null, null) => true,
+                (null, _) => false,
+                (_, null) => false,
+                _ => GetAnalyzerIdAndLastWriteTime(x) == GetAnalyzerIdAndLastWriteTime(y)
+            };
+
+        public int GetHashCode(DiagnosticAnalyzer obj) => GetAnalyzerIdAndLastWriteTime(obj).GetHashCode();
+
+        private static (string analyzerId, DateTime lastWriteTime) GetAnalyzerIdAndLastWriteTime(DiagnosticAnalyzer analyzer)
+        {
+            // Get the unique ID for given diagnostic analyzer.
+            // note that we also put version stamp so that we can detect changed analyzer.
+            var typeInfo = analyzer.GetType().GetTypeInfo();
+            return (analyzer.GetAnalyzerId(), GetAnalyzerLastWriteTime(typeInfo.Assembly.Location));
+        }
+
+        private static DateTime GetAnalyzerLastWriteTime(string path)
+        {
+            if (path == null || !File.Exists(path))
+                return default;
+
+            return File.GetLastWriteTimeUtc(path);
+        }
+    }
 
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {

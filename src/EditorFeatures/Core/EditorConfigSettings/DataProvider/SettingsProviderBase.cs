@@ -33,7 +33,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
     protected readonly Workspace Workspace;
     public readonly IGlobalOptionService GlobalOptions;
 
-    protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope);
+    protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope);
 
     protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
     {
@@ -70,7 +70,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             language: LanguageNames.CSharp,
             editorConfigFileName: FileName);
 
-        UpdateOptions(options, projects);
+        UpdateOptions(options, solution, projects);
     }
 
     public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
@@ -20,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 
 internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-
     public AnalyzerSettingsProvider(
         string fileName,
         AnalyzerSettingsUpdater settingsUpdater,
@@ -29,37 +28,55 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         IGlobalOptionService optionService)
         : base(fileName, settingsUpdater, workspace, optionService)
     {
-        _analyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override void UpdateOptions(
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope)
     {
         var analyzerReferences = RoslynEnumerableExtensions.DistinctBy(projectsInScope.SelectMany(p => p.AnalyzerReferences), a => a.Id).ToImmutableArray();
         foreach (var analyzerReference in analyzerReferences)
         {
-            var configSettings = GetSettings(analyzerReference, options.EditorConfigOptions);
+            var configSettings = GetSettings(solution, analyzerReference, options.EditorConfigOptions);
             AddRange(configSettings);
         }
     }
 
-    private IEnumerable<AnalyzerSetting> GetSettings(AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions)
+    private ImmutableArray<AnalyzerSetting> GetSettings(
+        Solution solution, AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions)
     {
-        IEnumerable<DiagnosticAnalyzer> csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
-        IEnumerable<DiagnosticAnalyzer> visualBasicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
-        var dotnetAnalyzers = csharpAnalyzers.Intersect(visualBasicAnalyzers, DiagnosticAnalyzerComparer.Instance);
-        csharpAnalyzers = csharpAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance);
-        visualBasicAnalyzers = visualBasicAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance);
+        var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var map = service.GetDiagnosticDescriptors(solution, analyzerReference);
 
-        var csharpSettings = ToAnalyzerSetting(csharpAnalyzers, Language.CSharp);
-        var csharpAndVisualBasicSettings = csharpSettings.Concat(ToAnalyzerSetting(visualBasicAnalyzers, Language.VisualBasic));
-        return csharpAndVisualBasicSettings.Concat(ToAnalyzerSetting(dotnetAnalyzers, Language.CSharp | Language.VisualBasic));
+        using var _ = ArrayBuilder<AnalyzerSetting>.GetInstance(out var allSettings);
 
-        IEnumerable<AnalyzerSetting> ToAnalyzerSetting(IEnumerable<DiagnosticAnalyzer> analyzers,
-                                                               Language language)
+        foreach (var (languages, descriptors) in map)
+            allSettings.AddRange(ToAnalyzerSettings(descriptors, ConvertToLanguage(languages)));
+
+        return allSettings.ToImmutableAndClear();
+
+        Language ConvertToLanguage(ImmutableArray<string> languages)
         {
-            return analyzers
-                .SelectMany(a => _analyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
+            Contract.ThrowIfTrue(languages.Length == 0);
+            var language = (Language)0;
+
+            foreach (var languageString in languages)
+            {
+                language |= languageString switch
+                {
+                    LanguageNames.CSharp => Language.CSharp,
+                    LanguageNames.VisualBasic => Language.VisualBasic,
+                    _ => throw new ArgumentException($"Unsupported language: {languageString}")
+                };
+            }
+
+            return language;
+        }
+
+        IEnumerable<AnalyzerSetting> ToAnalyzerSettings(
+            IEnumerable<DiagnosticDescriptor> descriptors, Language language)
+        {
+            return descriptors
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .Select(g =>
@@ -70,38 +87,6 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
                     var severity = selectedDiagnostic.GetEffectiveSeverity(editorConfigOptions);
                     return new AnalyzerSetting(selectedDiagnostic, severity, SettingsUpdater, language, settingLocation);
                 });
-        }
-    }
-
-    private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
-    {
-        public static readonly DiagnosticAnalyzerComparer Instance = new();
-
-        public bool Equals(DiagnosticAnalyzer? x, DiagnosticAnalyzer? y)
-            => (x, y) switch
-            {
-                (null, null) => true,
-                (null, _) => false,
-                (_, null) => false,
-                _ => GetAnalyzerIdAndLastWriteTime(x) == GetAnalyzerIdAndLastWriteTime(y)
-            };
-
-        public int GetHashCode(DiagnosticAnalyzer obj) => GetAnalyzerIdAndLastWriteTime(obj).GetHashCode();
-
-        private static (string analyzerId, DateTime lastWriteTime) GetAnalyzerIdAndLastWriteTime(DiagnosticAnalyzer analyzer)
-        {
-            // Get the unique ID for given diagnostic analyzer.
-            // note that we also put version stamp so that we can detect changed analyzer.
-            var typeInfo = analyzer.GetType().GetTypeInfo();
-            return (analyzer.GetAnalyzerId(), GetAnalyzerLastWriteTime(typeInfo.Assembly.Location));
-        }
-
-        private static DateTime GetAnalyzerLastWriteTime(string path)
-        {
-            if (path == null || !File.Exists(path))
-                return default;
-
-            return File.GetLastWriteTimeUtc(path);
         }
     }
 }
