@@ -1261,5 +1261,114 @@ class Program
             comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
             CompileAndVerify(comp1).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79436")]
+        public void ParamArrayOrderOfEvaluation()
+        {
+            var text1 = @"
+public struct S1
+{
+    public int this[int i, params int[] j]
+    {
+        get
+        {
+            System.Console.Write(""get_Item "");
+            System.Console.Write(i);
+            System.Console.Write(j[0]);
+            System.Console.Write("" "");
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(""set_Item "");
+            System.Console.Write(i);
+            System.Console.Write(j[0]);
+            System.Console.Write(value);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1(default);
+        System.Console.WriteLine();
+        Test2(default);
+    }
+
+    static void Test1(S1 s)
+    {
+        s[Get1(), Get2()] += Get3(); 
+    }
+
+    static void Test2(S1 s)
+    {
+        s[Get1(), [Get2()]] += Get3(); 
+    }
+    
+    public static int Get1()
+    {
+        System.Console.Write(""Get1 "");
+        return 1;
+    }
+
+    public static int Get2()
+    {
+        System.Console.Write(""Get2 "");
+        return 2;
+    }
+
+    public static int Get3()
+    {
+        System.Console.Write(""Get3 "");
+        return 3;
+    }
+}";
+            var comp1 = CreateCompilation(text1, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+Get1 Get2 get_Item 12 Get3 set_Item 123
+Get1 Get2 get_Item 12 Get3 set_Item 123
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       49 (0x31)
+  .maxstack  6
+  .locals init (S1& V_0,
+                int V_1,
+                int[] V_2)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  stloc.0
+  IL_0004:  call       ""int Program.Get1()""
+  IL_0009:  stloc.1
+  IL_000a:  ldc.i4.1
+  IL_000b:  newarr     ""int""
+  IL_0010:  dup
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       ""int Program.Get2()""
+  IL_0017:  stelem.i4
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.2
+  IL_001c:  ldloc.0
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       ""int S1.this[int, params int[]].get""
+  IL_0024:  call       ""int Program.Get3()""
+  IL_0029:  add
+  IL_002a:  call       ""void S1.this[int, params int[]].set""
+  IL_002f:  nop
+  IL_0030:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test1", expectedIL);
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+        }
     }
 }

@@ -8224,4 +8224,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MemberNameSameAsExtendedType" xml:space="preserve">
     <value>'{0}': extension member names cannot be the same as their extended type</value>
   </data>
+  <data name="ERR_ExtensionBlockCollision" xml:space="preserve">
+    <value>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</value>
+  </data>
 </root>
