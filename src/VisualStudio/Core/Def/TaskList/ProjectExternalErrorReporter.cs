@@ -180,11 +180,13 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     private int ClearErrorsWorker()
     {
+        // Cancel any inflight work.  No point in processing the work to *add* errors, just to clear them when this task runs.
         _taskQueue.AddWork(cancellationToken =>
         {
             DiagnosticProvider.ClearErrors(_projectId);
             return Task.CompletedTask;
-        });
+        },
+        cancelExistingWork: true);
 
         return VSConstants.S_OK;
     }
