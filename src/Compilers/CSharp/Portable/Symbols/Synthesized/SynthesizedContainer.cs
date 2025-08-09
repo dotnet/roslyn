@@ -149,7 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsRefLikeType => false;
 
-        internal override string ExtensionName
+        internal override string ExtensionGroupingName
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override string ExtensionMarkerName
             => throw ExceptionUtilities.Unreachable();
 
         public sealed override bool IsReadOnly => false;

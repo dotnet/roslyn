@@ -498,6 +498,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var members = containingType.GetMembers();
+
+            if (containingType.IsExtension && ((SourceNamedTypeSymbol)containingType).TryGetOrCreateExtensionMarker() is { } marker)
+            {
+                // The marker method is not among the members of the type, so we need to compile it separately.
+                Binder.ProcessedFieldInitializers processedInitializers = default;
+                CompileMethod(marker, -1, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+            }
+
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];

@@ -947,6 +947,19 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
             }
             """);
 
+    [Fact]
+    public Task TestInPrimaryConstructor()
+        => TestInRegularAndScriptAsync(
+            """
+            class [||]C(int i, int j) {
+            }
+            """,
+            """
+            class C(int i,
+                    int j) {
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38986")]
     public Task TestInConstructorWithSyntaxErrorAfter()
         => TestInRegularAndScriptAsync(

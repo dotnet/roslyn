@@ -2422,6 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterpolatedStringHandlerArgumentDisallowed = 9325,
         ERR_MemberNameSameAsExtendedType = 9326,
         ERR_FeatureNotAvailableInVersion14 = 9327,
+        ERR_ExtensionBlockCollision = 9329,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

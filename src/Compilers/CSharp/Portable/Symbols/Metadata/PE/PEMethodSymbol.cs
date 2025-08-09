@@ -1012,9 +1012,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
 
+                bool isNewExtensionMember = this.GetIsNewExtensionMember();
+
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator)
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isNewExtensionMember)
                 {
                     attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
                         filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
@@ -1026,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filteredOutAttribute4: out _,
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
-                        filterOut5: default,
+                        filterOut5: AttributeDescription.ExtensionMarkerAttribute,
                         filteredOutAttribute6: out _,
                         filterOut6: default);
 
@@ -1481,8 +1483,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 MergeUseSiteDiagnostics(ref diagnosticInfo, DeriveCompilerFeatureRequiredDiagnostic());
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
 
-                if (diagnosticInfo == null && _containingType.IsExtension &&
-                    TryGetCorrespondingExtensionImplementationMethod() is null)
+                if (_containingType.IsExtension &&
+                    (TryGetCorrespondingExtensionImplementationMethod() is null ||
+                    _containingType.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error))
                 {
                     diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                 }

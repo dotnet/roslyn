@@ -212,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 | ReservedAttributes.TupleElementNamesAttribute
                 | ReservedAttributes.NullableAttribute
                 | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DateTimeConstantAttribute))

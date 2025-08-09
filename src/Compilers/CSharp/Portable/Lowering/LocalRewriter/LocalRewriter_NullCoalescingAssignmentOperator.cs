@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the right hand side value
                     BoundLocal rightResult = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, isCompoundAssignment: false);
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment);
                     Debug.Assert(assignment.Type is { });
                     assignment = new BoundSequence(syntax, [rightResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
                 else
                 {
-                    assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment);
                 }
 
                 // lhsRead ?? (transformedLHS = loweredRight)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps.Add(tmp.LocalSymbol);
 
                 // tmp = loweredRight;
-                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
+                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, AssignmentKind.SimpleAssignment);
 
                 Debug.Assert(transformedLHS.Type.GetNullableUnderlyingType().Equals(tmp.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions));
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeConversionNode(tmp, transformedLHS.Type, @checked: false, markAsChecked: true),
                         used: true,
                         isChecked: false,
-                        isCompoundAssignment: false);
+                        AssignmentKind.NullCoalescingAssignment);
 
                 // lhsRead.HasValue
                 var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);

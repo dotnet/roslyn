@@ -14,13 +14,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class PopulateSwitchExpressionTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public PopulateSwitchExpressionTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpPopulateSwitchExpressionDiagnosticAnalyzer(), new CSharpPopulateSwitchExpressionCodeFixProvider());
 
@@ -1745,6 +1741,158 @@ public sealed partial class PopulateSwitchExpressionTests : AbstractCSharpDiagno
                         {{underlyingTypePattern}} => 1,
                     };
                 }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74977")]
+    public Task TestMissingWithExhaustiveSwitchExpression1()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(bool showDiagnosticMessages, string assemblyDisplayName, bool noColor)
+                {
+                    var prefix = (showDiagnosticMessages, assemblyDisplayName, noColor) [||]switch
+                    {
+                        (false, _, _) => null,
+                        (true, null, false) => "",
+                        (true, null, true) => "[D]",
+                        (true, _, false) => "No color output",
+                        (true, _, true) => "Color output enabled",
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74977")]
+    public Task TestMissingWithExhaustiveSwitchExpression2()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                uint[] GetUnlockableRows(uint row1, uint row2)
+                {
+                    return (row1, row2) [||]switch
+                    {
+                        (0, _) => [],
+                        (uint i, 0) => [i],
+                        (uint i, uint j) => [i, j],
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60784")]
+    public Task TestMissingWithExhaustiveSwitchExpression3()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void GetUnlockableRows(bool FirstBoolean, bool SecondBoolean)
+                {
+                    var v = (FirstBoolean, SecondBoolean) [||]switch
+                    {
+                        (true, true) => 1,
+                        (true, false) => 2,
+                        (false, true) => 3,
+                        (false, false) => 4
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66433")]
+    public Task TestMissingWithExhaustiveSwitchExpression4()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                static string TestSwitch(int goo)
+                    => goo [||]switch
+                    {
+                        0 => "zero",
+                        < 0 => "negative",
+                        > 0 => "positive",
+                    };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76080")]
+    public Task TestMissingWithExhaustiveSwitchExpression5()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                static void M()
+                {
+                    char c = 'x';
+                    bool i = false;
+
+                    var x = (c, i) [||]switch
+                    {
+                        ('L', _) => '#',
+                        ('#', true) => 'L',
+                        ('#', false) => 'M',
+                        (var z, _) => z,
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76080")]
+    public Task TestMissingWithExhaustiveSwitchExpression6()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                static void M()
+                {
+                    char c = 'x';
+                    bool i = false;
+
+                    var y = (c, i) [||]switch
+                    {
+                        ('L', _) => '#',
+                        ('#', true) => 'L',
+                        ('#', false) => 'M',
+                        (var z, _) => z,
+                        _ => ' ',
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57523")]
+    public Task TestMissingWithExhaustiveSwitchExpression7()
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                public static string ToApiString(this bool? value)
+                    => value [||]switch
+                    {
+                        { } val => val.ToApiString(),
+                        null => "Unknown",
+                    };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57523")]
+    public Task TestMissingWithExhaustiveSwitchExpression8()
+        => TestMissingInRegularAndScriptAsync($$"""
+            public class Program
+            {
+                public static int Main() => GetCuts(Shape.Circle) is null ? -1 : 0;
+
+                static int? GetCuts(Shape? shape)
+                    => shape [||]switch
+                    {
+                        Shape.Triangle => 3,
+                        Shape.Square or Shape.Rectangle => 4,
+                        Shape.Circle => 0,
+                        _ => throw new System.NotSupportedException(),
+                    };
+            }
+
+            public enum Shape
+            {
+                Circle,
+                Square,
+                Rectangle,
+                Triangle,
             }
             """);
 }

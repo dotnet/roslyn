@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return HashToHex(hash.AsSpan());
         }
 
-        private static string HashToHex(ReadOnlySpan<byte> hash)
+        public static string HashToHex(ReadOnlySpan<byte> hash)
         {
 #if NET9_0_OR_GREATER
             return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
@@ -1013,6 +1013,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
 
         public sealed override Cci.INestedTypeReference AsNestedTypeReference => this;
+
+        bool Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters => true;
     }
 
     /// <summary>

@@ -382,7 +382,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 switch (member.Kind)
                                 {
                                     case SymbolKind.NamedType:
-                                        namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        if (!((NamedTypeSymbol)member).IsExtension) // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Figure out what to do about extensions, if anything
+                                        {
+                                            namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        }
                                         break;
 
                                     case SymbolKind.Method:
@@ -1522,6 +1525,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeParamCollectionAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeExtensionMarkerAttribute(Symbol symbol, string markerName)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeExtensionMarkerAttribute(markerName);
+        }
+
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1738,6 +1752,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeExtensionMarkerAttribute(string markerName)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
+                [new TypedConstant(Compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, markerName)]);
+        }
+
+        internal virtual SynthesizedEmbeddedAttributeSymbol TryGetSynthesizedIsUnmanagedAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return null;
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()

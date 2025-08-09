@@ -324,7 +324,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override string ExtensionName
+        internal sealed override string ExtensionGroupingName
+            => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override string ExtensionMarkerName
             => throw ExceptionUtilities.Unreachable();
 
         public sealed override bool IsReadOnly

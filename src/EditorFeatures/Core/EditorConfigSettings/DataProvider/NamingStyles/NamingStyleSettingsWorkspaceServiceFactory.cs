@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -14,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Naming
 [ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<NamingStyleSetting>)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class NamingStyleSettingsWorkspaceServiceFactory(IGlobalOptionService globalOptions) : IWorkspaceServiceFactory
+internal sealed class NamingStyleSettingsWorkspaceServiceFactory(
+    IThreadingContext threadingContext,
+    IGlobalOptionService globalOptions) : IWorkspaceServiceFactory
 {
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
-
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new NamingStyleSettingsProviderFactory(workspaceServices.Workspace, _globalOptions);
+        => new NamingStyleSettingsProviderFactory(threadingContext, workspaceServices.Workspace, globalOptions);
 }

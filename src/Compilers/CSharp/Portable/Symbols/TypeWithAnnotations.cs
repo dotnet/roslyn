@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private readonly TypeCompareKind _compareKind;
 
-            public EqualsComparer(TypeCompareKind compareKind)
+            private EqualsComparer(TypeCompareKind compareKind)
             {
                 _compareKind = compareKind;
             }

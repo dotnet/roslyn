@@ -8,17 +8,16 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
-internal abstract class AbstractPopulateSwitchExpressionDiagnosticAnalyzer<TSwitchSyntax> :
-    AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchExpressionOperation, TSwitchSyntax>
+internal abstract class AbstractPopulateSwitchExpressionDiagnosticAnalyzer<TSwitchSyntax>()
+    : AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchExpressionOperation, TSwitchSyntax>(
+        IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId,
+        EnforceOnBuildValues.PopulateSwitchExpression)
     where TSwitchSyntax : SyntaxNode
 {
-    protected AbstractPopulateSwitchExpressionDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId,
-               EnforceOnBuildValues.PopulateSwitchExpression)
-    {
-    }
-
     protected sealed override OperationKind OperationKind => OperationKind.SwitchExpression;
+
+    protected override bool IsKnownToBeExhaustive(ISwitchExpressionOperation switchOperation)
+        => switchOperation.IsExhaustive;
 
     protected override IOperation GetValueOfSwitchOperation(ISwitchExpressionOperation operation)
         => operation.Value;

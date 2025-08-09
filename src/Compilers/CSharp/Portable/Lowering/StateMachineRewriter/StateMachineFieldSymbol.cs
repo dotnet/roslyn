@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
-            : base(stateMachineType, name, isPublic: isPublic, isReadOnly: false, isStatic: false)
+            : base(stateMachineType, name, isPublic ? DeclarationModifiers.Public : DeclarationModifiers.Private, isReadOnly: false, isStatic: false)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));

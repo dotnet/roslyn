@@ -231,9 +231,10 @@ namespace Roslyn.Utilities
             _dictionary = new Dictionary<K, ValueSet>();
         }
 
-        public MultiDictionary(IEqualityComparer<K> comparer)
+        public MultiDictionary(IEqualityComparer<K> comparer, IEqualityComparer<V>? valueComparer = null)
         {
             _dictionary = new Dictionary<K, ValueSet>(comparer);
+            _valueComparer = valueComparer;
         }
 
         public void EnsureCapacity(int capacity)

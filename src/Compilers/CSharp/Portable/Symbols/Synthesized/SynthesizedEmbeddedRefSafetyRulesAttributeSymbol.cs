@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this,
                     int32Type,
                     "Version",
-                    isPublic: true,
+                    DeclarationModifiers.Public,
                     isReadOnly: true,
                     isStatic: false));
 

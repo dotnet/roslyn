@@ -136,6 +136,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INestedTypeReferenceInheritsEnclosingTypeTypeParameters As Boolean Implements INestedTypeReference.InheritsEnclosingTypeTypeParameters
+            Get
+                Return True
+            End Get
+        End Property
+
         Private Function ITypeReferenceAsNestedTypeDefinition(context As EmitContext) As INestedTypeDefinition Implements ITypeReference.AsNestedTypeDefinition
             Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)

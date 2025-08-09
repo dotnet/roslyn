@@ -195,7 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override string ExtensionName
+        internal override string ExtensionGroupingName
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override string ExtensionMarkerName
             => throw ExceptionUtilities.Unreachable();
     }
 }

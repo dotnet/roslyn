@@ -82,6 +82,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol containingType = AdaptedMethodSymbol.ContainingType;
+
+            if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
+            {
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
+            }
+            else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
+            {
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+            }
+
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             return moduleBeingBuilt.Translate(containingType,
@@ -298,6 +308,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (AdaptedMethodSymbol.OriginalDefinition is SynthesizedGlobalMethodSymbol synthesizedGlobalMethod)
                 {
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
+                }
+
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : code quality, share logic with Cci.ITypeMemberReference.GetContainingType implementation?
+                if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
+                {
+                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
+                }
+                else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
+                {
+                    var containingType = AdaptedMethodSymbol.ContainingType;
+                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
                 }
 
                 return AdaptedMethodSymbol.ContainingType.GetCciAdapter();

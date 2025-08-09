@@ -33,7 +33,7 @@ namespace Microsoft.Cci
 
         #region IGenericParameter Members
 
-        public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
+        public virtual IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
         {
             return _parentParameter.GetConstraints(context);
         }
@@ -199,7 +199,7 @@ namespace Microsoft.Cci
 
         CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+        public virtual IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return _parentParameter.GetAttributes(context);
         }
@@ -253,7 +253,7 @@ namespace Microsoft.Cci
 
         #region INamedEntity Members
 
-        public string? Name
+        public virtual string? Name
         {
             get { return _parentParameter.Name; }
         }

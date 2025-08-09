@@ -4,9 +4,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.VisualStudio.LanguageServices;
@@ -15,13 +18,19 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 
 internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<CodeStyleSetting, OptionUpdater, IOption2, object>
 {
-    public CommonCodeStyleSettingsProvider(string filePath, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
-        : base(filePath, settingsUpdater, workspace, globalOptions)
+    public CommonCodeStyleSettingsProvider(
+        IThreadingContext threadingContext,
+        string filePath,
+        OptionUpdater settingsUpdater,
+        Workspace workspace,
+        IGlobalOptionService globalOptions)
+        : base(threadingContext, filePath, settingsUpdater, workspace, globalOptions)
     {
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var qualifySettings = GetQualifyCodeStyleOptions(options, SettingsUpdater);
         AddRange(qualifySettings);
@@ -51,6 +60,8 @@ internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<Cod
 
         var experimentalSettings = GetExperimentalCodeStyleOptions(options, SettingsUpdater);
         AddRange(experimentalSettings);
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<CodeStyleSetting> GetQualifyCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
