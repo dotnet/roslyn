@@ -2487,6 +2487,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// An analyzer that reports a diagnostic on every single named type.
+        /// </summary>
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
         {
