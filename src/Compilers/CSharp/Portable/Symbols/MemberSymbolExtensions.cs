@@ -85,8 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (member.Kind)
             {
                 case SymbolKind.Method:
+                    return GetIsNewExtensionMember((MethodSymbol)member);
                 case SymbolKind.Property:
-                    return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+                    return GetIsNewExtensionMember((PropertySymbol)member);
                 default:
                     return false;
             }
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool GetIsNewExtensionMember(this MethodSymbol member)
         {
-            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+            return member is { ContainingSymbol: TypeSymbol { IsExtension: true }, OriginalDefinition: not SynthesizedExtensionMarker };
         }
 
         internal static bool GetIsNewExtensionMember(this PropertySymbol member)
