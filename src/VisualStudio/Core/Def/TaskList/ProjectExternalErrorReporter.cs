@@ -11,12 +11,14 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -42,6 +44,11 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     private readonly VisualStudioWorkspaceImpl _workspace;
 
+    /// <summary>
+    /// Protects <see cref="DiagnosticProvider"/>, serializing all access to it.
+    /// </summary>
+    private readonly AsyncBatchingWorkQueue<Func<CancellationToken, Task>> _taskQueue;
+
     public ProjectExternalErrorReporter(
         ProjectId projectId,
         Guid projectHierarchyGuid,
@@ -54,9 +61,26 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         _errorCodePrefix = errorCodePrefix;
         _language = language;
         _workspace = workspace;
+
+        _taskQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
+            TimeSpan.Zero,
+            ProcessWorkAsync,
+            DiagnosticProvider.Listener,
+            DiagnosticProvider.DisposalToken);
     }
 
     private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
+
+    private async ValueTask ProcessWorkAsync(
+        ImmutableSegmentedList<Func<CancellationToken, Task>> list, CancellationToken cancellationToken)
+    {
+        foreach (var func in list)
+        {
+            await func(cancellationToken)
+                .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
 
     private bool CanHandle(string errorId)
     {
@@ -106,9 +130,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             var token = this.DiagnosticProvider.Listener.BeginAsyncOperation(nameof(AddNewErrors));
             var cancellationToken = this.DiagnosticProvider.DisposalToken;
 
-            _ = AddNewErrorsAsync(project, allErrors, cancellationToken)
-                .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
-                .CompletesAsyncOperation(token);
+            _taskQueue.AddWork(cancellationToken =>
+                AddNewErrorsAsync(project, allErrors, cancellationToken));
         }
 
         return VSConstants.S_OK;
@@ -117,8 +140,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     private async Task AddNewErrorsAsync(
         Project project, ImmutableArray<ExternalError> allErrors, CancellationToken cancellationToken)
     {
-        await TaskScheduler.Default;
-
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
 
         var solution = project.Solution;
@@ -155,8 +176,19 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     }
 
     public int ClearAllErrors()
+        => ClearErrorsWorker();
+
+    public int ClearErrors()
+        => ClearErrorsWorker();
+
+    private int ClearErrorsWorker()
     {
-        DiagnosticProvider.ClearErrors(_projectId);
+        _taskQueue.AddWork(cancellationToken =>
+        {
+            DiagnosticProvider.ClearErrors(_projectId);
+            return Task.CompletedTask;
+        });
+
         return VSConstants.S_OK;
     }
 
@@ -292,18 +324,10 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         if (project is null)
             return;
 
-        // Then, jump to the background to actually process the errors.
-        var token = this.DiagnosticProvider.Listener.BeginAsyncOperation(nameof(AddNewErrors));
-        var cancellationToken = this.DiagnosticProvider.DisposalToken;
+        _taskQueue.AddWork(cancellationToken => AddNewErrorsAsync(cancellationToken));
 
-        _ = AddNewErrorsAsync()
-            .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
-            .CompletesAsyncOperation(token);
-
-        async Task AddNewErrorsAsync()
+        async Task AddNewErrorsAsync(CancellationToken cancellationToken)
         {
-            await TaskScheduler.Default;
-
             var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var errorIdToDescriptor = diagnosticService.TryGetDiagnosticDescriptors(solution, [bstrErrorId]);
 
@@ -323,12 +347,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
             DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
         }
-    }
-
-    public int ClearErrors()
-    {
-        DiagnosticProvider.ClearErrors(_projectId);
-        return VSConstants.S_OK;
     }
 
     private static async Task<DiagnosticData> GetDiagnosticDataAsync(
