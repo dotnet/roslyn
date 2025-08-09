@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -30,6 +31,9 @@ public partial class Workspace
 
     internal void EnqueueUpdateSourceGeneratorVersion(ProjectId? projectId, bool forceRegeneration)
         => _updateSourceGeneratorsQueue.AddWork((projectId, forceRegeneration));
+
+    internal virtual IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
+        => assemblyLoaderProvider.SharedShadowCopyLoader;
 
     private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(
         ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds, CancellationToken cancellationToken)
