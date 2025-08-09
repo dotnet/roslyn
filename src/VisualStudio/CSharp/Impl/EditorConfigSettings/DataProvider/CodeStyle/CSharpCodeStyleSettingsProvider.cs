@@ -15,14 +15,20 @@ using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.CodeStyle;
 
 internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<CodeStyleSetting, OptionUpdater, IOption2, object>
 {
-    public CSharpCodeStyleSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
-        : base(fileName, settingsUpdater, workspace, globalOptions)
+    public CSharpCodeStyleSettingsProvider(
+        IThreadingContext threadingContext,
+        string fileName,
+        OptionUpdater settingsUpdater,
+        Workspace workspace,
+        IGlobalOptionService globalOptions)
+        : base(threadingContext, fileName, settingsUpdater, workspace, globalOptions)
     {
         Update();
     }

@@ -189,7 +189,7 @@ internal static partial class Extensions
             return null;
         }
 
-        var projects = solution.Projects.Where(project => project.FilePath == projectIdentifier.DocumentUri.ParsedUri.LocalPath).ToImmutableArray();
+        var projects = solution.Projects.WhereAsArray(project => project.FilePath == projectIdentifier.DocumentUri.ParsedUri.LocalPath);
         return !projects.Any()
             ? null
             : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);

@@ -203,7 +203,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             var path = group.Key;
             var pathAsUri = ProtocolConversions.CreateAbsoluteUri(path);
 
-            var convertedDiagnostics = group.Select(d => CreateDiagnostic(projectId, projectHierarchyGuid, d, state.Solution)).ToImmutableArray();
+            var convertedDiagnostics = group.SelectAsArray(d => CreateDiagnostic(projectId, projectHierarchyGuid, d, state.Solution));
             if (convertedDiagnostics.Any())
             {
                 var collection = new DiagnosticCollection(pathAsUri, documentVersionNumber: -1, diagnostics: convertedDiagnostics);
@@ -332,9 +332,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         /// <summary>
         /// Map from project ID to all the possible analyzer diagnostic IDs that can be reported in the project.
         /// </summary>
-        /// <remarks>
-        /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
-        /// </remarks>
         private ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> _allDiagnosticIdMap = ImmutableDictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>>.Empty;
 
         public Solution Solution { get; } = solution;
@@ -369,50 +366,5 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 }));
             }
         }
-
-        //private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
-        //    ProjectId projectId,
-        //    Dictionary<ProjectId, AsyncLazy<ImmutableHashSet<string>>> diagnosticIdMap,
-        //    Func<AsyncLazy<ImmutableHashSet<string>>> computeDiagnosticIds)
-        //{
-        //    lock (diagnosticIdMap)
-        //    {
-        //        if (diagnosticIdMap.TryGetValue(projectId, out var ids))
-        //        {
-        //            return ids;
-        //        }
-        //    }
-
-        //    var computedIds = computeDiagnosticIds();
-
-        //    lock (diagnosticIdMap)
-        //    {
-        //        diagnosticIdMap[projectId] = computedIds;
-        //        return computedIds;
-        //    }
-        //}
-
-        //private ImmutableHashSet<string> GetOrCreateSupportedDiagnosticIds(ProjectId projectId)
-        //{
-        //    return GetOrCreateDiagnosticIds(projectId, _allDiagnosticIdMap, ComputeSupportedDiagnosticIds);
-
-        //    ImmutableHashSet<string> ComputeSupportedDiagnosticIds()
-        //    {
-        //        var project = Solution.GetProject(projectId);
-        //        if (project == null)
-        //        {
-        //            // projectId no longer exist
-        //            return [];
-        //        }
-
-        //        // set ids set
-        //        var builder = ImmutableHashSet.CreateBuilder<string>();
-        //        var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        //        var descriptorMap = service.GetDiagnosticDescriptorsPerReference(project);
-        //        builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-        //        return builder.ToImmutable();
-        //    }
-        //}
     }
 }

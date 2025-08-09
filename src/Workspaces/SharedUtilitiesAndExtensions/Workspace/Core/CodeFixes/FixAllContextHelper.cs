@@ -70,8 +70,7 @@ internal static partial class FixAllContextHelper
             case FixAllScope.Solution:
                 {
                     var projectsToFix = project.Solution.Projects
-                        .Where(p => p.Language == project.Language)
-                        .ToImmutableArray();
+                        .WhereAsArray(p => p.Language == project.Language);
 
                     // Update the progress dialog with the count of projects to actually fix. We'll update the progress
                     // bar as we get all the documents in AddDocumentDiagnosticsAsync.

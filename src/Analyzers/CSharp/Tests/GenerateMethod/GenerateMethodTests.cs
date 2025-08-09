@@ -10575,7 +10575,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                     throw new NotImplementedException();
                 }
             }
-            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext)));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14)));
 
     [Fact]
     public Task TestNullConditionalAssignment2()
@@ -10612,5 +10612,5 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                     throw new NotImplementedException();
                 }
             }
-            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext)));
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14)));
 }

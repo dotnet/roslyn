@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,11 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>
 {
     public AnalyzerSettingsProvider(
+        IThreadingContext threadingContext,
         string fileName,
         AnalyzerSettingsUpdater settingsUpdater,
         Workspace workspace,
         IGlobalOptionService optionService)
-        : base(fileName, settingsUpdater, workspace, optionService)
+        : base(threadingContext, fileName, settingsUpdater, workspace, optionService)
     {
         Update();
     }

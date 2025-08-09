@@ -5698,11 +5698,11 @@ class C
 """;
         var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13.WithDocumentationMode(DocumentationMode.Diagnose));
         comp.VerifyEmitDiagnostics(
-            // (1,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // /// <see cref="E.extension(int).M"/>
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).M").WithArguments("extensions").WithLocation(1, 18));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "extension(int).M").WithArguments("extensions", "14.0").WithLocation(1, 18));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14.WithDocumentationMode(DocumentationMode.Diagnose));
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
@@ -14785,7 +14785,7 @@ var x = int.M;
         comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(expected);
 
-        comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithIL(src, ilSrc, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(expected);
 
         comp = CreateCompilationWithIL(src, ilSrc);

@@ -82,8 +82,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
     {
         var result = CreateTypeInferrer(semanticModel, cancellationToken)
             .InferTypes(position)
-            .Select(t => t.InferredType)
-            .ToImmutableArray();
+            .SelectAsArray(t => t.InferredType);
 
         return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
     }
@@ -94,8 +93,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
     {
         var result = CreateTypeInferrer(semanticModel, cancellationToken)
             .InferTypes(expression)
-            .Select(info => info.InferredType)
-            .ToImmutableArray();
+            .SelectAsArray(info => info.InferredType);
 
         return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
     }

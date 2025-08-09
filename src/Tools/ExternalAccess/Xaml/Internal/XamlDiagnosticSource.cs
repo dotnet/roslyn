@@ -25,7 +25,7 @@ internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticS
     {
         var xamlRequestContext = XamlRequestContext.FromRequestContext(context);
         var diagnostics = await xamlDiagnosticSource.GetDiagnosticsAsync(xamlRequestContext, cancellationToken).ConfigureAwait(false);
-        var result = diagnostics.Select(e => DiagnosticData.Create(e, document)).ToImmutableArray();
+        var result = diagnostics.SelectAsArray(e => DiagnosticData.Create(e, document));
         return result;
     }
 }

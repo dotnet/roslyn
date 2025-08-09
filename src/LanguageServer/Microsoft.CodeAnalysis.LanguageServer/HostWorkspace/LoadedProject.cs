@@ -167,7 +167,7 @@ internal sealed class LoadedProject : IDisposable
                 FileUtilities.ResolveRelativePath(cr.Reference, commandLineArguments.BaseDirectory);
 
             return absolutePath is not null ? new CommandLineReference(absolutePath, cr.Properties) : default;
-        }).Where(static cr => cr.Reference is not null).ToImmutableArray();
+        }).WhereAsArray(static cr => cr.Reference is not null);
 
         UpdateProjectSystemProjectCollection(
             metadataReferences,
@@ -185,7 +185,7 @@ internal sealed class LoadedProject : IDisposable
             // Note that unlike regular references, we do not resolve these with the relative path resolver that searches reference paths
             var absolutePath = FileUtilities.ResolveRelativePath(cr.FilePath, commandLineArguments.BaseDirectory);
             return absolutePath is not null ? new CommandLineAnalyzerReference(absolutePath) : default;
-        }).Where(static cr => cr.FilePath is not null).ToImmutableArray();
+        }).WhereAsArray(static cr => cr.FilePath is not null);
 
         UpdateProjectSystemProjectCollection(
             analyzerReferences,

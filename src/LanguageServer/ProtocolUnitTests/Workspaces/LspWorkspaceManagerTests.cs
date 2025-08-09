@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -625,8 +625,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         // incremental parsing may be.  For example, sometimes it will conservatively not reuse a node because that node
         // touches a node that is getting recreated.
         var syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-        var oldClassDeclarations = originalRoot.DescendantNodes().Where(n => syntaxFacts.IsClassDeclaration(n)).ToImmutableArray();
-        var newClassDeclarations = newRoot.DescendantNodes().Where(n => syntaxFacts.IsClassDeclaration(n)).ToImmutableArray();
+        var oldClassDeclarations = originalRoot.DescendantNodes().WhereAsArray(n => syntaxFacts.IsClassDeclaration(n));
+        var newClassDeclarations = newRoot.DescendantNodes().WhereAsArray(n => syntaxFacts.IsClassDeclaration(n));
 
         Assert.Equal(oldClassDeclarations.Length, newClassDeclarations.Length);
         Assert.Equal(3, oldClassDeclarations.Length);
@@ -635,8 +635,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         Assert.False(oldClassDeclarations[2].IsIncrementallyIdenticalTo(newClassDeclarations[2]));
 
         // All the methods will get reused.
-        var oldMethodDeclarations = originalRoot.DescendantNodes().Where(n => syntaxFacts.IsMethodLevelMember(n)).ToImmutableArray();
-        var newMethodDeclarations = newRoot.DescendantNodes().Where(n => syntaxFacts.IsMethodLevelMember(n)).ToImmutableArray();
+        var oldMethodDeclarations = originalRoot.DescendantNodes().WhereAsArray(n => syntaxFacts.IsMethodLevelMember(n));
+        var newMethodDeclarations = newRoot.DescendantNodes().WhereAsArray(n => syntaxFacts.IsMethodLevelMember(n));
 
         Assert.Equal(oldMethodDeclarations.Length, newMethodDeclarations.Length);
         Assert.Equal(3, oldMethodDeclarations.Length);
