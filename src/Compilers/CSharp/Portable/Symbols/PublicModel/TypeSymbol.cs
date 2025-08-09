@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return UnderlyingTypeSymbol.AllInterfacesNoUseSiteDiagnostics.GetPublicSymbols();
+                return UnderlyingTypeSymbol.AllInterfacesPublicSymbolsNoUseSiteDiagnostics;
             }
         }
 
