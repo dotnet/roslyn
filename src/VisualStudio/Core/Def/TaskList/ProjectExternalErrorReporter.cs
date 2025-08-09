@@ -97,7 +97,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         var project = solution.GetProject(_projectId);
         if (project != null)
         {
-            // First, grab all the data from the input.  Do this on teh current thread in case that enumerator has
+            // First, grab all the data from the input.  Do this on the current thread in case that enumerator has
             // thread affinity.
             var allErrors = GetExternalErrors(pErrors);
 
