@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices;
@@ -17,8 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whites
 
 internal sealed class CommonWhitespaceSettingsProvider : SettingsProviderBase<Setting, OptionUpdater, IOption2, object>
 {
-    public CommonWhitespaceSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
-        : base(fileName, settingsUpdater, workspace, globalOptions)
+    public CommonWhitespaceSettingsProvider(
+        IThreadingContext threadingContext,
+        string fileName,
+        OptionUpdater settingsUpdater,
+        Workspace workspace,
+        IGlobalOptionService globalOptions)
+        : base(threadingContext, fileName, settingsUpdater, workspace, globalOptions)
     {
         Update();
     }

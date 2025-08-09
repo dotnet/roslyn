@@ -16,34 +16,35 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 
-internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue> : ISettingsProvider<TData>
+internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue>(
+    IThreadingContext threadingContext,
+    string fileName,
+    TOptionsUpdater settingsUpdater,
+    Workspace workspace,
+    IGlobalOptionService globalOptions) : ISettingsProvider<TData>
     where TOptionsUpdater : ISettingUpdater<TOption, TValue>
 {
     private readonly List<TData> _snapshot = [];
     private static readonly object s_gate = new();
     private ISettingsEditorViewModel? _viewModel;
-    protected readonly string FileName;
-    protected readonly TOptionsUpdater SettingsUpdater;
-    protected readonly Workspace Workspace;
-    public readonly IGlobalOptionService GlobalOptions;
+
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    protected readonly string FileName = fileName;
+    protected readonly TOptionsUpdater SettingsUpdater = settingsUpdater;
+    protected readonly Workspace Workspace = workspace;
+    public readonly IGlobalOptionService GlobalOptions = globalOptions;
 
     protected abstract Task UpdateOptionsAsync(
         TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken);
-
-    protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
-    {
-        FileName = fileName;
-        SettingsUpdater = settingsUpdater;
-        Workspace = workspace;
-        GlobalOptions = globalOptions;
-    }
 
     protected void Update()
     {
@@ -62,7 +63,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             return;
         }
 
-        var cancellationToken = CancellationToken.None;
+        var cancellationToken = _threadingContext.DisposalToken;
         var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, cancellationToken);
         var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
 
@@ -73,9 +74,9 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             language: LanguageNames.CSharp,
             editorConfigFileName: FileName);
 
-        // TODO(cyrusn): Do we need to track this work in some way?
-        _ = UpdateOptionsAsync(options, solution, projects, cancellationToken)
-            .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
+        _threadingContext.JoinableTaskFactory.Run(() =>
+            UpdateOptionsAsync(options, solution, projects, cancellationToken)
+                .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken));
     }
 
     public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
