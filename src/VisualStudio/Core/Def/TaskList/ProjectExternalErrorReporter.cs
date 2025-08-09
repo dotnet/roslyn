@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -116,6 +117,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     private async Task AddNewErrorsAsync(
         Project project, ImmutableArray<ExternalError> allErrors, CancellationToken cancellationToken)
     {
+        await TaskScheduler.Default;
+
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
 
         var solution = project.Solution;
@@ -299,6 +302,8 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
         async Task AddNewErrorsAsync()
         {
+            await TaskScheduler.Default;
+
             var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var errorIdToDescriptor = diagnosticService.TryGetDiagnosticDescriptors(solution, [bstrErrorId]);
 
