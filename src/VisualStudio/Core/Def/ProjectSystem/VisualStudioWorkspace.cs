@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -20,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// <summary>
 /// A Workspace specific to Visual Studio.
 /// </summary>
-public abstract class VisualStudioWorkspace : Workspace
+public abstract partial class VisualStudioWorkspace : Workspace
 {
     static VisualStudioWorkspace()
     {
@@ -82,32 +81,4 @@ public abstract class VisualStudioWorkspace : Workspace
 
     internal override IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
         => AlwaysThrowAnalyzerAssemblyLoader.Instance;
-
-    private sealed class AlwaysThrowAnalyzerAssemblyLoader
-        : IAnalyzerAssemblyLoader
-    {
-        public static readonly AlwaysThrowAnalyzerAssemblyLoader Instance = new();
-
-        private AlwaysThrowAnalyzerAssemblyLoader()
-        {
-        }
-
-        public void AddDependencyLocation(string fullPath)
-        {
-        }
-
-        public Assembly LoadFromPath(string fullPath)
-        {
-            try
-            {
-                throw new InvalidOperationException(
-                    $"Analyzers should not be loaded within a {nameof(VisualStudioWorkspace)}.  They should only be loaded in an external process.");
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                // Report whatever stack attempted to do this so we can find it and fix it.
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-    }
 }
