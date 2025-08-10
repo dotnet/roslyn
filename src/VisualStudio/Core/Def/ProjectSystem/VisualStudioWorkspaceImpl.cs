@@ -1635,14 +1635,18 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     internal override IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
     {
         var oopEnabled = this._globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit);
-        if (!oopEnabled)
-            return base.GetAssemblyLoader(assemblyLoaderProvider);
 
+        // If oop is not enabled, then fallback to the base implementation, which just loads the analyzers in proc.
+        // This is the best we can do in a netfx process.  It does mean analyzers are not reloadable or isolated.
+        // But that's a fundamental limitation of netfx.
+        //
         // We never want to allow analyzers to be loaded from within the VS host if oop is enabled.  As we are in a
         // netfx process, this means we will only be able to load them once, and will not have accurate information
         // if they are overwritten and reloaded in the OOP process.  All work related to analyzers should only be
         // done through calls to the OOP process, which is properly isolating the analyzers in ALCs to allow them
         // to be reloaded as needed.
-        return AlwaysThrowAnalyzerAssemblyLoader.Instance;
+        return oopEnabled
+            ? AlwaysThrowAnalyzerAssemblyLoader.Instance
+            : base.GetAssemblyLoader(assemblyLoaderProvider);
     }
 }
