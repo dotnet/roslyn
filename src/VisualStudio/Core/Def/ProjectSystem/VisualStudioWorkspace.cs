@@ -98,8 +98,16 @@ public abstract class VisualStudioWorkspace : Workspace
 
         public Assembly LoadFromPath(string fullPath)
         {
-            throw new InvalidOperationException(
-                $"Analyzers should not be loaded within a {nameof(VisualStudioWorkspace)}.  They should only be loaded in an external process.");
+            try
+            {
+                throw new InvalidOperationException(
+                    $"Analyzers should not be loaded within a {nameof(VisualStudioWorkspace)}.  They should only be loaded in an external process.");
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            {
+                // Report whatever stack attempted to do this so we can find it and fix it.
+                throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 }
