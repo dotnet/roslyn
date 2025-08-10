@@ -81,20 +81,25 @@ public abstract class VisualStudioWorkspace : Workspace
     internal abstract string? TryGetRuleSetPathForProject(ProjectId projectId);
 
     internal override IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
-    {
-        return new AlwaysThrowAnalyzerAssemblyLoader();
-    }
+        => AlwaysThrowAnalyzerAssemblyLoader.Instance;
 
     private sealed class AlwaysThrowAnalyzerAssemblyLoader
         : IAnalyzerAssemblyLoader
     {
+        public static readonly AlwaysThrowAnalyzerAssemblyLoader Instance = new();
+
+        private AlwaysThrowAnalyzerAssemblyLoader()
+        {
+        }
+
         public void AddDependencyLocation(string fullPath)
         {
         }
 
         public Assembly LoadFromPath(string fullPath)
         {
-            throw new InvalidOperationException("Should not be loading analyzers within visual studio");
+            throw new InvalidOperationException(
+                $"Analyzers should not be loaded within a {nameof(VisualStudioWorkspace)}.  They should only be loaded in an external process.");
         }
     }
 }
