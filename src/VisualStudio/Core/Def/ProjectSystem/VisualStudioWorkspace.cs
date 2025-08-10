@@ -78,7 +78,4 @@ public abstract partial class VisualStudioWorkspace : Workspace
         => this.Services.GetRequiredService<IMetadataService>().GetReference(filePath, properties);
 
     internal abstract string? TryGetRuleSetPathForProject(ProjectId projectId);
-
-    internal override IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
-        => AlwaysThrowAnalyzerAssemblyLoader.Instance;
 }

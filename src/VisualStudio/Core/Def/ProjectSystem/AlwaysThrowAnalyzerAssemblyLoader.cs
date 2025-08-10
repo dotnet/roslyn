@@ -7,35 +7,32 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.VisualStudio.LanguageServices;
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-public abstract partial class VisualStudioWorkspace
-{
-    private sealed class AlwaysThrowAnalyzerAssemblyLoader
+internal sealed class AlwaysThrowAnalyzerAssemblyLoader
         : IAnalyzerAssemblyLoader
+{
+    public static readonly AlwaysThrowAnalyzerAssemblyLoader Instance = new();
+
+    private AlwaysThrowAnalyzerAssemblyLoader()
     {
-        public static readonly AlwaysThrowAnalyzerAssemblyLoader Instance = new();
+    }
 
-        private AlwaysThrowAnalyzerAssemblyLoader()
+    public void AddDependencyLocation(string fullPath)
+    {
+    }
+
+    public Assembly LoadFromPath(string fullPath)
+    {
+        try
         {
+            throw new InvalidOperationException(
+                $"Analyzers should not be loaded within a {nameof(VisualStudioWorkspace)}.  They should only be loaded in an external process.");
         }
-
-        public void AddDependencyLocation(string fullPath)
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
-        }
-
-        public Assembly LoadFromPath(string fullPath)
-        {
-            try
-            {
-                throw new InvalidOperationException(
-                    $"Analyzers should not be loaded within a {nameof(VisualStudioWorkspace)}.  They should only be loaded in an external process.");
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                // Report whatever stack attempted to do this so we can find it and fix it.
-                throw ExceptionUtilities.Unreachable();
-            }
+            // Report whatever stack attempted to do this so we can find it and fix it.
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

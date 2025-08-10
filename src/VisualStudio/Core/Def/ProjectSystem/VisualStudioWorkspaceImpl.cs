@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -1629,5 +1630,19 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // don't use the isContextActive value here specifically for this case as it may not reflect the desired
         // value after the main thread switch.
         uiContext.IsActive = this.CurrentSolution.Projects.Any(p => p.Language == language);
+    }
+
+    internal override IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
+    {
+        var oopEnabled = this._globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit);
+        if (!oopEnabled)
+            return base.GetAssemblyLoader(assemblyLoaderProvider);
+
+        // We never want to allow analyzers to be loaded from within the VS host if oop is enabled.  As we are in a
+        // netfx process, this means we will only be able to load them once, and will not have accurate information
+        // if they are overwritten and reloaded in the OOP process.  All work related to analyzers should only be
+        // done through calls to the OOP process, which is properly isolating the analyzers in ALCs to allow them
+        // to be reloaded as needed.
+        return AlwaysThrowAnalyzerAssemblyLoader.Instance;
     }
 }
