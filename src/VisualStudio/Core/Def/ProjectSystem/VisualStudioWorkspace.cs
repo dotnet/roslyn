@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// <summary>
 /// A Workspace specific to Visual Studio.
 /// </summary>
-public abstract partial class VisualStudioWorkspace : Workspace
+public abstract class VisualStudioWorkspace : Workspace
 {
     static VisualStudioWorkspace()
     {
