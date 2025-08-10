@@ -2337,7 +2337,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     #endregion
-    
+
     internal virtual IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
         => assemblyLoaderProvider.SharedShadowCopyLoader;
 
