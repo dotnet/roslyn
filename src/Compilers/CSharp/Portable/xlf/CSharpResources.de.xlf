@@ -2342,11 +2342,6 @@
         <target state="translated">Der Datensatzmember "{0}" muss "{1}" zurückgeben.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">"/main" kann nicht angegeben werden, wenn eine Kompilierungseinheit mit Anweisungen der obersten Ebene vorhanden ist.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">Mindestens eine Anweisung der obersten Ebene darf nicht leer sein.</target>
