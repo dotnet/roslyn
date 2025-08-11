@@ -6010,14 +6010,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundInterpolatedString interpolatedString:
-                        return scope.Intersect(getParts(interpolatedString, localScopeDepth));
+                        return scope.Intersect(getPartsScope(interpolatedString, localScopeDepth));
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expression.Kind);
                 }
             }
 
-            SafeContext getParts(BoundInterpolatedString interpolatedString, SafeContext localScopeDepth)
+            SafeContext getPartsScope(BoundInterpolatedString interpolatedString, SafeContext localScopeDepth)
             {
                 SafeContext scope = SafeContext.CallingMethod;
 
