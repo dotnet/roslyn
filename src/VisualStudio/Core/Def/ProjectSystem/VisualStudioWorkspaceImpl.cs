@@ -1643,7 +1643,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // if they are overwritten and reloaded in the OOP process.  All work related to analyzers should only be
         // done through calls to the OOP process, which is properly isolating the analyzers in ALCs to allow them
         // to be reloaded as needed.
-        return ._globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit)
+        return _globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit)
             ? AlwaysThrowAnalyzerAssemblyLoader.Instance
             : base.GetAssemblyLoader(assemblyLoaderProvider);
     }
