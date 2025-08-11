@@ -100,8 +100,7 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
             .GetBaseTypesAndThis()
             .Reverse()
             .SelectAccessibleMembers<ISymbol>(containingType)
-            .Where(IsReadableInstanceFieldOrProperty)
-            .ToImmutableArray();
+            .WhereAsArray(IsReadableInstanceFieldOrProperty);
 
         if (viableMembers.Length == 0)
             return;

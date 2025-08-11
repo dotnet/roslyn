@@ -21,7 +21,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" Link="InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SingleInitNullable.cs" Link="InternalUtilities\SingleInitNullable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SharedStopwatch.cs" Link="InternalUtilities\SharedStopwatch.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTaskFactory.cs" Link="InternalUtilities\ValueTaskFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />

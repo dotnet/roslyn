@@ -57,7 +57,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task EmptyVerbatimString()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -78,7 +78,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task TestLeadingAndTrailingTrivia()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -115,7 +115,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task VerbatimStringWithBasicText()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -148,7 +148,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task RegularStringWithEscapedNewLine()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -170,7 +170,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task VerbatimStringWithNewLine()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -204,7 +204,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task RegularStringWithEscapedQuote()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -225,7 +225,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task VerbatimStringWithEscapedQuote()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -246,7 +246,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task RegularStringWithEscapedQuoteAndMultipleParts()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -267,7 +267,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task VerbatimStringWithEscapedQuoteAndMultipleParts()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -288,7 +288,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task EscapedCurlyBracesInRegularString()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -310,7 +310,7 @@ public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : Ab
 
     [Fact]
     public Task EscapedCurlyBracesInVerbatimString()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()

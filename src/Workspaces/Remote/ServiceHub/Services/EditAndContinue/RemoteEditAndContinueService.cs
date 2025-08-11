@@ -100,7 +100,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -112,7 +112,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().EndDebuggingSession(sessionId);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -141,7 +141,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// Remote API.
     /// </summary>
     public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
-        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
+        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
@@ -166,7 +166,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().CommitSolutionUpdate(sessionId);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -178,18 +178,6 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().DiscardSolutionUpdate(sessionId);
-            return default;
-        }, cancellationToken);
-    }
-
-    /// <summary>
-    /// Remote API.
-    /// </summary>
-    public ValueTask UpdateBaselinesAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken)
-    {
-        return RunServiceAsync(solutionChecksum, solution =>
-        {
-            GetService().UpdateBaselines(sessionId, solution, rebuiltProjects);
             return default;
         }, cancellationToken);
     }

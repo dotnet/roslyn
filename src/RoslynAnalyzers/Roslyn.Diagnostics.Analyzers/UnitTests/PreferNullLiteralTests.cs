@@ -129,9 +129,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             }.RunAsync();
 
         [Fact]
-        public async Task NullPointerAsync()
-        {
-            var source = """
+        public Task NullPointerAsync()
+            => VerifyCS.VerifyCodeFixAsync("""
                 unsafe class Type
                 {
                     void Method()
@@ -142,8 +141,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     void Method2(int* value) { }
                     void Method2(byte* value) { }
                 }
-                """;
-            var fixedSource = """
+                """, """
                 unsafe class Type
                 {
                     void Method()
@@ -154,10 +152,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     void Method2(int* value) { }
                     void Method2(byte* value) { }
                 }
-                """;
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                """);
 
         [Fact]
         public Task PointerInNullableContextAsync()
@@ -197,32 +192,26 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Theory]
         [InlineData("default")]
         [InlineData("default(object)")]
-        public async Task PreferNullLiteral_DefaultParameterValueAsync(string defaultValueExpression)
-        {
-            var source = $$"""
+        public Task PreferNullLiteral_DefaultParameterValueAsync(string defaultValueExpression)
+            => VerifyCS.VerifyCodeFixAsync($$"""
                 class Type
                 {
                     void Method(object value = [|{{defaultValueExpression}}|])
                     {
                     }
                 }
-                """;
-            var fixedSource = """
+                """, """
                 class Type
                 {
                     void Method(object value = null)
                     {
                     }
                 }
-                """;
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                """);
 
         [Fact]
-        public async Task PreferNullLiteral_ArgumentFormattingAsync()
-        {
-            var source = $$"""
+        public Task PreferNullLiteral_ArgumentFormattingAsync()
+            => VerifyCS.VerifyCodeFixAsync($$"""
                 class Type
                 {
                     void Method()
@@ -240,8 +229,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     {
                     }
                 }
-                """;
-            var fixedSource = """
+                """, """
                 class Type
                 {
                     void Method()
@@ -259,15 +247,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     {
                     }
                 }
-                """;
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                """);
 
         [Fact]
-        public async Task PreferNullLiteral_OverloadResolutionAsync()
-        {
-            var source = """
+        public Task PreferNullLiteral_OverloadResolutionAsync()
+            => VerifyCS.VerifyCodeFixAsync("""
                 using System;
 
                 class Type
@@ -285,8 +269,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     {
                     }
                 }
-                """;
-            var fixedSource = """
+                """, """
                 using System;
 
                 class Type
@@ -304,15 +287,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     {
                     }
                 }
-                """;
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                """);
 
         [Fact]
-        public async Task PreferNullLiteral_ParenthesizeWhereNecessaryAsync()
-        {
-            var source = """
+        public Task PreferNullLiteral_ParenthesizeWhereNecessaryAsync()
+            => VerifyCS.VerifyCodeFixAsync("""
                 using System;
 
                 class Type
@@ -330,8 +309,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     {
                     }
                 }
-                """;
-            var fixedSource = """
+                """, """
                 using System;
 
                 class Type
@@ -349,10 +327,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     {
                     }
                 }
-                """;
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                """);
 
         [Fact]
         public async Task PreferNullLiteral_StructAsync()
@@ -403,9 +378,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task PreferNullLiteral_GenericConstrainedToReferenceTypeAsync()
-        {
-            var source = """
+        public Task PreferNullLiteral_GenericConstrainedToReferenceTypeAsync()
+            => VerifyCS.VerifyCodeFixAsync("""
                 class Type
                 {
                     T Method<T>()
@@ -414,8 +388,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         return [|default|];
                     }
                 }
-                """;
-            var fixedSource = """
+                """, """
                 class Type
                 {
                     T Method<T>()
@@ -424,10 +397,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         return null;
                     }
                 }
-                """;
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+                """);
 
         [Fact]
         public async Task PreferNullLiteral_GenericConstrainedToInterfaceAsync()

@@ -7,7 +7,11 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
-public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
+public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
+    TDocument,
+    TProject,
+    TSolution,
+    TTestWorkspace>
 {
     internal static (OptionKey2, object?) SingleOption<T>(Option2<T> option, T enabled)
         => (new OptionKey2(option), enabled);

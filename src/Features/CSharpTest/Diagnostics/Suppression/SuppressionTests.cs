@@ -470,7 +470,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         }
                     }
                     """;
-                var parameters = new TestParameters();
+                var parameters = TestParameters.Default;
                 using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
                 var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer()]);
@@ -2596,7 +2596,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79375")]
             public async Task TestSuppressionOnExtensionBlock()
             {
-                var csharp14Options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+                var csharp14Options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
 
                 var expected = $$"""
                     using System;

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this,
                     byteArrayType.Type,
                     NullableFlagsFieldName,
-                    isPublic: true,
+                    DeclarationModifiers.Public,
                     isReadOnly: true,
                     isStatic: false));
 

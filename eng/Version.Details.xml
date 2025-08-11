@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="f451e5d3036a4f140a989e0a7f3f1ae432420e71" BarId="274568" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="b7ad826c308d3b0376ed21450271439a97f77f02" BarId="278405" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>ae1fff344d46976624e68ae17164e0607ab68b10</Sha>
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-beta5.25210.1">
-      <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>e9b0511d7f1128e2bc3be7a658a2a4ea977e602d</Sha>
+    <Dependency Name="System.CommandLine" Version="2.0.0-rc.1.25407.105">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>b7ad826c308d3b0376ed21450271439a97f77f02</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
     <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0">
@@ -23,6 +23,10 @@
     <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
@@ -76,6 +80,7 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
+    <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild in VS (would lead to NGEN failures on insertion). -->
     <Dependency Name="System.Text.Json" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
@@ -130,9 +135,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>d777c20040bdc2e52b372fa98dcb84141ed692d3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1">
+    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0-preview.25375.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>2c9a20b6706b8a9ad650b41bff30980cf5af67ed</Sha>
+      <Sha>dd67b33c8b4164fa2c2c1dd13b616aea3948f7da</Sha>
     </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->

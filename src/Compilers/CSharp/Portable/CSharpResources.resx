@@ -6575,9 +6575,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TopLevelStatementAfterNamespaceOrType" xml:space="preserve">
     <value>Top-level statements must precede namespace and type declarations.</value>
   </data>
-  <data name="ERR_SimpleProgramDisallowsMainType" xml:space="preserve">
-    <value>Cannot specify /main if there is a compilation unit with top-level statements.</value>
-  </data>
   <data name="ERR_SimpleProgramNotAnExecutable" xml:space="preserve">
     <value>Program using top-level statements must be an executable.</value>
   </data>
@@ -6658,6 +6655,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion13" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion14" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
@@ -8217,5 +8217,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InterpolatedStringHandlerArgumentDisallowed" xml:space="preserve">
     <value>Interpolated string handler arguments are not allowed in this context.</value>
+  </data>
+  <data name="ERR_MemberNameSameAsExtendedType" xml:space="preserve">
+    <value>'{0}': extension member names cannot be the same as their extended type</value>
+  </data>
+  <data name="ERR_ExtensionBlockCollision" xml:space="preserve">
+    <value>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</value>
   </data>
 </root>

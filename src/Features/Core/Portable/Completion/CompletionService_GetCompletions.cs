@@ -103,7 +103,7 @@ public abstract partial class CompletionService
 
         // See if there were completion contexts provided that were exclusive. If so, then
         // that's all we'll return.
-        var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+        var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
 

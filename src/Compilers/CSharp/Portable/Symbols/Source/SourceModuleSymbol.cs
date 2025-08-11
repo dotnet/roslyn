@@ -578,7 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute | ReservedAttributes.RefSafetyRulesAttribute))
+                ReservedAttributes.NullableContextAttribute
+                | ReservedAttributes.NullablePublicOnlyAttribute
+                | ReservedAttributes.RefSafetyRulesAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))

@@ -49,7 +49,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -69,7 +69,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -114,7 +114,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -134,7 +134,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -154,7 +154,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public Task TestOfferedAtStartOfMethod()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -174,7 +174,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public Task TestOfferedBeforeMethodOnSameLine()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -194,7 +194,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public Task TestOfferedBeforeAttributes()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -246,7 +246,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53532")]
     public Task TestTriviaOnArrow1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -269,7 +269,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedWithSelectionInsideBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -303,7 +303,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact]
     public Task TestOfferedWithSelectionInsideExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -334,7 +334,7 @@ public sealed class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharp
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
     public Task TestCommentAfterMethodName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

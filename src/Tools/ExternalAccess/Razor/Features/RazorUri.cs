@@ -35,13 +35,6 @@ internal static class RazorUri
 
         // Razor only cares about documents from its own generator, but it's better to just send them back the info they
         // need to check on their side, so we can avoid dual insertions if anything changes.
-        return new RazorGeneratedDocumentIdentity(
-            identity.DocumentId,
-            identity.HintName,
-            identity.FilePath,
-            identity.Generator.AssemblyName,
-            identity.Generator.AssemblyPath,
-            identity.Generator.AssemblyVersion,
-            identity.Generator.TypeName);
+        return RazorGeneratedDocumentIdentity.Create(identity);
     }
 }

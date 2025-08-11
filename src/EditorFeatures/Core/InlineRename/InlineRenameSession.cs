@@ -859,7 +859,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         async Task<ImmutableArray<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>> CalculateFinalDocumentChangesAsync(
             Solution newSolution, CancellationToken cancellationToken)
         {
-            var changes = _baseSolution.GetChanges(newSolution);
+            var changes = newSolution.GetChanges(_baseSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectManyAsArray(c => c.GetChangedDocuments());
 
             using var _ = PooledObjects.ArrayBuilder<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>.GetInstance(out var result);
@@ -877,6 +877,12 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
                     : (documentId, newDocument.Name, newRoot: null, await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false)));
             }
 
+            foreach (var documentId in changes.GetExplicitlyChangedSourceGeneratedDocuments())
+            {
+                var newDocument = newSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                result.Add((documentId, newDocument.Name, newRoot: null, await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false)));
+            }
+
             return result.ToImmutableAndClear();
         }
     }
@@ -892,16 +898,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         if (!RenameInfo.TryOnBeforeGlobalSymbolRenamed(Workspace, documentChanges.SelectAsArray(t => t.documentId), this.ReplacementText))
             return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
-        // Grab the workspace's current solution, and make the document changes to it we computed.
-        var finalSolution = Workspace.CurrentSolution;
-        foreach (var (documentId, newName, newRoot, newText) in documentChanges)
-        {
-            finalSolution = newRoot != null
-                ? finalSolution.WithDocumentSyntaxRoot(documentId, newRoot)
-                : finalSolution.WithDocumentText(documentId, newText);
-
-            finalSolution = finalSolution.WithDocumentName(documentId, newName);
-        }
+        var finalSolution = _threadingContext.JoinableTaskFactory.Run(() => GetFinalSolutionAsync(documentChanges));
 
         // Now actually go and apply the changes to the workspace.  We expect this to succeed as we're on the UI
         // thread, and nothing else should have been able to make a change to workspace since we we grabbed its
@@ -932,6 +929,35 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
             // always able to undo anything any other external listener did.
             undoTransaction.Commit();
         }
+    }
+
+    private async Task<Solution> GetFinalSolutionAsync(ImmutableArray<(DocumentId, string, SyntaxNode, SourceText)> documentChanges)
+    {
+        // Grab the workspace's current solution, and make the document changes to it we computed.
+        var finalSolution = Workspace.CurrentSolution;
+        foreach (var (documentId, newName, newRoot, newText) in documentChanges)
+        {
+            if (documentId.IsSourceGenerated)
+            {
+                var document = await finalSolution.GetDocumentAsync(documentId, includeSourceGenerated: true, CancellationToken.None).ConfigureAwait(true);
+                Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
+            }
+
+            finalSolution = newRoot != null
+                ? finalSolution.WithDocumentSyntaxRoot(documentId, newRoot)
+                : finalSolution.WithDocumentText(documentId, newText);
+
+            // WithDocumentName doesn't support source generated documents, and there should be no circumstance were they'd
+            // be renamed anyway. Given rename only supports Razor generated documents, and those are always named for the Razor
+            // file they come from, and nothing in Roslyn knows to rename those documents, we can safely skip this step. Razor
+            // may process the results of this rename and rename the document if it needs to later.
+            if (!documentId.IsSourceGenerated)
+            {
+                finalSolution = finalSolution.WithDocumentName(documentId, newName);
+            }
+        }
+
+        return finalSolution;
     }
 
     internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)

@@ -50,8 +50,6 @@ public sealed class DiagnosticAnalyzerDriverTests
             SyntaxKind.CollectionExpression,
             SyntaxKind.ExpressionElement,
             SyntaxKind.SpreadElement,
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 Add to all-in-one
-            SyntaxKind.ExtensionBlockDeclaration,
         };
 
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();

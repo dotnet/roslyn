@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
@@ -29,7 +30,7 @@ internal partial class TaggerEventSources
                 processBatchAsync: cancellationToken =>
                 {
                     RaiseChanged();
-                    return ValueTaskFactory.CompletedTask;
+                    return ValueTask.CompletedTask;
                 },
                 asyncListener,
                 CancellationToken.None);

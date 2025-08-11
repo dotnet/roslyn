@@ -215,22 +215,14 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
 
         foreach (var kind in declarationInfo.PossibleSymbolKinds)
         {
-            ProcessRules(rules, firstMatchOnly: true, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
-            ProcessRules(supplementaryRules, firstMatchOnly: false, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
+            ProcessRules(rules, firstMatchOnly: true, kind);
+            ProcessRules(supplementaryRules, firstMatchOnly: false, kind);
         }
 
-        static void ProcessRules(
+        void ProcessRules(
             ImmutableArray<NamingRule> rules,
             bool firstMatchOnly,
-            SymbolSpecification.SymbolKindOrTypeKind kind,
-            ImmutableArray<ImmutableArray<string>> baseNames,
-            NameDeclarationInfo declarationInfo,
-            CSharpSyntaxContext context,
-            ArrayBuilder<(string, Glyph)> result,
-            ISemanticFactsService semanticFactsService,
-            PooledHashSet<string> seenBaseNames,
-            PooledHashSet<string> seenUniqueNames,
-            CancellationToken cancellationToken)
+            SymbolSpecification.SymbolKindOrTypeKind kind)
         {
             var modifiers = declarationInfo.Modifiers;
             foreach (var rule in rules)

@@ -1303,7 +1303,7 @@ namespace System
                 // Verify the PEModule has no assembly references.
                 Assert.Equal(0, module.Module.ReferencedAssemblies.Length);
                 // Verify the underlying metadata has the expected assembly references.
-                var actualReferences = metadataReader.AssemblyReferences.Select(r => metadataReader.GetString(metadataReader.GetAssemblyReference(r).Name)).ToImmutableArray();
+                var actualReferences = metadataReader.AssemblyReferences.SelectAsArray(r => metadataReader.GetString(metadataReader.GetAssemblyReference(r).Name));
                 AssertEx.Equal(new[] { "mscorlib", "System.Private.Library" }, actualReferences);
 
                 var source =
@@ -1423,7 +1423,7 @@ namespace System
                 // Verify the PEModule has no assembly references.
                 Assert.Equal(0, module.Module.ReferencedAssemblies.Length);
                 // Verify the underlying metadata has the expected assembly references.
-                var actualReferences = metadataReader.AssemblyReferences.Select(r => metadataReader.GetString(metadataReader.GetAssemblyReference(r).Name)).ToImmutableArray();
+                var actualReferences = metadataReader.AssemblyReferences.SelectAsArray(r => metadataReader.GetString(metadataReader.GetAssemblyReference(r).Name));
                 AssertEx.Equal(new[] { "mscorlib", "System.Private.Library" }, actualReferences);
 
                 using (var runtime = RuntimeInstance.Create(new[] { moduleInstance }))

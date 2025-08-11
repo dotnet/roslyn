@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        bool Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters => true;
+
         Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -288,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
             NamedTypeSymbol baseType = AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
 
-            if (AdaptedNamedTypeSymbol.IsScriptClass || AdaptedNamedTypeSymbol.IsExtension) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should have checked the presence of System.Object
+            if (AdaptedNamedTypeSymbol.IsScriptClass || AdaptedNamedTypeSymbol.IsExtension)
             {
-                // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
+                // although submission, scripts and extension blocks semantically don't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);
                 baseType = AdaptedNamedTypeSymbol.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
             }
@@ -629,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)method != null);
 
-                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method is SynthesizedExtensionMarker || method.GetCciAdapter().ShouldInclude(context))
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.GetCciAdapter().ShouldInclude(context))
                 {
                     yield return method.GetCciAdapter();
                 }
@@ -655,7 +657,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (NamedTypeSymbol type in AdaptedNamedTypeSymbol.GetTypeMembers()) // Ordered.
             {
+                if (type.IsExtension)
+                {
+                    continue;
+                }
+
                 yield return type.GetCciAdapter();
+            }
+
+            if (AdaptedNamedTypeSymbol is SourceMemberContainerTypeSymbol { MergedDeclaration.ContainsExtensionDeclarations: true } container)
+            {
+                foreach (var groupingType in container.GetExtensionGroupingInfo().GetGroupingTypes())
+                {
+                    yield return groupingType;
+                }
             }
 
             IEnumerable<Cci.INestedTypeDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedTypes(AdaptedNamedTypeSymbol);
@@ -782,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (AdaptedNamedTypeSymbol.IsExtension)
                 {
-                    return AdaptedNamedTypeSymbol.ExtensionName;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 string unsuffixedName = AdaptedNamedTypeSymbol.Name;

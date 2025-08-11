@@ -3076,9 +3076,8 @@ public sealed class RemoveUnusedMembersTests
                 .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
-    public async Task DoNotWarnForAwaiterMethods()
-    {
-        const string code = """
+    public Task DoNotWarnForAwaiterMethods()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -3096,15 +3095,11 @@ public sealed class RemoveUnusedMembersTests
                 public void OnCompleted(Action continuation) => Task.Run(continuation);
                 public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
-    public async Task WarnForAwaiterMethodsNotImplementingInterface()
-    {
-        const string code = """
+    public Task WarnForAwaiterMethodsNotImplementingInterface()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -3117,8 +3112,7 @@ public sealed class RemoveUnusedMembersTests
                 public void OnCompleted(Action continuation) => Task.Run(continuation);
                 public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
             }
-            """;
-        const string fixedCode = """
+            """, """
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -3128,10 +3122,7 @@ public sealed class RemoveUnusedMembersTests
                 public void OnCompleted(Action continuation) => Task.Run(continuation);
                 public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57470")]
     public Task TestForeach()

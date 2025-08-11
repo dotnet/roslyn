@@ -9,10 +9,8 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-
     <[UseExportProvider]>
     Public Class SymbolDescriptionServiceTests
-
         Private Shared Async Function TestAsync(languageServiceProvider As HostLanguageServices, workspace As EditorTestWorkspace, expectedDescription As String) As Task
 
             Dim solution = workspace.CurrentSolution

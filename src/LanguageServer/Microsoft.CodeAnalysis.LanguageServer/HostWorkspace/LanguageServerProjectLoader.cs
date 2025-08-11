@@ -133,7 +133,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectPathsToLoadOrReload, CancellationToken cancellationToken)
+    private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -145,15 +145,15 @@ internal abstract class LanguageServerProjectLoader
         try
         {
             var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
-                source: projectPathsToLoadOrReload,
-                produceItems: static async (projectToLoad, callback, args, cancellationToken) =>
+                source: projectsToLoadOrReload,
+                produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
                 {
                     var (@this, toastErrorReporter, buildHostProcessManager) = args;
                     var projectNeedsRestore = await @this.ReloadProjectAsync(
                         projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
-                        callback(projectToLoad.Path);
+                        produceItem(projectToLoad.Path);
                 },
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
@@ -165,7 +165,7 @@ internal abstract class LanguageServerProjectLoader
                 // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
                 //
                 // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, cancellationToken);
+                await ProjectDependencyHelper.SendProjectNeedsRestoreRequestAsync(projectsThatNeedRestore, cancellationToken);
             }
         }
         finally
@@ -180,6 +180,14 @@ internal abstract class LanguageServerProjectLoader
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
+
+    /// <summary>Called after a project is unloaded to allow the subtype to clean up any resources associated with the project.</summary>
+    /// <remarks>
+    /// Note that this refers to unloading of the project on the project-system level.
+    /// So, for example, changing the target frameworks of a project, or transitioning between
+    /// "file-based program" and "true miscellaneous file", will not result in this being called.
+    /// </remarks>
+    protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
@@ -445,5 +453,7 @@ internal abstract class LanguageServerProjectLoader
                 throw ExceptionUtilities.UnexpectedValue(loadState);
             }
         }
+
+        await OnProjectUnloadedAsync(projectPath);
     }
 }

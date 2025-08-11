@@ -52,6 +52,8 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
         var helpers = this.Helpers;
 
+        var knownToStringFormats = helpers.BuildKnownToStringFormatsLookupTable(semanticModel.Compilation);
+
         foreach (var diagnostic in diagnostics)
         {
             var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
@@ -62,7 +64,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
                 helpers.UnwrapInterpolation(
                     document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
                     document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                    interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
+                    interpolation, knownToStringFormats, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                 if (unwrapped == null)
                     continue;

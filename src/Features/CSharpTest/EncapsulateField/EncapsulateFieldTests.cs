@@ -43,7 +43,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
         options ??= new OptionsCollection(GetLanguage());
         options.AddRange(AllOptionsOff);
 
-        return TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, options, testHost: host);
+        return TestAsync(initialMarkup, expectedMarkup, new TestParameters(parseOptions, compilationOptions, index: index, options: options, testHost: host));
     }
 
     [Theory, CombinatorialData]
@@ -195,12 +195,12 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """,
-            options: new OptionsCollection(GetLanguage())
+            new(options: new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent }
             },
-            testHost: host);
+            testHost: host));
 
     [Theory, CombinatorialData]
     public Task TestCodeStyle2(TestHost host)
@@ -227,11 +227,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """,
-            options: new OptionsCollection(GetLanguage())
+            new(options: new OptionsCollection(GetLanguage())
             {
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             },
-            testHost: host);
+            testHost: host));
 
     [Theory, CombinatorialData]
     public Task PublicFieldIntoPublicPropertyIgnoringReferences(TestHost host)

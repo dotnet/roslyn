@@ -11,13 +11,13 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1579,6 +1579,55 @@ class Program
                expectedSrcAttrCount: 20,
                expectedDuplicateAttrCount: 5,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
+        }
+
+        [Fact]
+        public void AssemblyDropIdenticalAttributes_01()
+        {
+            var src = """
+[assembly: A(typeof(object))]
+[assembly: A(typeof(object))]
+
+[assembly: A(typeof((int a, int b)))]
+[assembly: A(typeof((int notA, int notB)))]
+
+#nullable enable
+[assembly: A(typeof(I<object>))]
+[assembly: A(typeof(I<object?>))]
+
+[System.AttributeUsage(System.AttributeTargets.Assembly, AllowMultiple = true)]
+public class AAttribute : System.Attribute
+{
+    public AAttribute(System.Type type) { }
+}
+
+public interface I<T> { }
+""";
+            string assemblyName = GetUniqueName();
+            var netmoduleCompilation = CreateCompilation(src, options: TestOptions.ReleaseModule, assemblyName: assemblyName, targetFramework: TargetFramework.Net90);
+            MetadataReference netmoduleRef = ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray()).GetReference(display: assemblyName + ".netmodule");
+
+            var comp = CreateCompilation("", references: [netmoduleRef], targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, verify: Verification.FailsPEVerify);
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, verify: Verification.FailsPEVerify);
+
+            static void validate(ModuleSymbol module)
+            {
+                var metadataAttributes = module.ContainingAssembly
+                    .GetAttributes()
+                    .Where(a => a.AttributeClass.Name == "AAttribute");
+
+                string[] expected =
+                [
+                    "AAttribute(typeof(object))",
+                    "AAttribute(typeof((int, int)))",
+                    "AAttribute(typeof(I<object>))"
+                ];
+
+                AssertEx.Equal(expected, metadataAttributes.Select(a => a.ToString()));
+            }
         }
 
         [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]

@@ -354,8 +354,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
                 .Select(argument => (
                     argument.Parameter,
                     callerSemanticModel.GetSymbolInfo(argument.Value.Syntax, cancellationToken).GetAnySymbol()?.Name))
-                .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
-                .ToImmutableArray();
+                .WhereAsArray(parameterAndArgumentName => parameterAndArgumentName.Name != null);
 
             var mergeInlineContentAndVariableDeclarationArgument = await ShouldMergeInlineContentAndVariableDeclarationArgumentAsync(
                 calleeDocument,
@@ -446,8 +445,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             // the 'i' in the caller will be considered as the referenced location
             var allReferencedLocations = allReferences
                 .SelectMany(@ref => @ref.Locations)
-                .Where(location => !location.IsImplicit && calleeMethodNode.Contains(location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken)))
-                .ToImmutableArray();
+                .WhereAsArray(location => !location.IsImplicit && calleeMethodNode.Contains(location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken)));
 
             if (allReferencedLocations.Length == 1
                 && allReferencedLocations[0].SymbolUsageInfo.IsReadFrom())

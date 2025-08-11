@@ -343,6 +343,11 @@ internal sealed class EditSession
             return false;
         }
 
+        if (HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
+        {
+            return true;
+        }
+
         foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
         {
             var document = newProject.GetRequiredDocument(documentId);
@@ -361,7 +366,7 @@ internal sealed class EditSession
                 return true;
             }
 
-            differences.Value.ChangedOrAddedDocuments.Add(document);
+            differences.ChangedOrAddedDocuments.Add(document);
         }
 
         foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
@@ -377,7 +382,7 @@ internal sealed class EditSession
                 return true;
             }
 
-            differences.Value.ChangedOrAddedDocuments.Add(document);
+            differences.ChangedOrAddedDocuments.Add(document);
         }
 
         foreach (var documentId in newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates))
@@ -393,7 +398,7 @@ internal sealed class EditSession
                 return true;
             }
 
-            differences.Value.DeletedDocuments.Add(document);
+            differences.DeletedDocuments.Add(document);
         }
 
         // The following will check for any changes in non-generated document content (editorconfig, additional docs).
@@ -436,9 +441,63 @@ internal sealed class EditSession
         return false;
     }
 
-    internal static async Task GetProjectDifferencesAsync(TraceLog log, Project oldProject, Project newProject, ProjectDifferences documentDifferences, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    /// <summary>
+    /// Return true if projects might have differences in state other than document content that migth affect EnC.
+    /// The checks need to be fast. May return true even if the changes don't actually affect the behavior.
+    /// </summary>
+    internal static bool HasProjectLevelDifferences(Project oldProject, Project newProject, ProjectDifferences? differences)
+    {
+        Debug.Assert(oldProject.CompilationOptions != null);
+        Debug.Assert(newProject.CompilationOptions != null);
+
+        if (oldProject.ParseOptions != newProject.ParseOptions ||
+            HasDifferences(oldProject.CompilationOptions, newProject.CompilationOptions) ||
+            oldProject.AssemblyName != newProject.AssemblyName)
+        {
+            if (differences != null)
+            {
+                differences.HasSettingChange = true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        if (!oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) ||
+            !oldProject.ProjectReferences.SequenceEqual(newProject.ProjectReferences))
+        {
+            if (differences != null)
+            {
+                differences.HasReferenceChange = true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True if given compilation options differ in a way that might affect EnC.
+    /// </summary>
+    internal static bool HasDifferences(CompilationOptions oldOptions, CompilationOptions newOptions)
+        => !oldOptions
+            .WithSyntaxTreeOptionsProvider(newOptions.SyntaxTreeOptionsProvider)
+            .WithStrongNameProvider(newOptions.StrongNameProvider)
+            .WithXmlReferenceResolver(newOptions.XmlReferenceResolver)
+            .Equals(newOptions);
+
+    internal static async Task GetProjectDifferencesAsync(TraceLog log, Project? oldProject, Project newProject, ProjectDifferences documentDifferences, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         documentDifferences.Clear();
+
+        if (oldProject == null)
+        {
+            return;
+        }
 
         if (!await HasDifferencesAsync(oldProject, newProject, documentDifferences, cancellationToken).ConfigureAwait(false))
         {
@@ -697,6 +756,16 @@ internal sealed class EditSession
         return hasRudeEdit;
     }
 
+    private static bool HasAddedReference(Compilation oldCompilation, Compilation newCompilation)
+    {
+        using var pooledOldNames = SharedPools.StringIgnoreCaseHashSet.GetPooledObject();
+        var oldNames = pooledOldNames.Object;
+        Debug.Assert(oldNames.Comparer == AssemblyIdentityComparer.SimpleNameComparer);
+
+        oldNames.AddRange(oldCompilation.ReferencedAssemblyNames.Select(static r => r.Name));
+        return newCompilation.ReferencedAssemblyNames.Any(static (newReference, oldNames) => !oldNames.Contains(newReference.Name), oldNames);
+    }
+
     internal static async ValueTask<ProjectChanges> GetProjectChangesAsync(
         ActiveStatementsMap baseActiveStatements,
         Compilation oldCompilation,
@@ -847,7 +916,9 @@ internal sealed class EditSession
 
             if (partialTypeEdits.Any(static e => e.SyntaxMaps.HasMap))
             {
-                var newMaps = partialTypeEdits.Where(static edit => edit.SyntaxMaps.HasMap).SelectAsArray(static edit => edit.SyntaxMaps);
+                var newMaps = partialTypeEdits.SelectAsArray(
+                    predicate: static edit => edit.SyntaxMaps.HasMap,
+                    selector: static edit => edit.SyntaxMaps);
 
                 mergedMatchingNodes = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].MatchingNodes!(node);
                 mergedRuntimeRudeEdits = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].RuntimeRudeEdits?.Invoke(node);
@@ -888,7 +959,7 @@ internal sealed class EditSession
         Solution solution,
         ActiveStatementSpanProvider solutionActiveStatementSpanProvider,
         UpdateId updateId,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         CancellationToken cancellationToken)
     {
         var projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
@@ -900,9 +971,11 @@ internal sealed class EditSession
             using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
             using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
             using var _3 = ArrayBuilder<ProjectBaseline>.GetInstance(out var newProjectBaselines);
-            using var _4 = ArrayBuilder<(ProjectId id, Guid mvid)>.GetInstance(out var projectsToStale);
-            using var _5 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToUnstale);
+            using var _4 = ArrayBuilder<ProjectId>.GetInstance(out var addedUnbuiltProjects);
+            using var _5 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRedeploy);
             using var _6 = PooledDictionary<ProjectId, ArrayBuilder<Diagnostic>>.GetInstance(out var diagnosticBuilders);
+
+            // Project differences for currently analyzed project. Reused and cleared.
             using var projectDifferences = new ProjectDifferences();
 
             // After all projects have been analyzed "true" value indicates changed document that is only included in stale projects.
@@ -945,39 +1018,14 @@ internal sealed class EditSession
                     }
 
                     var oldProject = oldSolution.GetProject(newProject.Id);
-                    if (oldProject == null)
-                    {
-                        Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project not loaded");
-
-                        // TODO (https://github.com/dotnet/roslyn/issues/1204):
-                        //
-                        // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
-                        // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-                        // and will result in source mismatch when the user steps into them.
-                        //
-                        // We can allow project to be added by including all its documents here.
-                        // When we analyze these documents later on we'll check if they match the PDB.
-                        // If so we can add them to the committed solution and detect further changes.
-                        // It might be more efficient though to track added projects separately.
-
-                        continue;
-                    }
-
-                    Debug.Assert(oldProject.SupportsEditAndContinue());
-
-                    if (!oldProject.ProjectSettingsSupportEditAndContinue(Log))
-                    {
-                        // reason alrady reported
-                        continue;
-                    }
-
-                    projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
+                    Debug.Assert(oldProject == null || oldProject.SupportsEditAndContinue());
 
                     await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, cancellationToken).ConfigureAwait(false);
+                    projectDifferences.Log(Log, newProject);
 
-                    if (projectDifferences.HasDocumentChanges)
+                    if (projectDifferences.IsEmpty)
                     {
-                        Log.Write($"Found {projectDifferences.ChangedOrAddedDocuments.Count} potentially changed, {projectDifferences.DeletedDocuments.Count} deleted document(s) in project {newProject.GetLogDisplay()}");
+                        continue;
                     }
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
@@ -989,8 +1037,9 @@ internal sealed class EditSession
                         if (mvid == staleModuleId || mvidReadError != null)
                         {
                             Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project is stale");
-                            UpdateChangedDocumentsStaleness(isStale: true);
 
+                            // Track changed documents that are only included in stale or unbuilt projects:
+                            UpdateChangedDocumentsStaleness(isStale: true);
                             continue;
                         }
 
@@ -1003,14 +1052,29 @@ internal sealed class EditSession
                         // The MVID is required for emit so we consider the error permanent and report it here.
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
                         projectDiagnostics.Add(mvidReadError);
-                        projectSummaryToReport = ProjectAnalysisSummary.ValidChanges;
                         continue;
                     }
 
                     if (mvid == Guid.Empty)
                     {
-                        Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: project not built");
+                        // If the project has been added to the solution, ask the project system to build it.
+                        if (oldProject == null)
+                        {
+                            Log.Write($"Project build requested for {newProject.GetLogDisplay()}");
+                            addedUnbuiltProjects.Add(newProject.Id);
+                        }
+                        else
+                        {
+                            Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: project not built");
+                        }
+
+                        // Track changed documents that are only included in stale or unbuilt projects:
                         UpdateChangedDocumentsStaleness(isStale: true);
+                        continue;
+                    }
+
+                    if (oldProject == null)
+                    {
                         continue;
                     }
 
@@ -1079,8 +1143,7 @@ internal sealed class EditSession
 
                     // Unsupported changes in referenced assemblies will be reported below.
                     if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges &&
-                        oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) &&
-                        oldProject.ProjectReferences.SequenceEqual(newProject.ProjectReferences))
+                        !projectDifferences.HasReferenceChange)
                     {
                         continue;
                     }
@@ -1138,6 +1201,14 @@ internal sealed class EditSession
                     if (projectBaselines.Any(baseline => HasReferenceRudeEdits(baseline.InitiallyReferencedAssemblies, newCompilation, projectDiagnostics)))
                     {
                         continue;
+                    }
+
+                    // If the project references new dependencies, the host needs to invoke ReferenceCopyLocalPathsOutputGroup target on this project
+                    // to deploy these dependencies to the projects output directory. The deployment shouldn't overwrite existing files.
+                    // It should only happen if the project has no rude edits (especially not rude edits related to references) -- we bailed above if so.
+                    if (HasAddedReference(oldCompilation, newCompilation))
+                    {
+                        projectsToRedeploy.Add(newProject.Id);
                     }
 
                     if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
@@ -1286,9 +1357,9 @@ internal sealed class EditSession
                 }
                 finally
                 {
-                    if (projectSummaryToReport.HasValue)
+                    if (projectSummaryToReport.HasValue || !projectDiagnostics.IsEmpty)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummaryToReport.Value, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
+                        Telemetry.LogProjectAnalysisSummary(projectSummaryToReport, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
                     }
 
                     if (!projectDiagnostics.IsEmpty)
@@ -1338,6 +1409,7 @@ internal sealed class EditSession
                 solution,
                 updates,
                 diagnostics,
+                addedUnbuiltProjects,
                 runningProjects,
                 out var projectsToRestart,
                 out var projectsToRebuild);
@@ -1352,7 +1424,8 @@ internal sealed class EditSession
                 diagnostics,
                 syntaxError: null,
                 projectsToRestart,
-                projectsToRebuild);
+                projectsToRebuild,
+                projectsToRedeploy.ToImmutable());
         }
         catch (Exception e) when (LogException(e) && FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
