@@ -38,52 +38,70 @@ internal sealed class RazorStartupServiceFactory(
         AbstractRazorCohostLifecycleService? razorCohostLifecycleService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
-        private IDisposable? _activation;
+        private IDisposable? _cohostActivation;
+        private IDisposable? _razorFilePresentActivation;
 
         public void Dispose()
         {
             razorCohostLifecycleService?.Dispose();
 
-            _activation?.Dispose();
-            _activation = null;
+            _razorFilePresentActivation?.Dispose();
+            _razorFilePresentActivation = null;
+            _cohostActivation?.Dispose();
+            _cohostActivation = null;
             _disposalTokenSource.Cancel();
         }
 
-        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             if (context.ServerKind is not (WellKnownLspServerKinds.AlwaysActiveVSLspServer or WellKnownLspServerKinds.CSharpVisualBasicLspServer))
             {
                 // We have to register this class for Any server, but only want to run in the C# server in VS or VS Code
-                return;
+                return Task.CompletedTask;
             }
 
             if (cohostStartupService is null && razorCohostLifecycleService is null)
             {
-                return;
-            }
-
-            if (razorCohostLifecycleService is not null)
-            {
-                // If we have a cohost lifecycle service, fire pre-initialization, which happens when the LSP server starts up, but before
-                // the UIContext is activated.
-                await razorCohostLifecycleService.LspServerIntializedAsync(cancellationToken).ConfigureAwait(false);
+                return Task.CompletedTask;
             }
 
             if (uIContextActivationService is null)
             {
-                // Outside of VS, we want to initialize immediately.. I think?
+                PreinitializeRazor();
                 InitializeRazor();
             }
             else
             {
-                _activation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
+                // There are two initialization methods for Razor, which looks odd here, but are really controlled by UI contexts.
+                // This method fires for any Roslyn project, but not all Roslyn projects are Razor projects, so the first UI context
+                // triggers where there is a project with a Razor capability present in the solution, and the next is when a Razor file
+                // is opened in the editor. ie these two lines look the same, but really they do different levels of initialization.
+                _razorFilePresentActivation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCapabilityPresentUIContext, PreinitializeRazor);
+                _cohostActivation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
             }
 
-            return;
+            return Task.CompletedTask;
+
+            void PreinitializeRazor()
+            {
+                this.PreinitializeRazorAsync(_disposalTokenSource.Token).ReportNonFatalErrorAsync();
+            }
 
             void InitializeRazor()
             {
                 this.InitializeRazorAsync(clientCapabilities, context, _disposalTokenSource.Token).ReportNonFatalErrorAsync();
+            }
+        }
+
+        private async Task PreinitializeRazorAsync(CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested) return;
+
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
+            if (razorCohostLifecycleService is not null)
+            {
+                await razorCohostLifecycleService.LspServerIntializedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
