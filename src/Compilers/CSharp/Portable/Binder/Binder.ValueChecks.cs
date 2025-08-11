@@ -327,6 +327,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                     HasAnyErrors = propertyAccess.HasAnyErrors,
                 };
+
+            public static MethodInvocationInfo FromCollectionElementInitializer(BoundCollectionElementInitializer colElement)
+                => new MethodInvocationInfo
+                {
+                    MethodInfo = MethodInfo.Create(colElement.AddMethod),
+                    Parameters = colElement.AddMethod.Parameters,
+                    Receiver = colElement.ImplicitReceiverOpt,
+                    ArgsOpt = colElement.Arguments,
+                    ArgsToParamsOpt = colElement.ArgsToParamsOpt,
+                };
         }
 
         /// <summary>
@@ -2320,26 +2330,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SafeContext GetInvocationEscapeToReceiver(
-            in MethodInfo methodInfo,
-            ImmutableArray<ParameterSymbol> parameters,
-            BoundExpression? receiver,
-            ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
-            ImmutableArray<int> argsToParamsOpt,
+            in MethodInvocationInfo methodInvocationInfo,
             SafeContext localScopeDepth)
         {
             // By default it is safe to escape.
             SafeContext escapeScope = SafeContext.CallingMethod;
 
             var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
-            GetFilteredInvocationArgumentsForEscapeToReceiver(
-                methodInfo,
-                parameters,
-                receiver,
-                argsOpt,
-                argRefKindsOpt,
-                argsToParamsOpt,
-                escapeValues);
+            GetFilteredInvocationArgumentsForEscapeToReceiver(in methodInvocationInfo, escapeValues);
 
             foreach (var (_, argument, _, isArgumentRefEscape) in escapeValues)
             {
@@ -2570,12 +2568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckInvocationEscapeToReceiver(
             SyntaxNode syntax,
-            in MethodInfo methodInfo,
-            ImmutableArray<ParameterSymbol> parameters,
-            BoundExpression? receiver,
-            ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
-            ImmutableArray<int> argsToParamsOpt,
+            in MethodInvocationInfo methodInvocationInfo,
             bool checkingReceiver,
             SafeContext escapeFrom,
             SafeContext escapeTo,
@@ -2584,14 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool result = true;
 
             var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
-            GetFilteredInvocationArgumentsForEscapeToReceiver(
-                methodInfo,
-                parameters,
-                receiver,
-                argsOpt,
-                argRefKindsOpt,
-                argsToParamsOpt,
-                escapeValues);
+            GetFilteredInvocationArgumentsForEscapeToReceiver(in methodInvocationInfo, escapeValues);
 
             foreach (var (parameter, argument, _, isArgumentRefEscape) in escapeValues)
             {
@@ -2601,7 +2587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!valid)
                 {
-                    ReportInvocationEscapeError(syntax, methodInfo.Symbol, parameter, checkingReceiver, diagnostics);
+                    ReportInvocationEscapeError(syntax, methodInvocationInfo.MethodInfo.Symbol, parameter, checkingReceiver, diagnostics);
                     result = false;
                     break;
                 }
@@ -2851,28 +2837,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void GetFilteredInvocationArgumentsForEscapeToReceiver(
-            in MethodInfo methodInfo,
-            ImmutableArray<ParameterSymbol> parameters,
-            BoundExpression? receiver,
-            ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
-            ImmutableArray<int> argsToParamsOpt,
+            ref readonly MethodInvocationInfo methodInvocationInfo,
             ArrayBuilder<EscapeValue> escapeValues)
         {
-            var localMethodInfo = ReplaceWithExtensionImplementationIfNeeded(
-                methodInfo,
-                ref parameters,
-                ref receiver,
-                ref argsOpt,
-                ref argRefKindsOpt,
-                ref argsToParamsOpt);
+            var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
+            var methodInfo = localMethodInvocationInfo.MethodInfo;
 
             // If the receiver is not a ref to a ref struct, it cannot capture anything.
             ParameterSymbol? extensionReceiver = null;
-            if (localMethodInfo.Symbol.RequiresInstanceReceiver())
+            if (methodInfo.Symbol.RequiresInstanceReceiver())
             {
                 // We have an instance method receiver.
-                if (!hasRefToRefStructThis(localMethodInfo.Method) && !hasRefToRefStructThis(localMethodInfo.SetMethod))
+                if (!hasRefToRefStructThis(methodInfo.Method) && !hasRefToRefStructThis(methodInfo.SetMethod))
                 {
                     return;
                 }
@@ -2880,9 +2856,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // We have a classic extension method receiver.
-                Debug.Assert(localMethodInfo.Method?.IsExtensionMethod != false);
+                Debug.Assert(methodInfo.Method?.IsExtensionMethod != false);
 
-                if (parameters is [var extReceiver, ..])
+                if (localMethodInvocationInfo.Parameters is [var extReceiver, ..])
                 {
                     extensionReceiver = extReceiver;
                     if (!isRefToRefStruct(extensionReceiver))
@@ -2894,14 +2870,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var unfilteredEscapeValues = ArrayBuilder<EscapeValue>.GetInstance();
             GetEscapeValues(
-                localMethodInfo,
                 // We do not need the receiver in `escapeValues`.
-                receiver: null,
-                receiverIsSubjectToCloning: ThreeState.Unknown,
-                parameters,
-                argsOpt,
-                argRefKindsOpt,
-                argsToParamsOpt,
+                localMethodInvocationInfo with { Receiver = null },
                 ignoreArglistRefKinds: true,
                 mixableArguments: null,
                 unfilteredEscapeValues);
@@ -4820,12 +4790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = result.Intersect(expr is BoundCollectionElementInitializer colElement
                     ? GetInvocationEscapeToReceiver(
-                        MethodInfo.Create(colElement.AddMethod),
-                        colElement.AddMethod.Parameters,
-                        colElement.ImplicitReceiverOpt,
-                        colElement.Arguments,
-                        argRefKindsOpt: default,
-                        colElement.ArgsToParamsOpt,
+                        MethodInvocationInfo.FromCollectionElementInitializer(colElement),
                         localScopeDepth)
                     : GetValEscape(expr, localScopeDepth));
             }
@@ -5763,12 +5728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!CheckInvocationEscapeToReceiver(
                             colElement.Syntax,
-                            MethodInfo.Create(colElement.AddMethod),
-                            colElement.AddMethod.Parameters,
-                            colElement.ImplicitReceiverOpt,
-                            colElement.Arguments,
-                            argRefKindsOpt: default,
-                            colElement.ArgsToParamsOpt,
+                            MethodInvocationInfo.FromCollectionElementInitializer(colElement),
                             checkingReceiver: false,
                             escapeFrom,
                             escapeTo,
@@ -5863,12 +5823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     scope = scope.Intersect(GetInvocationEscapeToReceiver(
-                        MethodInfo.Create(call.Method),
-                        call.Method.Parameters,
-                        call.ReceiverOpt,
-                        call.Arguments,
-                        call.ArgumentRefKindsOpt,
-                        call.ArgsToParamsOpt,
+                        MethodInvocationInfo.FromCall(call),
                         localScopeDepth));
                 }
 
@@ -5911,12 +5866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!CheckInvocationEscapeToReceiver(
                             call.Syntax,
-                            MethodInfo.Create(call.Method),
-                            call.Method.Parameters,
-                            call.ReceiverOpt,
-                            call.Arguments,
-                            call.ArgumentRefKindsOpt,
-                            call.ArgsToParamsOpt,
+                            MethodInvocationInfo.FromCall(call),
                             checkingReceiver: false,
                             escapeFrom,
                             escapeTo,
