@@ -730,7 +730,7 @@ class A
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
+            isExplicit: false, logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
         // In this case, since the analyzer identity is identical, we ran it once
@@ -766,7 +766,7 @@ class A
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
+            isExplicit: false, logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
         // In this case, since the analyzer reference identity is identical, we ran it once
@@ -801,7 +801,7 @@ class A
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
+            isExplicit: false, logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
         // In this case, the analyzers are ran twice. This appears to be a bug in SkippedHostAnalyzersInfo.Create, because it calls
@@ -855,7 +855,7 @@ class A
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
+            isExplicit: false, logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
         Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
