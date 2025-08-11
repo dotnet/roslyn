@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <c>null</c>.
         /// </remarks>
-        public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
+        public static string? FormatPrimitive(object? obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
             var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
             if (quoteStrings)
