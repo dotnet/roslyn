@@ -5299,10 +5299,12 @@ class Program2
 {
     static void Main()
     {
+        System.Console.Write(""Program2"");
     }
 
     static async Task Main(string[] args)
     {
+        System.Console.Write(""Program2Async"");
         await Task.Factory.StartNew(() => 5);
     }
 }
@@ -5311,16 +5313,15 @@ class Program3
 {
     static void Main(string[] args)
     {
+        System.Console.Write(""Program3"");
     }
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program2"), parseOptions: DefaultParseOptions);
-
-            comp.VerifyEmitDiagnostics(
-                // (12,23): warning CS8892: Method 'Program2.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program2.Main()' was found.
+            CompileAndVerify(text, options: TestOptions.DebugExe.WithMainTypeName("Program2"), parseOptions: DefaultParseOptions, expectedOutput: "Program2").VerifyDiagnostics(
+                // (13,23): warning CS8892: Method 'Program2.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program2.Main()' was found.
                 //     static async Task Main(string[] args)
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program2.Main(string[])", "Program2.Main()").WithLocation(12, 23)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program2.Main(string[])", "Program2.Main()").WithLocation(13, 23)
                 );
         }
 
