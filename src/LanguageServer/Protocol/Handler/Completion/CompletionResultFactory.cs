@@ -145,9 +145,8 @@ internal static class CompletionResultFactory
             {
                 // VSCode doesn't handle casing very well, but we do, and we already sorted the list
                 // Add sort text to ensure that items are sorted by their position in the list.
-                // The max length of sort text is 100 characters, so we only need 4 characters to represent the index.
-                var listOrderSortPrefix = index.ToString("D4");
-                lspItem.SortText = $"{listOrderSortPrefix}{lspItem.SortText}";
+                // The max length of the list is 1000 items, so we only need 4 characters to represent the index.
+                lspItem.SortText = $"{index:D4}{lspItem.SortText}";
             }
 
             if (!lspItem.Label.Equals(item.FilterText, StringComparison.Ordinal))
