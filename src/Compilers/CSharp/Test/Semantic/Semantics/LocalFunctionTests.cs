@@ -2601,6 +2601,96 @@ class Program
             Assert.True(methods[1].Parameters[2].IsParams);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Reflection;
+
+                int fun(params int[] xs) => xs.Length;
+                Console.WriteLine(fun(4, 5, 6));
+                Console.WriteLine(string.Join("\n", typeof(Program)
+                  .GetMethod("<<Main>$>g__fun|0_0", BindingFlags.Static | BindingFlags.NonPublic)
+                  .GetParameters()
+                  .Single()
+                  .CustomAttributes
+                  .Select(a => a.AttributeType)));
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.ParamArrayAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<<Main>$>g__fun|0_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Int32[] xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.True(parameter.IsParamsArray);
+                Assert.False(parameter.IsParamsCollection);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_Missing()
+        {
+            var source = """
+                int fun(params int[] xs) => xs.Length;
+                fun(4, 5, 6);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // int fun(params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Reflection;
+
+                int fun(params IList<int> xs) => xs.Count;
+                Console.WriteLine(fun(4, 5, 6));
+                Console.WriteLine(string.Join("\n", typeof(Program)
+                  .GetMethod("<<Main>$>g__fun|0_0", BindingFlags.Static | BindingFlags.NonPublic)
+                  .GetParameters()
+                  .Single()
+                  .CustomAttributes
+                  .Select(a => a.AttributeType)));
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.Runtime.CompilerServices.ParamCollectionAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<<Main>$>g__fun|0_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Collections.Generic.IList<System.Int32> xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.False(parameter.IsParamsArray);
+                Assert.True(parameter.IsParamsCollection);
+            }
+        }
+
         [Fact]
         public void BadRefWithDefault()
         {

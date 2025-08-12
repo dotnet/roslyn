@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
-            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for these methods because it is not a SynthesizedDelegateInvokeMethod
+
+            ParameterHelpers.EnsureParamCollectionAttributeExists(moduleBuilder, Parameters);
 
             if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
@@ -214,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
         internal override bool InheritsBaseMethodAttributes => true;
+        protected override bool InheritsParams => true;
         internal override bool GenerateDebugInfo => !this.IsAsync;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)

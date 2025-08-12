@@ -196,11 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor));
             }
 
-            if (this.IsParamsArray && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            if (this.IsParamsArray && this.ContainingSymbol is SynthesizedDelegateInvokeMethod or SynthesizedClosureMethod)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
-            else if (this.IsParamsCollection && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            else if (this.IsParamsCollection && this.ContainingSymbol is SynthesizedDelegateInvokeMethod or SynthesizedClosureMethod)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
             }

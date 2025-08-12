@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lambdaParameters = lambdaSymbol.Parameters;
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
-            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for lambdas
+            ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
 
             if (returnType.HasType)
             {

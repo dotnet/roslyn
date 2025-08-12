@@ -370,11 +370,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void EnsureParamCollectionAttributeExistsAndModifyCompilation(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        internal static void EnsureParamCollectionAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
             if (parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
             {
-                compilation.EnsureParamCollectionAttributeExistsAndModifyCompilation(diagnostics, GetParameterLocation(parameter));
+                moduleBuilder.EnsureParamCollectionAttributeExists(null, null);
+            }
+        }
+
+        internal static void EnsureParamCollectionAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            if (parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
+            {
+                compilation.EnsureParamCollectionAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
             }
         }
 
