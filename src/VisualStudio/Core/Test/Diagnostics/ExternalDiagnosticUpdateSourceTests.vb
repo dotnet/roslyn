@@ -55,31 +55,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.OnSolutionBuildStarted()
                     Await waiter.ExpeditedWaitAsync()
 
-                    Assert.True(source.IsSupportedDiagnosticId(project.Id, "ID1"))
-                    Assert.False(source.IsSupportedDiagnosticId(project.Id, "CA1002"))
+                    Assert.True(Await source.IsSupportedDiagnosticIdAsync(project.Id, "ID1", CancellationToken.None))
+                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "CA1002", CancellationToken.None))
                 End Using
             End Using
         End Function
 
         <WpfFact>
-        Public Async Function TestExternalDiagnostics_SupportedDiagnosticId_Concurrent() As Task
-            Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
-                Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
-                Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
-                vsWorkspace.SetWorkspace(workspace)
-                Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
-
-                    Dim project = workspace.CurrentSolution.Projects.First()
-                    source.OnSolutionBuildStarted()
-                    Await waiter.ExpeditedWaitAsync()
-
-                    Parallel.For(0, 100, Sub(i As Integer) source.IsSupportedDiagnosticId(project.Id, "CS1002"))
-                End Using
-            End Using
-        End Function
-
-        <WpfFact>
-        Public Sub TestExternalDiagnostics_SupportedIdFalseIfBuildNotStarted()
+        Public Async Function TestExternalDiagnostics_SupportedIdFalseIfBuildNotStarted() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
                 Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
                 Dim analyzer = New AnalyzerForErrorLogTest()
@@ -97,11 +80,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     Dim project = workspace.CurrentSolution.Projects.First()
 
-                    Assert.False(source.IsSupportedDiagnosticId(project.Id, "ID1"))
-                    Assert.False(source.IsSupportedDiagnosticId(project.Id, "CA1002"))
+                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "ID1", CancellationToken.None))
+                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "CA1002", CancellationToken.None))
                 End Using
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Async Function TestExternalDiagnosticsReported() As Task

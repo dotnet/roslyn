@@ -39,8 +39,35 @@ internal sealed class RemoteSemanticSearchService(
         public async ValueTask OnSymbolFoundAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var definition = await SemanticSearchDefinitionItemFactory.CreateAsync(solution, symbol, classificationOptions: this, cancellationToken).ConfigureAwait(false);
-            var dehydratedDefinition = SerializableDefinitionItem.Dehydrate(id: 0, definition);
+            await OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+        }
 
+        public async ValueTask OnSyntaxNodeFoundAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var definition = await SemanticSearchDefinitionItemFactory.CreateAsync(document, node, cancellationToken).ConfigureAwait(false);
+            await OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask OnValueFoundAsync(Solution solution, object value, CancellationToken cancellationToken)
+        {
+            var definition = SemanticSearchDefinitionItemFactory.Create(value.ToString() ?? "<null>");
+            await OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask OnLocationFoundAsync(Solution solution, Location location, CancellationToken cancellationToken)
+        {
+            var definition = await SemanticSearchDefinitionItemFactory.CreateAsync(solution, location, cancellationToken).ConfigureAwait(false);
+            if (definition == null)
+            {
+                return;
+            }
+
+            await OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+        {
+            var dehydratedDefinition = SerializableDefinitionItem.Dehydrate(id: 0, definition);
             await callback.InvokeAsync((callback, cancellationToken) => callback.OnDefinitionFoundAsync(callbackId, dehydratedDefinition, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
 
