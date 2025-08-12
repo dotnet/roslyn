@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 internal sealed class RazorStartupServiceFactory(
     [Import(AllowDefault = true)] IUIContextActivationService? uIContextActivationService,
     [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService,
-    [Import(AllowDefault = true)] AbstractRazorCohostLifecycleService? razorCohostLifecycleService) : ILspServiceFactory
+    [Import(AllowDefault = true)] Lazy<AbstractRazorCohostLifecycleService>? razorCohostLifecycleService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
@@ -35,7 +35,7 @@ internal sealed class RazorStartupServiceFactory(
 #pragma warning disable CS0618 // Type or member is obsolete
         Lazy<ICohostStartupService>? cohostStartupService,
 #pragma warning restore CS0618 // Type or member is obsolete
-        AbstractRazorCohostLifecycleService? razorCohostLifecycleService) : ILspService, IOnInitialized, IDisposable
+        Lazy<AbstractRazorCohostLifecycleService>? razorCohostLifecycleService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
         private IDisposable? _cohostActivation;
@@ -43,7 +43,10 @@ internal sealed class RazorStartupServiceFactory(
 
         public void Dispose()
         {
-            razorCohostLifecycleService?.Dispose();
+            if (razorCohostLifecycleService is { IsValueCreated: true, Value: var service })
+            {
+                service.Dispose();
+            }
 
             _razorFilePresentActivation?.Dispose();
             _razorFilePresentActivation = null;
@@ -101,7 +104,7 @@ internal sealed class RazorStartupServiceFactory(
 
             if (razorCohostLifecycleService is not null)
             {
-                await razorCohostLifecycleService.LspServerIntializedAsync(cancellationToken).ConfigureAwait(false);
+                await razorCohostLifecycleService.Value.LspServerIntializedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -121,7 +124,7 @@ internal sealed class RazorStartupServiceFactory(
             if (razorCohostLifecycleService is not null)
             {
                 // If we have a cohost lifecycle service, fire post-initialization, which happens when the UIContext is activated.
-                await razorCohostLifecycleService.RazorActivatedAsync(clientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+                await razorCohostLifecycleService.Value.RazorActivatedAsync(clientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
             }
 
             if (cohostStartupService is not null)
