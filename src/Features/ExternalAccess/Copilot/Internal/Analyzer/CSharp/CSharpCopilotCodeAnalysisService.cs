@@ -6,12 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -31,6 +34,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     private IExternalCSharpCopilotGenerateDocumentationService? GenerateDocumentationService { get; }
     private IExternalCSharpOnTheFlyDocsService? OnTheFlyDocsService { get; }
     private IExternalCSharpCopilotGenerateImplementationService? GenerateImplementationService { get; }
+    private IExternalCSharpUserFacingStringService? UserFacingStringService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,6 +43,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
         [Import(AllowDefault = true)] IExternalCSharpOnTheFlyDocsService? externalCSharpOnTheFlyDocsService,
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateImplementationService? externalCSharpCopilotGenerateImplementationService,
+        [Import(AllowDefault = true)] IExternalCSharpUserFacingStringService? externalCSharpUserFacingStringService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
@@ -58,6 +63,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
         OnTheFlyDocsService = externalCSharpOnTheFlyDocsService;
         GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
+        UserFacingStringService = externalCSharpUserFacingStringService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
@@ -180,10 +186,78 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return resultBuilder.ToImmutable();
     }
 
-    protected override Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisCoreAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken)
+    protected override async Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisCoreAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken)
     {
-        // For now, return empty results as the external service doesn't exist yet
-        // This will be implemented when the external Copilot service supports user-facing string analysis
-        return Task.FromResult<(Dictionary<string, UserFacingStringAnalysis>?, bool)>((null, false));
+        if (UserFacingStringService is not null)
+        {
+            var wrapper = new CopilotUserFacingStringProposalWrapper(proposal);
+            var (rawResponseDictionary, isQuotaExceeded) = await UserFacingStringService.AnalyzeUserFacingStringsAsync(
+                wrapper, 
+                cancellationToken).ConfigureAwait(false);
+
+            if (rawResponseDictionary is not null)
+            {
+                // Convert the raw string responses to structured UserFacingStringAnalysis objects
+                var responseDictionary = ConvertRawResponseToAnalysis(rawResponseDictionary);
+                return (responseDictionary, isQuotaExceeded);
+            }
+
+            return (null, isQuotaExceeded);
+        }
+
+        return (null, false);
+    }
+
+    private static Dictionary<string, UserFacingStringAnalysis> ConvertRawResponseToAnalysis(
+        Dictionary<string, string> rawResponseDictionary)
+    {
+        var responseDictionary = new Dictionary<string, UserFacingStringAnalysis>();
+        
+        foreach (var kvp in rawResponseDictionary)
+        {
+            var originalString = kvp.Key;
+            var analysisText = kvp.Value;
+            
+            if (!string.IsNullOrWhiteSpace(analysisText))
+            {
+                // Parse the structured response: "confidence|resourceKey|reasoning"
+                var parts = analysisText.Split('|');
+                
+                var confidenceScore = 0.8; // Default confidence
+                var suggestedResourceKey = GenerateResourceKey(originalString);
+                var reasoning = "AI detected this as likely user-facing";
+                
+                if (parts.Length > 0 && double.TryParse(parts[0].Trim(), out var parsedConfidence))
+                {
+                    confidenceScore = parsedConfidence;
+                }
+                
+                if (parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1].Trim()))
+                {
+                    suggestedResourceKey = parts[1].Trim();
+                }
+                
+                if (parts.Length > 2 && !string.IsNullOrWhiteSpace(parts[2].Trim()))
+                {
+                    reasoning = parts[2].Trim();
+                }
+                
+                responseDictionary[originalString] = new UserFacingStringAnalysis(
+                    confidenceScore,
+                    suggestedResourceKey,
+                    reasoning
+                );
+            }
+        }
+        
+        return responseDictionary;
+    }
+    
+    private static string GenerateResourceKey(string value)
+    {
+        var words = value.Split(new[] { ' ', '.', ',', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+        var keyParts = words.Take(3).Select(w => char.ToUpperInvariant(w[0]) + w.Substring(1).ToLowerInvariant());
+        var key = string.Join("_", keyParts);
+        return string.IsNullOrEmpty(key) ? "StringResource" : key;
     }
 }

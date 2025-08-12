@@ -21,4 +21,11 @@ internal interface IUserFacingStringExtractorService : ILanguageService
     Task<ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)>> ExtractAndAnalyzeAsync(
         Document document,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets cached results without triggering new analysis. Fast method for retrieving existing analysis.
+    /// </summary>
+    Task<ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)>> GetCachedResultsAsync(
+        Document document,
+        CancellationToken cancellationToken);
 }

@@ -59,6 +59,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="MoveToResx\AI_IMPLEMENTATION_COMPLETE.md" />
+    <None Include="MoveToResx\AI_INTEGRATION_README.md" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Update="CSharpFeaturesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>

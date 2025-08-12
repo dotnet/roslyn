@@ -5,59 +5,350 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UserFacingStrings;
 
 namespace Microsoft.CodeAnalysis.CSharp.MoveToResx;
 
+/// <summary>
+/// AI-enhanced diagnostic analyzer that uses AI as the first resort to identify user-facing strings,
+/// falling back to heuristics for low-confidence strings or when AI is unavailable.
+/// 
+/// Flow:
+/// 1. Try AI analysis first
+/// 2. For AI confidence >= 75%: Report directly as user-facing
+/// 3. For AI confidence < 75%: Run through heuristic filters
+/// 4. If AI fails: Full heuristic analysis
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
 {
-    public CSharpMoveToResxDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.MoveToResxDiagnosticId,
-               EnforceOnBuild.Never,
-               option: null, // No specific EditorConfig option for this analyzer
-               new LocalizableResourceString(nameof(CSharpFeaturesResources.Move_to_Resx), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
-               new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_Resx_for_user_facing_strings), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
+    private static readonly DiagnosticDescriptor s_descriptor = new(
+        IDEDiagnosticIds.MoveToResxDiagnosticId,
+        new LocalizableResourceString(nameof(CSharpFeaturesResources.Move_to_Resx), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
+        new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_Resx_for_user_facing_strings), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
+        DiagnosticCategory.Style,
+        DiagnosticSeverity.Info,
+        isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_descriptor];
+
+    public bool IsHighPriority => false;
+
+    public override int Priority => 50; // Default priority
+
+    // Use SemanticDocumentAnalysis to have access to Document for AI analysis
+    public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(
+        TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
     {
+        if (textDocument is not Document document || tree == null)
+            return ImmutableArray<Diagnostic>.Empty;
+
+        var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+
+        // ✅ Now we have direct access to Document!
+        var extractorService = document.GetLanguageService<IUserFacingStringExtractorService>();
+        
+        if (extractorService != null)
+        {
+            // AI analysis path - run AI first
+            await AnalyzeWithAIAsync(document, extractorService, diagnostics, cancellationToken);
+        }
+        else
+        {
+            // No AI service available - fall back to heuristic analysis only
+            await AnalyzeWithHeuristicsOnlyAsync(document, tree, diagnostics, cancellationToken);
+        }
+
+        return diagnostics.ToImmutable();
     }
 
-    public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
-
-    protected override void InitializeWorker(AnalysisContext context)
+    /// <summary>
+    /// Updates the diagnostic analyzer to actually use AI analysis first as described in the comments.
+    /// </summary>
+    private static async Task AnalyzeWithAIAsync(
+        Document document, 
+        IUserFacingStringExtractorService extractorService, 
+        ImmutableArray<Diagnostic>.Builder diagnostics,
+        CancellationToken cancellationToken)
     {
-        context.RegisterSyntaxNodeAction(AnalyzeStringLiteral, SyntaxKind.StringLiteralExpression);
+        try
+        {
+            // First check if we have cached results to avoid triggering new analysis
+            var cachedResults = await extractorService.GetCachedResultsAsync(document, cancellationToken).ConfigureAwait(false);
+            
+            ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)> aiResults;
+            
+            if (!cachedResults.IsEmpty)
+            {
+                // Use cached results if available
+                aiResults = cachedResults;
+            }
+            else
+            {
+                // Trigger fresh AI analysis
+                aiResults = await extractorService.ExtractAndAnalyzeAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (aiResults.IsEmpty)
+            {
+                // No AI results available, fall back to heuristics
+                var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+                await AnalyzeWithHeuristicsOnlyAsync(document, tree, diagnostics, cancellationToken);
+                return;
+            }
+
+            // Process each result individually with its specific location
+            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+            
+            foreach (var (candidate, analysis) in aiResults)
+            {
+                var stringValue = candidate.Value;
+                // Use the exact TextSpan location from the candidate to create a precise Location
+                var location = Location.Create(syntaxTree, candidate.Location);
+
+                if (analysis.ConfidenceScore >= 0.75)
+                {
+                    // High confidence AI result - report directly
+                    var diagnostic = CreateAIDiagnostic(location, stringValue, analysis);
+                    diagnostics.Add(diagnostic);
+                }
+                else if (analysis.ConfidenceScore >= 0.4)
+                {
+                    // Medium confidence AI result - apply additional heuristic validation
+                    await AnalyzeSpecificLocationWithHeuristicsAsync(document, candidate.Location, stringValue, analysis, diagnostics, cancellationToken);
+                }
+                // Low confidence strings (< 0.4) are ignored - AI determined they're likely internal
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            // AI analysis failed completely, fall back to heuristics
+            var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+            await AnalyzeWithHeuristicsOnlyAsync(document, tree, diagnostics, cancellationToken);
+        }
     }
 
-    private void AnalyzeStringLiteral(SyntaxNodeAnalysisContext context)
+    private static async Task AnalyzeWithHeuristicsOnlyAsync(
+        Document document, 
+        SyntaxTree tree, 
+        ImmutableArray<Diagnostic>.Builder diagnostics,
+        CancellationToken cancellationToken)
     {
-        var stringLiteral = (LiteralExpressionSyntax)context.Node;
+        // Full heuristic analysis for all strings when AI is unavailable
+        var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var stringLiterals = root.DescendantNodes().OfType<LiteralExpressionSyntax>()
+                                  .Where(lit => lit.Token.IsKind(SyntaxKind.StringLiteralToken));
+
+        foreach (var stringLiteral in stringLiterals)
+        {
+            AnalyzeStringLiteralWithHeuristics(stringLiteral, diagnostics);
+        }
+    }
+
+    private static async Task AnalyzeSpecificLocationWithHeuristicsAsync(
+        Document document,
+        Microsoft.CodeAnalysis.Text.TextSpan textSpan, 
+        string stringValue,
+        UserFacingStringAnalysis? aiAnalysis,
+        ImmutableArray<Diagnostic>.Builder diagnostics,
+        CancellationToken cancellationToken)
+    {
+        // Enhanced heuristic analysis for a specific string at a specific location 
+        // that AI marked as medium confidence - use AI insights combined with heuristics
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var node = root.FindNode(textSpan);
+        
+        if (node is LiteralExpressionSyntax stringLiteral && 
+            stringLiteral.Token.IsKind(SyntaxKind.StringLiteralToken) &&
+            stringLiteral.Token.ValueText == stringValue)
+        {
+            // Apply enhanced analysis combining AI insights with heuristics
+            if (ShouldReportBasedOnHeuristics(stringLiteral, aiAnalysis))
+            {
+                var location = Location.Create(document.GetRequiredSyntaxTreeSynchronously(cancellationToken), textSpan);
+                var diagnostic = CreateHybridDiagnostic(location, stringValue, stringLiteral, aiAnalysis);
+                diagnostics.Add(diagnostic);
+            }
+        }
+    }
+
+    // Overload for legacy calls without AI analysis
+    private static async Task AnalyzeSpecificLocationWithHeuristicsAsync(
+        Document document,
+        Microsoft.CodeAnalysis.Text.TextSpan textSpan, 
+        string stringValue,
+        ImmutableArray<Diagnostic>.Builder diagnostics,
+        CancellationToken cancellationToken)
+    {
+        await AnalyzeSpecificLocationWithHeuristicsAsync(document, textSpan, stringValue, null, diagnostics, cancellationToken);
+    }
+
+    private static void AnalyzeStringLiteralWithHeuristics(
+        LiteralExpressionSyntax stringLiteral, 
+        ImmutableArray<Diagnostic>.Builder diagnostics)
+    {
         var valueText = stringLiteral.Token.ValueText;
 
         // Quick early filters for obviously non-user-facing strings
         if (string.IsNullOrWhiteSpace(valueText) || valueText.Length < 3)
             return;
 
-        // Filter 1: Basic content-based filters
-        if (IsLikelyNonUserFacingContent(valueText))
+        // Apply existing heuristic filters
+        if (IsLikelyNonUserFacingContent(valueText) ||
+            IsInNonUserFacingContext(stringLiteral) ||
+            MatchesNonUserFacingPatterns(valueText))
+        {
             return;
+        }
 
-        // Filter 2: Context-based filters - check where the string is being used
-        if (IsInNonUserFacingContext(stringLiteral))
-            return;
-
-        // Filter 3: Pattern-based filters for common non-user-facing patterns
-        if (MatchesNonUserFacingPatterns(valueText))
-            return;
-
-        // If it passes all filters, it's likely a user-facing string
-        var diagnostic = Diagnostic.Create(Descriptor, stringLiteral.GetLocation(), valueText);
-        context.ReportDiagnostic(diagnostic);
+        // Create heuristic-based diagnostic
+        var diagnostic = CreateHeuristicDiagnostic(stringLiteral.GetLocation(), valueText, stringLiteral);
+        diagnostics.Add(diagnostic);
     }
 
+    private static Diagnostic CreateAIDiagnostic(Location location, string stringValue, UserFacingStringAnalysis analysis)
+    {
+        var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+        properties.Add("ConfidenceScore", analysis.ConfidenceScore.ToString("F2"));
+        properties.Add("SuggestedResourceKey", analysis.SuggestedResourceKey);
+        properties.Add("Reasoning", analysis.Reasoning);
+        properties.Add("AnalysisMethod", "AI");
+        properties.Add("StringValue", stringValue);
+        properties.Add("StringLength", stringValue.Length.ToString());
+        properties.Add("AIAnalysisCompleted", "true");
+
+        return Diagnostic.Create(
+            s_descriptor,
+            location,
+            properties.ToImmutable(),
+            stringValue);
+    }
+
+    private static Diagnostic CreateHeuristicDiagnostic(Location location, string stringValue, LiteralExpressionSyntax stringLiteral)
+    {
+        var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+        properties.Add("ConfidenceScore", "0.75"); // Heuristic confidence
+        properties.Add("SuggestedResourceKey", GenerateResourceKey(stringValue));
+        properties.Add("Reasoning", "Heuristic analysis suggests this may be user-facing");
+        properties.Add("AnalysisMethod", "Heuristic");
+        properties.Add("StringLength", stringValue.Length.ToString());
+        properties.Add("Context", GetContextDescription(stringLiteral));
+        properties.Add("StringValue", stringValue);
+
+        return Diagnostic.Create(
+            s_descriptor,
+            location,
+            properties.ToImmutable(),
+            stringValue);
+    }
+
+    private static Diagnostic CreateHybridDiagnostic(Location location, string stringValue, LiteralExpressionSyntax stringLiteral, UserFacingStringAnalysis? aiAnalysis)
+    {
+        var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+        
+        if (aiAnalysis != null)
+        {
+            // Combine AI insights with heuristic analysis
+            var combinedConfidence = Math.Max(0.7, aiAnalysis.ConfidenceScore); // Boost medium confidence to reportable level
+            properties.Add("ConfidenceScore", combinedConfidence.ToString("F2"));
+            properties.Add("SuggestedResourceKey", aiAnalysis.SuggestedResourceKey);
+            properties.Add("Reasoning", $"AI + Heuristic: {aiAnalysis.Reasoning} | Heuristic validation passed");
+            properties.Add("AnalysisMethod", "AI+Heuristic");
+            properties.Add("AIConfidence", aiAnalysis.ConfidenceScore.ToString("F2"));
+        }
+        else
+        {
+            // Pure heuristic analysis
+            properties.Add("ConfidenceScore", "0.75");
+            properties.Add("SuggestedResourceKey", GenerateResourceKey(stringValue));
+            properties.Add("Reasoning", "Heuristic analysis suggests this may be user-facing");
+            properties.Add("AnalysisMethod", "Heuristic");
+        }
+        
+        properties.Add("StringLength", stringValue.Length.ToString());
+        properties.Add("Context", GetContextDescription(stringLiteral));
+        properties.Add("StringValue", stringValue);
+
+        return Diagnostic.Create(
+            s_descriptor,
+            location,
+            properties.ToImmutable(),
+            stringValue);
+    }
+
+    private static bool ShouldReportBasedOnHeuristics(LiteralExpressionSyntax stringLiteral, UserFacingStringAnalysis? aiAnalysis)
+    {
+        var valueText = stringLiteral.Token.ValueText;
+
+        // Quick early filters for obviously non-user-facing strings
+        if (string.IsNullOrWhiteSpace(valueText) || valueText.Length < 3)
+            return false;
+
+        // If AI provided reasoning that indicates internal use, respect that even for medium confidence
+        if (aiAnalysis?.Reasoning?.ToLowerInvariant().Contains("internal") == true ||
+            aiAnalysis?.Reasoning?.ToLowerInvariant().Contains("debug") == true ||
+            aiAnalysis?.Reasoning?.ToLowerInvariant().Contains("log") == true)
+        {
+            return false;
+        }
+
+        // Apply existing heuristic filters, but be more lenient since AI gave medium confidence
+        if (IsLikelyNonUserFacingContent(valueText) ||
+            IsInNonUserFacingContext(stringLiteral) ||
+            MatchesNonUserFacingPatterns(valueText))
+        {
+            return false;
+        }
+
+        // If we get here and AI gave medium confidence, report it
+        return true;
+    }
+
+    // Helper methods
+    private static string GenerateResourceKey(string valueText)
+    {
+        // Simple resource key generation for heuristic analysis
+        var key = valueText.Length <= 30 ? valueText : valueText.Substring(0, 30);
+        key = System.Text.RegularExpressions.Regex.Replace(key, @"[^\w]", "");
+        return string.IsNullOrEmpty(key) ? "GeneratedKey" : key;
+    }
+
+    private static string GetContextDescription(LiteralExpressionSyntax stringLiteral)
+    {
+        var parent = stringLiteral.Parent;
+        return parent switch
+        {
+            ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation =>
+                $"Argument to method: {invocation.Expression}",
+            AssignmentExpressionSyntax assignment =>
+                $"Assignment to: {assignment.Left}",
+            VariableDeclaratorSyntax declarator =>
+                $"Variable initialization: {declarator.Identifier}",
+            ReturnStatementSyntax =>
+                "Return statement",
+            AttributeSyntax =>
+                "Attribute value",
+            ThrowStatementSyntax =>
+                "Exception message",
+            _ => "Other context"
+        };
+    }
+
+    // Existing heuristic filter methods
     private static bool IsLikelyNonUserFacingContent(string valueText)
     {
         // 1. Ignore strings that look like identifiers or code (but allow single common words)
@@ -69,7 +360,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeSt
                 return true;
         }
 
-        // 2. Ignore file paths, URLs, and system identifiers (enhanced)
+        // 2. Ignore file paths, URLs, and system identifiers
         if (valueText.Contains("\\") || valueText.Contains("/") ||
             valueText.Contains(".cs") || valueText.Contains(".dll") || valueText.Contains(".exe") ||
             valueText.Contains(".json") || valueText.Contains(".xml") || valueText.Contains(".config") ||
@@ -85,22 +376,12 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeSt
             return true;
         }
 
-        // 3. Enhanced namespace-like strings detection
+        // 3. Ignore namespace-like strings
         if (valueText.StartsWith("System.") || valueText.StartsWith("Microsoft.") ||
             valueText.StartsWith("System:") || valueText.StartsWith("Microsoft:") ||
             valueText.Contains("::"))
         {
             return true;
-        }
-
-        // More sophisticated namespace detection
-        if (valueText.Contains(".") && valueText.Split('.').Length > 2)
-        {
-            var parts = valueText.Split('.');
-            // Check if it looks like a namespace (multiple PascalCase parts)
-            if (parts.Length >= 3 && parts.All(part => part.Length > 0 && char.IsUpper(part[0])))
-
-                return true;
         }
 
         // 4. Ignore numbers, GUIDs, and technical identifiers
@@ -110,60 +391,8 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeSt
             return true;
         }
 
-        // 5. Enhanced resource keys and constants detection
-        if (valueText.All(c => char.IsUpper(c) || c == '_' || char.IsDigit(c)) && valueText.Length > 3 ||
-            valueText.StartsWith("HKEY_") || valueText.StartsWith("REG_"))
-        {
-            return true;
-        }
-
-        // 6. Ignore strings with only punctuation or special characters
-        if (valueText.All(c => char.IsPunctuation(c) || char.IsWhiteSpace(c) || char.IsSymbol(c)))
-            return true;
-
-        // 7. Enhanced technical prefixes/suffixes
-        if (valueText.StartsWith("ERR_") || valueText.StartsWith("WRN_") || valueText.StartsWith("INF_") ||
-            valueText.StartsWith("LOG_") || valueText.StartsWith("DBG_") || valueText.StartsWith("TRC_") ||
-            valueText.StartsWith("ID_") || valueText.StartsWith("CMD_") || valueText.StartsWith("CTL_") ||
-            valueText.StartsWith("API_") || valueText.StartsWith("SQL_") || valueText.StartsWith("DB_") ||
-            valueText.EndsWith("_ID") || valueText.EndsWith("_KEY") || valueText.EndsWith("_CODE") ||
-            valueText.EndsWith("_TYPE") || valueText.EndsWith("_NAME"))
-        {
-            return true;
-        }
-
-        // 8. Enhanced regex patterns and format strings
-        if ((valueText.Contains("\\") && (valueText.Contains("\\d") || valueText.Contains("\\w") || valueText.Contains("\\s"))) ||
-            (valueText.Contains("{") && valueText.Contains("}") && valueText.All(c => char.IsDigit(c) || c == '{' || c == '}' || c == ',')))
-        {
-            return true;
-        }
-
-        // 9. Ignore SQL-like strings
-        if (valueText.StartsWith("SELECT ", StringComparison.OrdinalIgnoreCase) ||
-            valueText.StartsWith("INSERT ", StringComparison.OrdinalIgnoreCase) ||
-            valueText.StartsWith("UPDATE ", StringComparison.OrdinalIgnoreCase) ||
-            valueText.StartsWith("DELETE ", StringComparison.OrdinalIgnoreCase) ||
-            valueText.StartsWith("CREATE ", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        // 10. Ignore base64-like strings and hashes
-        if (valueText.Length > 20 && valueText.All(c => char.IsLetterOrDigit(c) || c == '+' || c == '/' || c == '='))
-
-            return true;
-
-        // 11. Enhanced technical environment/configuration values
-        var technicalValues = new[] { "production", "development", "staging", "test", "debug", "release",
-            "true", "false", "enabled", "disabled", "on", "off", "yes", "no", "1", "0" };
-        if (technicalValues.Contains(valueText, StringComparer.OrdinalIgnoreCase) && valueText.Length <= 12)
-            return true;
-
-        // 12. Common search/query patterns
-        if (valueText.Contains("-") && valueText.All(c => char.IsLetterOrDigit(c) || c == '-' || c == '_') &&
-            (valueText.Contains("search") || valueText.Contains("query") || valueText.Contains("filter")))
-
+        // 5. Ignore resource keys and constants
+        if (valueText.All(c => char.IsUpper(c) || c == '_' || char.IsDigit(c)) && valueText.Length > 3)
         {
             return true;
         }
@@ -183,172 +412,17 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeSt
             {
                 var invoked = invocation.Expression.ToString();
 
-                // Comprehensive list of non-user-facing method patterns
-                if (IsNonUserFacingMethodCall(invoked))
-                    return true;
-
-                // Check parameter name context
-                if (IsNonUserFacingParameterContext(arg, invocation))
-                    return true;
-            }
-        }
-
-        // Check if string is used in attribute
-        if (IsInAttributeContext(stringLiteral))
-            return true;
-
-        // Check if string is used in conditional compilation or preprocessor
-        if (IsInPreprocessorContext(stringLiteral))
-            return true;
-
-        // Check if string is used in exception throwing
-        if (IsInExceptionContext(stringLiteral))
-            return true;
-
-        return false;
-    }
-
-    private static bool IsNonUserFacingMethodCall(string invoked)
-    {
-        // Logging and debugging
-        if (invoked.Contains("Log") || invoked.Contains("Debug") || invoked.Contains("Trace") ||
-            invoked.Contains("Assert") || invoked.Contains("WriteLine") || invoked.Contains("Write"))
-        {
-            return true;
-        }
-
-        // Exception handling
-        if (invoked.Contains("Throw") || invoked.Contains("Exception") || invoked.Contains("Error"))
-            return true;
-
-        // Parsing and conversion
-        if (invoked.Contains("Parse") || invoked.Contains("TryParse") || invoked.Contains("Convert") ||
-            invoked.Contains("ToString") || invoked.Contains("Format"))
-        {
-            return true;
-        }
-
-        // Reflection and type operations
-        if (invoked.Contains("Type.GetType") || invoked.Contains("typeof") || invoked.Contains("nameof") ||
-            invoked.Contains("Activator.CreateInstance") || invoked.Contains("GetType") ||
-            invoked.Contains("Assembly.Load") || invoked.Contains("Assembly.GetType"))
-        {
-            return true;
-        }
-
-        // Property/field access via reflection or configuration
-        if (invoked.Contains("SetProperty") || invoked.Contains("GetProperty") ||
-            invoked.Contains("SetField") || invoked.Contains("GetField") ||
-            invoked.Contains("SetValue") || invoked.Contains("GetValue") ||
-            invoked.Contains("ConfigurationManager") || invoked.Contains("AppSettings") ||
-            invoked.Contains("SetConfiguration") || invoked.Contains("GetConfiguration"))
-        {
-            return true;
-        }
-
-        // Comparison and validation (be more specific to avoid user validation messages)
-        if (invoked.Contains("Equals") || invoked.Contains("Compare") || invoked.Contains("Hash") ||
-            invoked.Contains("Assert.") || invoked.Contains("Validate.") || invoked.Contains("Check."))
-        {
-            return true;
-        }
-
-        // Serialization and data access
-        if (invoked.Contains("Serialize") || invoked.Contains("Deserialize") ||
-            invoked.Contains("JsonConvert") || invoked.Contains("XmlSerializer") ||
-            invoked.Contains("DataReader") || invoked.Contains("SqlCommand") ||
-            invoked.Contains("ExecuteScalar") | invoked.Contains("ExecuteNonQuery"))
-        {
-            return true;
-        }
-
-        // String manipulation utilities (be more specific to avoid user text)
-        if (invoked.Contains("string.Concat") || invoked.Contains("string.Join") ||
-            invoked.Contains("string.Replace") || invoked.Contains("Regex") || invoked.Contains("Match"))
-        {
-            return true;
-        }
-
-        // StringBuilder - only filter if it's clearly for technical purposes
-        // Remove overly broad StringBuilder filtering to allow user content
-
-        // File and IO operations
-        if (invoked.Contains("File.") || invoked.Contains("Directory.") ||
-            invoked.Contains("Path.") || invoked.Contains("Stream") ||
-            invoked.Contains("Reader") || invoked.Contains("Writer") ||
-            invoked.Contains("LoadFile") || invoked.Contains("SaveFile"))
-        {
-            return true;
-        }
-
-        // HTTP and web operations
-        if (invoked.Contains("HttpClient") || invoked.Contains("WebRequest") ||
-            invoked.Contains("RestClient") || invoked.Contains("HttpGet") ||
-            invoked.Contains("HttpPost") || invoked.Contains("Uri"))
-        {
-            return true;
-        }
-
-        // Diagnostic and telemetry
-        if (invoked.Contains("Diagnostic") || invoked.Contains("Telemetry") ||
-            invoked.Contains("Counter") || invoked.Contains("Meter") ||
-            invoked.Contains("EventSource") || invoked.Contains("Activity"))
-        {
-            return true;
-        }
-
-        // Search and query operations (technical)
-        if (invoked.Contains("ExecuteSearch") || invoked.Contains("ExecuteQuery") ||
-            invoked.Contains("Search") && (invoked.Contains("Database") || invoked.Contains("Index") || invoked.Contains("Engine")))
-
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private static bool IsNonUserFacingParameterContext(ArgumentSyntax arg, InvocationExpressionSyntax invocation)
-    {
-        // Try to get parameter name from argument syntax
-        var argumentList = invocation.ArgumentList;
-        if (argumentList != null)
-        {
-            var argumentIndex = argumentList.Arguments.IndexOf(arg);
-            if (argumentIndex >= 0)
-            {
-                // Check if this is a named argument
-                if (arg.NameColon != null)
+                // Check for common non-user-facing method patterns
+                if (invoked.Contains("Log") || invoked.Contains("Debug") || invoked.Contains("Trace") ||
+                    invoked.Contains("Assert") || invoked.Contains("WriteLine") || invoked.Contains("Parse") ||
+                    invoked.Contains("typeof") || invoked.Contains("nameof") || invoked.Contains("Exception"))
                 {
-                    var paramName = arg.NameColon.Name.Identifier.ValueText.ToLowerInvariant();
-                    return IsNonUserFacingParameterName(paramName);
+                    return true;
                 }
             }
         }
 
-        return false;
-    }
-
-    private static bool IsNonUserFacingParameterName(string paramName)
-    {
-        return paramName switch
-        {
-            "key" or "name" or "id" or "identifier" or "code" or "type" or
-            "path" or "filename" or "filepath" or "directory" or "folder" or
-            "url" or "uri" or "endpoint" or "connectionstring" or
-            "sql" or "query" or "command" or "script" or
-            "pattern" or "regex" or "format" or "template" or
-            "namespace" or "assembly" or "typename" or "methodname" or
-            "propertyname" or "fieldname" or "eventname" or
-            "category" or "source" or "level" or "severity" or
-            "configuration" or "setting" or "option" or "parameter" or
-            "value" or "config" or "env" or "environment" => true,
-            _ => false
-        };
-    }
-
-    private static bool IsInAttributeContext(LiteralExpressionSyntax stringLiteral)
-    {
+        // Check if string is used in attribute
         var current = stringLiteral.Parent;
         while (current != null)
         {
@@ -356,106 +430,27 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : AbstractBuiltInCodeSt
                 return true;
             current = current.Parent;
         }
-        return false;
-    }
 
-    private static bool IsInPreprocessorContext(LiteralExpressionSyntax stringLiteral)
-    {
-        // Walk up the syntax tree to see if we're inside a preprocessor directive
-        var current = stringLiteral.Parent;
-        while (current != null)
-        {
-            if (current is DirectiveTriviaSyntax)
-                return true;
-            current = current.Parent;
-        }
-        return false;
-    }
-
-    private static bool IsInExceptionContext(LiteralExpressionSyntax stringLiteral)
-    {
-        var parent = stringLiteral.Parent;
-        while (parent != null)
-        {
-            if (parent is ThrowStatementSyntax or ThrowExpressionSyntax)
-                return true;
-
-            parent = parent.Parent;
-        }
         return false;
     }
 
     private static bool MatchesNonUserFacingPatterns(string valueText)
     {
-        // 1. Version numbers (e.g., "1.0.0.0", "v2.1.3")
+        // 1. Version numbers
         if (System.Text.RegularExpressions.Regex.IsMatch(valueText, @"^v?\d+\.\d+(\.\d+)*$"))
             return true;
 
-        // 2. Environment variables and configuration keys (enhanced)
-        if (valueText.All(c => char.IsUpper(c) || c == '_') && valueText.Length > 2)
+        // 2. MIME types
+        if (valueText.Contains("/") && valueText.Split('/').Length == 2 && !valueText.Contains(" "))
             return true;
 
-        // Technical configuration patterns
-        if (valueText.All(c => char.IsLower(c) || c == '_' || c == '-' || char.IsDigit(c)) &&
-            (valueText.Contains("_") || valueText.Contains("-")) && valueText.Length > 4)
-        {
-            return true;
-        }
-
-        // 3. MIME types (e.g., "application/json", "text/html")
-        if (valueText.Contains("/") && valueText.Split('/').Length == 2 &&
-            !valueText.Contains(" ")) // Ensure it's not a sentence with "/"
-        {
-            return true;
-        }
-
-        // 4. Color codes and hex values
+        // 3. Color codes and hex values
         if (valueText.StartsWith("#") && valueText.Length > 1 &&
             valueText.Skip(1).All(c => char.IsDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')))
-
-        {
-            return true;
-        }
-
-        // 5. Connection strings patterns (enhanced)
-        if (valueText.Contains("=") && (valueText.Contains(";") || valueText.Contains("&")) &&
-            !valueText.Contains(" ")) // Avoid sentences that might contain = and ;
-        {
-            return true;
-        }
-
-        // 6. JSON/XML-like patterns (be more specific)
-        if ((valueText.StartsWith("{") && valueText.EndsWith("}") && valueText.Contains(":")) ||
-            (valueText.StartsWith("[") && valueText.EndsWith("]") && valueText.Contains(",")) ||
-            (valueText.StartsWith("<") && valueText.EndsWith(">") && valueText.Contains("/")))
-        {
-            return true;
-        }
-
-        // 7. Base64 padding patterns (more specific)
-        if ((valueText.EndsWith("=") || valueText.EndsWith("==")) && valueText.Length > 8 &&
-            valueText.All(c => char.IsLetterOrDigit(c) || c == '+' || c == '/' || c == '='))
-        {
-            return true;
-        }
-
-        // 8. Common technical separators (only if it's ONLY separators)
-        if (valueText.Length <= 10 && valueText.All(c => ".,;:|!@#$%^&*()_+-=[]{}\\|`~".Contains(c)))
             return true;
 
-        // 9. Technical hyphenated terms (but allow user-facing hyphenated terms)
-        if (valueText.Contains("-") && valueText.Split('-').Length > 2 &&
-            valueText.All(c => char.IsLetterOrDigit(c) || c == '-') &&
-            (valueText.Contains("config") || valueText.Contains("api") || valueText.Contains("db") ||
-             valueText.Contains("sql") || valueText.Contains("json") || valueText.Contains("xml")))
-
-        {
-            return true;
-        }
-
-        // 10. Common single technical words (but preserve user-facing ones)
-        var technicalOnlyWords = new[] { "localhost", "admin", "root", "null", "undefined", "void", "temp", "tmp" };
-        if (technicalOnlyWords.Contains(valueText, StringComparer.OrdinalIgnoreCase))
+        // 4. Connection strings patterns
+        if (valueText.Contains("=") && valueText.Contains(";") && !valueText.Contains(" "))
             return true;
 
         return false;

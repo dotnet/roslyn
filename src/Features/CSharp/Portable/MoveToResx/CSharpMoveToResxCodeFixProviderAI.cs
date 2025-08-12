@@ -22,22 +22,23 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UserFacingStrings;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MoveToResx;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveToResx), Shared]
-internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
+internal sealed class CSharpMoveToResxCodeFixProviderAI : CodeFixProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpMoveToResxCodeFixProvider() { }
+    public CSharpMoveToResxCodeFixProviderAI() { }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.MoveToResxDiagnosticId];
 
     public override FixAllProvider GetFixAllProvider()
-        => new CSharpMoveToResxFixAllProvider();
+        => new CSharpMoveToResxAIFixAllProvider();
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -59,13 +60,17 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             return;
         }
 
+        // Try to get AI-suggested resource key from diagnostic properties
+        var suggestedResourceKey = GetSuggestedResourceKeyFromDiagnostic(diagnostic, node.Token.ValueText);
+
         var nestedActions = validResxFiles
             .SelectAsArray(resx =>
             {
                 var resxName = Path.GetFileName(resx.FilePath) ?? CSharpFeaturesResources.Unnamed_Resource;
                 return CodeAction.Create(
                     title: resxName,
-                    createChangedSolution: cancellationToken => MoveStringToResxAndReplaceLiteralAsync(context.Document, node, resx, cancellationToken),
+                    createChangedSolution: cancellationToken => MoveStringToResxAndReplaceLiteralAsync(
+                        context.Document, node, resx, suggestedResourceKey, cancellationToken),
                     equivalenceKey: $"MoveStringTo_{resxName}");
             });
 
@@ -75,6 +80,22 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                 nestedActions,
                 isInlinable: false),
             diagnostic);
+    }
+
+    /// <summary>
+    /// Extracts the AI-suggested resource key from diagnostic properties, falling back to generated key.
+    /// </summary>
+    private static string GetSuggestedResourceKeyFromDiagnostic(Diagnostic diagnostic, string stringValue)
+    {
+        // Try to get the AI-suggested resource key from diagnostic properties
+        if (diagnostic.Properties.TryGetValue("SuggestedResourceKey", out var suggestedKey) &&
+            !string.IsNullOrEmpty(suggestedKey))
+        {
+            return suggestedKey;
+        }
+
+        // Fall back to deterministic generation
+        return ToDeterministicResourceKey(stringValue);
     }
 
     /// <summary>
@@ -120,12 +141,11 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         Document document,
         LiteralExpressionSyntax stringLiteral,
         TextDocument resxFile,
+        string suggestedResourceKey,
         CancellationToken cancellationToken)
     {
         var value = stringLiteral.Token.ValueText;
-        
-        // Generate resource key deterministically 
-        var resourceKey = ToDeterministicResourceKey(value);
+        var resourceKey = suggestedResourceKey; // Use AI-suggested key
 
         var resourceOperation = new ResourceOperation(value, resourceKey);
         var replacementOperation = new ReplacementOperation(stringLiteral, resourceKey);
@@ -140,6 +160,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Generates a deterministic resource key from a string value.
+    /// This is used as fallback when AI doesn't provide a suggestion.
     /// </summary>
     /// <param name="value">The string value to convert to a resource key.</param>
     /// <param name="maxKeyLength">The maximum length of the final generated key.</param>
@@ -419,7 +440,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         private readonly record struct DocumentUpdateResult(SyntaxNode UpdatedRoot);
     }
 
-    private sealed class CSharpMoveToResxFixAllProvider : FixAllProvider
+    private sealed class CSharpMoveToResxAIFixAllProvider : FixAllProvider
     {
         public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => [FixAllScope.Document];
@@ -446,6 +467,10 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                 CSharpFeaturesResources.Move_all_strings_to_resx_resource,
                 async cancellationToken =>
                 {
+                    // Try to get AI analysis for better resource key suggestions
+                    var aiResults = await UserFacingStringAIHelper.GetAIAnalysisAsync(document, cancellationToken).ConfigureAwait(false);
+                    var aiSuggestions = aiResults.ToDictionary(r => r.candidate.Value, r => r.analysis.SuggestedResourceKey);
+
                     // Collect all string literals and their operations
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var resourceOperations = new List<ResourceOperation>();
@@ -461,7 +486,12 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                         if (node is not null)
                         {
                             var value = node.Token.ValueText;
-                            var proposedKey = ToDeterministicResourceKey(value);
+                            
+                            // Use AI suggestion if available, otherwise fall back to generated key
+                            var proposedKey = aiSuggestions.TryGetValue(value, out var aiKey) && !string.IsNullOrEmpty(aiKey)
+                                ? aiKey
+                                : GetSuggestedResourceKeyFromDiagnostic(diagnostic, value);
+                                
                             var resourceOperation = new ResourceOperation(value, proposedKey);
 
                             // Get the actual key that will be used (may be existing key if value already exists)
@@ -482,7 +512,7 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                         replacementOperations,
                         cancellationToken).ConfigureAwait(false);
                 },
-                nameof(CSharpMoveToResxFixAllProvider));
+                nameof(CSharpMoveToResxAIFixAllProvider));
         }
     }
 }
