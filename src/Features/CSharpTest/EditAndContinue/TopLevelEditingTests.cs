@@ -6279,7 +6279,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object")
+            Diagnostic(RudeEditKind.Update, "object")
         );
     }
 
@@ -6319,7 +6319,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "string")
+            Diagnostic(RudeEditKind.Update, "string")
         );
     }
 
@@ -6353,7 +6353,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
 
         edits.VerifySemanticDiagnostics(capabilities: EditAndContinueCapabilities.AddMethodToExistingType,
-            diagnostics: Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void M()"));
+            diagnostics: Diagnostic(RudeEditKind.Update, "void M()"));
     }
 
     [Fact]
@@ -6385,7 +6385,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Delete [()]@67"
         );
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension"));
     }
 
     [Fact]
@@ -6413,7 +6413,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [object]@35 -> [object x]@35");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object x", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object x", GetResource("parameter")));
     }
 
     [Fact]
@@ -6422,7 +6422,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var src1 = """
             static class Ext
             {
-                extension(object)
+                extension(object x)
                 {
                 }
             }
@@ -6431,7 +6431,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var src2 = """
             static class Ext
             {
-                extension(object x)
+                extension(object)
                 {
                 }
             }
@@ -6439,9 +6439,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits("Update [object]@35 -> [object x]@35");
+        edits.VerifyEdits("Update [object x]@35 -> [object]@35");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object x", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object", GetResource("parameter")));
     }
 
     [Fact]
@@ -6469,7 +6469,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [object o]@35 -> [object x]@35");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object x", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object x", GetResource("parameter")));
     }
 
     [Fact]
@@ -6499,7 +6499,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [object o]@35 -> [object? o]@35");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object? o", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object? o", GetResource("parameter")));
     }
 
     [Fact]
@@ -6529,7 +6529,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [object o]@35 -> [string o]@35");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "string o", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "string o", GetResource("parameter")));
     }
 
     [Fact]
@@ -6563,7 +6563,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [object o]@155 -> [[A]object o]@155");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object o", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object o", GetResource("parameter")));
     }
 
     [Fact]
@@ -6597,7 +6597,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [[A]object o]@155 -> [object o]@155");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object o", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object o", GetResource("parameter")));
     }
 
     [Fact]
@@ -6627,7 +6627,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("""Update [[System.Obsolete("a")]object o]@35 -> [[System.Obsolete("b")]object o]@35""");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object o", GetResource("parameter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object o", GetResource("parameter")));
     }
 
     [Fact]
@@ -6661,9 +6661,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "ref int i", GetResource("parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "ref int i", GetResource("parameter")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("parameter"))
         );
     }
 
@@ -6697,9 +6697,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Update [int x]@69 -> [int y]@65");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int i", GetResource("parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "int i", GetResource("parameter")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("parameter"))
         );
     }
 
@@ -6734,9 +6734,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "in int i", GetResource("parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "in int i", GetResource("parameter")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("parameter"))
         );
     }
 
@@ -6772,10 +6772,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "T", "type"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "T"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "T t", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "T t")
+            Diagnostic(RudeEditKind.Update, "T", "type"),
+            Diagnostic(RudeEditKind.Update, "T"),
+            Diagnostic(RudeEditKind.Update, "T t", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "T t")
         );
     }
 
@@ -6811,10 +6811,10 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension", "type"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void M()", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void M()")
+            Diagnostic(RudeEditKind.Update, "extension", "type"),
+            Diagnostic(RudeEditKind.Update, "extension"),
+            Diagnostic(RudeEditKind.Update, "void M()", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "void M()")
         );
     }
 
@@ -6848,9 +6848,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Update [T o]@38 -> [U o]@38");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "U", "type"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "U", GetResource("type parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "U o", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "U", "type"),
+            Diagnostic(RudeEditKind.Update, "U", GetResource("type parameter")),
+            Diagnostic(RudeEditKind.Update, "U o", GetResource("parameter"))
         );
     }
 
@@ -6882,8 +6882,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Insert [where T : class]@43");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "where T : class", "type"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "where T : class", GetResource("type parameter"))
+            Diagnostic(RudeEditKind.Update, "where T : class", "type"),
+            Diagnostic(RudeEditKind.Update, "where T : class", GetResource("type parameter"))
         );
     }
 
@@ -6915,8 +6915,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Delete [where T : class]@43");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension", "type"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "T", GetResource("type parameter"))
+            Diagnostic(RudeEditKind.Update, "extension", "type"),
+            Diagnostic(RudeEditKind.Update, "T", GetResource("type parameter"))
         );
     }
 
@@ -6948,8 +6948,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Update [where T : class]@43 -> [where T : struct]@43");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "where T : struct", "type"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "where T : struct", GetResource("type parameter"))
+            Diagnostic(RudeEditKind.Update, "where T : struct", "type"),
+            Diagnostic(RudeEditKind.Update, "where T : struct", GetResource("type parameter"))
         );
     }
 
@@ -6980,7 +6980,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [void M() {}]@61 -> [void N() {}]@61");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void N()", GetResource("method")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "void N()", GetResource("method")));
     }
 
     [Fact]
@@ -7010,7 +7010,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [void M() {}]@61 -> [static void M() {}]@61");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "static void M()", GetResource("method")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "static void M()", GetResource("method")));
     }
 
     [Theory]
@@ -7048,7 +7048,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits($$"""Update [{{oldVisibility}}void M() {}]@61 -> [{{newVisibility}}void M() {}]@61""");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, $"{newVisibility}void M()", GetResource("method")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, $"{newVisibility}void M()", GetResource("method")));
     }
 
     [Fact]
@@ -7079,8 +7079,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Insert [int x]@68");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int x", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int x")
+            Diagnostic(RudeEditKind.Update, "int x", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "int x")
         );
     }
 
@@ -7112,8 +7112,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Delete [int x]@68");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void M()", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void M()")
+            Diagnostic(RudeEditKind.Update, "void M()", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "void M()")
         );
     }
 
@@ -7145,8 +7145,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Update [int x]@68 -> [int y]@68");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("parameter"))
         );
     }
 
@@ -7178,8 +7178,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Update [int x]@65 -> [ref int y]@65");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "ref int y", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "ref int y", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "ref int y", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "ref int y", GetResource("parameter"))
         );
     }
 
@@ -7211,8 +7211,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Update [ref int x]@65 -> [int y]@65");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int y", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("parameter"))
         );
     }
 
@@ -7244,8 +7244,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifyEdits("Update [ref int x]@65 -> [in int y]@65");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "in int y", GetResource("method")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "in int y", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "in int y", GetResource("method")),
+            Diagnostic(RudeEditKind.Update, "in int y", GetResource("parameter"))
         );
     }
 
@@ -7276,7 +7276,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifyEdits("Update [int M() => 1;]@61 -> [int M() => 2;]@61");
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int M()", GetResource("method")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "int M()", GetResource("method")));
     }
 
     [Fact]
@@ -7310,7 +7310,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Insert [()]@88"
         );
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void N()"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "void N()"));
     }
 
     [Fact]
@@ -7353,7 +7353,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 }]@85 -> @25
             """);
 
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension", "type"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension", "type"));
     }
 
     [Fact]
@@ -7401,8 +7401,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
             Diagnostic(RudeEditKind.Delete, "static class Ext", "extension block 'extension(string)'"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "static class Ext"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "static class Ext")
+            Diagnostic(RudeEditKind.Update, "static class Ext"),
+            Diagnostic(RudeEditKind.Update, "static class Ext")
         );
     }
 
@@ -7449,15 +7449,15 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 DocumentResults(
                     diagnostics: [
                         Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
-                        Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension", "type"),
-                        Diagnostic(RudeEditKind.ExtensionBlockUpdate, "void N()"),
-                        Diagnostic(RudeEditKind.ExtensionBlockUpdate, "string s", GetResource("parameter"))
+                        Diagnostic(RudeEditKind.Update, "extension", "type"),
+                        Diagnostic(RudeEditKind.Update, "void N()"),
+                        Diagnostic(RudeEditKind.Update, "string s", GetResource("parameter"))
                     ]
                 ),
                 DocumentResults(
                     diagnostics: [
                         Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
-                        Diagnostic(RudeEditKind.ExtensionBlockUpdate, "static class Ext")
+                        Diagnostic(RudeEditKind.Update, "static class Ext")
                     ]
                 )
             ]);
@@ -7485,7 +7485,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits(
-                """
+            """
             Insert [extension(object o)
                 {
                     static void M() {}
@@ -7500,13 +7500,13 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "static void M()"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object o")
+            Diagnostic(RudeEditKind.Update, "static void M()"),
+            Diagnostic(RudeEditKind.Update, "object o")
         );
 
         edits = GetTopEdits(src2, src1);
         edits.VerifyEdits(
-    "Insert [static void M() {}]@29",
+            "Insert [static void M() {}]@29",
             "Insert [()]@42",
             """
             Delete [extension(object o)
@@ -7522,8 +7522,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
             Diagnostic(RudeEditKind.Delete, "static class Ext", "extension block 'extension(object)'"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "static class Ext"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "static class Ext")
+            Diagnostic(RudeEditKind.Update, "static class Ext"),
+            Diagnostic(RudeEditKind.Update, "static class Ext")
         );
     }
 
@@ -7556,8 +7556,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Insert [get => 1;]@69"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int P"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "get")
+            Diagnostic(RudeEditKind.Update, "int P"),
+            Diagnostic(RudeEditKind.Update, "get")
         );
 
         edits = GetTopEdits(src2, src1);
@@ -7567,8 +7567,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Delete [get => 1;]@69"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension")
+            Diagnostic(RudeEditKind.Update, "extension"),
+            Diagnostic(RudeEditKind.Update, "extension")
         );
     }
 
@@ -7598,8 +7598,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [int P { get => 1; }]@61 -> [int Q { get => 1; }]@61");
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int Q", GetResource("property")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int Q", GetResource("property getter"))
+            Diagnostic(RudeEditKind.Update, "int Q", GetResource("property")),
+            Diagnostic(RudeEditKind.Update, "int Q", GetResource("property getter"))
         );
     }
 
@@ -7628,7 +7628,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Insert [set { }]@79");
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "set"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set"));
     }
 
     [Fact]
@@ -7656,7 +7656,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Delete [set { }]@79");
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int P"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "int P"));
     }
 
     [Fact]
@@ -7685,8 +7685,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Insert [get => 1;]@69");
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "get"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "{", GetResource("property setter"))
+            Diagnostic(RudeEditKind.Update, "get"),
+            Diagnostic(RudeEditKind.Update, "{", GetResource("property setter"))
         );
     }
 
@@ -7716,8 +7716,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Delete [get => 1;]@69");
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int P"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "{", GetResource("property setter"))
+            Diagnostic(RudeEditKind.Update, "int P"),
+            Diagnostic(RudeEditKind.Update, "{", GetResource("property setter"))
         );
     }
 
@@ -7754,8 +7754,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
             """
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "string P", GetResource("property")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "string P", GetResource("property getter"))
+            Diagnostic(RudeEditKind.Update, "string P", GetResource("property")),
+            Diagnostic(RudeEditKind.Update, "string P", GetResource("property getter"))
         );
     }
 
@@ -7789,8 +7789,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [int P { get => 1; }]@181 -> [[A]int P { get => 1; }]@181");
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int P", GetResource("property")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "1", GetResource("property getter"))
+            Diagnostic(RudeEditKind.Update, "int P", GetResource("property")),
+            Diagnostic(RudeEditKind.Update, "1", GetResource("property getter"))
         );
     }
 
@@ -7824,8 +7824,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [[A]int P { get => 1; }]@181 -> [int P { get => 1; }]@181");
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int P", GetResource("property")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "1", GetResource("property getter"))
+            Diagnostic(RudeEditKind.Update, "int P", GetResource("property")),
+            Diagnostic(RudeEditKind.Update, "1", GetResource("property getter"))
         );
     }
 
@@ -7858,7 +7858,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Update [[System.Obsolete("a")]int P { get => 1; }]@61 -> [[System.Obsolete("b")]int P { get => 1; }]@61
             """
         );
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "int P", GetResource("property")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "int P", GetResource("property")));
     }
 
     [Fact]
@@ -7890,11 +7890,11 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits1 = GetTopEdits(src1, src2);
         edits1.VerifyEdits("Update [get => 1;]@189 -> [[get: A]get => 1;]@189");
-        edits1.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "get", GetResource("property getter")));
+        edits1.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "get", GetResource("property getter")));
 
         var edits2 = GetTopEdits(src2, src1);
         edits2.VerifyEdits("Update [[get: A]get => 1;]@189 -> [get => 1;]@189");
-        edits2.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "get", GetResource("property getter")));
+        edits2.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "get", GetResource("property getter")));
     }
 
     [Fact]
@@ -7926,11 +7926,11 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits1 = GetTopEdits(src1, src2);
         edits1.VerifyEdits("Update [set { }]@199 -> [[set: A]set { }]@199");
-        edits1.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "set", GetResource("property setter")));
+        edits1.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("property setter")));
 
         var edits2 = GetTopEdits(src2, src1);
         edits2.VerifyEdits("Update [[set: A]set { }]@199 -> [set { }]@199");
-        edits2.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "set", GetResource("property setter")));
+        edits2.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("property setter")));
     }
 
     [Fact]
@@ -7958,7 +7958,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [get => 1;]@69 -> [get => 2;]@69");
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "get", GetResource("property getter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "get", GetResource("property getter")));
     }
 
     [Fact]
@@ -7986,7 +7986,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [set { }]@79 -> [set { var _ = 1; }]@79");
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "set", GetResource("property setter")));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("property setter")));
     }
 
     [Fact]
@@ -8024,9 +8024,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(C a, C b)", "operator"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "public static int operator +(C a, C b)"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C b")
+            Diagnostic(RudeEditKind.Update, "public static int operator +(C a, C b)"),
+            Diagnostic(RudeEditKind.Update, "C a"),
+            Diagnostic(RudeEditKind.Update, "C b")
         );
 
         edits = GetTopEdits(src2, src1);
@@ -8037,9 +8037,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Delete [C b]@90"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "extension")
+            Diagnostic(RudeEditKind.Update, "extension"),
+            Diagnostic(RudeEditKind.Update, "extension"),
+            Diagnostic(RudeEditKind.Update, "extension")
         );
     }
 
@@ -8072,7 +8072,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [public static int operator +(C a, C b) => 1;]@56 -> [public static int operator -(C a, C b) => 1;]@56");
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "public static int operator -(C a, C b)", "operator"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator -(C a, C b)", "operator"));
     }
 
     [Fact]
@@ -8112,7 +8112,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public static int operator +(C a, C b) => 1;]@56
             """
         );
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "public static int operator +(C a, C b)", "operator"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator +(C a, C b)", "operator"));
 
         edits = GetTopEdits(src2, src1);
         edits.VerifyEdits(
@@ -8121,7 +8121,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public static int operator +(C a, C b) => 1;]@56 -> [public static int operator +(C a, C b) => 1;]@56
             """
         );
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "public static int operator +(C a, C b)", "operator"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator +(C a, C b)", "operator"));
     }
 
     [Fact]
@@ -8161,7 +8161,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                     public static int operator -(C a, C b) => 1;]@56
             """
         );
-        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ExtensionBlockUpdate, "public static int operator -(C a, C b)", "operator"));
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator -(C a, C b)", "operator"));
     }
 
     [Fact]
@@ -8194,8 +8194,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [C b]@90 -> [object b]@90");
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object b", "operator"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "object b", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "object b", "operator"),
+            Diagnostic(RudeEditKind.Update, "object b", GetResource("parameter"))
         );
     }
 
@@ -8229,8 +8229,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
         edits.VerifyEdits("Update [C b]@90 -> [C c]@90");
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C c", "operator"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C c", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "C c", "operator"),
+            Diagnostic(RudeEditKind.Update, "C c", GetResource("parameter"))
         );
     }
 
@@ -8270,9 +8270,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Update [C a]@85 -> [C b]@94"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", "operator"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", GetResource("parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C b", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "C a", "operator"),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("parameter")),
+            Diagnostic(RudeEditKind.Update, "C b", GetResource("parameter"))
         );
 
         edits = GetTopEdits(src2, src1);
@@ -8282,9 +8282,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Update [[A] C a]@85 -> [C c]@90"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", "operator"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", GetResource("parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C c", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "C a", "operator"),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("parameter")),
+            Diagnostic(RudeEditKind.Update, "C c", GetResource("parameter"))
         );
     }
 
@@ -8325,9 +8325,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Update [C c]@112 -> [C b]@115"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", "operator"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", GetResource("parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C b", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "C a", "operator"),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("parameter")),
+            Diagnostic(RudeEditKind.Update, "C b", GetResource("parameter"))
         );
 
         edits = GetTopEdits(src2, src1);
@@ -8338,9 +8338,9 @@ public sealed class TopLevelEditingTests : EditingTestBase
             "Update [C b]@115 -> [C c]@112"
         );
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", "operator"),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C a", GetResource("parameter")),
-            Diagnostic(RudeEditKind.ExtensionBlockUpdate, "C c", GetResource("parameter"))
+            Diagnostic(RudeEditKind.Update, "C a", "operator"),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("parameter")),
+            Diagnostic(RudeEditKind.Update, "C c", GetResource("parameter"))
         );
     }
 
