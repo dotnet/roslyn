@@ -2564,13 +2564,18 @@ outerDefault:
 
             return BetterResult.Neither;
 
+            static bool isStaticExtensionReceiver(ParameterSymbol parameter, TMember member)
+            {
+                return parameter is { ContainingSymbol: TypeSymbol { IsExtension: true } } && member.IsStatic;
+            }
+
             // Returns the parameter type (considering params).
             static TypeSymbol getParameterTypeAndRefKind(int i, MemberAnalysisResult memberResolutionResult, ImmutableArray<ParameterSymbol> parameters,
-                TypeWithAnnotations paramsElementTypeOpt, TMember member, out RefKind parameter1RefKind)
+                TypeWithAnnotations paramsElementTypeOpt, TMember member, out RefKind parameterRefKind)
             {
                 ParameterSymbol parameter = getParameterOrExtensionParameter(i, memberResolutionResult, parameters, member);
 
-                parameter1RefKind = parameter.RefKind;
+                parameterRefKind = isStaticExtensionReceiver(parameter, member) ? RefKind.None : parameter.RefKind;
 
                 var type = parameter.Type;
                 if (memberResolutionResult.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
@@ -2631,7 +2636,10 @@ outerDefault:
                             Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i] is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                         }
 
-                        if (p1.RefKind == RefKind.None && isAcceptableRefMismatch(p2.RefKind, isInterpolatedStringHandlerConversion))
+                        RefKind refKind1 = isStaticExtensionReceiver(p1, m1.Member) ? RefKind.None : p1.RefKind;
+                        RefKind refKind2 = isStaticExtensionReceiver(p2, m2.Member) ? RefKind.None : p2.RefKind;
+
+                        if (refKind1 == RefKind.None && isAcceptableRefMismatch(refKind2, isInterpolatedStringHandlerConversion))
                         {
                             if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Right)
                             {
@@ -2642,7 +2650,7 @@ outerDefault:
                                 valOverInOrRefInterpolatedHandlerPreference = BetterResult.Left;
                             }
                         }
-                        else if (p2.RefKind == RefKind.None && isAcceptableRefMismatch(p1.RefKind, isInterpolatedStringHandlerConversion))
+                        else if (refKind2 == RefKind.None && isAcceptableRefMismatch(refKind1, isInterpolatedStringHandlerConversion))
                         {
                             if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Left)
                             {
