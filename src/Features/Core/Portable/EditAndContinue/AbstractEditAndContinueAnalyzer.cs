@@ -2918,7 +2918,10 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                 {
                                     // This is inside a new extension declaration, and not currently supported.
                                     // https://github.com/dotnet/roslyn/issues/78959
-                                    diagnosticContext.Report(RudeEditKind.ExtensionBlockUpdate, diagnosticSpan);
+                                    diagnosticContext.Report(RudeEditKind.Update,
+                                        oldDeclaration,
+                                        cancellationToken,
+                                        [FeaturesResources.extension_block]);
                                     continue;
                                 }
 
@@ -3081,7 +3084,11 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     {
                                         // This is a new extension declaration, and not currently supported.
                                         // https://github.com/dotnet/roslyn/issues/78959
-                                        diagnosticContext.Report(RudeEditKind.ExtensionBlockUpdate, GetDiagnosticSpan(newDeclaration, EditKind.Insert));
+                                        diagnosticContext.Report(RudeEditKind.Update,
+                                            cancellationToken,
+                                            GetDiagnosticSpan(newDeclaration, EditKind.Insert),
+                                            [FeaturesResources.extension_block]);
+
                                         continue;
                                     }
 
@@ -4244,8 +4251,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         if (IsOrIsContainedInNewExtension(oldSymbol) || IsOrIsContainedInNewExtension(newSymbol))
         {
             // https://github.com/dotnet/roslyn/issues/78959
-            // Currently not supported, full stop
-            diagnosticContext.Report(RudeEditKind.ExtensionBlockUpdate, cancellationToken);
+            // Currently not supported
+            diagnosticContext.Report(RudeEditKind.Update, cancellationToken, arguments: [FeaturesResources.extension_block]);
             return;
         }
 

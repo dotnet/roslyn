@@ -2925,11 +2925,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Para actualizar una instrucción de acción se requiere reiniciar la aplicación.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
-        <source>Updating an extension block requires restarting the application.</source>
-        <target state="new">Updating an extension block requires restarting the application.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">La actualización del modificador asincrónico async o iterador iterator alrededor de una instrucción de acción requiere reiniciar la aplicación.</target>
@@ -3617,6 +3612,11 @@ Si el especificador de formato "d" se usa sin otros especificadores de formato p
         <source>embedded</source>
         <target state="translated">Incrustado</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
       </trans-unit>
       <trans-unit id="external">
         <source>external</source>

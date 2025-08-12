@@ -2925,11 +2925,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Se si aggiorna un'istruzione attiva, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
-        <source>Updating an extension block requires restarting the application.</source>
-        <target state="new">Updating an extension block requires restarting the application.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">Se si aggiorna il modificatore async o di iteratore in un'istruzione attiva, è necessario riavviare l'applicazione.</target>
@@ -3617,6 +3612,11 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
         <source>embedded</source>
         <target state="translated">Incorporata</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
       </trans-unit>
       <trans-unit id="external">
         <source>external</source>

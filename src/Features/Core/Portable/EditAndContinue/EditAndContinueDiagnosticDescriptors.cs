@@ -178,7 +178,6 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddRudeEdit(RudeEditKind.UpdateMightNotHaveAnyEffect, nameof(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted), DiagnosticSeverity.Warning, noEffect: true);
         AddRudeEdit(RudeEditKind.TypeUpdateAroundActiveStatement, nameof(FeaturesResources.Updating_a_0_around_an_active_statement_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.InsertOrMoveComInterfaceMember, nameof(FeaturesResources.Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application));
-        AddRudeEdit(RudeEditKind.ExtensionBlockUpdate, nameof(FeaturesResources.Updating_an_extension_block_requires_restarting_the_application));
 
         // VB specific
         AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_requires_restarting_the_application));

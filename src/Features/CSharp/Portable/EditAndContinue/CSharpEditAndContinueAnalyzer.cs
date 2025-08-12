@@ -2253,7 +2253,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 return CSharpFeaturesResources.local_variable_declaration;
 
             case SyntaxKind.ExtensionBlockDeclaration:
-                return CSharpFeaturesResources.extension_block;
+                return FeaturesResources.extension_block;
 
             default:
                 return null;

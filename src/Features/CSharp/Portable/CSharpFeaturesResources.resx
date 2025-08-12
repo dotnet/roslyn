@@ -587,7 +587,4 @@
   <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
     <value>Convert all extension methods in '{0}' to extension</value>
   </data>
-  <data name="extension_block" xml:space="preserve">
-    <value>extension block</value>
-  </data>
 </root>

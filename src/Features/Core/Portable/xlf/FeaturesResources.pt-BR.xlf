@@ -2925,11 +2925,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Atualizar uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
-        <source>Updating an extension block requires restarting the application.</source>
-        <target state="new">Updating an extension block requires restarting the application.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">Atualizar o modificador async ou iterator em torno de uma instrução ativa requer a reinicialização do aplicativo.</target>
@@ -3617,6 +3612,11 @@ Se o especificador de formato "d" for usado sem outros especificadores de format
         <source>embedded</source>
         <target state="translated">embutido</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
       </trans-unit>
       <trans-unit id="external">
         <source>external</source>
