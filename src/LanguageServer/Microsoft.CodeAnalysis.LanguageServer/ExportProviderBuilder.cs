@@ -182,13 +182,26 @@ internal sealed class ExportProviderBuilder
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         // Currently we are expecting the following:
         //     "----- CompositionError level 1 ------
+        //     Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper.CSharpMapCodeService.ctor(service): expected exactly 1 export matching constraints:
+        //         Contract name: Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService
+        //         TypeIdentityName: Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService
+        //     but found 0.
+        //        part definition Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper.CSharpMapCodeService
+        //
         //     Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider.ctor(implementation): expected exactly 1 export matching constraints:
         //         Contract name: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
         //         TypeIdentityName: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
         //     but found 0.
-        //         part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
+        //        part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
+        //
+        //     Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch.CopilotSemanticSearchQueryExecutor.ctor(workspaceProvider): expected exactly 1 export matching constraints:
+        //         Contract name: Microsoft.CodeAnalysis.Host.IHostWorkspaceProvider
+        //         TypeIdentityName: Microsoft.CodeAnalysis.Host.IHostWorkspaceProvider
+        //     but found 0.
+        //        part definition Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch.CopilotSemanticSearchQueryExecutor
+
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
-        var expectedErroredParts = new string[] { "PythiaSignatureHelpProvider" };
+        var expectedErroredParts = new string[] { "CSharpMapCodeService", "PythiaSignatureHelpProvider", "CopilotSemanticSearchQueryExecutor" };
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErroredParts.Contains(part));
 
         if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
