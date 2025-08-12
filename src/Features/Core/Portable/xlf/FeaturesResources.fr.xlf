@@ -2925,6 +2925,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">La mise à jour d’une instruction active requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
+        <source>Updating an extension block requires restarting the application.</source>
+        <target state="new">Updating an extension block requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">La mise à jour d'un modificateur async ou iterator autour d'une déclaration active requiert le redémarrage de l'application.</target>

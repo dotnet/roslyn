@@ -148,4 +148,5 @@ internal enum RudeEditKind : ushort
     UpdateMightNotHaveAnyEffect = 118,
     TypeUpdateAroundActiveStatement = 119,
     InsertOrMoveComInterfaceMember = 120,
+    ExtensionBlockUpdate = 121,
 }

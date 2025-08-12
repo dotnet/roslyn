@@ -2925,6 +2925,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">更新活动语句需要重新启动应用程序。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
+        <source>Updating an extension block requires restarting the application.</source>
+        <target state="new">Updating an extension block requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">更新活动语句周围的 async 或 iterator 修饰符需要重新启动应用程序。</target>

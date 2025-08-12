@@ -2925,6 +2925,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Aktualizowanie aktywnej instrukcji wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
+        <source>Updating an extension block requires restarting the application.</source>
+        <target state="new">Updating an extension block requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">Aktualizowanie modyfikatora asynchronicznego lub modyfikatora moduły iterator wokół aktywnej instrukcji wymaga ponownego uruchomienia aplikacji.</target>

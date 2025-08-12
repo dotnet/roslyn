@@ -2914,6 +2914,14 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     continue;
                                 }
 
+                                if (oldSymbol is { ContainingType.IsExtension: true })
+                                {
+                                    // This is inside a new extension declaration, and not currently supported.
+                                    // https://github.com/dotnet/roslyn/issues/78959
+                                    diagnosticContext.Report(RudeEditKind.ExtensionBlockUpdate, diagnosticSpan);
+                                    continue;
+                                }
+
                                 ReportDeletedMemberActiveStatementsRudeEdits();
 
                                 var rudeEditKind = RudeEditKind.Delete;
@@ -3067,6 +3075,14 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     if (!hasAssociatedSymbolInsert && IsMember(newSymbol))
                                     {
                                         ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol, newDeclaration, insertingIntoExistingContainingType: oldContainingType != null);
+                                    }
+
+                                    if (newContainingType.IsExtension)
+                                    {
+                                        // This is a new extension declaration, and not currently supported.
+                                        // https://github.com/dotnet/roslyn/issues/78959
+                                        diagnosticContext.Report(RudeEditKind.ExtensionBlockUpdate, GetDiagnosticSpan(newDeclaration, EditKind.Insert));
+                                        continue;
                                     }
 
                                     if (oldContainingType == null)
@@ -4225,6 +4241,14 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         hasGeneratedAttributeChange = false;
         hasGeneratedReturnTypeAttributeChange = false;
 
+        if (IsOrIsContainedInNewExtension(oldSymbol) || IsOrIsContainedInNewExtension(newSymbol))
+        {
+            // https://github.com/dotnet/roslyn/issues/78959
+            // Currently not supported, full stop
+            diagnosticContext.Report(RudeEditKind.ExtensionBlockUpdate, cancellationToken);
+            return;
+        }
+
         if (oldSymbol.Kind != newSymbol.Kind)
         {
             rudeEdit = (oldSymbol.Kind == SymbolKind.Field || newSymbol.Kind == SymbolKind.Field) ? RudeEditKind.FieldKindUpdate : RudeEditKind.Update;
@@ -4528,6 +4552,23 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         if (rudeEdit != RudeEditKind.None)
         {
             diagnosticContext.Report(rudeEdit, cancellationToken);
+        }
+
+        bool IsOrIsContainedInNewExtension(ISymbol symbol)
+        {
+            var current = symbol;
+            do
+            {
+                if (current is INamedTypeSymbol { IsExtension: true })
+                {
+                    return true;
+                }
+
+                current = current.ContainingType;
+            }
+            while (current != null);
+
+            return false;
         }
     }
 

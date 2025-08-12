@@ -2925,6 +2925,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Etkin bir deyimi güncelleştirmek, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
+        <source>Updating an extension block requires restarting the application.</source>
+        <target state="new">Updating an extension block requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">Etkin bir deyim etrafında async veya iterator değiştiricisini güncelleştirmek uygulamanın yeniden başlatılmasını gerektirir.</target>

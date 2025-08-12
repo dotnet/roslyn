@@ -2925,6 +2925,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Se si aggiorna un'istruzione attiva, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_an_extension_block_requires_restarting_the_application">
+        <source>Updating an extension block requires restarting the application.</source>
+        <target state="new">Updating an extension block requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">Se si aggiorna il modificatore async o di iteratore in un'istruzione attiva, è necessario riavviare l'applicazione.</target>
