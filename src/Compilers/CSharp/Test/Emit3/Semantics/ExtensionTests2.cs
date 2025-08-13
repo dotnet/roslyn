@@ -28872,5 +28872,54 @@ static class E
             //     extension(object)
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(3, 15));
     }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79894")]
+    public void TypeForwardExtensions(bool useMetadataRef)
+    {
+        var libSrc = """
+public static class Extensions
+{
+    extension(int i)
+    {
+        void M1() {}
+    }
+
+    extension(int i)
+    {
+        void M2() {}
+    }
+
+    extension(string s)
+    {
+        void M3() {}
+    }
+
+    public class Nested
+    {
+    }
+
+    public static string M4(this Nested n)
+    {
+        return "M4";
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        libComp.VerifyEmitDiagnostics();
+
+        var src = """
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Extensions))]
+""";
+        var verifier = CompileAndVerify(src, references: [useMetadataRef ? libComp.ToMetadataReference() : libComp.EmitToImageReference()], assemblyValidator: validateForwardedTypes);
+        verifier.VerifyDiagnostics();
+
+        static void validateForwardedTypes(PEAssembly assembly)
+        {
+            var module = assembly.Modules.Single();
+            var forwardedTypes = module.GetForwardedTypes();
+            AssertEx.Equal(["Extensions"], forwardedTypes.Select(t => t.Key).Order());
+        }
+    }
 }
 

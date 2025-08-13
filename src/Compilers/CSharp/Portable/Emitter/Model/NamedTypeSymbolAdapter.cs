@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (AdaptedNamedTypeSymbol.IsExtension)
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    return AdaptedNamedTypeSymbol.ExtensionGroupingName;
                 }
 
                 string unsuffixedName = AdaptedNamedTypeSymbol.Name;
