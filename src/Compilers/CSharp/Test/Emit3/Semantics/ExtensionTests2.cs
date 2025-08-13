@@ -29137,12 +29137,12 @@ public static class E2
 {
     extension(C c)
     {
-        public void Add(int i) { }
+        public void Add(int i) { System.Console.Write("ran"); }
     }
 }
 """;
         var comp = CreateCompilationWithIL(src, ilSrc);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
