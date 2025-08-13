@@ -4750,12 +4750,12 @@ outerDefault:
 
         private static bool TypeContainsTypeParameterFromContainer(Symbol container, TypeSymbol parameterType)
         {
-            if (parameterType.ContainsTypeParameter(parameterContainer: container))
+            if (parameterType.ContainsTypeParameter(typeParameterContainer: container))
             {
                 return true;
             }
 
-            return container.GetIsNewExtensionMember() && parameterType.ContainsTypeParameter(parameterContainer: container.ContainingType);
+            return container.GetIsNewExtensionMember() && parameterType.ContainsTypeParameter(typeParameterContainer: container.ContainingType);
         }
 
         private static TMember GetConstructedFrom<TMember>(TMember member) where TMember : Symbol

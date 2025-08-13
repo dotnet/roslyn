@@ -29450,7 +29450,7 @@ static class E
 {
     extension(C c)
     {
-        public int Length => 2;
+        public int Length => throw null;
     }
 }
 
@@ -29461,12 +29461,6 @@ public class C
         yield return 1;
         yield return 2; 
     }
-}
-
-public class D : System.Collections.IEnumerable
-{
-    public System.Collections.IEnumerator GetEnumerator() => null;
-    public void Add(int i) { System.Console.Write(i); }
 }
 """;
         var comp = CreateCompilation(src);

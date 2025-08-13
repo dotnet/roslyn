@@ -1467,6 +1467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If the method is generic, skip it if the type arguments cannot be inferred.
                     var member = candidate.Member;
+
+                    // For new extension methods, we'll use the extension implementation method to determine inferrability
                     if (member.GetIsNewExtensionMember())
                     {
                         if (member.TryGetCorrespondingExtensionImplementationMethod() is { } extensionImplementation)

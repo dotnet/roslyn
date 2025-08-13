@@ -48528,7 +48528,7 @@ static class E
 {
     extension<T>(MyCollection<T> c)
     {
-        public void Add(T o) { }
+        public void Add(T o) { System.Console.Write(o is null ? "True " : "False "); }
     }
 }
 
@@ -48539,7 +48539,7 @@ public class MyCollection<T> : IEnumerable<T>
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "True False").VerifyDiagnostics();
 
         src = """
 #nullable enable
@@ -48552,7 +48552,7 @@ MyCollection<object> c = [oNull, oNotNull];
 
 static class E
 {
-    public static void Add<T>(this MyCollection<T> c, T o) { }
+    public static void Add<T>(this MyCollection<T> c, T o) { System.Console.Write(o is null ? "True " : "False ");  }
 }
 
 public class MyCollection<T> : IEnumerable<T>
@@ -48562,7 +48562,7 @@ public class MyCollection<T> : IEnumerable<T>
 }
 """;
         comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "True False").VerifyDiagnostics();
     }
 
     [Fact]
