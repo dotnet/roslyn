@@ -36,288 +36,214 @@ public sealed class SubtractTests : TestBase
 
     [Fact]
     public void StartingBeforeStartAndEndingBeforeStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), RightBeforeStart(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeStartAndEndingAtStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), AtStart(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeStartAndEndingAfterStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(RightAfterStart(LongSpan), AtEnd(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), RightAfterStart(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeStartAndEndingBeforeEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(RightBeforeEnd(LongSpan), AtEnd(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), RightBeforeEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeStartAndEndingAtEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), AtEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeStartAndEndingAfterEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), RightAfterEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAtStartAndEndingAtStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(AtStart(LongSpan), AtStart(LongSpan))));
-    }
 
     [Fact]
     public void StartingAtStartAndEndingAfterStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(RightAfterStart(LongSpan), AtEnd(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(AtStart(LongSpan), RightAfterStart(LongSpan))));
-    }
 
     [Fact]
     public void StartingAtStartAndEndingBeforeEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(RightBeforeEnd(LongSpan), AtEnd(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(AtStart(LongSpan), RightBeforeEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAtStartAndEndingAtEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             LongSpan.Subtract(TextSpan.FromBounds(AtStart(LongSpan), AtEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAtStartAndEndingAfterEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             LongSpan.Subtract(TextSpan.FromBounds(AtStart(LongSpan), RightAfterEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAfterStartAndEndingAfterStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(RightAfterStart(LongSpan), RightAfterStart(LongSpan))));
-    }
 
     [Fact]
     public void StartingAfterStartAndEndingBeforeEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [
                 TextSpan.FromBounds(AtStart(LongSpan), RightAfterStart(LongSpan)),
                 TextSpan.FromBounds(RightBeforeEnd(LongSpan), AtEnd(LongSpan))
             ],
             LongSpan.Subtract(TextSpan.FromBounds(RightAfterStart(LongSpan), RightBeforeEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAfterStartAndEndingAtEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(AtStart(LongSpan), RightAfterStart(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(RightAfterStart(LongSpan), AtEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAfterStartAndEndingAfterEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(AtStart(LongSpan), RightAfterStart(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(RightAfterStart(LongSpan), RightAfterEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeEndAndEndingBeforeEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeEnd(LongSpan), RightBeforeEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeEndAndEndingAtEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(AtStart(LongSpan), RightBeforeEnd(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeEnd(LongSpan), AtEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingBeforeEndAndEndingAfterEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [TextSpan.FromBounds(AtStart(LongSpan), RightBeforeEnd(LongSpan))],
             LongSpan.Subtract(TextSpan.FromBounds(RightBeforeEnd(LongSpan), RightAfterEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAtEndAndEndingAtEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(AtEnd(LongSpan), AtEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAtEndAndEndingAfterEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(AtEnd(LongSpan), RightAfterEnd(LongSpan))));
-    }
 
     [Fact]
     public void StartingAfterEndAndEndingAfterEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [LongSpan],
             LongSpan.Subtract(TextSpan.FromBounds(RightAfterEnd(LongSpan), RightAfterEnd(LongSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingBeforeStartAndEndingBeforeStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [UnitSpan],
             UnitSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(UnitSpan), RightBeforeStart(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingBeforeStartAndEndingAtStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [UnitSpan],
             UnitSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(UnitSpan), AtStart(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingBeforeStartAndEndingAtEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             UnitSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(UnitSpan), AtEnd(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingBeforeStartAndEndingAfterEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             UnitSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(UnitSpan), RightAfterEnd(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingAtStartAndEndingAtStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [UnitSpan],
             UnitSpan.Subtract(TextSpan.FromBounds(AtStart(UnitSpan), AtStart(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingAtStartAndEndingAtEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             UnitSpan.Subtract(TextSpan.FromBounds(AtStart(UnitSpan), AtEnd(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingAtStartAndEndingAfterEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             UnitSpan.Subtract(TextSpan.FromBounds(AtStart(UnitSpan), RightAfterEnd(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingAtEndAndEndingAtEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [UnitSpan],
             UnitSpan.Subtract(TextSpan.FromBounds(AtEnd(UnitSpan), AtEnd(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingAtEndAndEndingAfterEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [UnitSpan],
             UnitSpan.Subtract(TextSpan.FromBounds(AtEnd(UnitSpan), RightAfterEnd(UnitSpan))));
-    }
 
     [Fact]
     public void UnitSpanStartingAfterEndAndEndingAfterEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [UnitSpan],
             UnitSpan.Subtract(TextSpan.FromBounds(RightAfterEnd(UnitSpan), RightAfterEnd(UnitSpan))));
-    }
 
     [Fact]
     public void EmptySpanStartingBeforeStartAndEndingBeforeStart()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [EmptySpan],
             EmptySpan.Subtract(TextSpan.FromBounds(RightBeforeStart(EmptySpan), RightBeforeStart(EmptySpan))));
-    }
 
     [Fact]
     public void EmptySpanStartingBeforeStartAndEndingAtSpan()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             EmptySpan.Subtract(TextSpan.FromBounds(RightBeforeStart(EmptySpan), EmptySpan.Start)));
-    }
 
     [Fact]
     public void EmptySpanStartingBeforeStartAndEndingAfterEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             EmptySpan.Subtract(TextSpan.FromBounds(RightBeforeStart(EmptySpan), RightAfterEnd(EmptySpan))));
-    }
 
     [Fact]
     public void EmptySpanStartingAtSpanAndEndingAtSpan()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             EmptySpan.Subtract(TextSpan.FromBounds(EmptySpan.Start, EmptySpan.Start)));
-    }
 
     [Fact]
     public void EmptySpanStartingAtSpanAndEndingAfterEnd()
-    {
-        Assert.Empty(
+        => Assert.Empty(
             EmptySpan.Subtract(TextSpan.FromBounds(EmptySpan.Start, RightAfterEnd(EmptySpan))));
-    }
 
     [Fact]
     public void EmptySpanStartingAfterEndAndEndingAfterEnd()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             [EmptySpan],
             EmptySpan.Subtract(TextSpan.FromBounds(RightAfterEnd(EmptySpan), RightAfterEnd(EmptySpan))));
-    }
 }

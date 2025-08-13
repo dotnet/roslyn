@@ -131,7 +131,7 @@ class C
     extension<T>(object o) where T : struct { }
 }
 """,
-            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -759,7 +759,7 @@ class extension
     extension(Type constructorParameter) { }
 }
 """,
-        useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -799,7 +799,7 @@ class extension
     @extension(Type constructorParameter) { }
 }
 """,
-        useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3019,14 +3019,6 @@ static class C
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (5,39): error CS0563: One of the parameters of a binary operator must be the containing type
-            //         public static object operator +(object a, object b) => a;
-            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 39),
-            // (5,39): error CS9282: This member is not allowed in an extension block
-            //         public static object operator +(object a, object b) => a;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+").WithLocation(5, 39));
 
         UsingTree(src, TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
@@ -3118,9 +3110,6 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,41): error CS0556: User-defined conversion must convert to or from the enclosing type
-            //         public static implicit operator int(object t) => 0;
-            Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 41),
             // (5,41): error CS9282: This member is not allowed in an extension block
             //         public static implicit operator int(object t) => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(5, 41));
@@ -4443,7 +4432,7 @@ class C
         EOF();
 
         // Note: break from C# 13
-        UsingTree(src, useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview,
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
             // (3,15): error CS9500: Extension declarations may not have a name.
             //     extension M() { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(3, 15),
@@ -4488,7 +4477,7 @@ class C
     @extension M() { }
 }
 """,
-            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -4573,7 +4562,7 @@ class C
         EOF();
 
         // Note: break from C# 13
-        UsingTree(src, useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview,
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
             // (3,15): error CS9500: Extension declarations may not have a name.
             //     extension M(Type x) { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(3, 15));
@@ -4616,7 +4605,7 @@ class C
     @extension M(Type x) { }
 }
 """,
-            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {

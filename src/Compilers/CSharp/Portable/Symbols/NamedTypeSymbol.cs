@@ -13,7 +13,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -212,6 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (candidates.IsEmpty)
                 return;
 
+            AddOperators(operators, candidates);
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
@@ -505,9 +509,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
         /// <summary>
-        /// For extensions, returns the synthesized identifier for the type: "&lt;E>__N".
+        /// For extensions, returns the synthesized identifier for the grouping type.
         /// </summary>
-        internal abstract string ExtensionName { get; }
+        internal abstract string ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// </summary>
+        internal abstract string ExtensionMarkerName { get; }
+
 #nullable disable
 
         /// <summary>

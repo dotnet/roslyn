@@ -3,15 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
-Imports System.Reflection.Metadata
-Imports System.Security.Cryptography
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.SigningTestHelpers
 
 Partial Public Class InternalsVisibleToAndStrongNameTests
     Inherits BasicTestBase

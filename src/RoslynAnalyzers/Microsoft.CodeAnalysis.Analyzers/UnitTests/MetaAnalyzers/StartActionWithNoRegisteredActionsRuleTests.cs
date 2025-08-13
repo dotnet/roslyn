@@ -22,485 +22,458 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyDiagnosticAsync()
         {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
+            DiagnosticResult[] expected =
+            [
+                GetCSharpExpectedDiagnostic(20, 48, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
+                GetCSharpExpectedDiagnostic(33, 47, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
+                GetCSharpExpectedDiagnostic(37, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
+            ];
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+            await VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterCompilationStartAction(compilationContext =>
-        {
-        });
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
 
-        context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
-        context.RegisterCodeBlockStartAction<SyntaxKind>(AnalyzeCodeBlockStart);
-        context.RegisterOperationBlockStartAction(AnalyzeOperationBlockStart);
-    }
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterCompilationStartAction(compilationContext =>
+                        {
+                        });
 
-    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-    {
-    }
+                        context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
+                        context.RegisterCodeBlockStartAction<SyntaxKind>(AnalyzeCodeBlockStart);
+                        context.RegisterOperationBlockStartAction(AnalyzeOperationBlockStart);
+                    }
 
-    private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<SyntaxKind> codeBlockContext)
-    {
-    }
+                    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+                    {
+                    }
 
-    private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext operationBlockContext)
-    {
-    }
-}";
-            DiagnosticResult[] expected = new[]
-            {
-                GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
-                GetCSharpExpectedDiagnostic(34, 47, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
-                GetCSharpExpectedDiagnostic(38, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
-            };
+                    private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<SyntaxKind> codeBlockContext)
+                    {
+                    }
 
-            await VerifyCS.VerifyAnalyzerAsync(source, expected);
+                    private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext operationBlockContext)
+                    {
+                    }
+                }
+                """, expected);
         }
 
         [Fact]
         public async Task VisualBasic_VerifyDiagnosticAsync()
         {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic
+            DiagnosticResult[] expected =
+            [
+                GetBasicExpectedDiagnostic(18, 17, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
+                GetBasicExpectedDiagnostic(30, 46, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
+                GetBasicExpectedDiagnostic(33, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
+            ];
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
+            await VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.VisualBasic
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        context.RegisterCompilationStartAction(
-            Sub(compilationContext As CompilationStartAnalysisContext)
-            End Sub
-        )
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException()
+                        End Get
+                    End Property
 
-        context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
-        context.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeCodeBlockStart)
-        context.RegisterOperationBlockStartAction(AddressOf AnalyzeOperationBlockStart)
-    End Sub
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                        context.RegisterCompilationStartAction(
+                            Sub(compilationContext As CompilationStartAnalysisContext)
+                            End Sub
+                        )
 
-    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
-    End Sub
-
-    Private Shared Sub AnalyzeCodeBlockStart(codeBlockContext As CodeBlockStartAnalysisContext(Of SyntaxKind))
-    End Sub
-
-    Private Shared Sub AnalyzeOperationBlockStart(operationBlockContext As OperationBlockStartAnalysisContext)
-    End Sub
-End Class
-";
-            DiagnosticResult[] expected = new[]
-            {
-                GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
-                GetBasicExpectedDiagnostic(31, 46, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
-                GetBasicExpectedDiagnostic(34, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
-            };
-
-            await VerifyVB.VerifyAnalyzerAsync(source, expected);
-        }
-
-        [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-abstract class MyAnalyzer<T> : DiagnosticAnalyzer
-    where T : struct
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterCompilationStartAction(compilationContext =>
-        {
-            compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(AnalyzeCodeBlockStart);
-        });
-    }
-
-    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-    {
-    }
-
-    private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<SyntaxKind> context)
-    {
-        context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
-    }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
-        }
-
-        [Fact]
-        public async Task CSharp_NoDiagnosticCases_2Async()
-        {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-abstract class MyAnalyzer<T> : DiagnosticAnalyzer
-    where T : struct
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterCompilationStartAction(compilationContext =>
-        {
-            compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(codeBlockContext =>
-            {
-                AnalyzeCodeBlockStart(codeBlockContext);
-            });
-        });
-    }
-
-    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-    {
-    }
-
-    private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<SyntaxKind> context)
-    {
-        context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
-    }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
-        }
-
-        [Fact]
-        public async Task CSharp_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
-        {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
-    }
-
-    private static void AnalyzeOperation(OperationAnalysisContext context)
-    {
-    }
-}
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer2 : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterOperationBlockAction(AnalyzeOperationBlock);
-    }
-
-    private static void AnalyzeOperationBlock(OperationBlockAnalysisContext context)
-    {
-    }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(source);
-        }
-
-        [Fact]
-        public async Task CSharp_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
-        {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterCompilationStartAction(compilationContext =>
-        {
-            compilationContext.RegisterOperationBlockStartAction(operationBlockContext =>
-            {
-                AnalyzeOperationBlockStart(operationBlockContext);
-            });
-        });
-
-        context.RegisterCompilationStartAction(compilationContext =>
-        {
-            compilationContext.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
-        });
-
-        context.RegisterCompilationStartAction(compilationContext =>
-        {
-            compilationContext.RegisterOperationBlockAction(AnalyzeOperationBlock);
-        });
-    }
-
-    private static void AnalyzeOperation(OperationAnalysisContext context)
-    {
-    }
-
-    private static void AnalyzeOperationBlock(OperationBlockAnalysisContext context)
-    {
-    }
-
-    private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext context)
-    {
-        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
-    }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
-        }
-
-        [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic
-
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer(Of T As Structure)
-    Inherits DiagnosticAnalyzer
-
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
-
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        context.RegisterCompilationStartAction(
-            Sub(compilationContext As CompilationStartAnalysisContext)
-                compilationContext.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeCodeBlockStart)
-            End Sub
-        )
-    End Sub
-
-    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
-    End Sub
-
-    Private Shared Sub AnalyzeCodeBlockStart(context As CodeBlockStartAnalysisContext(Of SyntaxKind))
-        context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
-    End Sub
-End Class
-";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
-        }
-
-        [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_2Async()
-        {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic
-
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer(Of T As Structure)
-    Inherits DiagnosticAnalyzer
-
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
-
-    Public Overrides Sub Initialize(context As AnalysisContext)
-        context.RegisterCompilationStartAction(
-            Sub(compilationContext As CompilationStartAnalysisContext)
-                compilationContext.RegisterCodeBlockStartAction(Of SyntaxKind)(
-                    Sub(codeBlockContext As CodeBlockStartAnalysisContext(Of SyntaxKind))
-                        AnalyzeCodeBlockStart(codeBlockContext)
+                        context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
+                        context.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeCodeBlockStart)
+                        context.RegisterOperationBlockStartAction(AddressOf AnalyzeOperationBlockStart)
                     End Sub
-                )
-            End Sub
-        )
-    End Sub
 
-    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
-    End Sub
+                    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
+                    End Sub
 
-    Private Shared Sub AnalyzeCodeBlockStart(context As CodeBlockStartAnalysisContext(Of SyntaxKind))
-        context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
-    End Sub
-End Class
-";
+                    Private Shared Sub AnalyzeCodeBlockStart(codeBlockContext As CodeBlockStartAnalysisContext(Of SyntaxKind))
+                    End Sub
 
-            await VerifyVB.VerifyAnalyzerAsync(source);
+                    Private Shared Sub AnalyzeOperationBlockStart(operationBlockContext As OperationBlockStartAnalysisContext)
+                    End Sub
+                End Class
+                """, expected);
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
-        {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                abstract class MyAnalyzer<T> : DiagnosticAnalyzer
+                    where T : struct
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
 
-	Public Overrides Sub Initialize(context As AnalysisContext)
-		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
-	End Sub
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterCompilationStartAction(compilationContext =>
+                        {
+                            compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(AnalyzeCodeBlockStart);
+                        });
+                    }
 
-	Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
-	End Sub
-End Class
+                    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+                    {
+                    }
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
-Class MyAnalyzer2
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-		context.RegisterOperationBlockAction(AddressOf AnalyzeOperationBlock)
-	End Sub
-
-	Private Shared Sub AnalyzeOperationBlock(context As OperationBlockAnalysisContext)
-	End Sub
-End Class
-";
-            await VerifyVB.VerifyAnalyzerAsync(source);
-        }
+                    private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<SyntaxKind> context)
+                    {
+                        context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
+                    }
+                }
+                """);
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
-        {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+        public Task CSharp_NoDiagnosticCases_2Async()
+            => VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
-MustInherit Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                abstract class MyAnalyzer<T> : DiagnosticAnalyzer
+                    where T : struct
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
 
-	Public Overrides Sub Initialize(context As AnalysisContext)
-		context.RegisterCompilationStartAction(Function(compilationContext) 
-      		                                        compilationContext.RegisterOperationBlockStartAction(Function(operationBlockContext) 
-		                                                                                                    AnalyzeOperationBlockStart(operationBlockContext)
-                                                                                                         End Function)
-                                               End Function)
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterCompilationStartAction(compilationContext =>
+                        {
+                            compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(codeBlockContext =>
+                            {
+                                AnalyzeCodeBlockStart(codeBlockContext);
+                            });
+                        });
+                    }
 
-		context.RegisterCompilationStartAction(Function(compilationContext) 
-		                                         compilationContext.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
-                                               End Function)
+                    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+                    {
+                    }
 
-		context.RegisterCompilationStartAction(Function(compilationContext) 
-		                                            compilationContext.RegisterOperationBlockAction(AddressOf AnalyzeOperationBlock)
-                                               End Function)
-	End Sub
+                    private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<SyntaxKind> context)
+                    {
+                        context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
+                    }
+                }
+                """);
 
-	Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
-	End Sub
+        [Fact]
+        public Task CSharp_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
+            => VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-	Private Shared Sub AnalyzeOperationBlock(context As OperationBlockAnalysisContext)
-	End Sub
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
 
-	Private Shared Sub AnalyzeOperationBlockStart(context As OperationBlockStartAnalysisContext)
-		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
-	End Sub
-End Class
-";
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
+                    }
 
-            await VerifyVB.VerifyAnalyzerAsync(source);
-        }
+                    private static void AnalyzeOperation(OperationAnalysisContext context)
+                    {
+                    }
+                }
+
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer2 : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterOperationBlockAction(AnalyzeOperationBlock);
+                    }
+
+                    private static void AnalyzeOperationBlock(OperationBlockAnalysisContext context)
+                    {
+                    }
+                }
+                """);
+
+        [Fact]
+        public Task CSharp_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
+            => VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
+
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterCompilationStartAction(compilationContext =>
+                        {
+                            compilationContext.RegisterOperationBlockStartAction(operationBlockContext =>
+                            {
+                                AnalyzeOperationBlockStart(operationBlockContext);
+                            });
+                        });
+
+                        context.RegisterCompilationStartAction(compilationContext =>
+                        {
+                            compilationContext.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
+                        });
+
+                        context.RegisterCompilationStartAction(compilationContext =>
+                        {
+                            compilationContext.RegisterOperationBlockAction(AnalyzeOperationBlock);
+                        });
+                    }
+
+                    private static void AnalyzeOperation(OperationAnalysisContext context)
+                    {
+                    }
+
+                    private static void AnalyzeOperationBlock(OperationBlockAnalysisContext context)
+                    {
+                    }
+
+                    private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext context)
+                    {
+                        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
+                    }
+                }
+                """);
+
+        [Fact]
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.VisualBasic
+
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer(Of T As Structure)
+                    Inherits DiagnosticAnalyzer
+
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException()
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                        context.RegisterCompilationStartAction(
+                            Sub(compilationContext As CompilationStartAnalysisContext)
+                                compilationContext.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeCodeBlockStart)
+                            End Sub
+                        )
+                    End Sub
+
+                    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
+                    End Sub
+
+                    Private Shared Sub AnalyzeCodeBlockStart(context As CodeBlockStartAnalysisContext(Of SyntaxKind))
+                        context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
+                    End Sub
+                End Class
+                """);
+
+        [Fact]
+        public Task VisualBasic_NoDiagnosticCases_2Async()
+            => VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+                Imports Microsoft.CodeAnalysis.VisualBasic
+
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyAnalyzer(Of T As Structure)
+                    Inherits DiagnosticAnalyzer
+
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Throw New NotImplementedException()
+                        End Get
+                    End Property
+
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                        context.RegisterCompilationStartAction(
+                            Sub(compilationContext As CompilationStartAnalysisContext)
+                                compilationContext.RegisterCodeBlockStartAction(Of SyntaxKind)(
+                                    Sub(codeBlockContext As CodeBlockStartAnalysisContext(Of SyntaxKind))
+                                        AnalyzeCodeBlockStart(codeBlockContext)
+                                    End Sub
+                                )
+                            End Sub
+                        )
+                    End Sub
+
+                    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
+                    End Sub
+
+                    Private Shared Sub AnalyzeCodeBlockStart(context As CodeBlockStartAnalysisContext(Of SyntaxKind))
+                        context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
+                    End Sub
+                End Class
+                """);
+
+        [Fact]
+        public Task VisualBasic_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
+                Class MyAnalyzer
+                	Inherits DiagnosticAnalyzer
+                	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                		Get
+                			Throw New NotImplementedException()
+                		End Get
+                	End Property
+
+                	Public Overrides Sub Initialize(context As AnalysisContext)
+                		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
+                	End Sub
+
+                	Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
+                	End Sub
+                End Class
+
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
+                Class MyAnalyzer2
+                	Inherits DiagnosticAnalyzer
+                	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                		Get
+                			Throw New NotImplementedException()
+                		End Get
+                	End Property
+
+                	Public Overrides Sub Initialize(context As AnalysisContext)
+                		context.RegisterOperationBlockAction(AddressOf AnalyzeOperationBlock)
+                	End Sub
+
+                	Private Shared Sub AnalyzeOperationBlock(context As OperationBlockAnalysisContext)
+                	End Sub
+                End Class
+                """);
+
+        [Fact]
+        public Task VisualBasic_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
+            => VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
+
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)> _
+                MustInherit Class MyAnalyzer
+                	Inherits DiagnosticAnalyzer
+                	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                		Get
+                			Throw New NotImplementedException()
+                		End Get
+                	End Property
+
+                	Public Overrides Sub Initialize(context As AnalysisContext)
+                		context.RegisterCompilationStartAction(Function(compilationContext) 
+                      		                                        compilationContext.RegisterOperationBlockStartAction(Function(operationBlockContext) 
+                		                                                                                                    AnalyzeOperationBlockStart(operationBlockContext)
+                                                                                                                         End Function)
+                                                               End Function)
+
+                		context.RegisterCompilationStartAction(Function(compilationContext) 
+                		                                         compilationContext.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
+                                                               End Function)
+
+                		context.RegisterCompilationStartAction(Function(compilationContext) 
+                		                                            compilationContext.RegisterOperationBlockAction(AddressOf AnalyzeOperationBlock)
+                                                               End Function)
+                	End Sub
+
+                	Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
+                	End Sub
+
+                	Private Shared Sub AnalyzeOperationBlock(context As OperationBlockAnalysisContext)
+                	End Sub
+
+                	Private Shared Sub AnalyzeOperationBlockStart(context As OperationBlockStartAnalysisContext)
+                		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
+                	End Sub
+                End Class
+                """);
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
 #pragma warning disable RS0030 // Do not use banned APIs
@@ -526,7 +499,7 @@ End Class
                 _ => throw new ArgumentException("Unsupported action kind", nameof(kind)),
             };
 
-            return new[] { parameterName, arg2 };
+            return [parameterName, arg2];
         }
 
         private enum StartActionKind

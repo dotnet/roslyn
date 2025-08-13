@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -160,14 +161,12 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         if (enabledWithEditorconfig)
         {
-            var editorconfigText = $"""
+            project = project.AddAnalyzerConfigDocument(".editorconfig", filePath: "z:\\.editorconfig", text: SourceText.From($"""
                 [*.cs]
                 dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_syntaxRule.Id}.severity = warning
                 dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_semanticRule.Id}.severity = warning
                 dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = warning
-                """;
-
-            project = project.AddAnalyzerConfigDocument(".editorconfig", filePath: "z:\\.editorconfig", text: SourceText.From(editorconfigText)).Project;
+                """)).Project;
         }
 
         var document = project.AddDocument("test.cs", SourceText.From("class A {}"), filePath: "z:\\test.cs");
@@ -293,14 +292,13 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         // Escalating the analyzer to non-hidden effective severity through analyzer config options
         // ensures that analyzer executes in full solution analysis.
-        var analyzerConfigText = $"""
-            [*.cs]
-            dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
-            """;
 
         project = project.AddAnalyzerConfigDocument(
             ".editorconfig",
-            text: SourceText.From(analyzerConfigText),
+            text: SourceText.From($"""
+            [*.cs]
+            dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
+            """),
             filePath: "z:\\.editorconfig").Project;
 
         await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: true);
@@ -655,6 +653,166 @@ public sealed class DiagnosticAnalyzerServiceTests
         Assert.Empty(diagnosticMap.Other);
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79706")]
+    internal async Task TestAnalysisWithAnalyzerInBothProjectAndHost_SameAnalyzerInstance(bool documentAnalysis)
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class A { }");
+
+        var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
+        var analyzerId = analyzer.GetAnalyzerId();
+        var analyzerReference = new AnalyzerImageReference([analyzer]);
+
+        workspace.TryApplyChanges(
+            workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference])
+            .Projects.Single().AddAnalyzerReference(analyzerReference).Solution);
+
+        var project = workspace.CurrentSolution.Projects.Single();
+        var document = documentAnalysis ? project.Documents.Single() : null;
+        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
+            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
+            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            logPerformanceInfo: false, getTelemetryInfo: false,
+            cancellationToken: CancellationToken.None);
+
+        // In this case, since the analyzer identity is identical, we ran it once
+        var analyzerResults = diagnosticsMapResults.Diagnostics.Single();
+        Assert.Equal(analyzerId, analyzerResults.Item1);
+        Assert.Equal(1, analyzerResults.Item2.Semantic.Length);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79706")]
+    internal async Task TestAnalysisWithAnalyzerInBothProjectAndHost_DifferentAnalyzerInstancesFromNonEqualReferences(bool documentAnalysis)
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class A { }");
+
+        var analyzerProject = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
+        var analyzerProjectId = analyzerProject.GetAnalyzerId();
+        var analyzerProjectReference = new AnalyzerImageReference([analyzerProject]);
+
+        var analyzerHost = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
+        var analyzerHostId = analyzerHost.GetAnalyzerId();
+        var analyzerHostReference = new AnalyzerImageReference([analyzerHost]);
+
+        // AnalyzerImageReference will create a separate AnalyzerImageReference.Id for each instance created, so these will be different.
+        Assert.NotEqual(analyzerProjectReference.Id, analyzerHostReference.Id);
+        Assert.Equal(analyzerProjectId, analyzerHostId);
+
+        workspace.TryApplyChanges(
+            workspace.CurrentSolution.WithAnalyzerReferences([analyzerHostReference])
+            .Projects.Single().AddAnalyzerReference(analyzerProjectReference).Solution);
+
+        var project = workspace.CurrentSolution.Projects.Single();
+        var document = documentAnalysis ? project.Documents.Single() : null;
+        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
+            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
+            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            logPerformanceInfo: false, getTelemetryInfo: false,
+            cancellationToken: CancellationToken.None);
+
+        // In this case, since the analyzer reference identity is identical, we ran it once
+        var analyzerResults = diagnosticsMapResults.Diagnostics.Single();
+        Assert.Equal(analyzerHostId, analyzerResults.Item1);
+        Assert.Equal(1, analyzerResults.Item2.Semantic.Length);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79706")]
+    internal async Task TestAnalysisWithAnalyzerInBothProjectAndHost_DifferentAnalyzerInstancesFromEqualReferences(bool documentAnalysis, bool includeExtraProjectReference, bool includeExtraHostReference)
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class A { }");
+
+        var analyzerProject = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
+        var analyzerProjectId = analyzerProject.GetAnalyzerId();
+        var analyzerProjectReference = CreateAnalyzerReferenceWithSameId(analyzerProject);
+
+        var analyzerHost = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
+        var analyzerHostId = analyzerHost.GetAnalyzerId();
+        var analyzerHostReference = CreateAnalyzerReferenceWithSameId(analyzerHost);
+
+        Assert.Equal(analyzerProjectReference.Id, analyzerHostReference.Id);
+        Assert.Equal(analyzerProjectId, analyzerHostId);
+
+        workspace.TryApplyChanges(
+            workspace.CurrentSolution.WithAnalyzerReferences(AddExtraReferenceIfNeeded(analyzerHostReference, includeExtraHostReference))
+            .Projects.Single().AddAnalyzerReferences(AddExtraReferenceIfNeeded(analyzerProjectReference, includeExtraProjectReference)).Solution);
+
+        var project = workspace.CurrentSolution.Projects.Single();
+        var document = documentAnalysis ? project.Documents.Single() : null;
+        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
+            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
+            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            logPerformanceInfo: false, getTelemetryInfo: false,
+            cancellationToken: CancellationToken.None);
+
+        // In this case, the analyzers are ran twice. This appears to be a bug in SkippedHostAnalyzersInfo.Create, because it calls
+        // HostDiagnosticAnalyzers.CreateProjectDiagnosticAnalyzersPerReference which already filters out references, it doesn't return any
+        // references to skip.
+        Assert.Equal(2, diagnosticsMapResults.Diagnostics.Length);
+
+        static AnalyzerReference CreateAnalyzerReferenceWithSameId(DiagnosticAnalyzer analyzer)
+        {
+            var map = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>()
+            {
+                { LanguageNames.CSharp, [analyzer] }
+            };
+
+            return new TestAnalyzerReferenceByLanguage(map);
+        }
+
+        static ImmutableArray<AnalyzerReference> AddExtraReferenceIfNeeded(AnalyzerReference mainReference, bool addExtraReference)
+        {
+            if (addExtraReference)
+            {
+                return [mainReference, new AnalyzerImageReference([new FieldAnalyzer("FA1234", syntaxTreeAction: false)])];
+            }
+            else
+            {
+                return [mainReference];
+            }
+        }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79706")]
+    internal async Task TestAnalysisWithAnalyzerInBothProjectAndHost_SameAnalyzerInstancesFromEqualReferences(bool documentAnalysis)
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class A { }");
+
+        var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
+        var analyzerProjectReference = CreateAnalyzerReferenceWithSameId(analyzer);
+        var analyzerHostReference = CreateAnalyzerReferenceWithSameId(analyzer);
+
+        var analyzerId = analyzer.GetAnalyzerId();
+
+        Assert.Equal(analyzerProjectReference.Id, analyzerHostReference.Id);
+
+        workspace.TryApplyChanges(
+            workspace.CurrentSolution.WithAnalyzerReferences([analyzerHostReference])
+            .Projects.Single().AddAnalyzerReference(analyzerProjectReference).Solution);
+
+        var project = workspace.CurrentSolution.Projects.Single();
+        var document = documentAnalysis ? project.Documents.Single() : null;
+        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
+            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
+            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            logPerformanceInfo: false, getTelemetryInfo: false,
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
+
+        static AnalyzerReference CreateAnalyzerReferenceWithSameId(DiagnosticAnalyzer analyzer)
+        {
+            var map = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>()
+            {
+                { LanguageNames.CSharp, [analyzer] }
+            };
+
+            return new TestAnalyzerReferenceByLanguage(map);
+        }
+    }
+
     [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
     [CombinatorialData]
     public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind kind)
@@ -668,11 +826,9 @@ public sealed class DiagnosticAnalyzerServiceTests
                 }
             }
             """;
-        var additionalText = @"This is an additional file!";
-
         using var workspace = TestWorkspace.CreateCSharp(source);
         var project = workspace.CurrentSolution.Projects.Single();
-        project = project.AddAdditionalDocument("additional.txt", additionalText).Project;
+        project = project.AddAdditionalDocument("additional.txt", @"This is an additional file!").Project;
 
         var analyzer = new FilterSpanTestAnalyzer(kind);
         var analyzerId = analyzer.GetAnalyzerId();

@@ -179,7 +179,7 @@ internal abstract class ImportAdderService : ILanguageService
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE
+#if !WORKSPACE
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 #else
         var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -242,7 +242,9 @@ internal abstract class ImportAdderService : ILanguageService
             model,
             cancellationToken).ConfigureAwait(false);
 
-        var importsToAdd = importToSyntax.Where(kvp => safeImportsToAdd.Contains(kvp.Key)).Select(kvp => kvp.Value).ToImmutableArray();
+        var importsToAdd = importToSyntax.SelectAsArray(
+            predicate: kvp => safeImportsToAdd.Contains(kvp.Key),
+            selector: kvp => kvp.Value);
         if (importsToAdd.Length == 0)
             return document;
 

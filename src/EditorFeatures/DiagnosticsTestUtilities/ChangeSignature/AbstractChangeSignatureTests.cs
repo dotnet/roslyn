@@ -45,7 +45,7 @@ public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
     {
         if (expectedCodeAction)
         {
-            var testOptions = new TestParameters();
+            var testOptions = TestParameters.Default;
 
             using var workspace = CreateWorkspaceFromOptions(markup, testOptions);
             var optionsService = (TestChangeSignatureOptionsService)workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();

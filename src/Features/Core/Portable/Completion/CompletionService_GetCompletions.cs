@@ -17,8 +17,8 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -103,7 +103,7 @@ public abstract partial class CompletionService
 
         // See if there were completion contexts provided that were exclusive. If so, then
         // that's all we'll return.
-        var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+        var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
 

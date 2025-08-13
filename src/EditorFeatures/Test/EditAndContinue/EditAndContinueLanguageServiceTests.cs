@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -144,7 +145,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         // EnterBreakStateAsync
 
-        mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
+        mockEncService.BreakStateOrCapabilitiesChangedImpl = inBreakState =>
         {
             Assert.True(inBreakState);
         };
@@ -209,12 +210,19 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                         ])
                 ],
                 SyntaxError = syntaxError,
-                ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
+                ProjectsToRebuild = [projectId],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(projectId, []),
+                ProjectsToRedeploy = [projectId],
             };
         };
 
-        var updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        var runningProjectInfo = new DebuggerContracts.RunningProjectInfo()
+        {
+            ProjectInstanceId = new DebuggerContracts.ProjectInstanceId(project.FilePath, "net9.0"),
+            RestartAutomatically = false,
+        };
+
+        var updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
@@ -275,10 +283,11 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                 SyntaxError = null,
                 ProjectsToRebuild = [],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+                ProjectsToRedeploy = [],
             };
         };
 
-        updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+        updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
@@ -344,9 +353,6 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
     public async Task DefaultPdbMatchingSourceTextProvider()
     {
         var source1 = "class C1 { void M() { System.Console.WriteLine(\"a\"); } }";
-        var source2 = "class C1 { void M() { System.Console.WriteLine(\"b\"); } }";
-        var source3 = "class C1 { void M() { System.Console.WriteLine(\"c\"); } }";
-
         var dir = Temp.CreateDirectory();
         var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
 
@@ -375,29 +381,29 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
         var document1 = solution.GetRequiredDocument(documentId);
         _ = await document1.GetTextAsync(CancellationToken.None);
 
-        File.WriteAllText(sourceFile.Path, source2, Encoding.UTF8);
+        File.WriteAllText(sourceFile.Path, "class C1 { void M() { System.Console.WriteLine(\"b\"); } }", Encoding.UTF8);
 
         await languageService.StartSessionAsync(CancellationToken.None);
         await languageService.EnterBreakStateAsync(CancellationToken.None);
 
         workspace.OnDocumentOpened(documentId, new TestSourceTextContainer()
         {
-            Text = SourceText.From(source3, Encoding.UTF8, SourceHashAlgorithm.Sha1)
+            Text = SourceText.From("class C1 { void M() { System.Console.WriteLine(\"c\"); } }", Encoding.UTF8, SourceHashAlgorithm.Sha1)
         });
 
         await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         var (key, (documentState, version)) = sourceTextProvider.GetTestAccessor().GetDocumentsWithChangedLoaderByPath().Single();
         Assert.Equal(sourceFile.Path, key);
-        Assert.Equal(solution.WorkspaceVersion, version);
-        Assert.Equal(source1, (await documentState.GetTextAsync(CancellationToken.None)).ToString());
+        Assert.Equal(solution.SolutionStateContentVersion, version);
+        Assert.Equal(source1, documentState.GetTextSynchronously(CancellationToken.None).ToString());
 
         // check committed document status:
         var debuggingSession = service.GetTestAccessor().GetActiveDebuggingSessions().Single();
         var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document1, CancellationToken.None);
         var text = await document.GetTextAsync();
         Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
-        Assert.Equal(source1, (await document.GetTextAsync(CancellationToken.None)).ToString());
+        Assert.Equal(source1, document.GetTextSynchronously(CancellationToken.None).ToString());
 
         await languageService.EndSessionAsync(CancellationToken.None);
     }

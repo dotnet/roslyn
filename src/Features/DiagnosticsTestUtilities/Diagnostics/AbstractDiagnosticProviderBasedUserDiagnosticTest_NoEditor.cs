@@ -34,14 +34,22 @@ using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Edito
 #else
 using OptionsCollectionAlias = OptionsCollection;
 #endif
-public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractUserDiagnosticTest_NoEditor
+public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor<
+    TDocument,
+    TProject,
+    TSolution,
+    TTestWorkspace>(ITestOutputHelper logger)
+    : AbstractUserDiagnosticTest_NoEditor<
+        TDocument,
+        TProject,
+        TSolution,
+        TTestWorkspace>(logger)
+    where TDocument : TestHostDocument
+    where TProject : TestHostProject<TDocument>
+    where TSolution : TestHostSolution<TDocument>
+    where TTestWorkspace : TestWorkspace<TDocument, TProject, TSolution>
 {
     private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = [];
-
-    protected AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
 
     internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
 
@@ -141,7 +149,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_
     }
 
     internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-        TestWorkspace workspace, TestParameters parameters)
+        TTestWorkspace workspace, TestParameters parameters)
     {
         var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
         AddAnalyzerToWorkspace(workspace, analyzer);
@@ -153,7 +161,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_
     }
 
     internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-        TestWorkspace workspace, TestParameters parameters)
+        TTestWorkspace workspace, TestParameters parameters)
     {
         var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
         AddAnalyzerToWorkspace(workspace, analyzer);
@@ -239,17 +247,4 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_
         var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.AnalyzerException));
         AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
     }
-
-    // This region provides instances of code fix providers from Features layers, such that the corresponding 
-    // analyzer has been ported to CodeStyle layer, but not the fixer.
-    // This enables porting the tests for the ported analyzer in CodeStyle layer.
-    #region CodeFixProvider Helpers
-
-    // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
-    protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();
-
-    // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
-    protected static CodeFixProvider GetVisualBasicUseAutoPropertyCodeFixProvider() => new VisualBasicUseAutoPropertyCodeFixProvider();
-
-    #endregion
 }

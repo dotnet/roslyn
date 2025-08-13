@@ -18,7 +18,13 @@ internal static class RazorUri
     public static bool IsGeneratedDocumentUri(Uri generatedDocumentUri)
         => generatedDocumentUri.Scheme == SourceGeneratedDocumentUri.Scheme;
 
+    [Obsolete("Switch to GetIdentityFromGeneratedDocumentUri. This method will be removed in future.")]
     public static string GetHintNameFromGeneratedDocumentUri(Solution solution, Uri generatedDocumentUri)
+    {
+        return GetIdentityOfGeneratedDocument(solution, generatedDocumentUri).HintName;
+    }
+
+    public static RazorGeneratedDocumentIdentity GetIdentityOfGeneratedDocument(Solution solution, Uri generatedDocumentUri)
     {
         Contract.ThrowIfFalse(IsGeneratedDocumentUri(generatedDocumentUri));
 
@@ -27,6 +33,8 @@ internal static class RazorUri
             throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {generatedDocumentUri}");
         }
 
-        return identity.HintName;
+        // Razor only cares about documents from its own generator, but it's better to just send them back the info they
+        // need to check on their side, so we can avoid dual insertions if anything changes.
+        return RazorGeneratedDocumentIdentity.Create(identity);
     }
 }

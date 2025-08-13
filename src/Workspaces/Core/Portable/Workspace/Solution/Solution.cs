@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -62,8 +61,8 @@ public partial class Solution
         IReadOnlyList<AnalyzerReference> analyzerReferences,
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
-                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
-                  workspace.PartialSemanticsEnabled))
+            new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
+            workspace.PartialSemanticsEnabled))
     {
     }
 
@@ -71,7 +70,7 @@ public partial class Solution
 
     internal SolutionCompilationState CompilationState { get; }
 
-    internal int WorkspaceVersion => this.SolutionState.WorkspaceVersion;
+    internal int SolutionStateContentVersion => this.SolutionState.ContentVersion;
 
     internal bool PartialSemanticsEnabled => CompilationState.PartialSemanticsEnabled;
 
@@ -1588,8 +1587,8 @@ public partial class Solution
     internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
         => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
-    internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
-        => WithCompilationState(CompilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+    internal Solution WithNewWorkspaceFrom(Solution oldSolution)
+        => WithCompilationState(CompilationState.WithNewWorkspaceFrom(oldSolution));
 
     /// <summary>
     /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.

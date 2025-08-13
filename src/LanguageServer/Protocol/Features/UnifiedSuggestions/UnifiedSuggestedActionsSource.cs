@@ -290,11 +290,11 @@ internal sealed class UnifiedSuggestedActionsSource
         {
             var actions = map[groupKey];
 
-            var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction)).ToImmutableArray();
+            var nonSuppressionActions = actions.WhereAsArray(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction));
             AddUnifiedSuggestedActionsSet(originalSolution, text, nonSuppressionActions, groupKey, nonSuppressionSets);
 
-            var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
-                !IsBulkConfigurationAction(a.OriginalCodeAction)).ToImmutableArray();
+            var suppressionActions = actions.WhereAsArray(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
+                !IsBulkConfigurationAction(a.OriginalCodeAction));
             AddUnifiedSuggestedActionsSet(originalSolution, text, suppressionActions, groupKey, suppressionSets);
 
             bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
@@ -677,7 +677,7 @@ internal sealed class UnifiedSuggestedActionsSource
             // There was a selection.  Treat refactorings as more important than fixes.
             // Note: we still will sort after this.  So any high pri fixes will come to the
             // front.  Any low-pri refactorings will go to the end.
-            return refactorings.Concat(fixes);
+            return [.. refactorings, .. fixes];
         }
         else
         {
@@ -697,7 +697,7 @@ internal sealed class UnifiedSuggestedActionsSource
             var highPriFixes = fixes.WhereAsArray(s => s.Priority == CodeActionPriority.High);
             var nonHighPriFixes = fixes.WhereAsArray(s => s.Priority != CodeActionPriority.High);
 
-            return highPriFixes.Concat(highPriRefactorings).Concat(nonHighPriFixes).Concat(nonHighPriRefactorings);
+            return [.. highPriFixes, .. highPriRefactorings, .. nonHighPriFixes, .. nonHighPriRefactorings];
         }
     }
 

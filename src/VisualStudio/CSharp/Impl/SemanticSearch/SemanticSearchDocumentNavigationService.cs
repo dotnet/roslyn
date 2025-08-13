@@ -28,7 +28,7 @@ internal sealed class SemanticSearchDocumentNavigationService(SemanticSearchTool
     public override Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
     {
         Debug.Assert(workspace is SemanticSearchWorkspace);
-        Debug.Assert(documentId == SemanticSearchUtilities.GetQueryDocumentId(workspace.CurrentSolution));
+        Debug.Assert(documentId == window.SemanticSearchService.GetQueryDocumentId(workspace.CurrentSolution));
 
         return Task.FromResult<INavigableLocation?>(window.GetNavigableLocation(textSpan));
     }

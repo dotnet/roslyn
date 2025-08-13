@@ -14,19 +14,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Composition;
 using Nerdbank.Streams;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -101,6 +103,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
     }
 
+    protected virtual ValueTask<ExportProvider> CreateExportProviderAsync() => ValueTask.FromResult(Composition.ExportProviderFactory.CreateExportProvider());
     protected virtual TestComposition Composition => FeaturesLspComposition;
 
     private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
@@ -306,12 +309,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
     private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
         => CreateTestLspServerAsync([markup], LanguageNames.VisualBasic, mutatingLspWorkspace, initializationOptions, composition);
 
-    private protected Task<TestLspServer> CreateTestLspServerAsync(
+    private protected async Task<TestLspServer> CreateTestLspServerAsync(
         string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, TestComposition? composition = null, bool commonReferences = true)
     {
         var lspOptions = initializationOptions ?? new InitializationOptions();
 
-        var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, composition);
+        var workspace = await CreateWorkspaceAsync(lspOptions, workspaceKind: null, mutatingLspWorkspace, composition);
 
         workspace.InitializeDocuments(
             LspTestWorkspace.CreateWorkspaceElement(
@@ -323,10 +326,10 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 commonReferences: commonReferences),
             openDocuments: false);
 
-        return CreateTestLspServerAsync(workspace, lspOptions, languageName);
+        return await CreateTestLspServerAsync(workspace, lspOptions, languageName);
     }
 
-    private async Task<TestLspServer> CreateTestLspServerAsync(LspTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
+    private protected async Task<TestLspServer> CreateTestLspServerAsync(LspTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
     {
         var solution = workspace.CurrentSolution;
 
@@ -348,7 +351,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     {
         var lspOptions = initializationOptions ?? new InitializationOptions();
 
-        var workspace = CreateWorkspace(lspOptions, workspaceKind, mutatingLspWorkspace);
+        var workspace = await CreateWorkspaceAsync(lspOptions, workspaceKind, mutatingLspWorkspace);
 
         workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([CreateTestAnalyzersReference()]));
@@ -356,14 +359,24 @@ public abstract partial class AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
     }
 
-    internal LspTestWorkspace CreateWorkspace(
+    internal async Task<LspTestWorkspace> CreateWorkspaceAsync(
         InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, TestComposition? composition = null)
     {
         var workspace = new LspTestWorkspace(
-            composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true), supportsLspMutation: mutatingLspWorkspace);
+            composition?.ExportProviderFactory.CreateExportProvider() ?? await CreateExportProviderAsync(),
+            workspaceKind,
+            supportsLspMutation: mutatingLspWorkspace);
         options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
-        workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
+        // By default in most MEF containers, workspace event listeners are disabled in tests.  Explicitly enable the LSP workspace registration event listener
+        // to ensure that the lsp workspace registration service sees all workspaces. If we're running tests against our full LSP server
+        // composition, we don't expect the mock to exist and the real thing is running.
+        var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
+        if (listenerProvider is not null)
+        {
+            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
+        }
 
         return workspace;
     }
@@ -606,10 +619,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
             // Initialize the language server
             _ = _languageServer.Value;
 
-            // Workspace listener events do not run in tests, so we manually register the lsp misc workspace.
-            // This must be done after the language server is created in order to access the misc workspace off of the LSP workspace manager.
-            TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
-
             if (_initializationOptions.CallInitialize)
             {
                 _initializeResult = await this.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
@@ -644,14 +653,25 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async Task<Document> GetDocumentAsync(DocumentUri uri)
         {
-            var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
+            var textDocument = await GetTextDocumentAsync(uri).ConfigureAwait(false);
+            if (textDocument is not Document document)
+            {
+                throw new InvalidOperationException($"Found TextDocument with {uri} in solution, but it is not a Document");
+            }
+
+            return document;
+        }
+
+        public async Task<TextDocument> GetTextDocumentAsync(DocumentUri uri)
+        {
+            var document = await GetCurrentSolution().GetTextDocumentAsync(new LSP.TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(document, $"Unable to find document with {uri} in solution");
             return document;
         }
 
         public async Task<SourceText> GetDocumentTextAsync(DocumentUri uri)
         {
-            var document = await GetDocumentAsync(uri).ConfigureAwait(false);
+            var document = await GetTextDocumentAsync(uri).ConfigureAwait(false);
             return await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
@@ -839,9 +859,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async ValueTask DisposeAsync()
         {
-            TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(TestWorkspace);
-            TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
-
             // Some tests will manually call shutdown and exit, so attempting to call this during dispose
             // will fail as the server's jsonrpc instance will be disposed of.
             if (!_languageServer.Value.GetTestAccessor().HasShutdownStarted())

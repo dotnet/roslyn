@@ -31,6 +31,7 @@
       "Microsoft.Net.Compilers.Toolset.Arm64": "arcade",
       "Microsoft.Net.Compilers.Toolset.Framework": "arcade",
       "Microsoft.NETCore.Compilers": "arcade",
+      "Microsoft.CodeAnalysis.BuildClient": "arcade",
       "Microsoft.CodeAnalysis.Contracts": "arcade",
       "Microsoft.CodeAnalysis.Debugging": "arcade",
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
@@ -93,6 +94,8 @@
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
+      "Microsoft.CodeAnalysis.SemanticSearch.Extensions": "vs-impl",
+      "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot": "vs-impl",
@@ -175,6 +178,15 @@
       "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
     },
+    "release/dev-next": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Validation]",
+      "insertionCreateDraftPR": true
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -191,7 +203,7 @@
       ],
       "vsBranch": "main",
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.15 P1]"
+      "insertionTitlePrefix": "[dNext]"
     }
   }
 }

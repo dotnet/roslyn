@@ -9,7 +9,6 @@ Imports EnvDTE
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -17,6 +16,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Externa
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Roslyn.Test.Utilities
@@ -29,7 +29,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             GetType(StubVsServiceExporter(Of )),
             GetType(StubVsServiceExporter(Of ,)),
             GetType(MockVisualStudioWorkspace),
-            GetType(ProjectCodeModelFactory))
+            GetType(ProjectCodeModelFactory),
+            GetType(ExternalErrorDiagnosticUpdateSource),
+            GetType(MockServiceBroker))
 
         Public SystemWindowsFormsPath As String
         Public SystemDrawingPath As String

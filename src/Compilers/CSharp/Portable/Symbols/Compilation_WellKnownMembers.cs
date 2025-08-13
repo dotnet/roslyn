@@ -154,25 +154,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result is null)
                 {
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
-                    if (type.IsValueTupleType())
+
+                    CSDiagnosticInfo? errorInfo;
+                    if (conflicts is ({ } conflict1, { } conflict2))
                     {
-                        CSDiagnosticInfo errorInfo;
-                        if (conflicts.Item1 is null)
+                        errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeAmbiguous, emittedName.FullName, conflict1, conflict2);
+                    }
+                    else
+                    {
+                        Debug.Assert(conflicts is (null, null));
+
+                        if (type.IsValueTupleType())
                         {
-                            Debug.Assert(conflicts.Item2 is null);
                             errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName);
                         }
                         else
                         {
-                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts.Item1, conflicts.Item2);
+                            errorInfo = null;
                         }
+                    }
 
-                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
-                    }
-                    else
-                    {
-                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
-                    }
+                    result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
                 }
 
                 if (Interlocked.CompareExchange(ref _lazyWellKnownTypes[index], result, null) is object)
@@ -571,6 +573,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute, diagnostics, location, modifyCompilation);
         }
 
+        internal void EnsureExtensionMarkerAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ExtensionMarkerAttribute, diagnostics, location, modifyCompilation);
+        }
+
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
         {
             switch (attribute)
@@ -656,6 +663,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
+
+                case EmbeddableAttributes.ExtensionMarkerAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

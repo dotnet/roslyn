@@ -31,7 +31,7 @@ internal sealed class LanguageServerTestComposition
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 
-        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
+        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(TestPaths.GetLanguageServerDirectory(), extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
         exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
         return (exportProvider, assemblyLoader);
     }

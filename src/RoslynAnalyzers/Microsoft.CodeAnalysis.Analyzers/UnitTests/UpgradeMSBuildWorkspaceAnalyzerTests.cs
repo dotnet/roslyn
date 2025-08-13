@@ -24,85 +24,72 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
             new PackageIdentity("Microsoft.CodeAnalysis.CSharp.Workspaces", "2.9.0"),
             new PackageIdentity("Microsoft.Build.Locator", "1.0.18")));
 
-        private static async Task VerifyCSharpAsync(string source, ReferenceAssemblies referenceAssemblies)
-        {
-            await new VerifyCS.Test()
+        private static Task VerifyCSharpAsync(string source, ReferenceAssemblies referenceAssemblies)
+            => new VerifyCS.Test()
             {
                 TestCode = source,
                 FixedCode = source,
                 ReferenceAssemblies = referenceAssemblies,
             }.RunAsync();
-        }
 
-        private static async Task VerifyVisualBasicAsync(string source, ReferenceAssemblies referenceAssemblies)
-        {
-            await new VerifyVB.Test()
+        private static Task VerifyVisualBasicAsync(string source, ReferenceAssemblies referenceAssemblies)
+            => new VerifyVB.Test()
             {
                 TestCode = source,
                 FixedCode = source,
                 ReferenceAssemblies = referenceAssemblies,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task CSharp_VerifyWithMSBuildWorkspaceAsync()
-        {
-            const string source = @"
-using Microsoft.CodeAnalysis.MSBuild;
+        public Task CSharp_VerifyWithMSBuildWorkspaceAsync()
+            => VerifyCSharpAsync("""
+                using Microsoft.CodeAnalysis.MSBuild;
 
-class Usage
-{
-    void M()
-    {
-        var workspace = MSBuildWorkspace.Create();
-    }
-}";
-
-            await VerifyCSharpAsync(source, s_withMSBuildWorkspaces);
-        }
+                class Usage
+                {
+                    void M()
+                    {
+                        var workspace = MSBuildWorkspace.Create();
+                    }
+                }
+                """, s_withMSBuildWorkspaces);
 
         [Fact]
-        public async Task CSharp_VerifyWithoutMSBuildWorkspaceAsync()
-        {
-            const string source = @"
-using Microsoft.CodeAnalysis.{|CS0234:MSBuild|};
+        public Task CSharp_VerifyWithoutMSBuildWorkspaceAsync()
+            => VerifyCSharpAsync("""
+                using Microsoft.CodeAnalysis.{|CS0234:MSBuild|};
 
-class Usage
-{
-    void M()
-    {
-        var workspace = [|{|CS0103:MSBuildWorkspace|}|].Create();
-    }
-}";
-            await VerifyCSharpAsync(source, s_withDesktopWorkspaces);
-        }
+                class Usage
+                {
+                    void M()
+                    {
+                        var workspace = [|{|CS0103:MSBuildWorkspace|}|].Create();
+                    }
+                }
+                """, s_withDesktopWorkspaces);
 
         [Fact]
-        public async Task VisualBasic_VerifyWithMSBuildWorkspaceAsync()
-        {
-            const string source = @"
-Imports Microsoft.CodeAnalysis.MSBuild
+        public Task VisualBasic_VerifyWithMSBuildWorkspaceAsync()
+            => VerifyVisualBasicAsync("""
+                Imports Microsoft.CodeAnalysis.MSBuild
 
-Class Usage
-    Sub M()
-        Dim workspace = MSBuildWorkspace.Create()
-    End Sub
-End Class";
-            await VerifyVisualBasicAsync(source, s_withMSBuildWorkspaces);
-        }
+                Class Usage
+                    Sub M()
+                        Dim workspace = MSBuildWorkspace.Create()
+                    End Sub
+                End Class
+                """, s_withMSBuildWorkspaces);
 
         [Fact]
-        public async Task VisualBasic_VerifyWithoutMSBuildWorkspaceAsync()
-        {
-            const string source = @"
-Imports Microsoft.CodeAnalysis.MSBuild
+        public Task VisualBasic_VerifyWithoutMSBuildWorkspaceAsync()
+            => VerifyVisualBasicAsync("""
+                Imports Microsoft.CodeAnalysis.MSBuild
 
-Class Usage
-    Sub M()
-        Dim workspace = [|{|BC30451:MSBuildWorkspace|}|].Create()
-    End Sub
-End Class";
-            await VerifyVisualBasicAsync(source, s_withDesktopWorkspaces);
-        }
+                Class Usage
+                    Sub M()
+                        Dim workspace = [|{|BC30451:MSBuildWorkspace|}|].Create()
+                    End Sub
+                End Class
+                """, s_withDesktopWorkspaces);
     }
 }

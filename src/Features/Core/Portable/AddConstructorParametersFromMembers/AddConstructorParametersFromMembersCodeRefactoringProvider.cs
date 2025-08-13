@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
@@ -183,7 +182,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         {
             // Intents currently have no way to report progress.
             var changedSolution = await action.GetChangedSolutionInternalAsync(
-                priorDocument.Project.Solution, CodeAnalysisProgress.None, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                priorDocument.Project.Solution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(changedSolution);
             var intent = new IntentProcessorResult(changedSolution, [priorDocument.Id], action.Title, action.ActionName);
             results.Add(intent);

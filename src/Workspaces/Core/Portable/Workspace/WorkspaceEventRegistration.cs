@@ -14,11 +14,18 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 /// <remarks>This class is used to manage the lifecycle of an event handler associated with a workspace event. 
 /// When the instance is disposed, the event handler is automatically unregistered from the event map.</remarks>
-internal sealed class WorkspaceEventRegistration(WorkspaceEventMap eventMap, WorkspaceEventType eventType, WorkspaceEventHandlerAndOptions handlerAndOptions) : IDisposable
+public sealed class WorkspaceEventRegistration : IDisposable
 {
-    private readonly WorkspaceEventType _eventType = eventType;
-    private readonly WorkspaceEventHandlerAndOptions _handlerAndOptions = handlerAndOptions;
-    private WorkspaceEventMap? _eventMap = eventMap;
+    private readonly WorkspaceEventType _eventType;
+    private readonly WorkspaceEventHandlerAndOptions _handlerAndOptions;
+    private WorkspaceEventMap? _eventMap;
+
+    internal WorkspaceEventRegistration(WorkspaceEventMap eventMap, WorkspaceEventType eventType, WorkspaceEventHandlerAndOptions handlerAndOptions)
+    {
+        _eventType = eventType;
+        _handlerAndOptions = handlerAndOptions;
+        _eventMap = eventMap;
+    }
 
     public void Dispose()
     {

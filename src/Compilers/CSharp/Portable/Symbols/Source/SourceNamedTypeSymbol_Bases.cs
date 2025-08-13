@@ -718,6 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (typeKind == TypeKind.Extension)
             {
+                Binder.GetSpecialType(compilation, SpecialType.System_Object, this.GetFirstLocationOrNone(), diagnostics);
                 return null;
             }
             else
@@ -730,7 +731,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (typeKind)
                 {
                     case TypeKind.Class:
-
                         if (this.SpecialType == SpecialType.System_Object)
                         {
                             return null;

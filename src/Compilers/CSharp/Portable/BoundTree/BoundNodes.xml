@@ -496,7 +496,7 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
@@ -518,7 +518,7 @@
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
+  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -727,7 +727,7 @@
   <!-- Instrumentation info attached to BoundBlock -->
   <Node Name="BoundBlockInstrumentation" Base="BoundNode">
     <!-- Local variables with scope that cover the entire block including the instrumentation prologue and epilogue. -->
-    <Field Name="Locals" Type="OneOrMany&lt;LocalSymbol&gt;" Null="disallow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" Null="disallow"/>
     <!-- Optional prologue emitted in front of any instructions of the block, so that it always executes. -->
     <Field Name="Prologue" Type="BoundStatement?" Null="allow"/>
     <!--
@@ -739,7 +739,7 @@
   
   <!-- Represents the raw metadata RowId value for a method definition.
        Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
-  <Node Name="BoundMethodDefIndex" Base="BoundExpression">
+  <Node Name="BoundMethodDefIndex" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Method" Type="MethodSymbol"/>

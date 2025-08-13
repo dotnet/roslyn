@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -337,7 +339,7 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
     {
         var position = GetDataStartPosition(_symbolKeyData);
 
-#if NETSTANDARD
+#if !NET
         var hashCode = 0;
         foreach (var ch in _symbolKeyData[position..])
             hashCode = Hash.Combine(ch, hashCode);

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -709,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var callSiteType = _factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T);
             _factory.Diagnostics.ReportUseSite(callSiteType, _factory.Syntax);
             callSiteType = callSiteType.Construct(new[] { delegateTypeOverContainerTypeParameters });
-            var field = new SynthesizedFieldSymbol(containerDefinition, callSiteType, fieldName, isPublic: true, isStatic: true);
+            var field = new SynthesizedFieldSymbol(containerDefinition, callSiteType, fieldName, DeclarationModifiers.Public, isStatic: true);
             _factory.AddField(containerDefinition, field);
             Debug.Assert(_currentDynamicCallSiteContainer is { });
             return _currentDynamicCallSiteContainer.IsGenericType ? field.AsMember(_currentDynamicCallSiteContainer) : field;

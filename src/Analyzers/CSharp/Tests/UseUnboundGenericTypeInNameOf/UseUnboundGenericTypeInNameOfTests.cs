@@ -21,9 +21,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseUnboundGenericTypeInNameOfTests
 {
     [Fact]
-    public async Task TestBaseCase()
-    {
-        await new VerifyCS.Test
+    public Task TestBaseCase()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -47,14 +46,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotIfAlreadyOmitted()
-    {
-        await new VerifyCS.Test
+    public Task TestNotIfAlreadyOmitted()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -67,14 +64,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingBeforeCSharp14()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingBeforeCSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -89,12 +84,10 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingWithFeatureOff()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithFeatureOff()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -111,14 +104,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
             {
                 { CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf, false, CodeStyle.NotificationOption2.Silent }
             },
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleTypeArguments()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleTypeArguments()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -142,14 +133,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGlobal()
-    {
-        await new VerifyCS.Test
+    public Task TestGlobal()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -173,14 +162,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedArgs()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedArgs()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -204,14 +191,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedType1()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedType1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -239,14 +224,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedType2()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedType2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -274,14 +257,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedType3()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedType3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -309,14 +290,12 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedType4()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedType4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -331,7 +310,6 @@ public sealed class UseUnboundGenericTypeInNameOfTests
 
                 class Outer<T> { public class Inner<T> { } }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
-    }
 }

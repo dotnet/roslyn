@@ -11,10 +11,7 @@ internal sealed partial class FixMultipleCodeAction(
     string title,
     string computingFixWaitDialogMessage) : AbstractFixAllCodeFixCodeAction(fixAllState, showPreviewChangesDialog: false)
 {
-    private readonly string _title = title;
-    private readonly string _computingFixWaitDialogMessage = computingFixWaitDialogMessage;
+    public override string Title => title;
 
-    public override string Title => _title;
-
-    internal override string Message => _computingFixWaitDialogMessage;
+    internal override string Message => computingFixWaitDialogMessage;
 }

@@ -15,8 +15,7 @@ public sealed partial class CSharpRegexParserTests
 {
     [Fact]
     public void NegativeTest0()
-    {
-        Test("""
+        => Test("""
             @"cat([a-\d]*)dog"
             """, $"""
             <Tree>
@@ -65,12 +64,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest1()
-    {
-        Test("""
+        => Test("""
             @"\k<1"
             """, $"""
             <Tree>
@@ -94,12 +91,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest2()
-    {
-        Test("""
+        => Test("""
             @"\k<"
             """, $"""
             <Tree>
@@ -123,12 +118,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest3()
-    {
-        Test("""
+        => Test("""
             @"\k"
             """, $"""
             <Tree>
@@ -149,12 +142,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest4()
-    {
-        Test("""
+        => Test("""
             @"\1"
             """, $"""
             <Tree>
@@ -175,12 +166,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest5()
-    {
-        Test("""
+        => Test("""
             @"(?')"
             """, $"""
             <Tree>
@@ -206,12 +195,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest6()
-    {
-        Test("""
+        => Test("""
             @"(?<)"
             """, $"""
             <Tree>
@@ -237,12 +224,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest7()
-    {
-        Test("""
+        => Test("""
             @"(?)"
             """, $"""
             <Tree>
@@ -268,12 +253,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest8()
-    {
-        Test("""
+        => Test("""
             @"(?>"
             """, $"""
             <Tree>
@@ -297,12 +280,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest9()
-    {
-        Test("""
+        => Test("""
             @"(?<!"
             """, $"""
             <Tree>
@@ -327,12 +308,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest10()
-    {
-        Test("""
+        => Test("""
             @"(?<="
             """, $"""
             <Tree>
@@ -357,12 +336,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest11()
-    {
-        Test("""
+        => Test("""
             @"(?!"
             """, $"""
             <Tree>
@@ -386,12 +363,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest12()
-    {
-        Test("""
+        => Test("""
             @"(?="
             """, $"""
             <Tree>
@@ -415,12 +390,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest13()
-    {
-        Test("""
+        => Test("""
             @"(?imn )"
             """, $"""
             <Tree>
@@ -450,12 +423,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest14()
-    {
-        Test("""
+        => Test("""
             @"(?imn"
             """, $"""
             <Tree>
@@ -478,12 +449,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest15()
-    {
-        Test("""
+        => Test("""
             @"(?:"
             """, $"""
             <Tree>
@@ -507,12 +476,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest16()
-    {
-        Test("""
+        => Test("""
             @"(?'cat'"
             """, $"""
             <Tree>
@@ -540,12 +507,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest17()
-    {
-        Test("""
+        => Test("""
             @"(?'"
             """, $"""
             <Tree>
@@ -572,12 +537,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest18()
-    {
-        Test("""
+        => Test("""
             @"[^"
             """, $"""
             <Tree>
@@ -600,12 +563,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest19()
-    {
-        Test("""
+        => Test("""
             @"[cat"
             """, $"""
             <Tree>
@@ -631,12 +592,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest20()
-    {
-        Test("""
+        => Test("""
             @"[^cat"
             """, $"""
             <Tree>
@@ -663,12 +622,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest21()
-    {
-        Test("""
+        => Test("""
             @"[a-"
             """, $"""
             <Tree>
@@ -700,12 +657,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest22()
-    {
-        Test("""
+        => Test("""
             @"\p{"
             """, $$"""
             <Tree>
@@ -729,12 +684,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest23()
-    {
-        Test("""
+        => Test("""
             @"\p{cat"
             """, $$"""
             <Tree>
@@ -758,12 +711,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest24()
-    {
-        Test("""
+        => Test("""
             @"\k<cat"
             """, $"""
             <Tree>
@@ -787,12 +738,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest25()
-    {
-        Test("""
+        => Test("""
             @"\p{cat}"
             """, $$"""
             <Tree>
@@ -816,12 +765,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest26()
-    {
-        Test("""
+        => Test("""
             @"\P{cat"
             """, $$"""
             <Tree>
@@ -845,12 +792,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest27()
-    {
-        Test("""
+        => Test("""
             @"\P{cat}"
             """, $$"""
             <Tree>
@@ -874,12 +819,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest28()
-    {
-        Test("""
+        => Test("""
             @"("
             """, $"""
             <Tree>
@@ -902,12 +845,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest29()
-    {
-        Test("""
+        => Test("""
             @"(?"
             """, $"""
             <Tree>
@@ -935,12 +876,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest30()
-    {
-        Test("""
+        => Test("""
             @"(?<"
             """, $"""
             <Tree>
@@ -967,12 +906,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest31()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>"
             """, $"""
             <Tree>
@@ -1000,12 +937,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest32()
-    {
-        Test("""
+        => Test("""
             @"\P{"
             """, $$"""
             <Tree>
@@ -1029,12 +964,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest33()
-    {
-        Test("""
+        => Test("""
             @"\k<>"
             """, $"""
             <Tree>
@@ -1058,12 +991,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest34()
-    {
-        Test("""
+        => Test("""
             @"(?("
             """, $"""
             <Tree>
@@ -1091,12 +1022,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest35()
-    {
-        Test("""
+        => Test("""
             @"(?()|"
             """, $"""
             <Tree>
@@ -1128,12 +1057,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest36()
-    {
-        Test("""
+        => Test("""
             @"?(a|b)"
             """, $"""
             <Tree>
@@ -1171,12 +1098,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest37()
-    {
-        Test("""
+        => Test("""
             @"?((a)"
             """, $"""
             <Tree>
@@ -1214,12 +1139,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest38()
-    {
-        Test("""
+        => Test("""
             @"?((a)a"
             """, $"""
             <Tree>
@@ -1260,12 +1183,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest39()
-    {
-        Test("""
+        => Test("""
             @"?((a)a|"
             """, $"""
             <Tree>
@@ -1310,12 +1231,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest40()
-    {
-        Test("""
+        => Test("""
             @"?((a)a|b"
             """, $"""
             <Tree>
@@ -1364,12 +1283,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest41()
-    {
-        Test("""
+        => Test("""
             @"(?(?i))"
             """, """
             <Tree>
@@ -1405,12 +1322,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest42()
-    {
-        Test("""
+        => Test("""
             @"?(a)"
             """, $"""
             <Tree>
@@ -1440,12 +1355,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest43()
-    {
-        Test("""
+        => Test("""
             @"(?(?I))"
             """, """
             <Tree>
@@ -1481,12 +1394,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest44()
-    {
-        Test("""
+        => Test("""
             @"(?(?M))"
             """, """
             <Tree>
@@ -1522,12 +1433,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest45()
-    {
-        Test("""
+        => Test("""
             @"(?(?s))"
             """, """
             <Tree>
@@ -1563,12 +1472,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest46()
-    {
-        Test("""
+        => Test("""
             @"(?(?S))"
             """, """
             <Tree>
@@ -1604,12 +1511,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest47()
-    {
-        Test("""
+        => Test("""
             @"(?(?x))"
             """, """
             <Tree>
@@ -1645,12 +1550,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest48()
-    {
-        Test("""
+        => Test("""
             @"(?(?X))"
             """, """
             <Tree>
@@ -1686,12 +1589,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest49()
-    {
-        Test("""
+        => Test("""
             @"(?(?n))"
             """, """
             <Tree>
@@ -1727,12 +1628,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest50()
-    {
-        Test("""
+        => Test("""
             @"(?(?m))"
             """, """
             <Tree>
@@ -1768,12 +1667,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest51()
-    {
-        Test("""
+        => Test("""
             @"[a"
             """, $"""
             <Tree>
@@ -1799,12 +1696,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest52()
-    {
-        Test("""
+        => Test("""
             @"?(a:b)"
             """, $"""
             <Tree>
@@ -1834,12 +1729,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest53()
-    {
-        Test("""
+        => Test("""
             @"(?(?"
             """, $"""
             <Tree>
@@ -1873,12 +1766,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest54()
-    {
-        Test("""
+        => Test("""
             @"(?(cat"
             """, $"""
             <Tree>
@@ -1910,12 +1801,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest55()
-    {
-        Test("""
+        => Test("""
             @"(?(cat)|"
             """, $"""
             <Tree>
@@ -1951,12 +1840,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest56()
-    {
-        Test("""
+        => Test("""
             @"foo(?<0>bar)"
             """, $"""
             <Tree>
@@ -1989,12 +1876,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest57()
-    {
-        Test("""
+        => Test("""
             @"foo(?'0'bar)"
             """, $"""
             <Tree>
@@ -2027,12 +1912,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest58()
-    {
-        Test("""
+        => Test("""
             @"foo(?<1bar)"
             """, $"""
             <Tree>
@@ -2066,12 +1949,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest59()
-    {
-        Test("""
+        => Test("""
             @"foo(?'1bar)"
             """, $"""
             <Tree>
@@ -2105,12 +1986,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest60()
-    {
-        Test("""
+        => Test("""
             @"(?("
             """, $"""
             <Tree>
@@ -2138,12 +2017,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest61()
-    {
-        Test("""
+        => Test("""
             @"\p{klsak"
             """, $$"""
             <Tree>
@@ -2167,12 +2044,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest62()
-    {
-        Test("""
+        => Test("""
             @"(?c:cat)"
             """, $"""
             <Tree>
@@ -2202,12 +2077,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest63()
-    {
-        Test("""
+        => Test("""
             @"(??e:cat)"
             """, $"""
             <Tree>
@@ -2241,12 +2114,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest64()
-    {
-        Test("""
+        => Test("""
             @"[a-f-[]]+"
             """, $"""
             <Tree>
@@ -2294,12 +2165,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest65()
-    {
-        Test("""
+        => Test("""
             @"[A-[]+"
             """, $"""
             <Tree>
@@ -2337,12 +2206,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest66()
-    {
-        Test("""
+        => Test("""
             @"(?(?e))"
             """, $"""
             <Tree>
@@ -2378,12 +2245,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest67()
-    {
-        Test("""
+        => Test("""
             @"(?(?a)"
             """, $"""
             <Tree>
@@ -2420,12 +2285,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest68()
-    {
-        Test("""
+        => Test("""
             @"(?r:cat)"
             """, $"""
             <Tree>
@@ -2455,12 +2318,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest69()
-    {
-        Test("""
+        => Test("""
             @"(?(?N))"
             """, """
             <Tree>
@@ -2496,12 +2357,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest70()
-    {
-        Test("""
+        => Test("""
             @"[]"
             """, $"""
             <Tree>
@@ -2527,12 +2386,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest71()
-    {
-        Test("""
+        => Test("""
             @"\x2"
             """, $"""
             <Tree>
@@ -2554,12 +2411,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest72()
-    {
-        Test("""
+        => Test("""
             @"(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace"
             """, $"""
             <Tree>
@@ -2603,12 +2458,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.IgnorePatternWhitespace);
-    }
 
     [Fact]
     public void NegativeTest73()
-    {
-        Test("""
+        => Test("""
             @"cat(?(?afdcat)dog)"
             """, $"""
             <Tree>
@@ -2651,12 +2504,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest74()
-    {
-        Test("""
+        => Test("""
             @"cat(?(?<cat>cat)dog)"
             """, $"""
             <Tree>
@@ -2699,12 +2550,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest75()
-    {
-        Test("""
+        => Test("""
             @"cat(?(?'cat'cat)dog)"
             """, $"""
             <Tree>
@@ -2747,12 +2596,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest76()
-    {
-        Test("""
+        => Test("""
             @"cat(?(?#COMMENT)cat)"
             """, $"""
             <Tree>
@@ -2796,12 +2643,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest77()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\w+(?<dog-()*!@>dog)"
             """, $"""
             <Tree>
@@ -2866,12 +2711,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest78()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\w+(?<dog-catdog>dog)"
             """, $"""
             <Tree>
@@ -2927,12 +2770,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest79()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\w+(?<dog-1uosn>dog)"
             """, $"""
             <Tree>
@@ -2988,12 +2829,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest80()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\w+(?<dog-16>dog)"
             """, $"""
             <Tree>
@@ -3049,12 +2888,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest81()
-    {
-        Test("""
+        => Test("""
             @"cat(?<->dog)"
             """, $"""
             <Tree>
@@ -3089,12 +2926,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest82()
-    {
-        Test("""
+        => Test("""
             @"cat(?<>dog)"
             """, $"""
             <Tree>
@@ -3127,12 +2962,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest83()
-    {
-        Test("""
+        => Test("""
             @"cat(?<dog<>)_*>dog)"
             """, $"""
             <Tree>
@@ -3180,12 +3013,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest84()
-    {
-        Test("""
+        => Test("""
             @"cat(?<dog >)_*>dog)"
             """, $"""
             <Tree>
@@ -3233,12 +3064,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest85()
-    {
-        Test("""
+        => Test("""
             @"cat(?<dog!>)_*>dog)"
             """, $"""
             <Tree>
@@ -3286,12 +3115,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest86()
-    {
-        Test("""
+        => Test("""
             @"cat(?<dog)_*>dog)"
             """, $"""
             <Tree>
@@ -3335,12 +3162,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest87()
-    {
-        Test("""
+        => Test("""
             @"cat(?<1dog>dog)"
             """, $"""
             <Tree>
@@ -3374,12 +3199,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest88()
-    {
-        Test("""
+        => Test("""
             @"cat(?<0>dog)"
             """, $"""
             <Tree>
@@ -3412,12 +3235,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest89()
-    {
-        Test("""
+        => Test("""
             @"([5-\D]*)dog"
             """, $"""
             <Tree>
@@ -3463,12 +3284,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest90()
-    {
-        Test("""
+        => Test("""
             @"cat([6-\s]*)dog"
             """, $"""
             <Tree>
@@ -3517,12 +3336,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest91()
-    {
-        Test("""
+        => Test("""
             @"cat([c-\S]*)"
             """, $"""
             <Tree>
@@ -3568,12 +3385,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest92()
-    {
-        Test("""
+        => Test("""
             @"cat([7-\w]*)"
             """, $"""
             <Tree>
@@ -3619,12 +3434,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest93()
-    {
-        Test("""
+        => Test("""
             @"cat([a-\W]*)dog"
             """, $"""
             <Tree>
@@ -3673,12 +3486,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest94()
-    {
-        Test("""
+        => Test("""
             @"([f-\p{Lu}]\w*)\s([\p{Lu}]\w*)"
             """, $$"""
             <Tree>
@@ -3759,12 +3570,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest95()
-    {
-        Test("""
+        => Test("""
             @"(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace"
             """, $"""
             <Tree>
@@ -3814,12 +3623,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest96()
-    {
-        Test("""
+        => Test("""
             @"([1-\P{Ll}][\p{Ll}]*)\s([\P{Ll}][\p{Ll}]*)"
             """, $$"""
             <Tree>
@@ -3918,12 +3725,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest97()
-    {
-        Test("""
+        => Test("""
             @"[\P]"
             """, $"""
             <Tree>
@@ -3950,12 +3755,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest98()
-    {
-        Test("""
+        => Test("""
             @"([\pcat])"
             """, $"""
             <Tree>
@@ -3992,12 +3795,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest99()
-    {
-        Test("""
+        => Test("""
             @"([\Pcat])"
             """, $"""
             <Tree>
@@ -4034,12 +3835,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest100()
-    {
-        Test("""
+        => Test("""
             @"(\p{"
             """, $$"""
             <Tree>
@@ -4071,12 +3870,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest101()
-    {
-        Test("""
+        => Test("""
             @"(\p{Ll"
             """, $$"""
             <Tree>
@@ -4108,12 +3905,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest102()
-    {
-        Test("""
+        => Test("""
             @"(cat)([\o]*)(dog)"
             """, $"""
             <Tree>
@@ -4170,12 +3965,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest103()
-    {
-        Test("""
+        => Test("""
             @"[\p]"
             """, $"""
             <Tree>
@@ -4202,12 +3995,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest104()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\s+(?<dog>dog)\kcat"
             """, $"""
             <Tree>
@@ -4268,12 +4059,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest105()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\s+(?<dog>dog)\k<cat2>"
             """, $"""
             <Tree>
@@ -4334,12 +4123,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest106()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\s+(?<dog>dog)\k<8>cat"
             """, $"""
             <Tree>
@@ -4403,12 +4190,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest107()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]{1}?*$"
             """, $$"""
             <Tree>
@@ -4451,12 +4236,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest108()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]*+$"
             """, $"""
             <Tree>
@@ -4494,12 +4277,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest109()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]+*$"
             """, $"""
             <Tree>
@@ -4537,12 +4318,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest110()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]?*$"
             """, $"""
             <Tree>
@@ -4580,12 +4359,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest111()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]*?+$"
             """, $"""
             <Tree>
@@ -4626,12 +4403,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest112()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]+?*$"
             """, $"""
             <Tree>
@@ -4672,12 +4447,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest113()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]{1,}?*$"
             """, $$"""
             <Tree>
@@ -4721,12 +4494,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest114()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]??*$"
             """, $"""
             <Tree>
@@ -4767,12 +4538,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest115()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]+{0,5}$"
             """, $$"""
             <Tree>
@@ -4813,12 +4582,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest116()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]?{0,5}$"
             """, $$"""
             <Tree>
@@ -4859,12 +4626,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest117()
-    {
-        Test("""
+        => Test("""
             @"\u"
             """, $"""
             <Tree>
@@ -4886,12 +4651,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest118()
-    {
-        Test("""
+        => Test("""
             @"\ua"
             """, $"""
             <Tree>
@@ -4913,12 +4676,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest119()
-    {
-        Test("""
+        => Test("""
             @"\u0"
             """, $"""
             <Tree>
@@ -4940,12 +4701,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest120()
-    {
-        Test("""
+        => Test("""
             @"\x"
             """, $"""
             <Tree>
@@ -4967,12 +4726,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest121()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]*{0,5}$"
             """, $$"""
             <Tree>
@@ -5013,12 +4770,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest122()
-    {
-        Test("""
+        => Test("""
             @"["
             """, $"""
             <Tree>
@@ -5040,12 +4795,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest123()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]{0,16}?*$"
             """, $$"""
             <Tree>
@@ -5090,12 +4843,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest124()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]{1,}*$"
             """, $$"""
             <Tree>
@@ -5136,12 +4887,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest125()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\s+(?<dog>dog)\k<8>cat"
             """, $"""
             <Tree>
@@ -5205,12 +4954,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void NegativeTest126()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\s+(?<dog>dog)\k8"
             """, $"""
             <Tree>
@@ -5271,12 +5018,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest127()
-    {
-        Test("""
+        => Test("""
             @"(?<cat>cat)\s+(?<dog>dog)\k8"
             """, $"""
             <Tree>
@@ -5337,12 +5082,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.ECMAScript);
-    }
 
     [Fact]
     public void NegativeTest128()
-    {
-        Test("""
+        => Test("""
             @"(cat)(\7)"
             """, $"""
             <Tree>
@@ -5380,12 +5123,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest129()
-    {
-        Test("""
+        => Test("""
             @"(cat)\s+(?<2147483648>dog)"
             """, $"""
             <Tree>
@@ -5433,12 +5174,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest130()
-    {
-        Test("""
+        => Test("""
             @"(cat)\s+(?<21474836481097>dog)"
             """, $"""
             <Tree>
@@ -5486,12 +5225,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest131()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]{1}*$"
             """, $$"""
             <Tree>
@@ -5531,12 +5268,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest132()
-    {
-        Test("""
+        => Test("""
             @"(cat)(\c*)(dog)"
             """, $"""
             <Tree>
@@ -5588,12 +5323,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest133()
-    {
-        Test("""
+        => Test("""
             @"(cat)(\c *)(dog)"
             """, $"""
             <Tree>
@@ -5648,12 +5381,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest134()
-    {
-        Test("""
+        => Test("""
             @"(cat)(\c?*)(dog)"
             """, $"""
             <Tree>
@@ -5709,12 +5440,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest135()
-    {
-        Test("""
+        => Test("""
             @"(cat)(\c`*)(dog)"
             """, $"""
             <Tree>
@@ -5769,12 +5498,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest136()
-    {
-        Test("""
+        => Test("""
             @"(cat)(\c\|*)(dog)"
             """, $"""
             <Tree>
@@ -5831,12 +5558,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest137()
-    {
-        Test("""
+        => Test("""
             @"(cat)(\c\[*)(dog)"
             """, $"""
             <Tree>
@@ -5885,12 +5610,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest138()
-    {
-        Test("""
+        => Test("""
             @"^[abcd]{0,16}*$"
             """, $$"""
             <Tree>
@@ -5932,12 +5655,10 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 
     [Fact]
     public void NegativeTest139()
-    {
-        Test("""
+        => Test("""
             @"(cat)\c"
             """, $"""
             <Tree>
@@ -5969,5 +5690,4 @@ public sealed partial class CSharpRegexParserTests
               </Captures>
             </Tree>
             """, RegexOptions.None);
-    }
 }

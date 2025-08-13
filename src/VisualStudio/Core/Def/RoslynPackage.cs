@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
@@ -135,23 +134,17 @@ internal sealed class RoslynPackage : AbstractPackage
 
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
-            (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+            (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
 
         // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+            (_, _, _, _) => ValueTask.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
     {
         await TaskScheduler.Default;
-
-        await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
 
         // we need to load it as early as possible since we can have errors from
         // package from each language very early

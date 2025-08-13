@@ -20,9 +20,9 @@ using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
@@ -351,7 +351,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         IAsyncEnumerable<ImmutableArray<SymbolReference>> reader,
         CancellationTokenSource linkedTokenSource)
     {
-        await foreach (var symbolReferences in reader)
+        await foreach (var symbolReferences in reader.ConfigureAwait(false))
         {
             linkedTokenSource.Token.ThrowIfCancellationRequested();
             AddRange(allSymbolReferences, symbolReferences);
@@ -571,8 +571,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         // Get the diagnostics that indicate a missing import.
         var diagnostics = semanticModel.GetDiagnostics(span, cancellationToken)
-           .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
-           .ToImmutableArray();
+           .WhereAsArray(diagnostic => diagnosticIds.Contains(diagnostic.Id));
 
         var getFixesForDiagnosticsTasks = diagnostics
             .GroupBy(diagnostic => diagnostic.Location.SourceSpan)

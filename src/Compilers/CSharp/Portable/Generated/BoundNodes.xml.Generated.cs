@@ -1731,7 +1731,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstrainedToTypeOpt = constrainedToTypeOpt;
             this.ResultKind = resultKind;
             this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BinaryOperatorKind OperatorKind { get; }
         public MethodSymbol LogicalOperator { get; }
@@ -2244,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBlockInstrumentation : BoundNode
     {
-        public BoundBlockInstrumentation(SyntaxNode syntax, OneOrMany<LocalSymbol> locals, BoundStatement? prologue, BoundStatement? epilogue, bool hasErrors = false)
+        public BoundBlockInstrumentation(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundStatement? prologue, BoundStatement? epilogue, bool hasErrors = false)
             : base(BoundKind.BlockInstrumentation, syntax, hasErrors || prologue.HasErrors() || epilogue.HasErrors())
         {
 
@@ -2255,16 +2259,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Epilogue = epilogue;
         }
 
-        public OneOrMany<LocalSymbol> Locals { get; }
+        public ImmutableArray<LocalSymbol> Locals { get; }
         public BoundStatement? Prologue { get; }
         public BoundStatement? Epilogue { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBlockInstrumentation(this);
 
-        public BoundBlockInstrumentation Update(OneOrMany<LocalSymbol> locals, BoundStatement? prologue, BoundStatement? epilogue)
+        public BoundBlockInstrumentation Update(ImmutableArray<LocalSymbol> locals, BoundStatement? prologue, BoundStatement? epilogue)
         {
-            if (!locals.SequenceEqual(Locals) || prologue != this.Prologue || epilogue != this.Epilogue)
+            if (locals != this.Locals || prologue != this.Prologue || epilogue != this.Epilogue)
             {
                 var result = new BoundBlockInstrumentation(this.Syntax, locals, prologue, epilogue, this.HasErrors);
                 result.CopyAttributes(this);
@@ -2284,7 +2288,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Method = method;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundMethodDefIndex(SyntaxNode syntax, MethodSymbol method, TypeSymbol type)
             : base(BoundKind.MethodDefIndex, syntax, type)
@@ -11182,9 +11190,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
         {
+            ImmutableArray<LocalSymbol> locals = this.VisitLocals(node.Locals);
             BoundStatement? prologue = (BoundStatement?)this.Visit(node.Prologue);
             BoundStatement? epilogue = (BoundStatement?)this.Visit(node.Epilogue);
-            return node.Update(node.Locals, prologue, epilogue);
+            return node.Update(locals, prologue, epilogue);
         }
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
@@ -12928,29 +12937,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
-        {
-            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = GetUpdatedArray(node, node.OriginalUserDefinedOperatorsOpt);
-            BoundExpression left = (BoundExpression)this.Visit(node.Left);
-            BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
-            BoundExpression? leftConversion = node.LeftConversion;
-            BoundValuePlaceholder? finalPlaceholder = node.FinalPlaceholder;
-            BoundExpression? finalConversion = node.FinalConversion;
-            BoundCompoundAssignmentOperator updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                updatedNode = node.Update(node.Operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, infoAndType.Type!);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(node.Operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, node.Type);
-            }
-            return updatedNode;
-        }
-
         public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
@@ -13159,6 +13145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedNode = node.Update(sourceType, getTypeFromHandle, node.Type);
             }
             return updatedNode;
+        }
+
+        public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
+        {
+            ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
+            BoundStatement? prologue = (BoundStatement?)this.Visit(node.Prologue);
+            BoundStatement? epilogue = (BoundStatement?)this.Visit(node.Epilogue);
+            return node.Update(locals, prologue, epilogue);
         }
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)

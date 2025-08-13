@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -15,9 +13,8 @@ public sealed partial class PopulateSwitchStatementTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        var input = """
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -92,9 +89,7 @@ public sealed partial class PopulateSwitchStatementTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -173,17 +168,13 @@ public sealed partial class PopulateSwitchStatementTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        var input = """
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -251,9 +242,7 @@ public sealed partial class PopulateSwitchStatementTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -280,7 +269,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document>
             namespace ConsoleApplication1
             {
@@ -301,7 +290,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                     <Document>
@@ -325,17 +314,13 @@ public sealed partial class PopulateSwitchStatementTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        var input = """
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -411,9 +396,7 @@ public sealed partial class PopulateSwitchStatementTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -440,7 +423,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                     <Document>
             namespace ConsoleApplication1
             {
@@ -465,7 +448,7 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                     <Document>
@@ -492,11 +475,8 @@ public sealed partial class PopulateSwitchStatementTests
                     }
                 }
             }
-                    </Document>
+            </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
-    }
+            """);
 }

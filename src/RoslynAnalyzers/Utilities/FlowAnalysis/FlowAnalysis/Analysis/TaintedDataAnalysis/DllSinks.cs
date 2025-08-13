@@ -26,10 +26,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ("LoadFrom", new[] { "assemblyFile" } ),
-                    ("Load", new[] { "assemblyString", "rawAssembly" } ),
-                    ("LoadFile", new[] { "partialName" } ),
-                    ("LoadModule", new[] { "moduleName" } ),
-                    ("UnsafeLoadFrom", new[] { "assemblyFile" } ),
+                    ("Load", ["assemblyString", "rawAssembly"] ),
+                    ("LoadFile", ["partialName"] ),
+                    ("LoadModule", ["moduleName"] ),
+                    ("UnsafeLoadFrom", ["assemblyFile"] ),
                 });
             sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypeNames.SystemAppDomain,
@@ -39,8 +39,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ("ExecuteAssembly", new[] { "assemblyFile" } ),
-                    ("ExecuteAssemblyByName", new[] { "assemblyName" } ),
-                    ("Load", new[] { "rawAssembly", "assemblyRef", "assemblyString", } ),
+                    ("ExecuteAssemblyByName", ["assemblyName"] ),
+                    ("Load", ["rawAssembly", "assemblyRef", "assemblyString",] ),
                 });
             sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypeNames.SystemWindowsAssemblyPart,

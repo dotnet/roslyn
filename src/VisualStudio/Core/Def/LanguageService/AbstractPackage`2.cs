@@ -136,9 +136,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
     protected abstract TLanguageService CreateLanguageService();
 
-    protected void RegisterService<T>(Func<CancellationToken, Task<T>> serviceCreator)
-        => AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
-
     // When registering a language service, we need to take its ComAggregate wrapper.
     protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
         => AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);

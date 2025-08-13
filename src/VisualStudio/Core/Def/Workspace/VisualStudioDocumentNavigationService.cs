@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
@@ -196,19 +195,11 @@ internal sealed class VisualStudioDocumentNavigationService(
             return null;
         }
 
-        if (textDocument is SourceGeneratedDocument generatedDocument)
-        {
-            return _sourceGeneratedFileManager.Value.GetNavigationCallback(
-                generatedDocument,
-                await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
-        }
-
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
         if (textDocument is Document document &&
-            textDocument.DocumentServiceProvider.GetService<ISpanMappingService>() is ISpanMappingService spanMappingService)
+            SpanMappingHelper.CanMapSpans(document))
         {
             var mappedSpanResult = await GetMappedSpanAsync(
-                spanMappingService,
                 document,
                 await getTextSpanForMappingAsync(document).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
@@ -234,6 +225,13 @@ internal sealed class VisualStudioDocumentNavigationService(
                 return await GetNavigableLocationForMappedFileAsync(
                     workspace, document, mappedSpan, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        if (textDocument is SourceGeneratedDocument generatedDocument)
+        {
+            return _sourceGeneratedFileManager.Value.GetNavigationCallback(
+                generatedDocument,
+                await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
         }
 
         return GetNavigationCallback(documentId, workspace, getVsTextSpan);
@@ -314,15 +312,20 @@ internal sealed class VisualStudioDocumentNavigationService(
         return cancellationToken => NavigateToTextBufferAsync(textBuffer, vsTextSpan, cancellationToken);
     }
 
-    private static async Task<MappedSpanResult?> GetMappedSpanAsync(
-        ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
+    private static async Task<MappedSpanResult?> GetMappedSpanAsync(Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        var results = await spanMappingService.MapSpansAsync(
-            generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
+        var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
 
-        if (!results.IsDefaultOrEmpty)
+        if (results == null)
         {
-            return results.First();
+            return null;
+        }
+
+        var mappedSpans = results.GetValueOrDefault();
+
+        if (!mappedSpans.IsDefaultOrEmpty)
+        {
+            return mappedSpans.First();
         }
 
         return null;

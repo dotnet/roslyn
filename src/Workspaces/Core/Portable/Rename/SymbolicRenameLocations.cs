@@ -137,12 +137,13 @@ internal sealed partial class SymbolicRenameLocations
 
             locations.AddAll(
                 await referencedSymbol.Locations.SelectManyInParallelAsync(
-                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(referencedSymbol.Definition, symbol, l, solution, c),
+                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(
+                        referencedSymbol.Definition, symbol, l, solution, c),
                     cancellationToken).ConfigureAwait(false));
         }
 
-        var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).Where(loc => loc.IsImplicit).ToImmutableArray();
-        var referencedSymbols = referenceSymbols.Select(r => r.Definition).Where(r => !r.Equals(symbol)).ToImmutableArray();
+        var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).WhereAsArray(loc => loc.IsImplicit);
+        var referencedSymbols = referenceSymbols.Select(r => r.Definition).WhereAsArray(r => !r.Equals(symbol));
 
         return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
     }

@@ -39,9 +39,9 @@ public sealed class CodeFixServiceTests
     public async Task TestGetFirstDiagnosticWithFixAsync()
     {
         var fixers = CreateFixers();
-        var code = @"
-    a
-";
+        var code = """
+            a
+            """;
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
         var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -217,52 +217,36 @@ public sealed class CodeFixServiceTests
     }
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethod_Diagnostic()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethod_Diagnostic()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethod_Fixes()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethod_Fixes()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Diagnostic()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Diagnostic()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Fixes()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
-    }
+    public Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Fixes()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
 
     [Fact]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic2()
-    {
-        await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic2()
+        => GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
-    public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes2()
-    {
-        await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
-    }
+    public Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes2()
+        => GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
 
     [Fact]
     public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
@@ -868,13 +852,13 @@ public sealed class CodeFixServiceTests
         GetDocumentAndExtensionManager(workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
         var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CancellationToken.None);
         Assert.Equal(2, txtDocumentCodeFixes.Length);
-        var txtDocumentCodeFixTitles = txtDocumentCodeFixes.Select(s => s.Fixes.Single().Action.Title).ToImmutableArray();
+        var txtDocumentCodeFixTitles = txtDocumentCodeFixes.SelectAsArray(s => s.Fixes.Single().Action.Title);
         Assert.Contains(fixer1.Title, txtDocumentCodeFixTitles);
         Assert.Contains(fixer2.Title, txtDocumentCodeFixTitles);
 
         // Verify code fix application
         var codeAction = txtDocumentCodeFixes.Single(s => s.Fixes.Single().Action.Title == fixer1.Title).Fixes.Single().Action;
-        var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution, CodeAnalysisProgress.None);
+        var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution, CodeAnalysisProgress.None, CancellationToken.None);
         var changedtxtDocument = solution!.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtDocument.Id);
         Assert.Equal("Additional Document", txtDocument.GetTextSynchronously(CancellationToken.None).ToString());
         Assert.Equal($"Additional Document{fixer1.Title}", changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
@@ -1012,15 +996,16 @@ public sealed class CodeFixServiceTests
         var expectDeprioritization = GetExpectDeprioritization(actionKind, diagnosticOnFixLineInPriorSnapshot, addNewLineWithEdit);
 
         var priorSnapshotFixLine = diagnosticOnFixLineInPriorSnapshot ? "int x1 = 0;" : "System.Console.WriteLine();";
-        var code = $@"
-#pragma warning disable CS0219
-class C
-{{
-    void M()
-    {{
-        {priorSnapshotFixLine}
-    }}
-}}";
+        var code = $$"""
+            #pragma warning disable CS0219
+            class C
+            {
+                void M()
+                {
+                    {{priorSnapshotFixLine}}
+                }
+            }
+            """;
 
         var codeFix = new FixerForDeprioritizedAnalyzer();
         var analyzer = new DeprioritizedAnalyzer(actionKind);

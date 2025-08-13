@@ -3687,5 +3687,93 @@ IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index
             var operation = (IUnaryOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
             Assert.Null(operation.OperatorMethod);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Test_UnaryOperatorExpression_Extension()
+        {
+            string source = @"
+class A
+{
+    CustomType Method()
+    {
+        CustomType i = default(CustomType);
+        return /*<bind>*/-Method()/*</bind>*/;
+    }
+}
+public struct CustomType
+{
+}
+
+static class Extensions
+{
+    extension(CustomType)
+    {
+        public static CustomType operator -(CustomType x)
+        {
+            return x;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: CustomType Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_UnaryNegation(CustomType x)) (OperationKind.Unary, Type: CustomType) (Syntax: '-Method()')
+  Operand: 
+    IInvocationOperation ( CustomType A.Method()) (OperationKind.Invocation, Type: CustomType) (Syntax: 'Method()')
+      Instance Receiver: 
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+      Arguments(0)
+";
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Test_UnaryOperatorExpression_Extension_Flow()
+        {
+            string source = @"
+class A
+{
+    CustomType F(CustomType f)
+    /*<bind>*/{
+        return !f;
+    }/*</bind>*/
+
+    CustomType Method() => throw null;
+}
+public struct CustomType
+{
+}
+
+static class Extensions
+{
+    extension(CustomType)
+    {
+        public static CustomType operator !(CustomType x)
+        {
+            return x;
+        }
+    }
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: CustomType Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_LogicalNot(CustomType x)) (OperationKind.Unary, Type: CustomType) (Syntax: '!f')
+          Operand: 
+            IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'f')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }

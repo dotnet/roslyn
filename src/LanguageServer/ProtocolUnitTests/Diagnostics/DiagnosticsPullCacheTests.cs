@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
+
 public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
     : AbstractPullDiagnosticTestsBase(testOutputHelper)
 {
@@ -123,11 +124,6 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
             return Task.FromResult<ImmutableArray<DiagnosticData>>([new DiagnosticData(Id, category: "category", context.Document!.Name, DiagnosticSeverity.Error, DiagnosticSeverity.Error,
                 isEnabledByDefault: true, warningLevel: 0, [], ImmutableDictionary<string, string?>.Empty,context.Document!.Project.Id,
                 new DiagnosticDataLocation(new FileLinePositionSpan(context.Document!.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))]);
-        }
-
-        public override bool IsLiveSource()
-        {
-            return true;
         }
     }
 

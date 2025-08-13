@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -5298,10 +5299,12 @@ class Program2
 {
     static void Main()
     {
+        System.Console.Write(""Program2"");
     }
 
     static async Task Main(string[] args)
     {
+        System.Console.Write(""Program2Async"");
         await Task.Factory.StartNew(() => 5);
     }
 }
@@ -5310,18 +5313,15 @@ class Program3
 {
     static void Main(string[] args)
     {
+        System.Console.Write(""Program3"");
     }
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program2"), parseOptions: DefaultParseOptions);
-
-            comp.VerifyEmitDiagnostics(
-                // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
-                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1),
-                // (12,23): warning CS8892: Method 'Program2.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program2.Main()' was found.
+            CompileAndVerify(text, options: TestOptions.DebugExe.WithMainTypeName("Program2"), parseOptions: DefaultParseOptions, expectedOutput: "Program2").VerifyDiagnostics(
+                // (13,23): warning CS8892: Method 'Program2.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program2.Main()' was found.
                 //     static async Task Main(string[] args)
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program2.Main(string[])", "Program2.Main()").WithLocation(12, 23)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program2.Main(string[])", "Program2.Main()").WithLocation(13, 23)
                 );
         }
 
@@ -5345,9 +5345,7 @@ partial class Program
 
             comp.VerifyEmitDiagnostics(
                 // error CS7088: Invalid 'MainTypeName' value: ''.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "").WithLocation(1, 1),
-                // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
-                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "").WithLocation(1, 1)
                 );
         }
 
@@ -5655,6 +5653,63 @@ partial class Program
             var comp = CreateCompilation(text);
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExplicitMain_25()
+        {
+            string source = """
+                System.Console.WriteLine("tls");
+
+                class C
+                {
+                    static void Main()
+                    {
+                        System.Console.WriteLine("main");
+                    }
+                }
+                """;
+
+            CompileAndVerify(source,
+                expectedOutput: "main",
+                options: TestOptions.DebugExe.WithMainTypeName("C"),
+                parseOptions: DefaultParseOptions);
+        }
+
+        [Fact]
+        public void ExplicitMain_26()
+        {
+            string source = """
+                System.Console.WriteLine("tls");
+
+                partial class Program
+                {
+                    static void Main()
+                    {
+                        System.Console.WriteLine("main");
+                    }
+                }
+                """;
+
+            CompileAndVerify(source,
+                expectedOutput: "main",
+                options: TestOptions.DebugExe.WithMainTypeName("Program"),
+                parseOptions: DefaultParseOptions);
+        }
+
+        [Fact]
+        public void ExplicitMain_27()
+        {
+            string source = """
+                System.Console.WriteLine("tls");
+                """;
+
+            CreateCompilation(source,
+                options: TestOptions.DebugExe.WithMainTypeName("Program"),
+                parseOptions: DefaultParseOptions).VerifyDiagnostics(
+                // (1,1): error CS1558: 'Program' does not have a suitable static 'Main' method
+                // System.Console.WriteLine("tls");
+                Diagnostic(ErrorCode.ERR_NoMainInClass, "System").WithArguments("Program").WithLocation(1, 1));
         }
 
         [Fact]

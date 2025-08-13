@@ -10,30 +10,22 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Roslyn.Utilities
 {
+    /// <summary>
+    /// Enumerable extensions that are not polyfills or variants of existing APIs defined in System.* namespaces.
+    /// </summary>
     internal static partial class EnumerableExtensions
     {
-        public static int Count<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
-        {
-            var count = 0;
-            foreach (var v in source)
-            {
-                if (predicate(v, arg))
-                    count++;
-            }
-
-            return count;
-        }
-
         public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
         {
             if (source == null)
@@ -110,26 +102,6 @@ namespace Roslyn.Utilities
             return new ReadOnlyCollection<T>(source.ToList());
         }
 
-        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, T value)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            return source.ConcatWorker(value);
-        }
-
-        private static IEnumerable<T> ConcatWorker<T>(this IEnumerable<T> source, T value)
-        {
-            foreach (var v in source)
-            {
-                yield return v;
-            }
-
-            yield return value;
-        }
-
         public static bool SetEquals<T>(this IEnumerable<T> source1, IEnumerable<T> source2, IEqualityComparer<T>? comparer)
         {
             if (source1 == null)
@@ -183,90 +155,33 @@ namespace Roslyn.Utilities
         public static IReadOnlyCollection<T> ToCollection<T>(this IEnumerable<T> sequence)
             => (sequence is IReadOnlyCollection<T> collection) ? collection : sequence.ToList();
 
-        public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item, arg))
-                    return item;
-            }
-
-            return default;
-        }
-
-        public static bool Any<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item, arg))
-                    return true;
-            }
-
-            return false;
-        }
-
         public static T? FirstOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
             return source.Cast<T?>().FirstOrDefault();
         }
 
         public static T? FirstOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
             where T : struct
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-
             return source.Cast<T?>().FirstOrDefault(static (v, predicate) => predicate(v!.Value), predicate);
         }
 
         public static T? FirstOrNull<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
             where T : struct
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-
             return source.Cast<T?>().FirstOrDefault(static (v, arg) => arg.predicate(v!.Value, arg.arg), (predicate, arg));
         }
 
         public static T? LastOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
             return source.Cast<T?>().LastOrDefault();
         }
 
         public static T? SingleOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
             where T : struct
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
             return source.Cast<T?>().SingleOrDefault(v => predicate(v!.Value));
         }
 
@@ -416,9 +331,66 @@ namespace Roslyn.Utilities
             return source.Where((Func<T?, bool>)s_notNullTest)!;
         }
 
+        /// <summary>
+        /// Uses a builder to store results computed from <paramref name="source"/>.  If <paramref name="source"/> is
+        /// null, or definitely empty, this returns false, allowing the caller to immediately return <c>[]</c> without
+        /// further allocations.  If this returns true, then <paramref name="builder"/> will be set to an appropriate
+        /// builder to receive temporary values.
+        /// </summary>
+        /// <param name="useCountForBuilder">If the count of <paramref name="source"/> can be determined (and is non-zero),
+        /// if <paramref name="builder"/> should be initialized to that same count.  This should be passed true
+        /// for 'SelectAsArray' methods, and false for 'WhereAsArray' or 'SelectManyAsArray' methods (as the latter two
+        /// do not know how many items will be added to the builder).</param>
+        private static bool TryGetBuilder<TSource, TResult>(
+            [NotNullWhen(true)] IEnumerable<TSource>? source,
+            bool useCountForBuilder,
+            [NotNullWhen(true)] out ArrayBuilder<TResult>? builder)
+        {
+            if (source is null)
+            {
+                builder = null;
+                return false;
+            }
+
+#if NET
+            if (source.TryGetNonEnumeratedCount(out var count))
+            {
+                if (count == 0)
+                {
+                    builder = null;
+                    return false;
+                }
+
+                if (useCountForBuilder)
+                {
+                    builder = ArrayBuilder<TResult>.GetInstance(count);
+                    return true;
+                }
+            }
+#endif
+
+            builder = ArrayBuilder<TResult>.GetInstance();
+            return true;
+        }
+
+        public static ImmutableArray<T> WhereAsArray<T>(this IEnumerable<T> values, Func<T, bool> predicate)
+        {
+            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var builder))
+                return [];
+
+            foreach (var value in values)
+            {
+                if (predicate(value))
+                    builder.Add(value);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<T> WhereAsArray<T, TArg>(this IEnumerable<T> values, Func<T, TArg, bool> predicate, TArg arg)
         {
-            var result = ArrayBuilder<T>.GetInstance();
+            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var result))
+                return [];
 
             foreach (var value in values)
             {
@@ -434,25 +406,34 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, TResult> selector)
         {
-            if (source == null)
-            {
-                return ImmutableArray<TResult>.Empty;
-            }
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
             builder.AddRange(source.Select(selector));
+            return builder.ToImmutableAndFree();
+
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this IEnumerable<TItem>? source, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
+        {
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
+
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    builder.Add(selector(item));
+            }
 
             return builder.ToImmutableAndFree();
         }
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
-
-            int index = 0;
+            var index = 0;
             foreach (var element in source)
             {
                 builder.Add(selector(element, index));
@@ -462,44 +443,50 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
-        {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
-
-            var builder = new TResult[source.Count];
-            var index = 0;
-            foreach (var item in source)
-            {
-                builder[index] = selector(item);
-                index++;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
-        {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
-
-            var builder = new TResult[source.Count];
-            var index = 0;
-            foreach (var item in source)
-            {
-                builder[index] = selector(item, arg);
-                index++;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IEnumerable<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
         {
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
             var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var element in source)
+            {
+                builder.Add(selector(element, arg));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
+        {
+            if (source is null or { Count: 0 })
+                return [];
+
+            var builder = new FixedSizeArrayBuilder<TResult>(source.Count);
+            foreach (var item in source)
+                builder.Add(selector(item));
+
+            return builder.MoveToImmutable();
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
+        {
+            if (source is null or { Count: 0 })
+                return [];
+
+            var builder = new FixedSizeArrayBuilder<TResult>(source.Count);
+            foreach (var item in source)
+                builder.Add(selector(item, arg));
+
+            return builder.MoveToImmutable();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+        {
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
+
             foreach (var item in source)
                 builder.AddRange(selector(item));
 
@@ -508,10 +495,9 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
                 builder.AddRange(selector(item, arg));
 
@@ -520,8 +506,8 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, IEnumerable<TResult>> selector)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (source is null or { Count: 0 })
+                return [];
 
             // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
@@ -533,8 +519,8 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (source is null or { Count: 0 })
+                return [];
 
             // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
@@ -546,10 +532,9 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, OneOrMany<TResult>> selector)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
                 selector(item).AddRangeTo(builder);
 
@@ -561,12 +546,11 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, ValueTask<TResult>> selector)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.Add(await selector(item).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }
@@ -576,12 +560,11 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }
@@ -591,24 +574,22 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.Add(await selector(item, arg, cancellationToken).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }
 
         public static async ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<IEnumerable<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.AddRange(await selector(item, arg, cancellationToken).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }
@@ -619,24 +600,6 @@ namespace Roslyn.Utilities
            CancellationToken cancellationToken)
         {
             return (await Task.WhenAll(sequence.Select(item => selector(item, cancellationToken))).ConfigureAwait(false)).Flatten();
-        }
-
-        public static bool All(this IEnumerable<bool> source)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            foreach (var b in source)
-            {
-                if (!b)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public static int IndexOf<T>(this IEnumerable<T> sequence, T value)
@@ -697,50 +660,6 @@ namespace Roslyn.Utilities
             return sequence.SelectMany(s => s);
         }
 
-        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T>? comparer)
-        {
-            return source.OrderBy(Functions<T>.Identity, comparer);
-        }
-
-        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, IComparer<T>? comparer)
-        {
-            return source.OrderByDescending(Functions<T>.Identity, comparer);
-        }
-
-        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
-        {
-            return source.OrderBy(Comparer<T>.Create(compare));
-        }
-
-        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, Comparison<T> compare)
-        {
-            return source.OrderByDescending(Comparer<T>.Create(compare));
-        }
-
-#if NET8_0_OR_GREATER
-        public static IOrderedEnumerable<T> Order<T>(IEnumerable<T> source) where T : IComparable<T>
-#else
-        public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
-#endif
-        {
-            return source.OrderBy(Comparer<T>.Default);
-        }
-
-        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
-        {
-            return source.ThenBy(Functions<T>.Identity, comparer);
-        }
-
-        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, Comparison<T> compare)
-        {
-            return source.ThenBy(Comparer<T>.Create(compare));
-        }
-
-        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
-        {
-            return source.ThenBy(Comparer<T>.Default);
-        }
-
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T>? comparer = null)
         {
             using var e = enumerable.GetEnumerator();
@@ -763,29 +682,6 @@ namespace Roslyn.Utilities
             }
 
             return true;
-        }
-
-        public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
-        {
-            return sequence.Any(predicate);
-        }
-
-        public static bool Contains(this IEnumerable<string?> sequence, string? s)
-        {
-            foreach (var item in sequence)
-            {
-                if (item == s)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static IComparer<T> ToComparer<T>(this Comparison<T> comparison)
-        {
-            return Comparer<T>.Create(comparison);
         }
 
         public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>>? items)
@@ -932,13 +828,122 @@ namespace Roslyn.Utilities
 
 namespace System.Linq
 {
-    /// <summary>
-    /// Declare the following extension methods in System.Linq namespace to avoid accidental boxing of ImmutableArray{T} that implements IEnumerable{T}.
-    /// The boxing would occur if the methods were defined in Roslyn.Utilities and the file calling these methods has <c>using Roslyn.Utilities</c>
-    /// but not <c>using System.Linq</c>.
-    /// </summary>
-    internal static class EnumerableExtensions
+    /// <remarks>
+    /// Defines polyfill methods and overloads or alternative names of existing methods defined in System.Linq.
+    /// 
+    /// Methods that are available on both <see cref="IEnumerable{T}"/> and <see cref="ImmutableArray{T}"/> are defined in System.Linq namespace
+    /// to avoid accidental boxing of <see cref="ImmutableArray{T}"/>. The boxing would occur if the file calling these methods didn't have <c>using System.Linq</c>.
+    /// </remarks>
+    internal static class RoslynEnumerableExtensions
     {
+        /// <summary>
+        /// Alias for <see cref="System.Linq.Enumerable.Any{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+        /// </summary>
+        public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
+            => sequence.Any(predicate);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Count{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+        /// </summary>
+        public static int Count<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var count = 0;
+            foreach (var v in source)
+            {
+                if (predicate(v, arg))
+                    count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+        /// </summary>
+        public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                    return item;
+            }
+
+            return default;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Any{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+        /// </summary>
+        public static bool Any<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.OrderBy{TSource, TKey}(IEnumerable{TSource}, Func{TSource, TKey}, IComparer{TKey}?)"/>
+        /// </summary>
+        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T>? comparer)
+            => source.OrderBy(Functions<T>.Identity, comparer);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.OrderByDescending{TSource, TKey}(IEnumerable{TSource}, Func{TSource, TKey}, IComparer{TKey}?)"/>
+        /// </summary>
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, IComparer<T>? comparer)
+            => source.OrderByDescending(Functions<T>.Identity, comparer);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.OrderBy{TSource, TKey}(IEnumerable{TSource}, Func{TSource, TKey}, IComparer{TKey}?)"/>
+        /// </summary>
+        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
+            => source.OrderBy(Comparer<T>.Create(compare));
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.OrderByDescending{TSource, TKey}(IEnumerable{TSource}, Func{TSource, TKey}, IComparer{TKey}?)"/>
+        /// </summary>
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, Comparison<T> compare)
+            => source.OrderByDescending(Comparer<T>.Create(compare));
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.ThenBy{TSource, TKey}(IOrderedEnumerable{TSource}, Func{TSource, TKey}, IComparer{TKey}?)"/>
+        /// </summary>
+        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
+            => source.ThenBy(Functions<T>.Identity, comparer);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.ThenBy{TSource, TKey}(IOrderedEnumerable{TSource}, Func{TSource, TKey}, IComparer{TKey}?)"/>
+        /// </summary>
+        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, Comparison<T> compare)
+            => source.ThenBy(Comparer<T>.Create(compare));
+
+#if NET8_0_OR_GREATER
+        public static IOrderedEnumerable<T> Order<T>(IEnumerable<T> source) where T : IComparable<T>
+#else
+        public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
+#endif
+            => source.OrderBy(Comparer<T>.Default);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource}) "/>.
+        /// </summary>
+        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, T value)
+        {
+            foreach (var v in source)
+            {
+                yield return v;
+            }
+
+            yield return value;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.SequenceEqual{TSource}(IEnumerable{TSource}, IEnumerable{TSource}, IEqualityComparer{TSource}?)"/>
+        /// </summary>
         public static bool SequenceEqual<T>(this IEnumerable<T>? first, IEnumerable<T>? second, Func<T, T, bool> comparer)
         {
             if (first == second)
@@ -971,6 +976,10 @@ namespace System.Linq
             return true;
         }
 
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Aggregate{TSource}(IEnumerable{TSource}, Func{TSource, TSource, TSource})"/>
+        /// that does not throw on empty <paramref name="source"/>.
+        /// </summary>
         public static T? AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
         {
             using (var e = source.GetEnumerator())
@@ -1089,6 +1098,35 @@ namespace System.Linq
             }
         }
 
+#endif
+
+#if NET9_0_OR_GREATER
+        public static IEnumerable<(int Index, TSource Item)> Index<TSource>(IEnumerable<TSource> source)
+             => Enumerable.Index(source);
+#else
+        /// <summary>Returns an enumerable that incorporates the element's index into a tuple.</summary>
+        /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+        /// <param name="source">The source enumerable providing the elements.</param>
+        /// <returns>An enumerable that incorporates each element index into a tuple.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source" /> is <see langword="null" />.</exception>
+        public static IEnumerable<(int Index, TSource Item)> Index<TSource>(this IEnumerable<TSource> source)
+        {
+            return source is TSource[] { Length: 0 } ? [] : IndexIterator(source);
+
+            static IEnumerable<(int Index, TSource Item)> IndexIterator(IEnumerable<TSource> source)
+            {
+                int index = -1;
+                foreach (TSource element in source)
+                {
+                    checked
+                    {
+                        index++;
+                    }
+
+                    yield return (index, element);
+                }
+            }
+        }
 #endif
     }
 }

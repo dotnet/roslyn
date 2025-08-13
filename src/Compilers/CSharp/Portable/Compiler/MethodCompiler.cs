@@ -498,6 +498,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var members = containingType.GetMembers();
+
+            if (containingType.IsExtension && ((SourceNamedTypeSymbol)containingType).TryGetOrCreateExtensionMarker() is { } marker)
+            {
+                // The marker method is not among the members of the type, so we need to compile it separately.
+                Binder.ProcessedFieldInitializers processedInitializers = default;
+                CompileMethod(marker, -1, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+            }
+
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
@@ -1166,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
+                            // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
                                 _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }

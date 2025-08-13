@@ -38,9 +38,9 @@ public sealed class CodeRefactoringServiceTest
     [Fact]
     public async Task TestProjectRefactoringAsync()
     {
-        var code = @"
-    a
-";
+        var code = """
+            a
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code, composition: FeaturesTestCompositions.Features);
         var refactoringService = workspace.GetService<ICodeRefactoringService>();
@@ -76,12 +76,13 @@ public sealed class CodeRefactoringServiceTest
     {
         var composition = FeaturesTestCompositions.Features.AddParts(typeof(TypeScriptCodeRefactoringProvider));
 
-        using var workspace = TestWorkspace.Create(@"
-<Workspace>
-    <Project Language=""TypeScript"">
-        <Document FilePath=""Test"">abc</Document>
-    </Project>
-</Workspace>", composition: composition);
+        using var workspace = TestWorkspace.Create("""
+            <Workspace>
+                <Project Language="TypeScript">
+                    <Document FilePath="Test">abc</Document>
+                </Project>
+            </Workspace>
+            """, composition: composition);
 
         var refactoringService = workspace.GetService<ICodeRefactoringService>();
 
@@ -172,13 +173,13 @@ public sealed class CodeRefactoringServiceTest
         var txtAdditionalDocument = project.AdditionalDocuments.Single(t => t.Name == "test.txt");
         var txtRefactorings = await refactoringService.GetRefactoringsAsync(txtAdditionalDocument, TextSpan.FromBounds(0, 0), CancellationToken.None);
         Assert.Equal(2, txtRefactorings.Length);
-        var txtRefactoringTitles = txtRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
+        var txtRefactoringTitles = txtRefactorings.SelectAsArray(s => s.CodeActions.Single().action.Title);
         Assert.Contains(refactoring1.Title, txtRefactoringTitles);
         Assert.Contains(refactoring2.Title, txtRefactoringTitles);
 
         // Verify code refactoring application
         var codeAction = txtRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
+        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None, CancellationToken.None);
         var changedtxtDocument = solution.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtAdditionalDocument.Id);
         Assert.Empty(txtAdditionalDocument.GetTextSynchronously(CancellationToken.None).ToString());
         Assert.Equal(refactoring1.Title, changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
@@ -211,13 +212,13 @@ public sealed class CodeRefactoringServiceTest
         var editorConfig = project.AnalyzerConfigDocuments.Single(t => t.Name == ".editorconfig");
         var editorConfigRefactorings = await refactoringService.GetRefactoringsAsync(editorConfig, TextSpan.FromBounds(0, 0), CancellationToken.None);
         Assert.Equal(2, editorConfigRefactorings.Length);
-        var editorConfigRefactoringTitles = editorConfigRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
+        var editorConfigRefactoringTitles = editorConfigRefactorings.SelectAsArray(s => s.CodeActions.Single().action.Title);
         Assert.Contains(refactoring1.Title, editorConfigRefactoringTitles);
         Assert.Contains(refactoring2.Title, editorConfigRefactoringTitles);
 
         // Verify code refactoring application
         var codeAction = editorConfigRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
+        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None, CancellationToken.None);
         var changedEditorConfig = solution.Projects.Single().AnalyzerConfigDocuments.Single(t => t.Id == editorConfig.Id);
         Assert.Empty(editorConfig.GetTextSynchronously(CancellationToken.None).ToString());
         Assert.Equal(refactoring1.Title, changedEditorConfig.GetTextSynchronously(CancellationToken.None).ToString());

@@ -8561,9 +8561,9 @@ class Program
                 }
                 """;
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,16): error CS9260: Feature 'simple lambda parameter modifiers' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         D d = (ref a) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref a").WithArguments("simple lambda parameter modifiers").WithLocation(7, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref a").WithArguments("simple lambda parameter modifiers", "14.0").WithLocation(7, 16));
 
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -8606,7 +8606,7 @@ class Program
             [CombinatorialValues("int[]", "")] string lambdaType,
             bool isCSharp13)
         {
-            var options = isCSharp13 ? TestOptions.Regular13 : TestOptions.RegularNext;
+            var options = isCSharp13 ? TestOptions.Regular13 : TestOptions.Regular14;
             var source = $$"""
                 delegate void D({{delegateModifier}} int[] i);
 
@@ -8634,9 +8634,9 @@ class Program
                     if (isCSharp13)
                     {
                         diagnostics.Add(
-                            // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (7,16): error CS9260: Feature 'simple lambda parameter modifiers' is not available in C# 13.0. Please use language version 14.0 or greater.
                             //         D d = (params  a) => { };
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "params  a").WithArguments("simple lambda parameter modifiers"));
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "params  a").WithArguments("simple lambda parameter modifiers", "14.0").WithLocation(7, 16));
                     }
                 }
 

@@ -28,9 +28,8 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
         => (new CSharpUseThrowExpressionDiagnosticAnalyzer(), new UseThrowExpressionCodeFixProvider());
 
     [Fact]
-    public async Task WithoutBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task WithoutBraces()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -55,12 +54,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/38136")]
-    public async Task TestMissingOnIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnIf()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -74,12 +71,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task WithBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task WithBraces()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -107,12 +102,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnAssign()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnAssign()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -126,12 +119,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OnlyInCSharp7AndHigher()
-    {
-        await TestMissingAsync(
+    public Task OnlyInCSharp7AndHigher()
+        => TestMissingAsync(
             """
             using System;
 
@@ -146,12 +137,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task WithIntermediaryStatements()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task WithIntermediaryStatements()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -189,12 +178,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotWithIntermediaryWrite()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotWithIntermediaryWrite()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -211,12 +198,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotWithIntermediaryMemberAccess()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotWithIntermediaryMemberAccess()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -233,12 +218,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullCheckOnLeft()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullCheckOnLeft()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -263,12 +246,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithLocal()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -295,12 +276,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnField()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnField()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -316,12 +295,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignBeforeCheck()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestAssignBeforeCheck()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -335,12 +312,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16234")]
-    public async Task TestNotInExpressionTree()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInExpressionTree()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -361,12 +336,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=404142")]
-    public async Task TestNotWithAsCheck()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithAsCheck()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -396,12 +369,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18670")]
-    public async Task TestNotWithElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithElseClause()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -424,12 +395,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19377")]
-    public async Task TestNotWithMultipleStatementsInIf1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithMultipleStatementsInIf1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -446,12 +415,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19377")]
-    public async Task TestNotWithMultipleStatementsInIf2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithMultipleStatementsInIf2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -468,12 +435,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21612")]
-    public async Task TestNotWhenAccessedOnLeftOfAssignment()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenAccessedOnLeftOfAssignment()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -493,12 +458,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24628")]
-    public async Task TestNotWhenAccessedOnLineBefore()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenAccessedOnLineBefore()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -517,12 +480,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 object MakeKey(object x) => null;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22926")]
-    public async Task TestNotWhenUnconstrainedTypeParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenUnconstrainedTypeParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             class A<T>
@@ -535,12 +496,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22926")]
-    public async Task TestWhenClassConstrainedTypeParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhenClassConstrainedTypeParameter()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class A<T> where T: class
@@ -564,12 +523,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22926")]
-    public async Task TestWhenStructConstrainedTypeParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhenStructConstrainedTypeParameter()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class A<T> where T: struct
@@ -593,12 +550,10 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44454")]
-    public async Task TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TopLevelStatement()
+        => TestAsync(
             """
             using System;
             string s = null;
@@ -612,13 +567,11 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
             string x = null;
 
             x = s ?? throw new ArgumentNullException();
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38102")]
-    public async Task PreserveTrailingTrivia1()
-    {
-        await TestAsync(
+    public Task PreserveTrailingTrivia1()
+        => TestAsync(
             """
             using System;
 
@@ -648,13 +601,11 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                     _arg = arg ?? throw new ArgumentNullException(nameof(arg)); // Oh no!
                 }
             }
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38102")]
-    public async Task PreserveTrailingTrivia2()
-    {
-        await TestAsync(
+    public Task PreserveTrailingTrivia2()
+        => TestAsync(
             """
             using System;
 
@@ -685,6 +636,5 @@ public sealed partial class UseThrowExpressionTests : AbstractCSharpDiagnosticPr
                     _arg = arg ?? throw new ArgumentNullException(nameof(arg)); // oh yes!
                 }
             }
-            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
+            """, new(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)));
 }

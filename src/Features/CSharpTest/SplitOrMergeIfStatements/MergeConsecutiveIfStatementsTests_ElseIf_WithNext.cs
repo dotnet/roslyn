@@ -19,208 +19,218 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (a)[||]")]
     [InlineData("[|if|] (a)")]
     [InlineData("[|if (a)|]")]
-    public async Task MergedOnIfSpans(string ifLine)
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        " + ifLine + @"
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-    }
+    public Task MergedOnIfSpans(string ifLine)
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    
+            """ + ifLine + """
+
+                    {
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task MergedOnIfExtendedHeaderSelection()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-[|        if (a)
-|]        {
-        }
-        else if (b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-    }
+    public Task MergedOnIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            [|        if (a)
+            |]        {
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task MergedOnIfFullSelectionWithoutElseIfClause()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (a)
-        {
-        }|]
-        else if (b)
-        {
-        }
-        else
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-        else
-        {
-        }
-    }
-}");
-    }
+    public Task MergedOnIfFullSelectionWithoutElseIfClause()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    [|if (a)
+                    {
+                    }|]
+                    else if (b)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task MergedOnIfExtendedFullSelectionWithoutElseIfClause()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-[|        if (a)
-        {
-        }
-|]        else if (b)
-        {
-        }
-        else
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-        else
-        {
-        }
-    }
-}");
-    }
+    public Task MergedOnIfExtendedFullSelectionWithoutElseIfClause()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            [|        if (a)
+                    {
+                    }
+            |]        else if (b)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfFullSelectionWithElseIfClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (a)
-        {
-        }
-        else if (b)
-        {
-        }|]
-        else
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfFullSelectionWithElseIfClause()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    [|if (a)
+                    {
+                    }
+                    else if (b)
+                    {
+                    }|]
+                    else
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfExtendedFullSelectionWithElseIfClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-[|        if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-|]        else
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfExtendedFullSelectionWithElseIfClause()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            [|        if (a)
+                    {
+                    }
+                    else if (b)
+                    {
+                    }
+            |]        else
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfFullSelectionWithElseIfElseClauses()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-        else
-        {
-        }|]
-    }
-}");
-    }
+    public Task NotMergedOnIfFullSelectionWithElseIfElseClauses()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    [|if (a)
+                    {
+                    }
+                    else if (b)
+                    {
+                    }
+                    else
+                    {
+                    }|]
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfExtendedFullSelectionWithElseIfElseClauses()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-[|        if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-        else
-        {
-        }
-|]    }
-}");
-    }
+    public Task NotMergedOnIfExtendedFullSelectionWithElseIfElseClauses()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            [|        if (a)
+                    {
+                    }
+                    else if (b)
+                    {
+                    }
+                    else
+                    {
+                    }
+            |]    }
+            }
+            """);
 
     [Theory]
     [InlineData("if ([||]a)")]
@@ -230,110 +240,112 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (a[|)|]")]
     [InlineData("if ([|a|])")]
     [InlineData("if [|(a)|]")]
-    public async Task NotMergedOnIfSpans(string ifLine)
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        " + ifLine + @"
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfSpans(string ifLine)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    
+            """ + ifLine + """
+
+                    {
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfOverreachingSelection1()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (a)
-        |]{
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfOverreachingSelection1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    [|if (a)
+                    |]{
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfOverreachingSelection2()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (a)
-        {|]
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfOverreachingSelection2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    [|if (a)
+                    {|]
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfBodySelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        [|{
-        }|]
-        else if (b)
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    [|{
+                    }|]
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfBodyCaret1()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        [||]{
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfBodyCaret1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    [||]{
+                    }
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
 
     [Fact]
-    public async Task NotMergedOnIfBodyCaret2()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }[||]
-        else if (b)
-        {
-        }
-    }
-}");
-    }
+    public Task NotMergedOnIfBodyCaret2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                    }[||]
+                    else if (b)
+                    {
+                    }
+                }
+            }
+            """);
 }

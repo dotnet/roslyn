@@ -16,22 +16,22 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 
 internal sealed class SemanticSearchEditorWorkspace(
     HostServices services,
-    SemanticSearchProjectConfiguration config,
+    ISemanticSearchSolutionService solutionService,
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider)
-    : SemanticSearchWorkspace(services, config)
+    : SemanticSearchWorkspace(services, solutionService)
 {
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.SemanticSearch);
 
     private ITextBuffer? _queryTextBuffer;
     private DocumentId? _queryDocumentId;
 
-    public async Task OpenQueryDocumentAsync(ITextBuffer buffer, CancellationToken cancellationToken)
+    public async Task OpenQueryDocumentAsync(ITextBuffer buffer, string? targetLanguage, CancellationToken cancellationToken)
     {
         _queryTextBuffer = buffer;
 
         // initialize solution with default query, unless it has already been initialized:
-        var queryDocument = await UpdateQueryDocumentAsync(query: null, cancellationToken).ConfigureAwait(false);
+        var queryDocument = await UpdateQueryDocumentAsync(query: null, targetLanguage, cancellationToken).ConfigureAwait(false);
 
         _queryDocumentId = queryDocument.Id;
 

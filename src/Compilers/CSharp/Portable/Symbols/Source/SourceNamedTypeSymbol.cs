@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1169,7 +1170,8 @@ next:;
                 | ReservedAttributes.NullableContextAttribute
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -1825,8 +1827,18 @@ next:;
             get
             {
                 return IsExtension
-                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(this.ExtensionName, Arity, associatedFileIdentifier: null)
+                    ? ExtensionMarkerName
                     : base.MetadataName;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                return IsExtension
+                    ? false
+                    : base.MangleName;
             }
         }
 

@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <DefineConstants>SDK_TASK;$(DefineConstants)</DefineConstants>
+    <DefineConstants>$(DefineConstants);SDK_TASK;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
 
     <!--
          This task is the same as the MSBuild version but for net472 only. Our NRT setup does 

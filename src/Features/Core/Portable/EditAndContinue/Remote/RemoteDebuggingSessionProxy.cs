@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -56,7 +54,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
 
     public async ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
         Solution solution,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -111,22 +109,6 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
         await client.TryInvokeAsync<IRemoteEditAndContinueService>(
             (service, cancellationToken) => service.DiscardSolutionUpdateAsync(sessionId, cancellationToken),
             cancellationToken).ConfigureAwait(false);
-    }
-
-    public async ValueTask UpdateBaselinesAsync(Solution solution, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken)
-    {
-        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
-        if (client == null)
-        {
-            GetLocalService().UpdateBaselines(sessionId, solution, rebuiltProjects);
-        }
-        else
-        {
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.UpdateBaselinesAsync(solutionInfo, sessionId, rebuiltProjects, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
     }
 
     public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
