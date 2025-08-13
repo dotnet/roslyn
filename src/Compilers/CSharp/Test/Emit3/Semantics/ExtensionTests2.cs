@@ -28872,5 +28872,465 @@ static class E
             //     extension(object)
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(3, 15));
     }
+
+    [Fact]
+    public void Using_01()
+    {
+        // non-extension static members are brought in scope
+        var src = """
+using static E;
+
+M();
+System.Console.Write(get_P());
+set_P(43);
+_ = op_Addition(0, 0);
+_ = new object() + new object();
+
+static class E
+{
+    extension(object)
+    {
+        public static void M() { System.Console.Write("M "); }
+        public static int P { get => 42; set { System.Console.Write($" {value}"); } }
+        public static object operator +(object o1, object o2) { System.Console.Write(" +"); return o1; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M 42 43 + +").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_02()
+    {
+        var src = """
+using static E;
+
+_ = P;
+P = 43;
+
+static class E
+{
+    extension(object)
+    {
+        public static int P { get => throw null; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS0103: The name 'P' does not exist in the current context
+            // _ = P;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(3, 5),
+            // (4,1): error CS0103: The name 'P' does not exist in the current context
+            // P = 43;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Using_03()
+    {
+        // non-extension static members are brought in scope
+        var src = """
+using static E;
+
+System.Console.Write(get_P(2));
+set_P(3, 43);
+
+static class E
+{
+    extension(int i)
+    {
+        public int P { get { System.Console.Write($"get({i}) "); return 42; } set { System.Console.Write($" set({i}, {value})"); } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "get(2) 42 set(3, 43)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_04()
+    {
+        // using static to import an extension method, used as static method
+        var src = """
+using static E;
+
+M(1);
+
+static class E
+{
+    extension(int i)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS0103: The name 'M' does not exist in the current context
+            // M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(3, 1));
+
+        src = """
+using static E;
+
+M(1);
+
+static class E
+{
+    public static void M(this int i) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS0103: The name 'M' does not exist in the current context
+            // M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(3, 1));
+
+        src = """
+using static E;
+
+M(1);
+
+static class E
+{
+    public static void M(int i) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Using_05()
+    {
+        // using static to import an extension method, used as extension
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public void M() { System.Console.WriteLine($"M({i})"); }
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            42.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "M(42)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_06()
+    {
+        // using static to import an extension method, used as static method
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public void M() { }
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            M(1);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (20,13): error CS0103: The name 'M' does not exist in the current context
+            //             M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(20, 13));
+
+        src = """
+namespace N1 
+{
+    static class E
+    {
+        public static void M(this int i) { }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            M(1);
+        }
+    }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (17,13): error CS0103: The name 'M' does not exist in the current context
+            //             M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(17, 13));
+    }
+
+    [Fact]
+    public void Using_07()
+    {
+        // using static to import an extension property, used as extension
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public int P => 42;
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            System.Console.Write(0.P);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_08()
+    {
+        // using static to import an extension operator, used as extension
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("+"); return c1; }
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            _ = new C() + new C();
+        }
+    }
+}
+
+public class C { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "+").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_09()
+    {
+        // importing with both using static and using, extension method
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public void M() { System.Console.WriteLine($"M({i})"); }
+        }
+    }
+}
+
+namespace N2
+{
+    using N1;
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            42.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "M(42)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_10()
+    {
+        // importing with both using static and using, extension property
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public int P => 42;
+        }
+    }
+}
+
+namespace N2
+{
+    using N1;
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            System.Console.Write(0.P);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_11()
+    {
+        // importing with both using static and using, extension operator
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("+"); return c1; }
+        }
+    }
+}
+
+namespace N2
+{
+    using N1;
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            _ = new C() + new C();
+        }
+    }
+}
+
+public class C { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "+").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_12()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+new object().M1();
+
+namespace N1 
+{
+    static class E1
+    {
+        public static void M1(this object o) { }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        public static void M2(this object o) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+
+        src = """
+using N1;
+using N2;
+
+new object().M1();
+
+namespace N1 
+{
+    static class E1
+    {
+        public static void M1(this object o) { }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public void M2() { }
+        }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining used imports logic
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
 }
 
