@@ -4693,6 +4693,7 @@ static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(this M
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(string? version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(char c, bool quote) -> string!
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(string! value, bool quote) -> string!
+static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatPrimitive(object! obj, bool quoteStrings, bool useHexadecimalNumbers) -> string!
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.ToDisplayParts(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.SymbolDisplayFormat? format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.ToDisplayParts(Microsoft.CodeAnalysis.ITypeSymbol! symbol, Microsoft.CodeAnalysis.NullableAnnotation nullableAnnotation, Microsoft.CodeAnalysis.SymbolDisplayFormat? format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.ToDisplayParts(Microsoft.CodeAnalysis.ITypeSymbol! symbol, Microsoft.CodeAnalysis.NullableFlowState nullableFlowState, Microsoft.CodeAnalysis.SymbolDisplayFormat? format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
