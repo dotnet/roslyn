@@ -8598,8 +8598,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 12));
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
-        public void ParamsCollection_Attribute(bool typeMissing)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute()
         {
             var source = """
                 using System;
