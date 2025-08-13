@@ -6883,7 +6883,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Update, "where T : class", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Update, "where T : class", GetResource("extension block"))
+            Diagnostic(RudeEditKind.Update, "T", GetResource("extension block"))
         );
     }
 
@@ -6916,7 +6916,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Update, "T", GetResource("extension block"))
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block"))
         );
     }
 
