@@ -402,15 +402,3 @@ partial interface I
 
 class C : I;
 ```
-
-## `SymbolDisplay.FormatPrimitive` API is now properly nullable annotated
-
-***Introduced in Visual Studio 2022 version 17.15***
-
-`SymbolDisplay.FormatPrimitive` returns `null` for unsupported types and its documentation always indicated that.
-However, the return type was incorrectly marked as non-nullable and that is now fixed which can cause source breaks.
-If you are sure that you are not passing values of unsupported types, you can add suppression `!` as shown below to restore the previous behavior.
-
-```cs
-string s = SymbolDisplay.FormatPrimitive(...)!;
-```
