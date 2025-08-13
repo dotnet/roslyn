@@ -31,6 +31,6 @@ internal sealed class CopilotSemanticSearchSolutionService(
     public (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId) GetWorkspaceChangeKind(Solution oldSolution, Solution newSolution)
         => GetImpl().GetWorkspaceChangeKind(oldSolution, newSolution);
 
-    public Solution SetQueryText(Solution solution, string? query, string referenceAssembliesDir)
-        => GetImpl().SetQueryText(solution, query, referenceAssembliesDir);
+    public Solution SetQueryText(Solution solution, string? query, string? targetLanguage, string referenceAssembliesDir)
+        => GetImpl().SetQueryText(solution, query, targetLanguage, referenceAssembliesDir);
 }

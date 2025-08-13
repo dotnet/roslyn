@@ -25,7 +25,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     private readonly ParseOptions CSharp12 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-        => (new CSharpUseAutoPropertyAnalyzer(), GetCSharpUseAutoPropertyCodeFixProvider());
+        => (new CSharpUseAutoPropertyAnalyzer(), new CSharpUseAutoPropertyCodeFixProvider());
 
     [Fact]
     public Task TestSingleGetterFromField()
@@ -3058,4 +3058,33 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """,
             new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79734")]
+    public Task TestAttributeOnAccessor()
+        => TestInRegularAndScriptAsync(
+            """
+            class AAttribute : Attribute;
+
+            class C
+            {
+                [|int _i;|]
+                int I
+                {
+                    [A]
+                    get => _i;
+                }
+            }
+            """,
+            """
+            class AAttribute : Attribute;
+
+            class C
+            {
+                int I
+                {
+                    [A]
+                    get;
+                }
+            }
+            """);
 }

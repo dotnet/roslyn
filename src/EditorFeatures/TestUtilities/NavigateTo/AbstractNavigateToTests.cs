@@ -203,7 +203,7 @@ public abstract partial class AbstractNavigateToTests
         Assert.Equal(displayMarkup, itemDisplay.Name);
         Assert.Equal<TextSpan>(
             expectedDisplayNameSpans,
-            itemDisplay.GetNameMatchRuns("").Select(s => s.ToTextSpan()).ToImmutableArray());
+            itemDisplay.GetNameMatchRuns("").SelectAsArray(s => s.ToTextSpan()));
 
         if (additionalInfo != null)
         {

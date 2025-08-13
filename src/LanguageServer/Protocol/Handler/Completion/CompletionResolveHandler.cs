@@ -119,7 +119,7 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
         // but from different namespaces. However, VSCode doesn't include labelDetails in the resolve request, so we 
         // compare SortText instead when it's set (which is when label != SortText)
         return lspCompletionItem.Label == completionItem.GetEntireDisplayText()
-            && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
+            && (lspCompletionItem.Label == completionItem.SortText || lspCompletionItem.SortText?.EndsWith(completionItem.SortText) == true);
     }
 
     private static LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)

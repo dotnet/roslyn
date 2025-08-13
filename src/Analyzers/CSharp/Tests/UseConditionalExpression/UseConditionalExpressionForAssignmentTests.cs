@@ -2365,5 +2365,5 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 }

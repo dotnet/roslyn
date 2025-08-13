@@ -3,8 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -43,13 +48,16 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 {
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
 
-    public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
+    private static readonly ImmutableArray<string> s_csharpLanguageArray = [LanguageNames.CSharp];
+    private static readonly ImmutableArray<string> s_visualBasicLanguageArray = [LanguageNames.VisualBasic];
+    private static readonly ImmutableArray<string> s_csharpAndVisualBasicLanguageArray = [.. s_csharpLanguageArray, .. s_visualBasicLanguageArray];
 
     public IAsynchronousOperationListener Listener { get; }
     private IGlobalOptionService GlobalOptions { get; }
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticIncrementalAnalyzer _incrementalAnalyzer;
+    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -58,11 +66,11 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         IAsynchronousOperationListenerProvider? listenerProvider,
         Workspace workspace)
     {
-        AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
+        _analyzerInfoCache = globalCache.AnalyzerInfoCache;
         Listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
+        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, _analyzerInfoCache, this.GlobalOptions);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {
@@ -129,6 +137,171 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
         return _incrementalAnalyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
+    }
+
+    public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
+    {
+        // Attempt to compute this OOP.
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null &&
+            analyzerReference is AnalyzerFileReference analyzerFileReference)
+        {
+            var descriptors = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticDescriptorData>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsAsync(solution, projectId, analyzerFileReference.FullPath, language, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!descriptors.HasValue)
+                return [];
+
+            return descriptors.Value.SelectAsArray(d => d.ToDiagnosticDescriptor());
+        }
+
+        // Otherwise, fallback to computing in proc.
+        return analyzerReference
+            .GetAnalyzers(language)
+            .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
+    }
+
+    public async Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
+        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null &&
+            analyzerReference is AnalyzerFileReference analyzerFileReference)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetLanguageKeyedDiagnosticDescriptorsAsync(solution, projectId, analyzerFileReference.FullPath, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!map.HasValue)
+                return ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>.Empty;
+
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
+        }
+
+        // Otherwise, fallback to computing in proc.
+        var mapBuilder = ImmutableDictionary.CreateBuilder<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>();
+
+        var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
+        var visualBasicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
+
+        var dotnetAnalyzers = csharpAnalyzers.Intersect(visualBasicAnalyzers, DiagnosticAnalyzerComparer.Instance).ToImmutableArray();
+        csharpAnalyzers = [.. csharpAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
+        visualBasicAnalyzers = [.. visualBasicAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
+
+        mapBuilder.Add(s_csharpLanguageArray, GetDiagnosticDescriptors(csharpAnalyzers));
+        mapBuilder.Add(s_visualBasicLanguageArray, GetDiagnosticDescriptors(visualBasicAnalyzers));
+        mapBuilder.Add(s_csharpAndVisualBasicLanguageArray, GetDiagnosticDescriptors(dotnetAnalyzers));
+
+        return mapBuilder.ToImmutable();
+
+        ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(ImmutableArray<DiagnosticAnalyzer> analyzers)
+            => analyzers.SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
+    }
+
+    public async Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
+        Solution solution, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, DiagnosticDescriptorData>>(
+                solution,
+                (service, solution, cancellationToken) => service.TryGetDiagnosticDescriptorsAsync(solution, diagnosticIds, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!map.HasValue)
+                return ImmutableDictionary<string, DiagnosticDescriptor>.Empty;
+
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.ToDiagnosticDescriptor());
+        }
+
+        var builder = ImmutableDictionary.CreateBuilder<string, DiagnosticDescriptor>();
+        foreach (var diagnosticId in diagnosticIds)
+        {
+            if (this._analyzerInfoCache.TryGetDescriptorForDiagnosticId(diagnosticId, out var descriptor))
+                builder[diagnosticId] = descriptor;
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!map.HasValue)
+                return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
+
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
+        }
+
+        return solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache);
+    }
+
+    public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Project project, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>>(
+                project,
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, project.Id, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!map.HasValue)
+                return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
+
+            return map.Value.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
+        }
+
+        return project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
+    }
+
+    private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
+    {
+        public static readonly DiagnosticAnalyzerComparer Instance = new();
+
+        public bool Equals(DiagnosticAnalyzer? x, DiagnosticAnalyzer? y)
+            => (x, y) switch
+            {
+                (null, null) => true,
+                (null, _) => false,
+                (_, null) => false,
+                _ => GetAnalyzerIdAndLastWriteTime(x) == GetAnalyzerIdAndLastWriteTime(y)
+            };
+
+        public int GetHashCode(DiagnosticAnalyzer obj) => GetAnalyzerIdAndLastWriteTime(obj).GetHashCode();
+
+        private static (string analyzerId, DateTime lastWriteTime) GetAnalyzerIdAndLastWriteTime(DiagnosticAnalyzer analyzer)
+        {
+            // Get the unique ID for given diagnostic analyzer.
+            // note that we also put version stamp so that we can detect changed analyzer.
+            var typeInfo = analyzer.GetType().GetTypeInfo();
+            return (analyzer.GetAnalyzerId(), GetAnalyzerLastWriteTime(typeInfo.Assembly.Location));
+        }
+
+        private static DateTime GetAnalyzerLastWriteTime(string path)
+        {
+            if (path == null || !File.Exists(path))
+                return default;
+
+            return File.GetLastWriteTimeUtc(path);
+        }
     }
 
     public TestAccessor GetTestAccessor()
