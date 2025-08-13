@@ -535,10 +535,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (assignment is
                 {
                     IsRef: true,
-                    Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } receiverRefLocal },
+                    Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } receiverRefLocal },
                     Right: BoundComplexConditionalReceiver
                     {
-                        ValueTypeReceiver: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } } valueTypeReceiver,
+                        ValueTypeReceiver: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } } valueTypeReceiver,
                         ReferenceTypeReceiver: BoundSequence
                         {
                             Locals.IsEmpty: true,
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 IsRef: false,
                                 Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } referenceTypeClone },
-                                Right: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } originalReceiverReference }
+                                Right: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } originalReceiverReference }
                             }
                             ],
                             Value: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } } referenceTypeReceiver
@@ -563,6 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && !receiverRefLocal.Type.IsReferenceType
                 && !receiverRefLocal.Type.IsValueType
                 && valueTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
+                && receiverRefLocal.RefKind == valueTypeReceiver.LocalSymbol.RefKind
                 && referenceTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
             )
             {

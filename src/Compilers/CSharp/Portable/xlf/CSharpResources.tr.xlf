@@ -812,6 +812,11 @@
         <target state="translated">İfade ağacı, with ifadesi içeremez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionBlockCollision">
+        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
+        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
         <target state="new">This member is not allowed in an extension block</target>
@@ -870,6 +875,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' özelliği C# 13.0 sürümünde kullanılamıyor. Lütfen {1} veya daha yüksek dil sürümünü kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion14">
+        <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -2330,11 +2340,6 @@
       <trans-unit id="ERR_SignatureMismatchInRecord">
         <source>Record member '{0}' must return '{1}'.</source>
         <target state="translated">'{0}' kayıt üyesi '{1}' döndürmelidir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">Üst düzey deyimleri olan bir derleme birimi varsa /main belirtilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">

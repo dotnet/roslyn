@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerCallingConvention: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
@@ -65,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: true,
-            considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
@@ -79,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions); //shouldn't actually matter for source members
@@ -96,9 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefOutInRefReadonlyMatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -109,7 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
@@ -122,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
@@ -135,7 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
@@ -148,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerArity: false,
@@ -163,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerArity: false,
@@ -176,7 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
@@ -189,9 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefOutInRefReadonlyMatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames);
 
         /// <summary>
@@ -202,9 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefOutInRefReadonlyMatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -215,7 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false, //Bug: DevDiv #15775
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
@@ -229,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
@@ -242,9 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefOutInRefReadonlyMatch,
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
@@ -257,9 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefOutInRefReadonlyMatch,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -269,9 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefOutInRefReadonlyMatch,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -283,7 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
@@ -296,9 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: true,
-            considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.RefOutInRefReadonlyMatch,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -308,7 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: true,
             considerExplicitlyImplementedInterfaces: false, //we'll be comparing interface members anyway
             considerReturnType: true,
-            considerTypeConstraints: false,
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers); //if it was a true explicit impl, we expect it to remain so after retargeting
@@ -321,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false, //handled by lookup
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: false,
-            considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
@@ -333,7 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
             considerArity: true,
@@ -347,7 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
-            considerTypeConstraints: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
             considerArity: false,
@@ -362,9 +339,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Compare the type symbols of the return types
         private readonly bool _considerReturnType;
-
-        // Compare the type constraints
-        private readonly bool _considerTypeConstraints;
 
         // Compare the arity (type parameter count)
         private readonly bool _considerArity;
@@ -384,7 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerName,
             bool considerExplicitlyImplementedInterfaces,
             bool considerReturnType,
-            bool considerTypeConstraints,
             bool considerCallingConvention,
             RefKindCompareMode refKindCompareMode,
             bool considerArity = true,
@@ -392,25 +365,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
-            Debug.Assert(!considerTypeConstraints || considerArity, "If you consider type constraints, you must also consider arity");
 
             _considerName = considerName;
             _considerExplicitlyImplementedInterfaces = considerExplicitlyImplementedInterfaces;
             _considerReturnType = considerReturnType;
-            _considerTypeConstraints = considerTypeConstraints;
             _considerCallingConvention = considerCallingConvention;
             _refKindCompareMode = refKindCompareMode;
             _considerArity = considerArity;
             _considerDefaultValues = considerDefaultValues;
             _typeComparison = typeComparison;
-            Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
+            Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefOutInRefReadonlyMatch) == 0,
                          $"Rely on the {nameof(refKindCompareMode)} flag to set this to ensure all cases are handled.");
-            Debug.Assert(_refKindCompareMode == RefKindCompareMode.DoNotConsiderDifferences ||
+            Debug.Assert(_refKindCompareMode == RefKindCompareMode.RefOutInRefReadonlyMatch ||
                 (_refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0,
                 $"Cannot set {nameof(RefKindCompareMode)} flags without {nameof(RefKindCompareMode.ConsiderDifferences)}.");
             if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) == 0)
             {
-                _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
+                _typeComparison |= TypeCompareKind.FunctionPointerRefOutInRefReadonlyMatch;
             }
         }
 
@@ -526,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return !_considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2);
+            return true;
         }
 
         public int GetHashCode(Symbol? member)
@@ -552,7 +523,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (member.Kind != SymbolKind.Field)
                 {
-                    hash = Hash.Combine(member.GetMemberArity(), hash);
+                    if (_considerArity)
+                    {
+                        hash = Hash.Combine(member.GetMemberArity(), hash);
+                    }
+
                     hash = Hash.Combine(member.GetParameterCount(), hash);
                 }
             }
@@ -612,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static TypeMap? GetTypeMap(Symbol member)
+        internal static TypeMap? GetTypeMap(Symbol member)
         {
             var typeParameters = member.GetMemberTypeParameters();
             return typeParameters.IsEmpty ?
@@ -623,29 +598,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     true);
         }
 
-        private static bool HaveSameConstraints(Symbol member1, TypeMap? typeMap1, Symbol member2, TypeMap? typeMap2)
-        {
-            Debug.Assert(member1.GetMemberArity() == member2.GetMemberArity());
-
-            int arity = member1.GetMemberArity();
-            if (arity == 0)
-            {
-                return true;
-            }
-
-            var typeParameters1 = member1.GetMemberTypeParameters();
-            var typeParameters2 = member2.GetMemberTypeParameters();
-            return HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
-        }
-
-        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap? typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap? typeMap2)
+        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap? typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap? typeMap2, TypeCompareKind typeComparison)
         {
             Debug.Assert(typeParameters1.Length == typeParameters2.Length);
 
             int arity = typeParameters1.Length;
             for (int i = 0; i < arity; i++)
             {
-                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2))
+                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2, typeComparison))
                 {
                     return false;
                 }
@@ -654,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        public static bool HaveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2)
+        public static bool HaveSameConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, TypeCompareKind typeComparison)
         {
             // Spec 13.4.3: Implementation of generic methods.
 
@@ -668,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.Create(typeComparison));
         }
 
         private static bool HaveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap? typeMap1, TypeParameterSymbol typeParameter2, TypeMap? typeMap2, IEqualityComparer<TypeSymbol> comparer)
@@ -812,18 +772,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var refKind2 = param2.RefKind;
 
             // Metadata signatures don't distinguish ref/out, but C# does - even when comparing metadata method signatures.
-            if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0)
+            if (refKindCompareMode != RefKindCompareMode.IgnoreRefKind)
             {
-                if (!areRefKindsCompatible(refKindCompareMode, refKind1, refKind2))
+                if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0)
                 {
-                    return false;
+                    if (!areRefKindsCompatible(refKindCompareMode, refKind1, refKind2))
+                    {
+                        return false;
+                    }
                 }
-            }
-            else
-            {
-                if ((refKind1 == RefKind.None) != (refKind2 == RefKind.None))
+                else
                 {
-                    return false;
+                    Debug.Assert(refKindCompareMode == RefKindCompareMode.RefOutInRefReadonlyMatch);
+                    if ((refKind1 == RefKind.None) != (refKind2 == RefKind.None))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -845,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static TypeWithAnnotations SubstituteType(TypeMap? typeMap, TypeWithAnnotations typeSymbol)
+        internal static TypeWithAnnotations SubstituteType(TypeMap? typeMap, TypeWithAnnotations typeSymbol)
         {
             return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
         }
@@ -903,9 +867,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal enum RefKindCompareMode
         {
             /// <summary>
-            /// Ref parameter modifiers are ignored.
+            /// All ref modifiers are considered equivalent.
             /// </summary>
-            DoNotConsiderDifferences = 0,
+            RefOutInRefReadonlyMatch = 0,
 
             /// <summary>
             /// Parameters with different ref modifiers are considered different.
@@ -916,6 +880,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// 'in'/'ref readonly' modifiers are considered equivalent.
             /// </summary>
             AllowRefReadonlyVsInMismatch = 1 << 1,
+
+            /// <summary>
+            /// Ignore ref kind differences.
+            /// </summary>
+            IgnoreRefKind = 1 << 2,
         }
     }
 }

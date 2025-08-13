@@ -175,13 +175,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
-                if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
+                Symbol containingSymbol = symbol.ContainingSymbol;
+                if ((object)containingSymbol != null && (containingSymbol.Name.Length != 0 || containingSymbol is NamedTypeSymbol { IsExtension: true }))
                 {
-                    Visit(symbol.ContainingSymbol, builder);
+                    Visit(containingSymbol, builder);
                     builder.Append('.');
                 }
 
-                builder.Append(symbol.IsExtension ? symbol.ExtensionName : symbol.Name);
+                builder.Append(symbol.IsExtension ? symbol.ExtensionGroupingName : symbol.Name);
 
                 if (symbol.Arity != 0)
                 {
@@ -189,8 +190,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (and return type, for conversions) as constructed with its own type parameters.
                     if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.AllIgnoreOptions))
                     {
-                        builder.Append('`');
-                        builder.Append(symbol.Arity);
+                        if (!symbol.IsExtension)
+                        {
+                            builder.Append('`');
+                            builder.Append(symbol.Arity);
+                        }
                     }
                     else
                     {

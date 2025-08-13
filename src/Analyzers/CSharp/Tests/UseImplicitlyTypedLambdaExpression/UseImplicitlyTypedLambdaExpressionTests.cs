@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
 public sealed class UseImplicitlyTypedLambdaExpressionTests
 {
-    private static readonly LanguageVersion CSharp14 = LanguageVersionExtensions.CSharpNext;
+    private static readonly LanguageVersion CSharp14 = LanguageVersion.CSharp14;
 
     [Fact]
     public Task TestAssignedToObject()

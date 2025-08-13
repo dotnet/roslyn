@@ -1,4 +1,5 @@
 abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(Microsoft.CodeAnalysis.CSharp.InterceptableLocation? other) -> bool
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp14 = 1400 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax.AddConstraintClauses(params Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax!

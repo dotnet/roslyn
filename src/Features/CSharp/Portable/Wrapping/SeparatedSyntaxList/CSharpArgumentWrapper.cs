@@ -51,6 +51,7 @@ internal sealed partial class CSharpArgumentWrapper
             ElementAccessExpressionSyntax elementAccessExpression => elementAccessExpression.ArgumentList,
             BaseObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
             ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
+            PrimaryConstructorBaseTypeSyntax baseTypeSyntax => baseTypeSyntax.ArgumentList,
             _ => null,
         };
 
@@ -85,6 +86,11 @@ internal sealed partial class CSharpArgumentWrapper
         {
             // allow anywhere in `this(...)` or `base(...)`
             startToken = constructorInitializer.ThisOrBaseKeyword;
+        }
+        else if (declaration is PrimaryConstructorBaseTypeSyntax baseTypeSyntax)
+        {
+            // allow anywhere in `BaseClass(...)`
+            startToken = baseTypeSyntax.GetFirstToken();
         }
 
         var endToken = listSyntax.GetLastToken();
