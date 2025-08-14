@@ -15,20 +15,16 @@
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CscReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj"
-                      ReferenceOutputAssembly="false"
-                      Targets="CopyFilesForDebugging"
-                      SetTargetFramework="TargetFramework=net472"
-                      AdditionalProperties="BaseOutputPath=$(BaseOutputPath)" />
-    <ProjectReference Include="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj"
-                      ReferenceOutputAssembly="false"
-                      Targets="CopyFilesForDebugging"
-                      SetTargetFramework="TargetFramework=$(NetRoslyn)"
-                      AdditionalProperties="BaseOutputPath=$(BaseOutputPath)" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" />
@@ -36,4 +32,13 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
+  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CscReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
+    <PropertyGroup>
+      <_CscReferenceOutputPath>@(CscReference->'%(RootDir)%(Directory)*.*')</_CscReferenceOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_CscReferenceContent Include="$(_CscReferenceOutputPath)" />
+      <Content Include="@(_CscReferenceContent)" Link="..\bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>
