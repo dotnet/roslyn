@@ -7,6 +7,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\MSBuildTaskTests\TestUtilities\IntegrationTestBase.cs" LinkBase="TestUtilities" />
+    <Compile Include="..\MSBuildTaskTests\TestUtilities\MSBuildUtil.cs" LinkBase="TestUtilities" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
@@ -15,6 +19,16 @@
     <ProjectReference Include="..\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj"
+                      ReferenceOutputAssembly="false"
+                      Targets="CopyFilesForDebugging"
+                      SetTargetFramework="TargetFramework=net472"
+                      AdditionalProperties="BaseOutputPath=$(BaseOutputPath)" />
+    <ProjectReference Include="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj"
+                      ReferenceOutputAssembly="false"
+                      Targets="CopyFilesForDebugging"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)"
+                      AdditionalProperties="BaseOutputPath=$(BaseOutputPath)" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" />

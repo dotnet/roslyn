@@ -3,91 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 #if NET472
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public class IntegrationTests : TestBase
+    public sealed class IntegrationTests(ITestOutputHelper output) : IntegrationTestBase(output)
     {
-        private static readonly string? s_msbuildDirectory;
-
-        static IntegrationTests()
-        {
-            s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
-        }
-
-        private readonly string _msbuildExecutable;
-        private readonly TempDirectory _tempDirectory;
-        private readonly List<Process> _existingServerList = new List<Process>();
-        private readonly string _buildTaskDll;
-
-        public IntegrationTests()
-        {
-            if (s_msbuildDirectory == null)
-            {
-                throw new InvalidOperationException("Could not locate MSBuild");
-            }
-
-            _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
-            _tempDirectory = Temp.CreateDirectory();
-            _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
-            _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
-        }
-
-        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>>? vars)
-        {
-            vars = vars ?? new KeyValuePair<string, string>[] { };
-            if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
-            {
-                var list = vars.ToList();
-                list.Add(new KeyValuePair<string, string>(
-                    "RoslynCommandLineLogFile",
-                    typeof(IntegrationTests).Assembly.Location + ".client-server.log"));
-                return list;
-            }
-            return vars;
-        }
-
-        private ProcessResult RunCommandLineCompiler(
-            string compilerPath,
-            string arguments,
-            string currentDirectory,
-            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
-        {
-            return ProcessUtilities.Run(
-                compilerPath,
-                arguments,
-                currentDirectory,
-                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
-        }
-
-        private ProcessResult RunCommandLineCompiler(
-            string compilerPath,
-            string arguments,
-            TempDirectory currentDirectory,
-            IEnumerable<KeyValuePair<string, string>> filesInDirectory,
-            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
-        {
-            foreach (var pair in filesInDirectory)
-            {
-                TempFile file = currentDirectory.CreateFile(pair.Key);
-                file.WriteAllText(pair.Value);
-            }
-
-            return RunCommandLineCompiler(
-                compilerPath,
-                arguments,
-                currentDirectory.Path,
-                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
-        }
-
         private DisposableFile GetResultFile(TempDirectory directory, string resultFileName)
         {
             return new DisposableFile(Path.Combine(directory.Path, resultFileName));

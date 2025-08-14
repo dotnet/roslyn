@@ -7,16 +7,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Reflection;
+using Basic.Reference.Assemblies;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Win32;
-using Basic.Reference.Assemblies;
 
 namespace Roslyn.Test.Utilities
 {
@@ -95,20 +94,11 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
         public static string? GetMSBuildDirectory()
         {
-            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
-            using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))
-            {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        return toolsPath.ToString();
-                    }
-                }
-            }
-
-            return null;
+            var vsInstance = MSBuildLocator.QueryVisualStudioInstances()
+                .OrderByDescending(v => v.Version)
+                .FirstOrDefault()
+                ?? throw new InvalidOperationException("Visual Studio instance not found.");
+            return vsInstance.MSBuildPath;
         }
     }
 }
