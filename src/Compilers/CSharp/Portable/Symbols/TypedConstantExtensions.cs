@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(constant.ValueInternal is object);
-            return SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings: true, useHexadecimalNumbers: false);
+            var result = SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings: true, useHexadecimalNumbers: false);
+            Debug.Assert(result != null);
+            return result;
         }
 
         // Decode the value of enum constant

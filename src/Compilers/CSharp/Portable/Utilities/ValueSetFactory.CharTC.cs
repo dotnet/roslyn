@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string INumericTC<char>.ToString(char c)
             {
-                return ObjectDisplay.FormatPrimitive(c, ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes);
+                var result = ObjectDisplay.FormatPrimitive(c, ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes);
+                Debug.Assert(result != null);
+                return result;
             }
 
             char INumericTC<char>.Prev(char value)
