@@ -1440,6 +1440,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(argRefKind is RefKind.None or RefKind.In or RefKind.Ref);
                     argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
                 }
+                // For interpolated string handlers, we allow ref handlers to be passed as ref without a `ref`
+                // keyword
+                else if (paramRefKind is RefKind.Ref && argRefKind == RefKind.None && parameters[p].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
+                {
+                    argRefKind = RefKind.Ref;
+                }
 
                 refKinds[p] = argRefKind;
             }

@@ -6680,7 +6680,7 @@ literal:Literal");
             var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null);
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
-                  // Code size       46 (0x2e)
+                  // Code size       47 (0x2f)
                   .maxstack  3
                   .locals init (int? V_0,
                                 InterpolatedStringHandler V_1,
@@ -6692,17 +6692,17 @@ literal:Literal");
                   IL_0009:  ldloca.s   V_1
                   IL_000b:  ldstr      "abc"
                   IL_0010:  call       "void InterpolatedStringHandler.AppendLiteral(string)"
-                  IL_0015:  ldloc.1
-                  IL_0016:  ldloca.s   V_0
-                  IL_0018:  ldc.i4.0
-                  IL_0019:  call       "int?..ctor(int)"
-                  IL_001e:  ldc.i4.1
-                  IL_001f:  newobj     "int?..ctor(int)"
-                  IL_0024:  stloc.2
-                  IL_0025:  ldloca.s   V_2
-                  IL_0027:  ldloc.0
-                  IL_0028:  call       "void Program.<<Main>$>g__BadFunc|0_0(ref InterpolatedStringHandler, in int?, int?)"
-                  IL_002d:  ret
+                  IL_0015:  ldloca.s   V_1
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldc.i4.0
+                  IL_001a:  call       "int?..ctor(int)"
+                  IL_001f:  ldc.i4.1
+                  IL_0020:  newobj     "int?..ctor(int)"
+                  IL_0025:  stloc.2
+                  IL_0026:  ldloca.s   V_2
+                  IL_0028:  ldloc.0
+                  IL_0029:  call       "void Program.<<Main>$>g__BadFunc|0_0(ref InterpolatedStringHandler, in int?, int?)"
+                  IL_002e:  ret
                 }
                 """);
         }
