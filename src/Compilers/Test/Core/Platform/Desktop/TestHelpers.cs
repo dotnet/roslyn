@@ -97,7 +97,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var vsInstance = MSBuildLocator.QueryVisualStudioInstances()
                 .OrderByDescending(v => v.Version)
                 .FirstOrDefault()
-                ?? throw new InvalidOperationException("Visual Studio instance not found.");
+                ?? throw new InvalidOperationException("MSBuild instance not found.");
             return vsInstance.MSBuildPath;
         }
     }

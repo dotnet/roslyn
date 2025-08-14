@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/nullable:", Nullable);
             commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
 
-            // Pass sdkpath if we are invoking core compiler form framework to preserve the behavior that framework compiler would have.
+            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
             // Pass this option only to the built-in compiler (customer-supplied compiler might not support it).
             if (IsSdkFrameworkToCoreBridgeTask && UsingBuiltinTool)
             {
