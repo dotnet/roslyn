@@ -43,25 +43,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static EqualityComparer<Symbol> Create(TypeCompareKind comparison)
         {
-            if (comparison == (TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            switch (comparison)
             {
-                return IgnoringDynamicTupleNamesAndNullability;
+                case TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes:
+                    return IgnoringDynamicTupleNamesAndNullability;
+                case TypeCompareKind.ConsiderEverything:
+                    return ConsiderEverything;
+                case TypeCompareKind.AllIgnoreOptionsPlusNullableWithObliviousMatchesAny:
+                    return AllIgnoreOptionsPlusNullableWithUnknownMatchesAny;
+                case TypeCompareKind.CLRSignatureCompareOptions:
+                    return CLRSignature;
+                default:
+                    Debug.Assert(false, "Consider optimizing as above when we need to handle a new type comparison kind.");
+                    return new SymbolEqualityComparer(comparison);
             }
-            else if (comparison == TypeCompareKind.ConsiderEverything)
-            {
-                return ConsiderEverything;
-            }
-            else if (comparison == TypeCompareKind.AllIgnoreOptions)
-            {
-                return AllIgnoreOptions;
-            }
-            else if (comparison == TypeCompareKind.AllIgnoreOptionsPlusNullableWithObliviousMatchesAny)
-            {
-                return AllIgnoreOptionsPlusNullableWithUnknownMatchesAny;
-            }
-
-            Debug.Assert(false, "Consider optimizing as above when we need to handle a new type comparison kind.");
-            return new SymbolEqualityComparer(comparison);
         }
 
         public override int GetHashCode(Symbol obj)
