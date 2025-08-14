@@ -266,7 +266,6 @@ function BuildSolution() {
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   try {
-    # TODO: Remove DotNetBuildRepo property when roslyn is on Arcade 10
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -287,7 +286,6 @@ function BuildSolution() {
       /p:IbcOptimizationDataDir=$ibcDir `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      /p:DotNetBuildRepo=$productBuild `
       /p:DotNetBuild=$productBuild `
       /p:DotNetBuildFromVMR=$fromVMR `
       $suppressExtensionDeployment `
