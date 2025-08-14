@@ -2,14 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -178,8 +183,10 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
     [Theory, CombinatorialData]
     public async Task TestLooseFile_RazorFile(bool mutatingLspWorkspace)
     {
+        var composition = Composition.AddParts(typeof(TestRazorMiscellaneousProjectInfoService));
+
         // Create a server that supports LSP misc files and verify no misc files present.
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
 
@@ -396,5 +403,18 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
             CreateTextDocumentPositionParams(caret), CancellationToken.None);
         Contract.ThrowIfNull(result);
         return result;
+    }
+
+    // This is a test version of the real service which lives in the Razor EA, which is not referenced here
+    [PartNotDiscoverable]
+    [ExportLanguageService(typeof(IMiscellaneousProjectInfoService), "Razor"), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestRazorMiscellaneousProjectInfoService() : IMiscellaneousProjectInfoService
+    {
+        public string ProjectLanguageOverride => LanguageNames.CSharp;
+        public bool AddAsAdditionalDocument => true;
+
+        public IEnumerable<AnalyzerReference>? GetAnalyzerReferences(SolutionServices services) => null;
     }
 }
