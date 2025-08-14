@@ -6643,6 +6643,70 @@ literal:Literal");
 ");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
+        public void PassAsRefWithoutKeyword_05()
+        {
+            var code = """
+                BadFunc(
+                    message: $"abc",
+                    value2: 0,
+                    value1: 1);
+ 
+                static void BadFunc(
+                    ref InterpolatedStringHandler message,
+                    in int? value1,
+                    int? value2)
+                {
+                    System.Console.Write(value1);
+                    System.Console.Write(value2);
+                }
+ 
+                [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                public ref struct InterpolatedStringHandler
+                {
+                    public InterpolatedStringHandler(
+                        int literalLength,
+                        int formattedCount)
+                    {
+                    }
+ 
+                    public void AppendLiteral(string value)
+                    {
+                        System.Console.Write(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       46 (0x2e)
+                  .maxstack  3
+                  .locals init (int? V_0,
+                                InterpolatedStringHandler V_1,
+                                int? V_2)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  call       "InterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_1
+                  IL_000b:  ldstr      "abc"
+                  IL_0010:  call       "void InterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloc.1
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "int?..ctor(int)"
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  newobj     "int?..ctor(int)"
+                  IL_0024:  stloc.2
+                  IL_0025:  ldloca.s   V_2
+                  IL_0027:  ldloc.0
+                  IL_0028:  call       "void Program.<<Main>$>g__BadFunc|0_0(ref InterpolatedStringHandler, in int?, int?)"
+                  IL_002d:  ret
+                }
+                """);
+        }
+
         [Theory]
         [CombinatorialData]
         public void RefOverloadResolution_Struct([CombinatorialValues("in", "ref")] string refKind, [CombinatorialValues(@"$""{1,2:f}Literal""", @"$""{1,2:f}"" + $""Literal""")] string expression)
