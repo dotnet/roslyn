@@ -6247,6 +6247,2104 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
     #endregion
 
+    #region Extensions
+
+    [Fact]
+    public void Extension_AddedBlock_NoMethod()
+    {
+        var src1 = """
+            static class Ext
+            {
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object)
+                {
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("""
+            Insert [extension(object)
+                {
+                }]@25
+            """,
+            "Insert [(object)]@34",
+            "Insert [object]@35");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "object", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_AddedSecondBlock()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object)
+                {
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object)
+                {
+                }
+                extension(string)
+                {
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("""
+            Insert [extension(string)
+                {
+                }]@62
+            """,
+            "Insert [(string)]@71",
+            "Insert [string]@72");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "string", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_AddMethod()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Insert [void M() {}]@61",
+            "Insert [()]@67"
+        );
+
+        edits.VerifySemanticDiagnostics(capabilities: EditAndContinueCapabilities.AddMethodToExistingType,
+            diagnostics: Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_RemoveMethod()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Delete [void M() {}]@61",
+            "Delete [()]@67"
+        );
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_AddName()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object)
+                {
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object x)
+                {
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [object]@35 -> [object x]@35");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object x", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_RemoveName()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object x)
+                {
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object)
+                {
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [object x]@35 -> [object]@35");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_Rename()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object x)
+                {
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [object o]@35 -> [object x]@35");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object x", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_Type_ChangeNullability()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object? o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [object o]@35 -> [object? o]@35");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object? o", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_Type_ChangeType()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(string o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [object o]@35 -> [string o]@35");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "string o", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_AddAttribute()
+    {
+        var src1 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var src2 = s_attributeSource + """
+            static class Ext
+            {
+                extension([A]object o)
+                {
+                    void M() {}
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [object o]@155 -> [[A]object o]@155");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_DeleteAttribute()
+    {
+        var src1 = s_attributeSource + """
+            static class Ext
+            {
+                extension([A]object o)
+                {
+                    void M() {}
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var src2 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [[A]object o]@155 -> [object o]@155");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_UpdateAttributeArgument()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension([System.Obsolete("a")]object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension([System.Obsolete("b")]object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("""Update [[System.Obsolete("a")]object o]@35 -> [[System.Obsolete("b")]object o]@35""");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_AddModifier()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(ref int i)
+                {
+                    void M(int y) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [int i]@35 -> [ref int i]@35",
+            "Update [int x]@65 -> [int y]@69"
+        );
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "ref int i", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_RemoveModifier()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(ref int i)
+                {
+                    void M(int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(int y) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [ref int i]@35 -> [int i]@35",
+            "Update [int x]@69 -> [int y]@65");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int i", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_ExtensionParameter_ChangeModifier()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(ref int i)
+                {
+                    void M(int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(in int i)
+                {
+                    void M(int y) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [ref int i]@35 -> [in int i]@35",
+            "Update [int x]@69 -> [int y]@68"
+        );
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "in int i", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_TypeParameter_Add()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension<T>(object o)
+                {
+                    void M(T t) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Insert [<T>]@34",
+            "Insert [T]@35",
+            "Insert [T t]@71"
+        );
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "T", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "T", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "T t", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "T t", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_TypeParameter_Delete()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension<T>(object o)
+                {
+                    void M(T t) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Delete [<T>]@34",
+            "Delete [T]@35",
+            "Delete [T t]@71"
+        );
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_TypeParameter_Rename()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension<T>(T o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension<U>(U o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [T]@35 -> [U]@35",
+            "Update [T o]@38 -> [U o]@38");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "U", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "U", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "U o", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_TypeParameter_Constraint_Add()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension<T>(T o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension<T>(T o) where T : class
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Insert [where T : class]@43");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "where T : class", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "T", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_TypeParameter_Constraint_Delete()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension<T>(T o) where T : class
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension<T>(T o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Delete [where T : class]@43");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_TypeParameter_Constraint_Update()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension<T>(T o) where T : class
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension<T>(T o) where T : struct
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [where T : class]@43 -> [where T : struct]@43");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "where T : struct", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "where T : struct", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Method_Rename()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void N() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [void M() {}]@61 -> [void N() {}]@61");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "void N()", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Method_ChangeModifier_Static()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    static void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [void M() {}]@61 -> [static void M() {}]@61");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "static void M()", GetResource("extension block")));
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void Extension_Method_ChangeModifier_Visibility(
+        [CombinatorialValues("public ", "internal ", "protected ", "private ", "protected internal ", "private protected ", "")]
+        string oldVisibility,
+        [CombinatorialValues("public ", "internal ", "protected ", "private ", "protected internal ", "private protected ", "")]
+        string newVisibility)
+    {
+        if (oldVisibility == newVisibility)
+            return;
+
+        var src1 = $$"""
+            static class Ext
+            {
+                extension(object o)
+                {
+                    {{oldVisibility}}void M() {}
+                }
+            }
+            """;
+
+        var src2 = $$"""
+            static class Ext
+            {
+                extension(object o)
+                {
+                    {{newVisibility}}void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits($$"""Update [{{oldVisibility}}void M() {}]@61 -> [{{newVisibility}}void M() {}]@61""");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, $"{newVisibility}void M()", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Method_Parameter_Insert()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M(int x) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Insert [int x]@68");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int x", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int x", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Method_Parameter_Delete()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M(int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Delete [int x]@68");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Method_Parameter_Rename()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M(int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M(int y) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [int x]@68 -> [int y]@68");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Method_Parameter_AddModifier()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(ref int y) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [int x]@65 -> [ref int y]@65");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "ref int y", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "ref int y", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Method_Parameter_RemoveModifier()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(ref int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(int y) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [ref int x]@65 -> [int y]@65");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int y", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Method_Parameter_ChangeModifier()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(ref int x) {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(int i)
+                {
+                    void M(in int y) {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [ref int x]@65 -> [in int y]@65");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "in int y", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "in int y", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Method_BodyUpdate()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int M() => 1;
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int M() => 2;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("Update [int M() => 1;]@61 -> [int M() => 2;]@61");
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "int M()", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Method_AddSecondInBlock()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                    void N() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Insert [void N() {}]@82",
+            "Insert [()]@88"
+        );
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "void N()", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Block_Reorder()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+                extension(string s)
+                {
+                    void N() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(string s)
+                {
+                    void N() {}
+                }
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits("""
+            Reorder [extension(string s)
+                {
+                    void N() {}
+                }]@85 -> @25
+            """);
+
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Block_ChangeParent()
+    {
+        var src1 = """
+            static class Ext1
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+
+            static class Ext2
+            {
+            }
+            """;
+
+        var src2 = """
+            static class Ext1
+            {
+            }
+
+            static class Ext2
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            """
+            Insert [extension(object o)
+                {
+                    void M() {}
+                }]@53
+            """,
+            "Insert [(object o)]@62",
+            "Insert [void M() {}]@89",
+            "Insert [object o]@63",
+            "Insert [()]@95",
+            """
+            Delete [extension(object o)
+                {
+                    void M() {}
+                }]@26
+            """,
+            "Delete [(object o)]@35",
+            "Delete [object o]@36",
+            "Delete [void M() {}]@62",
+            "Delete [()]@68");
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext1", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext1", "extension block 'extension(object)'"),
+            Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Block_DeleteSecondBlock()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+                extension(string s)
+                {
+                    void N() {}
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            """
+            Delete [extension(string s)
+                {
+                    void N() {}
+                }]@85
+            """,
+            "Delete [(string s)]@94",
+            "Delete [string s]@95",
+            "Delete [void N() {}]@121",
+            "Delete [()]@127"
+        );
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "extension(string)")),
+            Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void ExtensionBlock_SurroundWithRemoveBlock()
+    {
+        var src1 = """
+            static class Ext
+            {
+                    static void M() {}
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    static void M() {}
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            """
+            Insert [extension(object o)
+                {
+                    static void M() {}
+                }]@25
+            """,
+            "Insert [(object o)]@34",
+            "Insert [static void M() {}]@61",
+            "Insert [object o]@35",
+            "Insert [()]@74",
+            "Delete [static void M() {}]@29",
+            "Delete [()]@42"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Insert, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "static void M()", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block"))
+        );
+
+        edits = GetTopEdits(src2, src1);
+        edits.VerifyEdits(
+            "Insert [static void M() {}]@29",
+            "Insert [()]@42",
+            """
+            Delete [extension(object o)
+                {
+                    static void M() {}
+                }]@25
+            """,
+            "Delete [(object o)]@34",
+            "Delete [object o]@35",
+            "Delete [static void M() {}]@61",
+            "Delete [()]@74"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "extension(object)")),
+            Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Property_AddRemove()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            "Insert [int P { get => 1; }]@61",
+            "Insert [{ get => 1; }]@67",
+            "Insert [get => 1;]@69"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int P", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "get", GetResource("extension block"))
+        );
+
+        edits = GetTopEdits(src2, src1);
+        edits.VerifyEdits(
+            "Delete [int P { get => 1; }]@61",
+            "Delete [{ get => 1; }]@67",
+            "Delete [get => 1;]@69"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Property_Rename()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int Q { get => 1; }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [int P { get => 1; }]@61 -> [int Q { get => 1; }]@61");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int Q", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "int Q", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Property_Accessor_Add_Set()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; set { } }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Insert [set { }]@79");
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Property_Accessor_Remove_Set()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; set { } }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Delete [set { }]@79");
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Property_Accessor_Add_Get()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { set { } }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; set { } }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Insert [get => 1;]@69");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "get", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "{", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Property_Accessor_Remove_Get()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; set { } }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { set { } }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Delete [get => 1;]@69");
+        edits.VerifySemanticDiagnostics(
+        Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")),
+        Diagnostic(RudeEditKind.Update, "{", GetResource("extension block"))
+    );
+    }
+
+    [Fact]
+    public void Extension_Property_ReturnType_Change()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    string P { get => ""; }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            """
+            Update [int P { get => 1; }]@61 -> [string P { get => ""; }]@61
+            """,
+            """
+            Update [get => 1;]@69 -> [get => "";]@72
+            """
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "string P", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "string P", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Property_Attribute_Add()
+    {
+        var src1 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var src2 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    [A]int P { get => 1; }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [int P { get => 1; }]@181 -> [[A]int P { get => 1; }]@181");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int P", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "1", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Property_Attribute_Remove()
+    {
+        var src1 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    [A]int P { get => 1; }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var src2 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [[A]int P { get => 1; }]@181 -> [int P { get => 1; }]@181");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "int P", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "1", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Property_Attribute_Update()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    [System.Obsolete("a")]int P { get => 1; }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    [System.Obsolete("b")]int P { get => 1; }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            """
+            Update [[System.Obsolete("a")]int P { get => 1; }]@61 -> [[System.Obsolete("b")]int P { get => 1; }]@61
+            """
+        );
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "int P", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Property_AccessorAttribute_Add_Remove()
+    {
+        var src1 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var src2 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { [A]get => 1; }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var edits1 = GetTopEdits(src1, src2);
+        edits1.VerifyEdits("Update [get => 1;]@189 -> [[A]get => 1;]@189");
+        edits1.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "get", GetResource("extension block")));
+
+        var edits2 = GetTopEdits(src2, src1);
+        edits2.VerifyEdits("Update [[A]get => 1;]@189 -> [get => 1;]@189");
+        edits2.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "get", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Property_AccessorAttribute_Add_Remove_Set()
+    {
+        var src1 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; set { } }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var src2 = s_attributeSource + """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; [A]set { } }
+                }
+            }
+
+            class A : System.Attribute {}
+            """;
+
+        var edits1 = GetTopEdits(src1, src2);
+        edits1.VerifyEdits("Update [set { }]@199 -> [[A]set { }]@199");
+        edits1.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("extension block")));
+
+        var edits2 = GetTopEdits(src2, src1);
+        edits2.VerifyEdits("Update [[A]set { }]@199 -> [set { }]@199");
+        edits2.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Property_Getter_BodyUpdate()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 2; }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [get => 1;]@69 -> [get => 2;]@69");
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "get", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Property_Setter_BodyUpdate()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; set { } }
+                }
+            }
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(object o)
+                {
+                    int P { get => 1; set { var _ = 1; } }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [set { }]@79 -> [set { var _ = 1; }]@79");
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Operator_AddRemove()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                }
+            }
+
+            class C {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            "Insert [public static int operator +(C a, C b) => 1;]@56",
+            "Insert [(C a, C b)]@84",
+            "Insert [C a]@85",
+            "Insert [C b]@90"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(C a, C b)", "operator"),
+            Diagnostic(RudeEditKind.Update, "public static int operator +(C a, C b)", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C b", GetResource("extension block"))
+        );
+
+        edits = GetTopEdits(src2, src1);
+        edits.VerifyEdits(
+            "Delete [public static int operator +(C a, C b) => 1;]@56",
+            "Delete [(C a, C b)]@84",
+            "Delete [C a]@85",
+            "Delete [C b]@90"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Operator_ChangeOperator()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator -(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [public static int operator +(C a, C b) => 1;]@56 -> [public static int operator -(C a, C b) => 1;]@56");
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator -(C a, C b)", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Operator_AddRemoveAttribute()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            class A : System.Attribute {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    [A]
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            class A : System.Attribute {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            """
+            Update [public static int operator +(C a, C b) => 1;]@56 -> [[A]
+                    public static int operator +(C a, C b) => 1;]@56
+            """
+        );
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator +(C a, C b)", GetResource("extension block")));
+
+        edits = GetTopEdits(src2, src1);
+        edits.VerifyEdits(
+            """
+            Update [[A]
+                    public static int operator +(C a, C b) => 1;]@56 -> [public static int operator +(C a, C b) => 1;]@56
+            """
+        );
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator +(C a, C b)", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Operator_ChangeAttribute()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    [System.Obsolete("")]
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    [System.Obsolete("ERR")]
+                    public static int operator -(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            """
+            Update [[System.Obsolete("")]
+                    public static int operator +(C a, C b) => 1;]@56 -> [[System.Obsolete("ERR")]
+                    public static int operator -(C a, C b) => 1;]@56
+            """
+        );
+        edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "public static int operator -(C a, C b)", GetResource("extension block")));
+    }
+
+    [Fact]
+    public void Extension_Operator_ChangeParameter_Type()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, object b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [C b]@90 -> [object b]@90");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "object b", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "object b", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Operator_ChangeParameter_Name()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, C c) => 1;
+                }
+            }
+
+            class C {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [C b]@90 -> [C c]@90");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "C c", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C c", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Operator_ChangeParameter_AddRemoveAttribute()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +(C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            class A : System.Attribute {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +([A] C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            class A : System.Attribute {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits("Update [C a]@85 -> [[A] C a]@85");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block"))
+        );
+
+        edits = GetTopEdits(src2, src1);
+        edits.VerifyEdits("Update [[A] C a]@85 -> [C a]@85");
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block"))
+        );
+    }
+
+    [Fact]
+    public void Extension_Operator_ChangeParameter_ChangeAttribute()
+    {
+        var src1 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +([System.Obsolete("")] C a, C c) => 1;
+                }
+            }
+
+            class C {}
+            class A : System.Attribute {}
+            """;
+
+        var src2 = """
+            static class Ext
+            {
+                extension(C c)
+                {
+                    public static int operator +([System.Obsolete("ERR")] C a, C b) => 1;
+                }
+            }
+
+            class C {}
+            class A : System.Attribute {}
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        edits.VerifyEdits(
+            """
+            Update [[System.Obsolete("")] C a]@85 -> [[System.Obsolete("ERR")] C a]@85
+            """,
+            "Update [C c]@112 -> [C b]@115"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C b", GetResource("extension block"))
+        );
+
+        edits = GetTopEdits(src2, src1);
+        edits.VerifyEdits(
+            """
+            Update [[System.Obsolete("ERR")] C a]@85 -> [[System.Obsolete("")] C a]@85
+            """,
+            "Update [C b]@115 -> [C c]@112"
+        );
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C a", GetResource("extension block")),
+            Diagnostic(RudeEditKind.Update, "C c", GetResource("extension block"))
+        );
+    }
+
+    #endregion
+
     #region Namespaces
 
     [Fact]
