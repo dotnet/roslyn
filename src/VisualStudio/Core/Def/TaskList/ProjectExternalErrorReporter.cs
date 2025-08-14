@@ -82,27 +82,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         }
     }
 
-    private async Task<bool> CanHandleAsync(string errorId, CancellationToken cancellationToken)
-    {
-        // make sure we have error id, otherwise, we simple don't support
-        // this error
-        if (errorId == null)
-        {
-            // record NFW to see who violates contract.
-            FatalError.ReportAndCatch(new Exception("errorId is null"));
-            return false;
-        }
-
-        // we accept all compiler diagnostics
-        if (errorId.StartsWith(_errorCodePrefix))
-        {
-            return true;
-        }
-
-        return await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
-            _projectId, errorId, cancellationToken).ConfigureAwait(false);
-    }
-
     private static ImmutableArray<ExternalError> GetExternalErrors(IVsEnumExternalErrors pErrors)
     {
         using var _ = ArrayBuilder<ExternalError>.GetInstance(out var allErrors);
@@ -282,15 +261,26 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         int iEndColumn,
         string bstrFileName)
     {
+
+        // make sure we have error id, otherwise, we simple don't support
+        // this error
+        if (bstrErrorId == null)
+        {
+            // record NFW to see who violates contract.
+            FatalError.ReportAndCatch(new Exception("errorId is null"));
+            return;
+        }
+
         _taskQueue.AddWork(ReportErrorAsync);
 
         async Task ReportErrorAsync(CancellationToken cancellationToken)
         {
-            // first we check whether given error is something we can take care.
-            if (!await CanHandleAsync(bstrErrorId, cancellationToken).ConfigureAwait(false))
+            // we accept all compiler diagnostics
+            if (!bstrErrorId.StartsWith(_errorCodePrefix) &&
+                !await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
+                    _projectId, bstrErrorId, cancellationToken).ConfigureAwait(false))
             {
-                // it is not, let project system take care.
-                throw new NotImplementedException();
+                return;
             }
 
             if ((iEndLine >= 0 && iEndColumn >= 0) &&
