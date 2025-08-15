@@ -849,13 +849,6 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
-        public CreationPolicy GetCreationPolicy()
-        {
-            return ReadState() is CompilationTrackerState state
-                ? state.CreationPolicy
-                : CreationPolicy.Create; // When we don't have any state yet, we're implicitly in a create policy
-        }
-
         public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
         {

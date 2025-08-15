@@ -49,17 +49,6 @@ internal sealed partial class SolutionCompilationState
                 var updatedCompilationWithGeneratedFiles = result.Value.compilationWithGeneratedFiles;
                 var updatedGeneratedDocuments = result.Value.generatedDocuments;
 
-                // If we only ran the required generators, we need to merge in the older documents for the generators
-                // that didn't run, and add their syntax trees back into the compilation.
-                if (creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.CreateOnlyRequired)
-                {
-                    var oldDocumentsToMerge = CalculateOldDocumentsToMerge(generatorInfo.Documents, updatedGeneratedDocuments);
-                    updatedGeneratedDocuments = updatedGeneratedDocuments.AddRange(oldDocumentsToMerge);
-                    updatedCompilationWithGeneratedFiles = updatedCompilationWithGeneratedFiles.AddSyntaxTrees(
-                        await oldDocumentsToMerge.SelectAsArrayAsync(
-                            static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
-                }
-
                 // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
                 // Just return `null` for the driver as there's nothing to track for it on the host side.
                 return (updatedCompilationWithGeneratedFiles, new(updatedGeneratedDocuments, Driver: null));
@@ -76,26 +65,6 @@ internal sealed partial class SolutionCompilationState
                 cancellationToken).ConfigureAwait(false);
             return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
 
-        }
-
-        private ImmutableArray<SourceGeneratedDocumentState> CalculateOldDocumentsToMerge(
-            TextDocumentStates<SourceGeneratedDocumentState> oldDocuments,
-            TextDocumentStates<SourceGeneratedDocumentState> newRequiredDocuments)
-        {
-            // the generated documents we got back were only from required generators.
-            // Work out which generators actually ran
-            var generatorsThatRan = newRequiredDocuments.SelectAsArray(di => di.Identity.Generator).Distinct().ToArray();
-
-            // go through the old docs and add any that weren't produced by a required generator that just ran
-            using var oldGeneratedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
-            foreach (var (_, oldDocumentState) in oldDocuments.States)
-            {
-                if (!generatorsThatRan.Contains(oldDocumentState.Identity.Generator))
-                {
-                    oldGeneratedDocumentsBuilder.Add(oldDocumentState.WithParseOptions(this.ProjectState.ParseOptions!));
-                }
-            }
-            return oldGeneratedDocumentsBuilder.ToImmutableAndClear();
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(

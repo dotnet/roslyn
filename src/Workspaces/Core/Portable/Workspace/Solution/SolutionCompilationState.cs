@@ -1224,7 +1224,7 @@ internal sealed partial class SolutionCompilationState
             : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
     }
 
-     /// <summary>
+    /// <summary>
     /// Returns the generated document states for source generated documents.
     /// </summary>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)

@@ -58,10 +58,7 @@ internal sealed partial class SolutionCompilationState
         public static readonly CreationPolicy Create = new(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create);
 
         /// <summary>
-        /// Create only the source generator documents considered to be required and do not create
-        /// up to date skeleton references for P2P references. For generators combine the newly generated 
-        /// required docs with whatever else was most recently generated. For skeleton references use 
-        /// whatever has been generated most recently.
+        /// A combination of <see cref="GeneratedDocumentCreationPolicy.CreateOnlyRequired"/>and <see cref="SkeletonReferenceCreationPolicy.DoNotCreate"/>
         /// </summary>
         public static readonly CreationPolicy CreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferences = new(GeneratedDocumentCreationPolicy.CreateOnlyRequired, SkeletonReferenceCreationPolicy.DoNotCreate);
     }

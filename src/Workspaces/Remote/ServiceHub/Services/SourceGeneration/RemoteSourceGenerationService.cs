@@ -35,7 +35,6 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
                 project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
