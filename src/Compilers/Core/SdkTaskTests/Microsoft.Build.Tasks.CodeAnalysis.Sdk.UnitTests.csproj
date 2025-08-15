@@ -38,7 +38,7 @@
     </PropertyGroup>
     <ItemGroup>
       <_CscReferenceContent Include="$(_CscReferenceOutputPath)" />
-      <Content Include="@(_CscReferenceContent)" Link="..\bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="@(_CscReferenceContent)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 </Project>
