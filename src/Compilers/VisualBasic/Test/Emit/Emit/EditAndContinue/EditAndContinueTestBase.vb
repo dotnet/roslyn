@@ -8,9 +8,11 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -307,11 +309,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
             Return New VisualBasicSymbolMatcher(
-                fromCompilation.SourceAssembly,
-                toCompilation.SourceAssembly,
-                synthesizedTypes:=SynthesizedTypeMaps.Empty,
-                otherSynthesizedMembersOpt:=Nothing,
-                otherDeletedMembersOpt:=Nothing)
+                sourceAssembly:=fromCompilation.SourceAssembly,
+                otherAssembly:=toCompilation.SourceAssembly,
+                otherSynthesizedTypes:=SynthesizedTypeMaps.Empty,
+                otherSynthesizedMembers:=SpecializedCollections.EmptyReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                otherDeletedMembers:=SpecializedCollections.EmptyReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
         End Function
     End Class
 

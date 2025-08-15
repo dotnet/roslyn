@@ -6,6 +6,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -23,18 +24,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        otherAssembly As SourceAssemblySymbol,
-                       synthesizedTypes As SynthesizedTypeMaps,
-                       otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
-                       otherDeletedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
+                       otherSynthesizedTypes As SynthesizedTypeMaps,
+                       otherSynthesizedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                       otherDeletedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
 
-            _visitor = New Visitor(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt, otherDeletedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
+            _visitor = New Visitor(sourceAssembly,
+                                   otherAssembly,
+                                   otherSynthesizedTypes,
+                                   otherSynthesizedMembers,
+                                   otherDeletedMembers,
+                                   New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
         End Sub
 
-        Public Sub New(synthesizedTypes As SynthesizedTypeMaps,
-                       sourceAssembly As SourceAssemblySymbol,
-                       otherAssembly As PEAssemblySymbol)
+        Public Sub New(sourceAssembly As SourceAssemblySymbol,
+                       otherAssembly As PEAssemblySymbol,
+                       otherSynthesizedTypes As SynthesizedTypeMaps)
 
-            _visitor = New Visitor(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt:=Nothing, otherDeletedMembers:=Nothing, deepTranslatorOpt:=Nothing)
+            _visitor = New Visitor(sourceAssembly,
+                                   otherAssembly,
+                                   otherSynthesizedTypes,
+                                   otherSynthesizedMembers:=SpecializedCollections.EmptyReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                                   otherDeletedMembers:=SpecializedCollections.EmptyReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                                   deepTranslatorOpt:=Nothing)
         End Sub
 
         Public Overrides Function MapDefinition(definition As Cci.IDefinition) As Cci.IDefinition
@@ -70,6 +81,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _visitor.TryGetAnonymousTypeName(template, name, index)
         End Function
 
+        Protected Overrides Function TryGetMatchingDelegateWithIndexedName(delegateTemplate As INamedTypeSymbolInternal, values As ImmutableArray(Of AnonymousTypeValue), ByRef match As AnonymousTypeValue) As Boolean
+            ' VB does not have delegates with indexed names
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
         Private NotInheritable Class Visitor
             Inherits VisualBasicSymbolVisitor(Of Symbol)
 
@@ -79,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private ReadOnly _sourceAssembly As SourceAssemblySymbol
             Private ReadOnly _otherAssembly As AssemblySymbol
-            Private ReadOnly _otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
+            Private ReadOnly _otherSynthesizedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
             Private ReadOnly _otherDeletedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
 
             ' A cache of members per type, populated when the first member for a given
@@ -91,14 +107,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Sub New(sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
                            synthesizedTypes As SynthesizedTypeMaps,
-                           otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                           otherSynthesizedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            otherDeletedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            deepTranslatorOpt As DeepTranslator)
 
                 _synthesizedTypes = synthesizedTypes
                 _sourceAssembly = sourceAssembly
                 _otherAssembly = otherAssembly
-                _otherSynthesizedMembersOpt = otherSynthesizedMembersOpt
+                _otherSynthesizedMembers = otherSynthesizedMembers
                 _otherDeletedMembersOpt = otherDeletedMembers
                 _comparer = New SymbolComparer(Me, deepTranslatorOpt)
                 _matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
@@ -356,8 +372,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Friend Function TryFindAnonymousType(type As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef otherType As AnonymousTypeValue) As Boolean
-                Debug.Assert(type.ContainingSymbol Is _sourceAssembly.GlobalNamespace)
-
                 Return _synthesizedTypes.AnonymousTypes.TryGetValue(type.GetAnonymousTypeKey(), otherType)
             End Function
 
@@ -519,12 +533,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
 
                 Dim synthesizedMembers As ImmutableArray(Of ISymbolInternal) = Nothing
-                If _otherSynthesizedMembersOpt IsNot Nothing AndAlso _otherSynthesizedMembersOpt.TryGetValue(symbol, synthesizedMembers) Then
+                If _otherSynthesizedMembers.TryGetValue(symbol, synthesizedMembers) Then
                     members.AddRange(synthesizedMembers)
                 End If
 
                 Dim deletedMembers As ImmutableArray(Of ISymbolInternal) = Nothing
-                If _otherDeletedMembersOpt IsNot Nothing AndAlso _otherDeletedMembersOpt.TryGetValue(symbol, deletedMembers) Then
+                If _otherDeletedMembersOpt.TryGetValue(symbol, deletedMembers) Then
                     members.AddRange(deletedMembers)
                 End If
 

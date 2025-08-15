@@ -194,9 +194,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 tableSizes[i] = previousTableSizes[i] + deltaTableSizes[i];
             }
 
-            // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
+            // If the previous generation is 0 (metadata) get the synthesized members and types from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
             var synthesizedMembers = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedMembers() : _previousGeneration.SynthesizedMembers;
+            var synthesizedTypes = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedTypes() : _previousGeneration.SynthesizedTypes;
 
             Debug.Assert(module.EncSymbolChanges is not null);
             var deletedMembers = (_previousGeneration.Ordinal == 0) ? module.EncSymbolChanges.DeletedMembers : _previousGeneration.DeletedMembers;
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.UserString) + _previousGeneration.UserStringStreamLengthAdded,
                 // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
-                synthesizedTypes: ((IPEDeltaAssemblyBuilder)module).GetSynthesizedTypes(),
+                synthesizedTypes: synthesizedTypes,
                 synthesizedMembers: synthesizedMembers,
                 deletedMembers: deletedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
