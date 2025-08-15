@@ -14,13 +14,13 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all"
                       OutputItemType="CscReference"
                       SkipGetTargetFrameworkProperties="true"
                       SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />

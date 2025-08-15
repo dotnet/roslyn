@@ -13,6 +13,10 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CscReference" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
@@ -53,5 +57,14 @@
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragment>
+  </Target>
+  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CscReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
+    <PropertyGroup>
+      <_CscReferenceOutputPath>@(CscReference->'%(RootDir)%(Directory)*.*')</_CscReferenceOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_CscReferenceContent Include="$(_CscReferenceOutputPath)" />
+      <Content Include="@(_CscReferenceContent)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
   </Target>
 </Project>
