@@ -849,9 +849,6 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
-        CreationPolicy ICompilationTracker.GetCreationPolicy()
-            => GetCreationPolicy();
-
         public CreationPolicy GetCreationPolicy()
         {
             return ReadState() is CompilationTrackerState state
