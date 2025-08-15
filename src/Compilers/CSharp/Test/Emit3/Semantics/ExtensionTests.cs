@@ -48641,11 +48641,10 @@ static class E
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
-        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { set; }",
+        AssertEx.Equal("System.Int32 E.extension<System.Object!>(System.Object!).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
@@ -48670,17 +48669,19 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (4,31): warning CS8601: Possible null reference assignment.
+            // _ = new object() { Property = oNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for object initializer scenario with extension property
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNull");
-        AssertEx.Equal("System.Object E.extension<System.Object>(System.Object).Property { set; }",
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
 
         assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNotNull");
-        AssertEx.Equal("System.Object E.extension<System.Object>(System.Object).Property { set; }",
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
@@ -48767,7 +48768,6 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for with-expression with extension property (unexpected warning)
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
@@ -48797,7 +48797,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : unexpected nullability warning
+
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
