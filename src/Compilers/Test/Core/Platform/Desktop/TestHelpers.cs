@@ -94,11 +94,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
         public static string? GetMSBuildDirectory()
         {
-            var vsInstance = MSBuildLocator.QueryVisualStudioInstances()
+            return MSBuildLocator.QueryVisualStudioInstances()
                 .OrderByDescending(v => v.Version)
-                .FirstOrDefault()
-                ?? throw new InvalidOperationException("MSBuild instance not found.");
-            return vsInstance.MSBuildPath;
+                .FirstOrDefault()?
+                .MSBuildPath;
         }
     }
 }

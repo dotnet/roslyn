@@ -25,7 +25,7 @@ public abstract class IntegrationTestBase : TestBase
     }
 
     protected readonly ITestOutputHelper _output;
-    protected readonly string _msbuildExecutable;
+    protected readonly string? _msbuildExecutable;
     protected readonly TempDirectory _tempDirectory;
     protected string _buildTaskDll;
 
@@ -33,11 +33,11 @@ public abstract class IntegrationTestBase : TestBase
     {
         if (s_msbuildDirectory == null)
         {
-            throw new InvalidOperationException("Could not locate MSBuild");
+            output.WriteLine("Could not locate MSBuild");
         }
 
         _output = output;
-        _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
+        _msbuildExecutable = s_msbuildDirectory == null ? null : Path.Combine(s_msbuildDirectory, "MSBuild.exe");
         _tempDirectory = Temp.CreateDirectory();
         _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
     }
@@ -92,6 +92,8 @@ public abstract class IntegrationTestBase : TestBase
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
     public void StdLib()
     {
+        if (_msbuildExecutable == null) return;
+
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.csproj",

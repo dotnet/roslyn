@@ -330,6 +330,8 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
+            if (_msbuildExecutable == null) return;
+
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
@@ -529,6 +531,8 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
         public void ReportAnalyzerMSBuild()
         {
+            if (_msbuildExecutable == null) return;
+
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
@@ -541,6 +545,8 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
+            if (_msbuildExecutable == null) return;
+
             var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
             var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
