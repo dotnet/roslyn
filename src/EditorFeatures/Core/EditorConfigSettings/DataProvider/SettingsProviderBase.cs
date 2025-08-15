@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
@@ -43,7 +44,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
     public readonly IGlobalOptionService GlobalOptions = globalOptions;
 
     protected abstract Task UpdateOptionsAsync(
-        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken);
+        TieredAnalyzerConfigOptions options, Solution solution, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken);
 
     protected void Update()
     {
@@ -73,7 +74,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
             language: LanguageNames.CSharp,
             editorConfigFileName: FileName);
 
-        _ = UpdateOptionsAsync(options, projects, cancellationToken)
+        _ = UpdateOptionsAsync(options, solution, projects, cancellationToken)
             .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
