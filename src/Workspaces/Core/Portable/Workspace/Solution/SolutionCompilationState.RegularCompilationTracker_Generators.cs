@@ -295,11 +295,6 @@ internal sealed partial class SolutionCompilationState
             var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
-                // When we only run required generators, there may be generators that didn't run at all, and so didn't produce any sources.
-                // Note that this is different from running and producing zero documents, in which case we still need to consider it.
-                if (generatorResult.GeneratedSources.IsDefault)
-                    continue;
-
                 var generatorAnalyzerReference = GetAnalyzerReference(this.ProjectState, generatorResult.Generator);
 
                 foreach (var generatedSource in generatorResult.GeneratedSources)
