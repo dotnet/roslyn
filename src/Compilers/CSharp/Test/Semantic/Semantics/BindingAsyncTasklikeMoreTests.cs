@@ -647,24 +647,48 @@ class MyTaskMethodBuilder<T>
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef });
-            var verifier = CompileAndVerify(
-                compilation,
-                expectedSignatures: new[]
-                {
-                    Signature(
-                        "C+<>c__DisplayClass2_0",
-                        "<M>b__0",
-                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__0>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object] <M>b__0() cil managed"),
-                    Signature(
-                        "C+<>c__DisplayClass2_0",
-                        "<M>b__1",
-                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__1>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object[]] <M>b__1() cil managed"),
-                    Signature(
-                        "C+<>c__DisplayClass2_0",
-                        "<M>b__2",
-                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__2>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object] <M>b__2() cil managed"),
-                });
-            verifier.VerifyDiagnostics();
+            if (ExecutionConditionUtil.IsMonoCore)
+            {
+                var verifier = CompileAndVerify(
+                    compilation,
+                    expectedSignatures: new[]
+                    {
+                        Signature(
+                            "C+<>c__DisplayClass2_0",
+                            "<M>b__0",
+                            ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__0>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Boolean[])] MyTask`1[System.Object] <M>b__0() cil managed"),
+                        Signature(
+                            "C+<>c__DisplayClass2_0",
+                            "<M>b__1",
+                            ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__1>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Boolean[])] MyTask`1[System.Object[]] <M>b__1() cil managed"),
+                        Signature(
+                            "C+<>c__DisplayClass2_0",
+                            "<M>b__2",
+                            ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__2>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Boolean[])] MyTask`1[System.Object] <M>b__2() cil managed"),
+                    });
+                verifier.VerifyDiagnostics();
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    compilation,
+                    expectedSignatures: new[]
+                    {
+                        Signature(
+                            "C+<>c__DisplayClass2_0",
+                            "<M>b__0",
+                            ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__0>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object] <M>b__0() cil managed"),
+                        Signature(
+                            "C+<>c__DisplayClass2_0",
+                            "<M>b__1",
+                            ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__1>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object[]] <M>b__1() cil managed"),
+                        Signature(
+                            "C+<>c__DisplayClass2_0",
+                            "<M>b__2",
+                            ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__2>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object] <M>b__2() cil managed"),
+                    });
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [Fact]
