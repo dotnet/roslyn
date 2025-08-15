@@ -182,7 +182,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static string GetToolDirectory()
         {
-            var buildTask = typeof(ManagedToolTask).Assembly;
             var buildTaskDirectory = GetBuildTaskDirectory();
 #if NET
             return Path.Combine(buildTaskDirectory, "bincore");

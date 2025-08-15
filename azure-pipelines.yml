@@ -84,6 +84,12 @@ variables:
     ${{ else }}:
       value: Windows.10.Amd64
 
+  - name: HelixWindowsVsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.amd64.vs2022.pre.open
+    ${{ else }}:
+      value: windows.amd64.vs2022.pre
+
   - name: HelixWindowsSpanishQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Windows.10.Amd64.Server2022.ES.Open
@@ -198,7 +204,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
-        helixQueueName: $(HelixWindowsQueueName)
+        helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 
@@ -209,7 +215,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsQueueName)
+      helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -226,7 +232,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      helixQueueName: $(HelixWindowsQueueName)
+      helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -238,7 +244,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        helixQueueName: $(HelixWindowsQueueName)
+        helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 

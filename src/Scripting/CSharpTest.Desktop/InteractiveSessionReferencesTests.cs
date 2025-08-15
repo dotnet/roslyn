@@ -242,7 +242,7 @@ System.Diagnostics.Process.GetCurrentProcess()
                    GlobalAssemblyCache.Instance.ResolvePartialName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null;
         });
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79923")]
         public void References_Versioning_FxUnification1()
         {
             if (!s_isSystemV2AndV4Available.Value)
@@ -272,7 +272,7 @@ System.Diagnostics.Process.GetCurrentProcess()
             Assert.NotNull(script.RunAsync().Result.ReturnValue);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79923")]
         public void References_Versioning_FxUnification2()
         {
             if (!s_isSystemV2AndV4Available.Value)
