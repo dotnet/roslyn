@@ -301,7 +301,7 @@ internal sealed partial class SolutionCompilationState
                 {
                     var existing = FindExistingGeneratedDocumentState(
                         oldGeneratedDocuments,
-                    generatorResult.Generator,
+                        generatorResult.Generator,
                         generatorAnalyzerReference,
                         generatedSource.HintName);
 
@@ -328,7 +328,7 @@ internal sealed partial class SolutionCompilationState
                         var identity = SourceGeneratedDocumentIdentity.Generate(
                             ProjectState.Id,
                             generatedSource.HintName,
-                        generatorResult.Generator,
+                            generatorResult.Generator,
                             generatedSource.SyntaxTree.FilePath,
                             generatorAnalyzerReference);
 
