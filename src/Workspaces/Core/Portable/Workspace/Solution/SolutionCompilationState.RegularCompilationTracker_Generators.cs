@@ -87,9 +87,9 @@ internal sealed partial class SolutionCompilationState
             using var _ = await RemoteKeepAliveSession.CreateAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
             // First, grab the info from our external host about the generated documents it has for this project.  Note:
-            // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators. If
-            // we're in a createOnlyRequired state, we'll only run the required generators, and not get results for any other
-            // generators.
+            // we ourselves are the innermost "RegularCompilationTracker" responsible for actually running generators.
+            // As such, our call to the oop side reflects that by asking for the real source generated docs, and *not*
+            // any overlaid 'frozen' source generated documents.
             var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
