@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyAccessor;
 
 using static CSharpSyntaxTokens;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeAnonymousFunctionStatic), Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyPropertyAccessor), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpSimplifyPropertyAccessorCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
