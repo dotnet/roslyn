@@ -1122,6 +1122,11 @@
         <target state="translated">읽기 전용 필드 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simple_property_accessors">
+        <source>Prefer simple property accessors</source>
+        <target state="new">Prefer simple property accessors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
         <target state="translated">간단한 'using' 문 선호</target>

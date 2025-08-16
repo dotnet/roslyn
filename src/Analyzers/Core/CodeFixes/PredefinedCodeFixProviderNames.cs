@@ -122,6 +122,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string SimplifyLinqTypeCheckAndCast = nameof(SimplifyLinqTypeCheckAndCast);
     public const string SimplifyNames = nameof(SimplifyNames);
     public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
+    public const string SimplifyPropertyAccessor = nameof(SimplifyPropertyAccessor);
     public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
     public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
     public const string SpellCheck = nameof(SpellCheck);
