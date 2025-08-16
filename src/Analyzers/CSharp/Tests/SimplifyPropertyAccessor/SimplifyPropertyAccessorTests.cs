@@ -130,7 +130,7 @@ public sealed class SimplifyPropertyAccessorTests
             {
                 public int Prop
                 {
-                    {|IDE0360:get {{getterBody}}|}{{trailingTrivia}}
+                    [|get {{getterBody}}|]{{trailingTrivia}}
                     set;
                 }
             }
@@ -159,7 +159,7 @@ public sealed class SimplifyPropertyAccessorTests
                 public int Prop
                 {
                     get;
-                    {|IDE0360:{{setterKeyword}} {{setterBody}}|}{{trailingTrivia}}
+                    [|{{setterKeyword}} {{setterBody}}|]{{trailingTrivia}}
                 }
             }
             """, $$"""
@@ -188,8 +188,8 @@ public sealed class SimplifyPropertyAccessorTests
             {
                 public int Prop
                 {
-                    {|IDE0360:get {{getterBody}}|}{{getterTrailingTrivia}}
-                    {|IDE0360:{{setterKeyword}} {{setterBody}}|}{{setterTrailingTrivia}}
+                    [|get {{getterBody}}|]{{getterTrailingTrivia}}
+                    [|{{setterKeyword}} {{setterBody}}|]{{setterTrailingTrivia}}
                 }
             }
             """, $$"""
@@ -224,7 +224,7 @@ public sealed class SimplifyPropertyAccessorTests
             TestCode = """
                 class C
                 {
-                    public int Prop { {|IDE0360:get { return field; }|} {|IDE0360:set => field = value;|} {|IDE0360:init { field = value; }|} }
+                    public int Prop { [|get { return field; }|] [|set => field = value;|] [|init { field = value; }|] }
                 }
                 """,
             FixedCode = """
@@ -246,7 +246,7 @@ public sealed class SimplifyPropertyAccessorTests
             TestCode = """
                 class C
                 {
-                    public int Prop { {|IDE0360:get { return field; }|} {|IDE0360:get => field;|} }
+                    public int Prop { [|get { return field; }|] [|get => field;|] }
                 }
                 """,
             FixedCode = """
@@ -328,11 +328,11 @@ public sealed class SimplifyPropertyAccessorTests
 
                 public partial int Prop
                 {
-                    {|IDE0360:get => field;|}
-                    {|IDE0360:set { field = value; }|}
+                    [|get => field;|]
+                    [|set { field = value; }|]
                 }
             }
-            """, """"
+            """, """
             partial class C
             {
                 public partial int Prop { get; set; }
@@ -343,7 +343,7 @@ public sealed class SimplifyPropertyAccessorTests
                     set { field = value; }
                 }
             }
-            """");
+            """);
     }
 
     [Fact]
@@ -365,8 +365,8 @@ public sealed class SimplifyPropertyAccessorTests
                     {
                         public partial int Prop
                         {
-                            {|IDE0360:get => field;|}
-                            {|IDE0360:set { field = value; }|}
+                            [|get => field;|]
+                            [|set { field = value; }|]
                         }
                     }
                     """
@@ -409,8 +409,8 @@ public sealed class SimplifyPropertyAccessorTests
 
                     public partial int Prop
                     {
-                        {|IDE0360:get => field;|}
-                        {|IDE0360:set { field = value; }|}
+                        [|get => field;|]
+                        [|set { field = value; }|]
                     }
                 }
                 """,
@@ -451,8 +451,8 @@ public sealed class SimplifyPropertyAccessorTests
                     {
                         public partial int Prop
                         {
-                            {|IDE0360:get => field;|}
-                            {|IDE0360:set { field = value; }|}
+                            [|get => field;|]
+                            [|set { field = value; }|]
                         }
                     }
                     """
@@ -496,17 +496,17 @@ public sealed class SimplifyPropertyAccessorTests
 
                 public partial int Prop1
                 {
-                    {|IDE0360:get => field;|}
-                    {|IDE0360:set { field = value; }|}
+                    [|get => field;|]
+                    [|set { field = value; }|]
                 }
 
                 public partial string Prop2
                 {
-                    {|IDE0360:get => field;|}
-                    {|IDE0360:set { field = value; }|}
+                    [|get => field;|]
+                    [|set { field = value; }|]
                 }
             }
-            """, """"
+            """, """
             partial class C
             {
                 public partial int Prop1 { get; set; }
@@ -524,6 +524,6 @@ public sealed class SimplifyPropertyAccessorTests
                     set { field = value; }
                 }
             }
-            """");
+            """);
     }
 }
