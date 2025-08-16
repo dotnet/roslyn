@@ -68,24 +68,6 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
             }
         }
 
-        // One can argue that these are semantic-level checks and they would be correct.
-        // However it is very simple to perform them on our own to not fall
-        // from the quick and efficient syntax-only analyzer path
-        static bool IsValidAccessorList(AccessorListSyntax accessorList)
-        {
-            var accessors = accessorList.Accessors;
-            if (accessors.Count > 2)
-                return false;
-
-            if (accessors is [var accessor1, var accessor2] &&
-                accessor1.RawKind == accessor2.RawKind)
-            {
-                return false;
-            }
-
-            return !accessorList.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
-        }
-
         static bool IsFieldValueAssignmentExpression(ExpressionSyntax expression)
         {
             return expression is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
