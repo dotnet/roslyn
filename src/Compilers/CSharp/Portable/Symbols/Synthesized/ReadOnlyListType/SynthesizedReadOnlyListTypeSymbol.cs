@@ -817,7 +817,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsRefLikeType => false;
 
-        internal override string ExtensionName
+        internal override string ExtensionGroupingName
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override string ExtensionMarkerName
             => throw ExceptionUtilities.Unreachable();
 
         public override bool IsReadOnly => false;

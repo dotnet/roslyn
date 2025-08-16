@@ -811,7 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
                 ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.ScopedRefAttribute))
+                ReservedAttributes.ScopedRefAttribute |
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.AllowNullAttribute))

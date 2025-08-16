@@ -121,7 +121,7 @@ internal static class ProjectDependencyHelper
         }
     }
 
-    internal static async Task RestoreProjectsAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+    internal static async Task SendProjectNeedsRestoreRequestAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
     {
         if (projectPaths.IsEmpty)
             return;

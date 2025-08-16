@@ -509,9 +509,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
         /// <summary>
-        /// For extensions, returns the synthesized identifier for the type: "&lt;E>__N".
+        /// For extensions, returns the synthesized identifier for the grouping type.
         /// </summary>
-        internal abstract string ExtensionName { get; }
+        internal abstract string ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// </summary>
+        internal abstract string ExtensionMarkerName { get; }
+
 #nullable disable
 
         /// <summary>

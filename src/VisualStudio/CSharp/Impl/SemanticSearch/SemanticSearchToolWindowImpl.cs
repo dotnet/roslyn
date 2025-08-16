@@ -200,7 +200,8 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
         await TaskScheduler.Default;
 
-        await _semanticSearchWorkspace.Value.OpenQueryDocumentAsync(_textBuffer, cancellationToken).ConfigureAwait(false);
+        // TODO: add UI that allows to set target language (e.g. we can have two workspaces, one for for C# and one for VB, or just a combo box with C#/VB choice)
+        await _semanticSearchWorkspace.Value.OpenQueryDocumentAsync(_textBuffer, targetLanguage: null, cancellationToken).ConfigureAwait(false);
 
         return toolWindowGrid;
     }
