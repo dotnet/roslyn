@@ -38,7 +38,7 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
         var propertyDeclaration = (PropertyDeclarationSyntax)context.Node;
 
         if (propertyDeclaration.AccessorList is not { } accessorList ||
-            !IsValidAccessorList(accessorList))
+            accessorList.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
         {
             return;
         }

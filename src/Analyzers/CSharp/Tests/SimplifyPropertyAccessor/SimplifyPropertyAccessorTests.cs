@@ -217,25 +217,47 @@ public sealed class SimplifyPropertyAccessorTests
     }
 
     [Fact]
-    public async Task NotWhenPropertyHasTooManyAccessors()
+    public async Task EvenWhenPropertyHasTooManyAccessors()
     {
-        await TestAsync("""
-            class C
-            {
-                public int Prop { get { return field; } set => field = value; {|CS1007:init|} { field = value; } }
-            }
-            """);
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                class C
+                {
+                    public int Prop { {|IDE0360:get { return field; }|} {|IDE0360:set => field = value;|} {|IDE0360:init { field = value; }|} }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    public int Prop { get; set; init; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            CompilerDiagnostics = CompilerDiagnostics.None,
+        }.RunAsync();
     }
 
     [Fact]
-    public async Task NotWhenPropertyHasDuplicateAccessors()
+    public async Task EvenWhenPropertyHasDuplicateAccessors()
     {
-        await TestAsync("""
-            class C
-            {
-                public int Prop { get { return field; } {|CS1007:get|} => field; }
-            }
-            """);
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                class C
+                {
+                    public int Prop { {|IDE0360:get { return field; }|} {|IDE0360:get => field;|} }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    public int Prop { get; get; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            CompilerDiagnostics = CompilerDiagnostics.None,
+        }.RunAsync();
     }
 
     [Fact]
