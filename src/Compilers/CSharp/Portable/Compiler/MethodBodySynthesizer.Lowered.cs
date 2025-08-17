@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -422,17 +421,49 @@ start:
             // Compare fields
             foreach (var field in fields)
             {
-                // Prepare constructed comparer
-                var constructedEqualityComparer = equalityComparerType.Construct(field.Type);
+                BoundExpression nextEquals;
 
-                // System.Collections.Generic.EqualityComparer<T_index>.
-                //   Default.Equals(this.backingFld_index, local.backingFld_index)'
-                BoundExpression nextEquals = F.Call(
-                    F.StaticCall(constructedEqualityComparer,
-                                 equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
-                    equalityComparer_Equals.AsMember(constructedEqualityComparer),
-                    F.Field(F.This(), field),
-                    F.Field(otherReceiver, field));
+                var thisField = F.Field(F.This(), field);
+                var otherField = F.Field(otherReceiver, field);
+
+                var specificBinaryOperatorKind = field.Type.SpecialType switch
+                {
+                    SpecialType.System_Boolean => BinaryOperatorKind.BoolEqual,
+                    SpecialType.System_Char => BinaryOperatorKind.CharEqual,
+                    SpecialType.System_Byte => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_SByte => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_Int16 => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_UInt16 => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_Int32 => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_UInt32 => BinaryOperatorKind.UIntEqual,
+                    SpecialType.System_Int64 => BinaryOperatorKind.LongEqual,
+                    SpecialType.System_UInt64 => BinaryOperatorKind.ULongEqual,
+                    _ => BinaryOperatorKind.Error,
+                };
+
+                // If we have a field of a primitive type we can directly compare, go with it.
+                // This has the same semantics as `EqualityComparer<T>.Default.Equals` approach
+                // but takes less IL and is easier for the runtime to optimize.
+                // Note, that this optimization does not include `float` and `double` types
+                // since comparing them directly and using `Equals` method differ in handling of `NaN` values
+                if (specificBinaryOperatorKind != BinaryOperatorKind.Error)
+                {
+                    nextEquals = F.Binary(specificBinaryOperatorKind, F.SpecialType(SpecialType.System_Boolean), thisField, otherField);
+                }
+                else
+                {
+                    // Prepare constructed comparer
+                    var constructedEqualityComparer = equalityComparerType.Construct(field.Type);
+
+                    // System.Collections.Generic.EqualityComparer<T_index>.
+                    //   Default.Equals(this.backingFld_index, local.backingFld_index)'
+                    nextEquals = F.Call(
+                        F.StaticCall(constructedEqualityComparer,
+                                     equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
+                        equalityComparer_Equals.AsMember(constructedEqualityComparer),
+                        thisField,
+                        otherField);
+                }
 
                 // Generate 'retExpression' = 'retExpression && nextEquals'
                 retExpression = retExpression is null

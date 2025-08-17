@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ULong = UnaryOperatorKind.ULong,
         NInt = UnaryOperatorKind.NInt,
         NUInt = UnaryOperatorKind.NUInt,
-        Char = UnaryOperatorKind.Char, //not used
+        Char = UnaryOperatorKind.Char,
         Float = UnaryOperatorKind.Float,
         Double = UnaryOperatorKind.Double,
         Decimal = UnaryOperatorKind.Decimal,
@@ -548,6 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DoubleEqual = Double | Equal,
         DecimalEqual = Decimal | Equal,
         BoolEqual = Bool | Equal,
+        CharEqual = Char | Equal,
         EnumEqual = Enum | Equal,
         NullableNullEqual = NullableNull | Equal,
         UserDefinedEqual = UserDefined | Equal,
