@@ -24230,37 +24230,251 @@ record C
 
             verifier.VerifyIL("R.Equals(R)", """
                 {
-                  // Code size       77 (0x4d)
-                  .maxstack  3
+                  // Code size       73 (0x49)
+                  .maxstack  2
+                  .locals init (float V_0,
+                                double V_1)
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.1
-                  IL_0002:  beq.s      IL_004b
+                  IL_0002:  beq.s      IL_0047
                   IL_0004:  ldarg.1
-                  IL_0005:  brfalse.s  IL_0049
+                  IL_0005:  brfalse.s  IL_0045
                   IL_0007:  ldarg.0
                   IL_0008:  callvirt   "System.Type R.EqualityContract.get"
                   IL_000d:  ldarg.1
                   IL_000e:  callvirt   "System.Type R.EqualityContract.get"
                   IL_0013:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
-                  IL_0018:  brfalse.s  IL_0049
-                  IL_001a:  call       "System.Collections.Generic.EqualityComparer<float> System.Collections.Generic.EqualityComparer<float>.Default.get"
-                  IL_001f:  ldarg.0
-                  IL_0020:  ldfld      "float R.<F>k__BackingField"
-                  IL_0025:  ldarg.1
-                  IL_0026:  ldfld      "float R.<F>k__BackingField"
-                  IL_002b:  callvirt   "bool System.Collections.Generic.EqualityComparer<float>.Equals(float, float)"
-                  IL_0030:  brfalse.s  IL_0049
-                  IL_0032:  call       "System.Collections.Generic.EqualityComparer<double> System.Collections.Generic.EqualityComparer<double>.Default.get"
-                  IL_0037:  ldarg.0
-                  IL_0038:  ldfld      "double R.<D>k__BackingField"
-                  IL_003d:  ldarg.1
-                  IL_003e:  ldfld      "double R.<D>k__BackingField"
-                  IL_0043:  callvirt   "bool System.Collections.Generic.EqualityComparer<double>.Equals(double, double)"
+                  IL_0018:  brfalse.s  IL_0045
+                  IL_001a:  ldarg.0
+                  IL_001b:  ldfld      "float R.<F>k__BackingField"
+                  IL_0020:  stloc.0
+                  IL_0021:  ldloca.s   V_0
+                  IL_0023:  ldarg.1
+                  IL_0024:  ldfld      "float R.<F>k__BackingField"
+                  IL_0029:  call       "bool float.Equals(float)"
+                  IL_002e:  brfalse.s  IL_0045
+                  IL_0030:  ldarg.0
+                  IL_0031:  ldfld      "double R.<D>k__BackingField"
+                  IL_0036:  stloc.1
+                  IL_0037:  ldloca.s   V_1
+                  IL_0039:  ldarg.1
+                  IL_003a:  ldfld      "double R.<D>k__BackingField"
+                  IL_003f:  call       "bool double.Equals(double)"
+                  IL_0044:  ret
+                  IL_0045:  ldc.i4.0
+                  IL_0046:  ret
+                  IL_0047:  ldc.i4.1
                   IL_0048:  ret
-                  IL_0049:  ldc.i4.0
-                  IL_004a:  ret
-                  IL_004b:  ldc.i4.1
-                  IL_004c:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70221")]
+        public void Equality_EquatableMember_Class()
+        {
+            var source = """
+                using System;
+
+                record R(MyClass Mc);
+
+                class MyClass : IEquatable<MyClass>
+                {
+                    public bool Equals(MyClass other) => this == other;
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var mc1 = new MyClass();
+                        var mc2 = new MyClass();
+
+                        var r1 = new R(mc1);
+                        var r2 = new R(mc2);
+
+                        Console.WriteLine(r1 == r2);
+                        Console.WriteLine(r1 == r1 with { });
+                        Console.WriteLine(r1 == r1 with { Mc = mc2 });
+                        Console.WriteLine(r1 with { Mc = mc2 }  == r2);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9, expectedOutput: """
+                False
+                True
+                False
+                True
+                """);
+
+            verifier.VerifyIL("R.Equals(R)", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0033
+                  IL_0004:  ldarg.1
+                  IL_0005:  brfalse.s  IL_0031
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_0013:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
+                  IL_0018:  brfalse.s  IL_0031
+                  IL_001a:  call       "System.Collections.Generic.EqualityComparer<MyClass> System.Collections.Generic.EqualityComparer<MyClass>.Default.get"
+                  IL_001f:  ldarg.0
+                  IL_0020:  ldfld      "MyClass R.<Mc>k__BackingField"
+                  IL_0025:  ldarg.1
+                  IL_0026:  ldfld      "MyClass R.<Mc>k__BackingField"
+                  IL_002b:  callvirt   "bool System.Collections.Generic.EqualityComparer<MyClass>.Equals(MyClass, MyClass)"
+                  IL_0030:  ret
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  ret
+                  IL_0033:  ldc.i4.1
+                  IL_0034:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70221")]
+        public void Equality_EquatableMember_Struct()
+        {
+            var source = """
+                using System;
+
+                record R(MyStruct Ms);
+
+                struct MyStruct : IEquatable<MyStruct>
+                {
+                    public int Id { get; init; }
+
+                    public bool Equals(MyStruct other) => this.Id == other.Id;
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var ms1 = new MyStruct { Id = 1 };
+                        var ms2 = new MyStruct { Id = 2 };
+
+                        var r1 = new R(ms1);
+                        var r2 = new R(ms2);
+
+                        Console.WriteLine(r1 == r2);
+                        Console.WriteLine(r1 == r1 with { });
+                        Console.WriteLine(r1 == r1 with { Ms = ms2 });
+                        Console.WriteLine(r1 with { Ms = ms2 }  == r2);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9, expectedOutput: """
+                False
+                True
+                False
+                True
+                """);
+
+            verifier.VerifyIL("R.Equals(R)", """
+                {
+                  // Code size       51 (0x33)
+                  .maxstack  2
+                  .locals init (MyStruct V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0031
+                  IL_0004:  ldarg.1
+                  IL_0005:  brfalse.s  IL_002f
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_0013:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
+                  IL_0018:  brfalse.s  IL_002f
+                  IL_001a:  ldarg.0
+                  IL_001b:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_0020:  stloc.0
+                  IL_0021:  ldloca.s   V_0
+                  IL_0023:  ldarg.1
+                  IL_0024:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_0029:  call       "bool MyStruct.Equals(MyStruct)"
+                  IL_002e:  ret
+                  IL_002f:  ldc.i4.0
+                  IL_0030:  ret
+                  IL_0031:  ldc.i4.1
+                  IL_0032:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70221")]
+        public void Equality_EquatableMember_Struct_ExplicitEqualsImplementation()
+        {
+            var source = """
+                using System;
+
+                record R(MyStruct Ms);
+
+                struct MyStruct : IEquatable<MyStruct>
+                {
+                    public int Id { get; init; }
+
+                    bool IEquatable<MyStruct>.Equals(MyStruct other) => this.Id == other.Id;
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var ms1 = new MyStruct { Id = 1 };
+                        var ms2 = new MyStruct { Id = 2 };
+
+                        var r1 = new R(ms1);
+                        var r2 = new R(ms2);
+
+                        Console.WriteLine(r1 == r2);
+                        Console.WriteLine(r1 == r1 with { });
+                        Console.WriteLine(r1 == r1 with { Ms = ms2 });
+                        Console.WriteLine(r1 with { Ms = ms2 }  == r2);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9, expectedOutput: """
+                False
+                True
+                False
+                True
+                """);
+
+            verifier.VerifyIL("R.Equals(R)", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0033
+                  IL_0004:  ldarg.1
+                  IL_0005:  brfalse.s  IL_0031
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_0013:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
+                  IL_0018:  brfalse.s  IL_0031
+                  IL_001a:  call       "System.Collections.Generic.EqualityComparer<MyStruct> System.Collections.Generic.EqualityComparer<MyStruct>.Default.get"
+                  IL_001f:  ldarg.0
+                  IL_0020:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_0025:  ldarg.1
+                  IL_0026:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_002b:  callvirt   "bool System.Collections.Generic.EqualityComparer<MyStruct>.Equals(MyStruct, MyStruct)"
+                  IL_0030:  ret
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  ret
+                  IL_0033:  ldc.i4.1
+                  IL_0034:  ret
                 }
                 """);
         }

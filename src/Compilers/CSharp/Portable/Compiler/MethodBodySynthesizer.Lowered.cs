@@ -413,8 +413,11 @@ start:
                 WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             var equalityComparer_Equals = F.WellKnownMethod(
                 WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals);
+            var iEquatable_Equals = F.WellKnownMethod(
+                WellKnownMember.System_IEquatable_T__Equals, isOptional: true);
 
             NamedTypeSymbol equalityComparerType = equalityComparer_Equals.ContainingType;
+            NamedTypeSymbol? iEquatableType = iEquatable_Equals?.ContainingType;
 
             BoundExpression? retExpression = initialExpression;
 
@@ -426,7 +429,8 @@ start:
                 var thisField = F.Field(F.This(), field);
                 var otherField = F.Field(otherReceiver, field);
 
-                var specificBinaryOperatorKind = field.Type.SpecialType switch
+                var fieldType = field.Type;
+                var specificBinaryOperatorKind = fieldType.SpecialType switch
                 {
                     SpecialType.System_Boolean => BinaryOperatorKind.BoolEqual,
                     SpecialType.System_Char => BinaryOperatorKind.CharEqual,
@@ -449,6 +453,18 @@ start:
                 if (specificBinaryOperatorKind != BinaryOperatorKind.Error)
                 {
                     nextEquals = F.Binary(specificBinaryOperatorKind, F.SpecialType(SpecialType.System_Boolean), thisField, otherField);
+                }
+                // If we have a value type which implements `IEquatable<Self>`,
+                // call its respective `Equals` method directly if possible since it also has
+                // the same semantics as a call to `EqualityComparer<T>.Default.Equals`
+                // but requires less IL. We don't do this for reference types due to their
+                // natural nullability (adding defensive null check defeats the original purpose
+                // since it takes more IL than `EqualityComparer<T>.Default.Equals` approach)
+                else if (fieldType.IsValueType &&
+                         iEquatableType?.Construct(fieldType) is { } iEquatableOfFieldType &&
+                         fieldType.FindImplementationForInterfaceMember(iEquatable_Equals!.AsMember(iEquatableOfFieldType)) is MethodSymbol { IsExplicitInterfaceImplementation: false } overridenIEquatableEquals)
+                {
+                    nextEquals = F.Call(thisField, overridenIEquatableEquals, otherField);
                 }
                 else
                 {
