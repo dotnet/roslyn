@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis
 
         bool IsAttribute(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+        SyntaxNode GetAttributeOwningNode(SyntaxNode target);
 
         bool IsLambdaExpression(SyntaxNode node);
 
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract bool IsAttribute(SyntaxNode node);
         public abstract SyntaxNode GetNameOfAttribute(SyntaxNode node);
+        public abstract SyntaxNode GetAttributeOwningNode(SyntaxNode target);
 
         public abstract bool IsAttributeList(SyntaxNode node);
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);

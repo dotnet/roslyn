@@ -114,7 +114,8 @@ public partial struct SyntaxValueProvider
                         if (targetSymbol is null)
                             continue;
 
-                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
+                        var attributes = getMatchingAttributes(
+                            syntaxHelper, targetNode, targetSymbol, fullyQualifiedMetadataName, cancellationToken);
                         if (attributes.Length > 0)
                         {
                             result.Add(transform(
@@ -135,9 +136,11 @@ public partial struct SyntaxValueProvider
         return finalProvider;
 
         static ImmutableArray<AttributeData> getMatchingAttributes(
+            ISyntaxHelper syntaxHelper,
             SyntaxNode attributeTarget,
             ISymbol symbol,
-            string fullyQualifiedMetadataName)
+            string fullyQualifiedMetadataName,
+            CancellationToken cancellationToken)
         {
             var targetSyntaxTree = attributeTarget.SyntaxTree;
             var result = ArrayBuilder<AttributeData>.GetInstance();
@@ -163,7 +166,11 @@ public partial struct SyntaxValueProvider
                     if (attribute.ApplicationSyntaxReference?.SyntaxTree == targetSyntaxTree &&
                         attribute.AttributeClass?.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
                     {
-                        result.Add(attribute);
+                        var attributeSyntax = attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken);
+                        var attributeOwnerSyntax = attributeSyntax.Parent?.Parent;
+
+                        if (attributeOwnerSyntax == syntaxHelper.GetAttributeOwningNode(attributeTarget))
+                            result.Add(attribute);
                     }
                 }
             }

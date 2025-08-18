@@ -32,6 +32,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
+        Public Overrides Function GetAttributeOwningNode(target As SyntaxNode) As SyntaxNode
+            If TypeOf target Is ModifiedIdentifierSyntax AndAlso
+               TypeOf target.Parent Is VariableDeclaratorSyntax AndAlso
+               TypeOf target.Parent.Parent Is FieldDeclarationSyntax Then
+                Return target.Parent.Parent
+            End If
+
+            Return target
+        End Function
+
         Public Overrides Function IsAttributeList(node As SyntaxNode) As Boolean
             Return TypeOf node Is AttributeListSyntax
         End Function
