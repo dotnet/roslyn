@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
-        Public Overrides Function GetAttributeOwningNode(target As SyntaxNode) As SyntaxNode
+        Public Overrides Function RemapAttributeTarget(target As SyntaxNode) As SyntaxNode
             If TypeOf target Is ModifiedIdentifierSyntax AndAlso
                TypeOf target.Parent Is VariableDeclaratorSyntax AndAlso
                TypeOf target.Parent.Parent Is FieldDeclarationSyntax Then
@@ -40,6 +40,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return target
+        End Function
+
+        Public Overrides Function GetAttributeOwningNode(attribute As SyntaxNode) As SyntaxNode
+            Debug.Assert(TypeOf attribute Is AttributeSyntax)
+            Debug.Assert(TypeOf attribute.Parent Is AttributeListSyntax)
+            Debug.Assert(attribute.Parent.Parent IsNot Nothing)
+            Dim owningNode = attribute.Parent.Parent
+
+            If TypeOf owningNode Is AttributesStatementSyntax Then
+                Return owningNode.Parent
+            End If
+
+            Return owningNode
         End Function
 
         Public Overrides Function IsAttributeList(node As SyntaxNode) As Boolean

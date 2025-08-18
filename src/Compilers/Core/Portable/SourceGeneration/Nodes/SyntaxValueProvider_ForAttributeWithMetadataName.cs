@@ -125,7 +125,7 @@ public partial struct SyntaxValueProvider
                     }
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
             finally
             {
@@ -144,6 +144,8 @@ public partial struct SyntaxValueProvider
         {
             var targetSyntaxTree = attributeTarget.SyntaxTree;
             var result = ArrayBuilder<AttributeData>.GetInstance();
+
+            var remappedTarget = syntaxHelper.RemapAttributeTarget(attributeTarget);
 
             addMatchingAttributes(symbol.GetAttributes());
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
@@ -166,10 +168,13 @@ public partial struct SyntaxValueProvider
                     if (attribute.ApplicationSyntaxReference?.SyntaxTree == targetSyntaxTree &&
                         attribute.AttributeClass?.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
                     {
+                        // We're seeing all the attributes merged from all parts of a particular symbol.
+                        // Ensure that we're only actually returning the attributes declared on this specific
+                        // syntax node that we're currently looking at.
                         var attributeSyntax = attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken);
-                        var attributeOwnerSyntax = attributeSyntax.Parent?.Parent;
+                        var attributeOwnerSyntax = syntaxHelper.GetAttributeOwningNode(attributeSyntax);
 
-                        if (attributeOwnerSyntax == syntaxHelper.GetAttributeOwningNode(attributeTarget))
+                        if (attributeOwnerSyntax == remappedTarget)
                             result.Add(attribute);
                     }
                 }
