@@ -75,6 +75,11 @@ public partial struct SyntaxValueProvider
     /// langword="true"/> for <paramref name="predicate"/> and which have a matching <see cref="AttributeData"/> whose
     /// <see cref="AttributeData.AttributeClass"/> has the same fully qualified, metadata name as <paramref
     /// name="fullyQualifiedMetadataName"/>.</param>
+    /// <remarks>
+    /// In the case of partial types, only the parts of the partial type that have the attribute syntactically
+    /// declared on them will be returned.  If multiple parts have the same attribute declared on them, then
+    /// all of those parts will be returned.
+    /// </remarks>
     public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
         string fullyQualifiedMetadataName,
         Func<SyntaxNode, CancellationToken, bool> predicate,
