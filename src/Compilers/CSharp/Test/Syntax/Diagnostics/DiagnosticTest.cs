@@ -2441,6 +2441,21 @@ public class Test
             Assert.Equal(1, compilation.GetDiagnostics().Length);
         }
 
+        [Fact, WorkItem(79935, "https://github.com/dotnet/roslyn/issues/79935")]
+        public void NegativeSpanStart()
+        {
+            var text =
+                """
+                i,(#
+
+                interface
+                """;
+
+            var compilation = CreateCompilation(text);
+            var diagnostics = compilation.GetDiagnostics();
+            Assert.InRange(diagnostics.Count(), 1, int.MaxValue);
+        }
+
         [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice_GetEmitDiagnostics()
