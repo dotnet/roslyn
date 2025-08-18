@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -21,9 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UserFacingStrings;
 [ExportLanguageService(typeof(IUserFacingStringExtractorService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpUserFacingStringExtractorService : IUserFacingStringExtractorService
 {
-    private readonly UserFacingStringCacheService _cacheService = new();
-
+    private readonly UserFacingStringGlobalCache _globalCache = new();
+    
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpUserFacingStringExtractorService()
     {
     }
@@ -32,11 +35,11 @@ internal sealed class CSharpUserFacingStringExtractorService : IUserFacingString
         Document document,
         CancellationToken cancellationToken)
     {
-        // Use the cache service to handle caching and throttling
-        return await _cacheService.GetOrAnalyzeAsync(document, PerformAnalysisAsync, cancellationToken).ConfigureAwait(false);
+        // Use the new document-centric cache system for better performance
+        return await ExtractAndAnalyzeWithDocumentCacheAsync(document, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)>> PerformAnalysisAsync(
+    private async Task<ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)>> ExtractAndAnalyzeWithDocumentCacheAsync(
         Document document,
         CancellationToken cancellationToken)
     {
@@ -45,41 +48,37 @@ internal sealed class CSharpUserFacingStringExtractorService : IUserFacingString
         if (copilotService == null || !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             return ImmutableArray<(UserFacingStringCandidate, UserFacingStringAnalysis)>.Empty;
 
-        // Extract all string literals - NO FILTERING
-        var proposal = await ExtractAllStringLiteralsAsync(document, cancellationToken).ConfigureAwait(false);
-        if (proposal == null || proposal.Candidates.IsEmpty)
+        // STEP 1: Extract all string literals (with basic context for stable caching)
+        var allStringsWithBasicContext = await ExtractStringLiteralsWithBasicContextAsync(document, cancellationToken).ConfigureAwait(false);
+        if (allStringsWithBasicContext.IsEmpty)
             return ImmutableArray<(UserFacingStringCandidate, UserFacingStringAnalysis)>.Empty;
 
-        // Send everything to AI for analysis
-        var result = await copilotService.GetUserFacingStringAnalysisAsync(proposal, cancellationToken).ConfigureAwait(false);
+        // STEP 2: Check cache and separate cached vs uncached strings
+        var (cachedResults, uncachedStrings) = SeparateCachedFromUncached(document.Id, allStringsWithBasicContext);
 
-        if (result.isQuotaExceeded || result.responseDictionary == null)
-            return ImmutableArray<(UserFacingStringCandidate, UserFacingStringAnalysis)>.Empty;
-
-        // Combine candidates with their analysis
-        var results = ArrayBuilder<(UserFacingStringCandidate, UserFacingStringAnalysis)>.GetInstance();
-
-        foreach (var candidate in proposal.Candidates)
+        // STEP 3: Send uncached strings to AI (with enhanced context for better analysis)
+        if (uncachedStrings.Count > 0)
         {
-            if (result.responseDictionary.TryGetValue(candidate.Value, out var analysis))
-            {
-                results.Add((candidate, analysis));
-            }
+            var newAnalyses = await AnalyzeUncachedStringsWithAIAsync(document, uncachedStrings, cancellationToken).ConfigureAwait(false);
+            cachedResults.AddRange(newAnalyses);
         }
 
-        return results.ToImmutableAndFree();
+        return cachedResults.ToImmutableAndFree();
     }
 
-    private async Task<UserFacingStringProposal?> ExtractAllStringLiteralsAsync(Document document, CancellationToken cancellationToken)
+    /// <summary>
+    /// STEP 1: Extract all string literals with basic context for stable cache keys.
+    /// </summary>
+    private static async Task<ImmutableArray<UserFacingStringCandidate>> ExtractStringLiteralsWithBasicContextAsync(
+        Document document,
+        CancellationToken cancellationToken)
     {
         var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         if (syntaxTree == null)
-            return null;
+            return ImmutableArray<UserFacingStringCandidate>.Empty;
 
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        var candidates = ArrayBuilder<UserFacingStringCandidate>.GetInstance();
+        var stringsWithBasicContext = ArrayBuilder<UserFacingStringCandidate>.GetInstance();
 
         // Extract ALL string literals - no filtering whatsoever
         foreach (var stringLiteral in root.DescendantNodes().OfType<LiteralExpressionSyntax>())
@@ -91,50 +90,161 @@ internal sealed class CSharpUserFacingStringExtractorService : IUserFacingString
                 // Only skip completely empty strings
                 if (!string.IsNullOrEmpty(valueText))
                 {
-                    var context = GetBasicContext(stringLiteral);
-                    var candidate = new UserFacingStringCandidate(
+                    // Store basic context for stable cache keys
+                    var basicContext = EnhancedContextExtractor.ExtractBasicContext(stringLiteral);
+                    
+                    var stringWithBasicContext = new UserFacingStringCandidate(
                         stringLiteral.Span,
                         valueText,
-                        context);
-                    candidates.Add(candidate);
+                        basicContext); // Basic context for cache consistency
+                    stringsWithBasicContext.Add(stringWithBasicContext);
                 }
             }
         }
 
-        var sourceCode = sourceText.ToString();
-        return new UserFacingStringProposal(sourceCode, candidates.ToImmutableAndFree());
-    }
-
-    private static string GetBasicContext(LiteralExpressionSyntax stringLiteral)
-    {
-        var parent = stringLiteral.Parent;
-
-        // Provide minimal context information for the AI
-        return parent switch
-        {
-            ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation =>
-                $"Argument to method: {invocation.Expression}",
-            AssignmentExpressionSyntax assignment =>
-                $"Assignment to: {assignment.Left}",
-            VariableDeclaratorSyntax declarator =>
-                $"Variable initialization: {declarator.Identifier}",
-            ReturnStatementSyntax =>
-                "Return statement",
-            AttributeSyntax =>
-                "Attribute value",
-            ThrowStatementSyntax =>
-                "Exception message",
-            _ => "Other context"
-        };
+        return stringsWithBasicContext.ToImmutableAndFree();
     }
 
     /// <summary>
-    /// Gets cached results without triggering new analysis. Fast method for retrieving existing analysis.
+    /// STEP 2: Separate cached strings (cache hits) from uncached strings (need AI analysis).
     /// </summary>
-    public async Task<ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)>> GetCachedResultsAsync(
+    private (ArrayBuilder<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)> cachedResults, 
+             ArrayBuilder<UserFacingStringCandidate> uncachedStrings) SeparateCachedFromUncached(
+        DocumentId documentId,
+        ImmutableArray<UserFacingStringCandidate> allStrings)
+    {
+        var cachedResults = ArrayBuilder<(UserFacingStringCandidate, UserFacingStringAnalysis)>.GetInstance();
+        var uncachedStrings = ArrayBuilder<UserFacingStringCandidate>.GetInstance();
+
+        foreach (var stringCandidate in allStrings)
+        {
+            // Use basic context for stable cache lookup
+            var cacheKey = new StringCacheKey(stringCandidate.Value, stringCandidate.Context);
+            
+            if (_globalCache.TryGetCachedAnalysis(documentId, cacheKey, out var cacheEntry))
+            {
+                // CACHE HIT: Reuse existing analysis - SAVES AI CALL!
+                cachedResults.Add((stringCandidate, cacheEntry.Analysis));
+            }
+            else
+            {
+                // CACHE MISS: Need AI analysis
+                uncachedStrings.Add(stringCandidate);
+            }
+        }
+
+        return (cachedResults, uncachedStrings);
+    }
+
+    /// <summary>
+    /// STEP 3: Send uncached strings to AI with enhanced context for better analysis.
+    /// </summary>
+    private async Task<ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)>> AnalyzeUncachedStringsWithAIAsync(
+        Document document,
+        ArrayBuilder<UserFacingStringCandidate> uncachedStrings,
+        CancellationToken cancellationToken)
+    {
+        var results = ArrayBuilder<(UserFacingStringCandidate, UserFacingStringAnalysis)>.GetInstance();
+        
+        // Create enhanced context versions for AI (AI gets rich context)
+        var stringsWithEnhancedContext = await CreateStringsWithEnhancedContextForAIAsync(document, uncachedStrings.ToImmutable(), cancellationToken).ConfigureAwait(false);
+        
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var proposalForAI = new UserFacingStringProposal(sourceText.ToString(), stringsWithEnhancedContext);
+        
+        var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
+        var aiResult = await copilotService!.GetUserFacingStringAnalysisAsync(proposalForAI, cancellationToken).ConfigureAwait(false);
+
+        if (!aiResult.isQuotaExceeded && aiResult.responseDictionary != null)
+        {
+            // Cache and return the new AI analyses
+            foreach (var uncachedString in uncachedStrings)
+            {
+                if (aiResult.responseDictionary.TryGetValue(uncachedString.Value, out var analysis))
+                {
+                    // Cache using basic context for stable keys
+                    var cacheEntry = new StringCacheEntry(uncachedString.Value, uncachedString.Context, analysis);
+                    _globalCache.AddOrUpdateEntry(document.Id, cacheEntry);
+                    
+                    results.Add((uncachedString, analysis));
+                }
+            }
+        }
+
+        return results.ToImmutableAndFree();
+    }
+
+    /// <summary>
+    /// Convert strings with basic context to strings with enhanced context for AI analysis.
+    /// </summary>
+    private static async Task<ImmutableArray<UserFacingStringCandidate>> CreateStringsWithEnhancedContextForAIAsync(
+        Document document,
+        ImmutableArray<UserFacingStringCandidate> stringsWithBasicContext,
+        CancellationToken cancellationToken)
+    {
+        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        if (syntaxTree == null)
+            return stringsWithBasicContext; // Fallback to basic context
+
+        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var stringsWithEnhancedContext = ArrayBuilder<UserFacingStringCandidate>.GetInstance();
+
+        // Find syntax nodes and extract enhanced context for each string
+        foreach (var stringWithBasicContext in stringsWithBasicContext)
+        {
+            // Find the string literal at this location
+            var node = root.FindNode(stringWithBasicContext.Location);
+            if (node is LiteralExpressionSyntax stringLiteral && 
+                stringLiteral.Token.IsKind(SyntaxKind.StringLiteralToken) &&
+                stringLiteral.Token.ValueText == stringWithBasicContext.Value)
+            {
+                // Extract enhanced context for AI
+                var enhancedContext = await EnhancedContextExtractor.ExtractEnhancedContextAsync(
+                    stringLiteral, document, cancellationToken).ConfigureAwait(false);
+                
+                var stringWithEnhancedContext = new UserFacingStringCandidate(
+                    stringWithBasicContext.Location,
+                    stringWithBasicContext.Value,
+                    enhancedContext); // Enhanced context for AI
+                
+                stringsWithEnhancedContext.Add(stringWithEnhancedContext);
+            }
+            else
+            {
+                // Fallback: use basic context if we can't find the syntax node
+                stringsWithEnhancedContext.Add(stringWithBasicContext);
+            }
+        }
+
+        return stringsWithEnhancedContext.ToImmutableAndFree();
+    }
+
+    /// <summary>
+    /// Gets cached results using the document-centric cache.
+    /// </summary>
+    public Task<ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)>> GetCachedResultsAsync(
         Document document,
         CancellationToken cancellationToken)
     {
-        return await _cacheService.GetCachedResultsAsync(document, cancellationToken).ConfigureAwait(false);
+        var results = ArrayBuilder<(UserFacingStringCandidate, UserFacingStringAnalysis)>.GetInstance();
+        
+        // Get cached entries from the document-centric cache
+        var cachedEntries = _globalCache.GetDocumentEntries(document.Id);
+        
+        foreach (var entry in cachedEntries)
+        {
+            if (!entry.IsExpired)
+            {
+                // Create a candidate from the cached entry
+                var candidate = new UserFacingStringCandidate(
+                    default, // TextSpan not stored in cache
+                    entry.StringValue,
+                    entry.BasicContext);
+                
+                results.Add((candidate, entry.Analysis));
+            }
+        }
+
+        return Task.FromResult(results.ToImmutableAndFree());
     }
 }

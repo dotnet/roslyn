@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,14 +19,15 @@ using Microsoft.CodeAnalysis.UserFacingStrings;
 namespace Microsoft.CodeAnalysis.CSharp.MoveToResx;
 
 /// <summary>
-/// AI-enhanced diagnostic analyzer that uses AI as the first resort to identify user-facing strings,
-/// falling back to heuristics for low-confidence strings or when AI is unavailable.
+/// AI-enhanced diagnostic analyzer that uses confidence-based filtering to identify user-facing strings.
 /// 
 /// Flow:
-/// 1. Try AI analysis first
-/// 2. For AI confidence >= 75%: Report directly as user-facing
-/// 3. For AI confidence < 75%: Run through heuristic filters
-/// 4. If AI fails: Full heuristic analysis
+/// 1. Extract all string literals once
+/// 2. AI analysis with confidence-based filtering:
+///    - High confidence (≥75%): Create AI diagnostic directly
+///    - Medium confidence (40-74%): Send to heuristic validation  
+///    - Low confidence (&lt;40%): Ignore (definitely not user-facing)
+/// 3. If AI unavailable: Full heuristic analysis on extracted strings
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
@@ -55,150 +57,214 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
 
         var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
 
-        // ✅ Now we have direct access to Document!
+        // Step 1: Extract all string literals once at the beginning
+        var stringLiterals = await ExtractStringLiteralsAsync(tree, cancellationToken).ConfigureAwait(false);
+        if (stringLiterals.IsEmpty)
+            return ImmutableArray<Diagnostic>.Empty;
+
+        // Step 2: Choose analysis path based on AI service availability
         var extractorService = document.GetLanguageService<IUserFacingStringExtractorService>();
         
         if (extractorService != null)
         {
-            // AI analysis path - run AI first
-            await AnalyzeWithAIAsync(document, extractorService, diagnostics, cancellationToken);
+            // AI analysis path
+            await AnalyzeWithAIAsync(document, extractorService, diagnostics, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            // No AI service available - fall back to heuristic analysis only
-            await AnalyzeWithHeuristicsOnlyAsync(document, tree, diagnostics, cancellationToken);
+            // Heuristic analysis path
+            AnalyzeWithHeuristicsOnly(stringLiterals, diagnostics);
         }
 
         return diagnostics.ToImmutable();
     }
 
     /// <summary>
-    /// Updates the diagnostic analyzer to actually use AI analysis first as described in the comments.
+    /// Extract all string literals from the document once at the beginning.
+    /// </summary>
+    private static async Task<ImmutableArray<LiteralExpressionSyntax>> ExtractStringLiteralsAsync(
+        SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var stringLiterals = root.DescendantNodes()
+            .OfType<LiteralExpressionSyntax>()
+            .Where(lit => lit.Token.IsKind(SyntaxKind.StringLiteralToken))
+            .ToImmutableArray();
+
+        return stringLiterals;
+    }
+
+    /// <summary>
+    /// Analyze using document watcher cache for instant results, with fallback to direct AI analysis.
     /// </summary>
     private static async Task AnalyzeWithAIAsync(
-        Document document, 
-        IUserFacingStringExtractorService extractorService, 
+        Document document,
+        IUserFacingStringExtractorService extractorService,
         ImmutableArray<Diagnostic>.Builder diagnostics,
         CancellationToken cancellationToken)
     {
-        try
+        // Try to get document watcher service for cached results
+        var documentWatcher = document.GetLanguageService<IUserFacingStringDocumentWatcher>();
+        
+        if (documentWatcher != null)
         {
-            // First check if we have cached results to avoid triggering new analysis
-            var cachedResults = await extractorService.GetCachedResultsAsync(document, cancellationToken).ConfigureAwait(false);
-            
-            ImmutableArray<(UserFacingStringCandidate candidate, UserFacingStringAnalysis analysis)> aiResults;
-            
-            if (!cachedResults.IsEmpty)
-            {
-                // Use cached results if available
-                aiResults = cachedResults;
-            }
-            else
-            {
-                // Trigger fresh AI analysis
-                aiResults = await extractorService.ExtractAndAnalyzeAsync(document, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (aiResults.IsEmpty)
-            {
-                // No AI results available, fall back to heuristics
-                var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-                await AnalyzeWithHeuristicsOnlyAsync(document, tree, diagnostics, cancellationToken);
-                return;
-            }
-
-            // Process each result individually with its specific location
-            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-            
-            foreach (var (candidate, analysis) in aiResults)
-            {
-                var stringValue = candidate.Value;
-                // Use the exact TextSpan location from the candidate to create a precise Location
-                var location = Location.Create(syntaxTree, candidate.Location);
-
-                if (analysis.ConfidenceScore >= 0.75)
-                {
-                    // High confidence AI result - report directly
-                    var diagnostic = CreateAIDiagnostic(location, stringValue, analysis);
-                    diagnostics.Add(diagnostic);
-                }
-                else if (analysis.ConfidenceScore >= 0.4)
-                {
-                    // Medium confidence AI result - apply additional heuristic validation
-                    await AnalyzeSpecificLocationWithHeuristicsAsync(document, candidate.Location, stringValue, analysis, diagnostics, cancellationToken);
-                }
-                // Low confidence strings (< 0.4) are ignored - AI determined they're likely internal
-            }
+            // Use cache-first approach with document watcher
+            await AnalyzeWithDocumentWatcherAsync(document, documentWatcher, diagnostics, cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        else
         {
-            throw;
-        }
-        catch (Exception)
-        {
-            // AI analysis failed completely, fall back to heuristics
-            var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-            await AnalyzeWithHeuristicsOnlyAsync(document, tree, diagnostics, cancellationToken);
+            // Fallback to direct AI analysis (original implementation)
+            await AnalyzeWithDirectAIAsync(document, extractorService, diagnostics, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private static async Task AnalyzeWithHeuristicsOnlyAsync(
-        Document document, 
-        SyntaxTree tree, 
+    /// <summary>
+    /// Fast cache-based analysis using document watcher.
+    /// </summary>
+    private static async Task AnalyzeWithDocumentWatcherAsync(
+        Document document,
+        IUserFacingStringDocumentWatcher documentWatcher,
         ImmutableArray<Diagnostic>.Builder diagnostics,
         CancellationToken cancellationToken)
     {
-        // Full heuristic analysis for all strings when AI is unavailable
-        var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        var stringLiterals = root.DescendantNodes().OfType<LiteralExpressionSyntax>()
-                                  .Where(lit => lit.Token.IsKind(SyntaxKind.StringLiteralToken));
+        // Ensure document is analyzed in background
+        await documentWatcher.EnsureDocumentAnalyzedAsync(document, cancellationToken).ConfigureAwait(false);
 
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var stringLiterals = root.DescendantNodes()
+            .OfType<LiteralExpressionSyntax>()
+            .Where(lit => lit.Token.IsKind(SyntaxKind.StringLiteralToken));
+
+        foreach (var stringLiteral in stringLiterals)
+        {
+            var stringValue = stringLiteral.Token.ValueText;
+            
+            // Skip obviously non-user-facing strings early
+            if (string.IsNullOrWhiteSpace(stringValue) || stringValue.Length < 3 ||
+                IsLikelyNonUserFacingContent(stringValue) ||
+                IsInNonUserFacingContext(stringLiteral) ||
+                MatchesNonUserFacingPatterns(stringValue))
+            {
+                continue;
+            }
+
+            // Extract context for cache lookup
+            var context = ExtractStringContext(stringLiteral);
+            
+            // Check cache first
+            if (documentWatcher.TryGetCachedAnalysis(stringValue, context, out var cachedAnalysis))
+            {
+                // Use cached result
+                if (cachedAnalysis.ConfidenceScore >= 0.4) // Only create diagnostics for reasonable confidence
+                {
+                    var location = stringLiteral.GetLocation();
+                    diagnostics.Add(CreateAIDiagnostic(location, stringValue, cachedAnalysis));
+                }
+            }
+            else
+            {
+                // No cached result - analyze with heuristics as fallback
+                AnalyzeStringLiteralWithHeuristics(stringLiteral, diagnostics);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Direct AI analysis (fallback when document watcher unavailable).
+    /// </summary>
+    private static async Task AnalyzeWithDirectAIAsync(
+        Document document,
+        IUserFacingStringExtractorService extractorService,
+        ImmutableArray<Diagnostic>.Builder diagnostics,
+        CancellationToken cancellationToken)
+    {
+        // Get the AI analysis for the entire document
+        var aiAnalysis = await extractorService.ExtractAndAnalyzeAsync(document, cancellationToken).ConfigureAwait(false);
+
+        // Process each AI result with confidence-based filtering
+        foreach (var (candidate, analysis) in aiAnalysis)
+        {
+            var stringValue = candidate.Value;
+            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+            var location = Location.Create(syntaxTree, candidate.Location);
+
+            if (analysis.ConfidenceScore >= 0.75)
+            {
+                // High confidence: Create AI diagnostic directly
+                diagnostics.Add(CreateAIDiagnostic(location, stringValue, analysis));
+            }
+            else if (analysis.ConfidenceScore >= 0.4)
+            {
+                // Medium confidence: Send to heuristic validation
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var node = root.FindNode(candidate.Location);
+                
+                if (node is LiteralExpressionSyntax stringLiteral &&
+                    stringLiteral.Token.IsKind(SyntaxKind.StringLiteralToken) &&
+                    stringLiteral.Token.ValueText == stringValue)
+                {
+                    AnalyzeStringLiteralWithHeuristics(stringLiteral, diagnostics);
+                }
+            }
+            // Low confidence (< 0.4): Ignore - definitely not user-facing
+        }
+    }
+
+    /// <summary>
+    /// Extract context information for a string literal.
+    /// </summary>
+    private static string ExtractStringContext(LiteralExpressionSyntax stringLiteral)
+    {
+        var parent = stringLiteral.Parent;
+        var contextParts = new List<string>();
+
+        // Walk up the syntax tree to gather context
+        while (parent != null && contextParts.Count < 3)
+        {
+            switch (parent)
+            {
+                case ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation:
+                    contextParts.Add($"MethodCall:{invocation.Expression}");
+                    break;
+                case AssignmentExpressionSyntax assignment:
+                    contextParts.Add($"Assignment:{assignment.Left}");
+                    break;
+                case VariableDeclaratorSyntax declarator:
+                    contextParts.Add($"Variable:{declarator.Identifier}");
+                    break;
+                case ReturnStatementSyntax:
+                    contextParts.Add("Return");
+                    break;
+                case ThrowStatementSyntax:
+                    contextParts.Add("Exception");
+                    break;
+                case AttributeSyntax:
+                    contextParts.Add("Attribute");
+                    break;
+            }
+
+            parent = parent.Parent;
+        }
+
+        return string.Join("|", contextParts);
+    }
+
+    /// <summary>
+    /// Analyze using heuristics only for the extracted string literals.
+    /// </summary>
+    private static void AnalyzeWithHeuristicsOnly(
+        ImmutableArray<LiteralExpressionSyntax> stringLiterals,
+        ImmutableArray<Diagnostic>.Builder diagnostics)
+    {
+        // Analyze each string literal using heuristics
         foreach (var stringLiteral in stringLiterals)
         {
             AnalyzeStringLiteralWithHeuristics(stringLiteral, diagnostics);
         }
     }
 
-    private static async Task AnalyzeSpecificLocationWithHeuristicsAsync(
-        Document document,
-        Microsoft.CodeAnalysis.Text.TextSpan textSpan, 
-        string stringValue,
-        UserFacingStringAnalysis? aiAnalysis,
-        ImmutableArray<Diagnostic>.Builder diagnostics,
-        CancellationToken cancellationToken)
-    {
-        // Enhanced heuristic analysis for a specific string at a specific location 
-        // that AI marked as medium confidence - use AI insights combined with heuristics
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var node = root.FindNode(textSpan);
-        
-        if (node is LiteralExpressionSyntax stringLiteral && 
-            stringLiteral.Token.IsKind(SyntaxKind.StringLiteralToken) &&
-            stringLiteral.Token.ValueText == stringValue)
-        {
-            // Apply enhanced analysis combining AI insights with heuristics
-            if (ShouldReportBasedOnHeuristics(stringLiteral, aiAnalysis))
-            {
-                var location = Location.Create(document.GetRequiredSyntaxTreeSynchronously(cancellationToken), textSpan);
-                var diagnostic = CreateHybridDiagnostic(location, stringValue, stringLiteral, aiAnalysis);
-                diagnostics.Add(diagnostic);
-            }
-        }
-    }
-
-    // Overload for legacy calls without AI analysis
-    private static async Task AnalyzeSpecificLocationWithHeuristicsAsync(
-        Document document,
-        Microsoft.CodeAnalysis.Text.TextSpan textSpan, 
-        string stringValue,
-        ImmutableArray<Diagnostic>.Builder diagnostics,
-        CancellationToken cancellationToken)
-    {
-        await AnalyzeSpecificLocationWithHeuristicsAsync(document, textSpan, stringValue, null, diagnostics, cancellationToken);
-    }
-
     private static void AnalyzeStringLiteralWithHeuristics(
-        LiteralExpressionSyntax stringLiteral, 
+        LiteralExpressionSyntax stringLiteral,
         ImmutableArray<Diagnostic>.Builder diagnostics)
     {
         var valueText = stringLiteral.Token.ValueText;
@@ -216,7 +282,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
         }
 
         // Create heuristic-based diagnostic
-        var diagnostic = CreateHeuristicDiagnostic(stringLiteral.GetLocation(), valueText, stringLiteral);
+        var diagnostic = CreateHeuristicDiagnostic(stringLiteral.GetLocation(), valueText);
         diagnostics.Add(diagnostic);
     }
 
@@ -238,7 +304,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
             stringValue);
     }
 
-    private static Diagnostic CreateHeuristicDiagnostic(Location location, string stringValue, LiteralExpressionSyntax stringLiteral)
+    private static Diagnostic CreateHeuristicDiagnostic(Location location, string stringValue)
     {
         var properties = ImmutableDictionary.CreateBuilder<string, string?>();
         properties.Add("ConfidenceScore", "0.75"); // Heuristic confidence
@@ -246,7 +312,6 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
         properties.Add("Reasoning", "Heuristic analysis suggests this may be user-facing");
         properties.Add("AnalysisMethod", "Heuristic");
         properties.Add("StringLength", stringValue.Length.ToString());
-        properties.Add("Context", GetContextDescription(stringLiteral));
         properties.Add("StringValue", stringValue);
 
         return Diagnostic.Create(
@@ -254,68 +319,6 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
             location,
             properties.ToImmutable(),
             stringValue);
-    }
-
-    private static Diagnostic CreateHybridDiagnostic(Location location, string stringValue, LiteralExpressionSyntax stringLiteral, UserFacingStringAnalysis? aiAnalysis)
-    {
-        var properties = ImmutableDictionary.CreateBuilder<string, string?>();
-        
-        if (aiAnalysis != null)
-        {
-            // Combine AI insights with heuristic analysis
-            var combinedConfidence = Math.Max(0.7, aiAnalysis.ConfidenceScore); // Boost medium confidence to reportable level
-            properties.Add("ConfidenceScore", combinedConfidence.ToString("F2"));
-            properties.Add("SuggestedResourceKey", aiAnalysis.SuggestedResourceKey);
-            properties.Add("Reasoning", $"AI + Heuristic: {aiAnalysis.Reasoning} | Heuristic validation passed");
-            properties.Add("AnalysisMethod", "AI+Heuristic");
-            properties.Add("AIConfidence", aiAnalysis.ConfidenceScore.ToString("F2"));
-        }
-        else
-        {
-            // Pure heuristic analysis
-            properties.Add("ConfidenceScore", "0.75");
-            properties.Add("SuggestedResourceKey", GenerateResourceKey(stringValue));
-            properties.Add("Reasoning", "Heuristic analysis suggests this may be user-facing");
-            properties.Add("AnalysisMethod", "Heuristic");
-        }
-        
-        properties.Add("StringLength", stringValue.Length.ToString());
-        properties.Add("Context", GetContextDescription(stringLiteral));
-        properties.Add("StringValue", stringValue);
-
-        return Diagnostic.Create(
-            s_descriptor,
-            location,
-            properties.ToImmutable(),
-            stringValue);
-    }
-
-    private static bool ShouldReportBasedOnHeuristics(LiteralExpressionSyntax stringLiteral, UserFacingStringAnalysis? aiAnalysis)
-    {
-        var valueText = stringLiteral.Token.ValueText;
-
-        // Quick early filters for obviously non-user-facing strings
-        if (string.IsNullOrWhiteSpace(valueText) || valueText.Length < 3)
-            return false;
-
-        // If AI provided reasoning that indicates internal use, respect that even for medium confidence
-        if (aiAnalysis?.Reasoning?.ToLowerInvariant().Contains("internal") == true ||
-            aiAnalysis?.Reasoning?.ToLowerInvariant().Contains("debug") == true ||
-            aiAnalysis?.Reasoning?.ToLowerInvariant().Contains("log") == true)
-        {
-            return false;
-        }
-
-        // Apply existing heuristic filters, but be more lenient since AI gave medium confidence
-        if (IsLikelyNonUserFacingContent(valueText) ||
-            IsInNonUserFacingContext(stringLiteral) ||
-            MatchesNonUserFacingPatterns(valueText))
-        {
-            return false;
-        }
-
-        // If we get here and AI gave medium confidence, report it
-        return true;
     }
 
     // Helper methods
@@ -327,26 +330,26 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
         return string.IsNullOrEmpty(key) ? "GeneratedKey" : key;
     }
 
-    private static string GetContextDescription(LiteralExpressionSyntax stringLiteral)
-    {
-        var parent = stringLiteral.Parent;
-        return parent switch
-        {
-            ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation =>
-                $"Argument to method: {invocation.Expression}",
-            AssignmentExpressionSyntax assignment =>
-                $"Assignment to: {assignment.Left}",
-            VariableDeclaratorSyntax declarator =>
-                $"Variable initialization: {declarator.Identifier}",
-            ReturnStatementSyntax =>
-                "Return statement",
-            AttributeSyntax =>
-                "Attribute value",
-            ThrowStatementSyntax =>
-                "Exception message",
-            _ => "Other context"
-        };
-    }
+    // private static string GetContextDescription(LiteralExpressionSyntax stringLiteral)
+    // {
+    //     var parent = stringLiteral.Parent;
+    //     return parent switch
+    //     {
+    //         ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation =>
+    //             $"Argument to method: {invocation.Expression}",
+    //         AssignmentExpressionSyntax assignment =>
+    //             $"Assignment to: {assignment.Left}",
+    //         VariableDeclaratorSyntax declarator =>
+    //             $"Variable initialization: {declarator.Identifier}",
+    //         ReturnStatementSyntax =>
+    //             "Return statement",
+    //         AttributeSyntax =>
+    //             "Attribute value",
+    //         ThrowStatementSyntax =>
+    //             "Exception message",
+    //         _ => "Other context"
+    //     };
+    // }
 
     // Existing heuristic filter methods
     private static bool IsLikelyNonUserFacingContent(string valueText)
@@ -447,7 +450,9 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
         // 3. Color codes and hex values
         if (valueText.StartsWith("#") && valueText.Length > 1 &&
             valueText.Skip(1).All(c => char.IsDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')))
+        {
             return true;
+        }
 
         // 4. Connection strings patterns
         if (valueText.Contains("=") && valueText.Contains(";") && !valueText.Contains(" "))
