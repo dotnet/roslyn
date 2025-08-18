@@ -137,6 +137,13 @@ internal sealed partial class VsReleaseTagger
         return build;
     }
 
+    public override Task<VsBuildInformation?> TryGetBuildAsync(RemoteConnections connections, IProduct product, VsBuildInformation vmrBuild)
+    {
+        // This is used when the SHA returned from the Release build does not exist in the target repo. In SDK scenarios it
+        // gives us a chance to query the dotnet VMR and identify the SHA for our repo.
+        return Task.FromResult<VsBuildInformation?>(null);
+    }
+
     private static async Task<VsBuildInformation?> TryGetBuildInfoForReleaseAsync(IProduct product, VsReleaseInformation release, AzDOConnection vsConnection, AzDOConnection connection)
     {
         try

@@ -18,6 +18,7 @@ internal abstract class AbstractReleaseTagger<TRelease, TBuild>
     public abstract Task<ImmutableArray<TRelease>> GetReleasesAsync(RemoteConnections connections);
     public abstract string GetTagName(TRelease release);
     public abstract Task<TBuild?> TryGetBuildAsync(RemoteConnections connections, IProduct product, TRelease release);
+    public abstract Task<TBuild?> TryGetBuildAsync(RemoteConnections connections, IProduct product, TBuild vmrBuild);
     public abstract string CreateTagMessage(IProduct product, TRelease release, TBuild build);
 
     public async Task CreateReleaseTagsAsync(
@@ -53,21 +54,53 @@ internal abstract class AbstractReleaseTagger<TRelease, TBuild>
                 continue;
             }
 
-            logger.LogInformation("Tagging {CommitSha} as '{TagName}'.", build.CommitSha, tagName);
-
-            var message = CreateTagMessage(product, release, build);
-
-            try
+            if (TryCreateTag(release, build, tagName))
             {
-                repository.ApplyTag(tagName, build.CommitSha, new Signature(product.GitUserName, product.GitEmail, when: release.CreationTime), message);
                 tagsAdded++;
             }
-            catch (Exception ex)
+            else
             {
-                logger.LogWarning(ex, "Unable to tag the commit '{CommitSha}' with '{TagName}'.", build.CommitSha, tagName);
+                await TryTagFromVmrBuildAsync(release, build, tagName);
             }
         }
 
         logger.LogInformation("Added {TagsAdded} tags. Tagging complete.", tagsAdded);
+
+        bool TryCreateTag(TRelease release, TBuild build, string tagName)
+        {
+            try
+            {
+                logger.LogInformation("Tagging {CommitSha} as '{TagName}'.", build.CommitSha, tagName);
+
+                var message = CreateTagMessage(product, release, build);
+
+                repository.ApplyTag(tagName, build.CommitSha, new Signature(product.GitUserName, product.GitEmail, when: release.CreationTime), message);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Unable to tag the commit '{CommitSha}' with '{TagName}': {Message}", build.CommitSha, tagName, ex.Message);
+
+                return false;
+            }
+        }
+
+        async Task TryTagFromVmrBuildAsync(TRelease release, TBuild build, string tagName)
+        {
+            logger.LogInformation("Attempting to tag build from VMR commit.");
+
+            var vmrBuild = await TryGetBuildAsync(connections, product, build);
+            if (vmrBuild is null)
+            {
+                logger.LogWarning("Unable to find repo information for the VMR build.");
+                return;
+            }
+
+            if (TryCreateTag(release, vmrBuild, tagName))
+            {
+                tagsAdded++;
+            }
+        }
     }
 }

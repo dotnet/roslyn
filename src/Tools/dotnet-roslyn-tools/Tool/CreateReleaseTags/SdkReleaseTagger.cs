@@ -112,6 +112,38 @@ internal sealed partial class SdkReleaseTagger
         }
     }
 
+    public override async Task<SdkBuildInformation?> TryGetBuildAsync(RemoteConnections connections, IProduct product, SdkBuildInformation vmrBuild)
+    {
+        // This is used when the SHA returned from the Release build does not exist in the target repo. In SDK scenarios it
+        // gives us a chance to query the dotnet VMR and identify the SHA for our repo.
+        VmrSourceManifest? sourceManifest = null;
+
+        try
+        {
+            sourceManifest = await connections.GitHubClient
+                .GetFromJsonAsync<VmrSourceManifest?>($"https://raw.githubusercontent.com/dotnet/dotnet/{vmrBuild.CommitSha}/src/source-manifest.json");
+        }
+        catch (Exception) { }
+
+        if (sourceManifest is null)
+        {
+            return null;
+        }
+
+        var repository = sourceManifest.Repositories
+            .SingleOrDefault(repository => repository.RemoteUri == product.RepoHttpBaseUrl);
+        if (repository is null)
+        {
+            return null;
+        }
+
+        return new SdkUnifiedBuildInformation(
+            repository.CommitSha,
+            vmrBuild.BuildId,
+            vmrBuild.ProductVersion,
+            vmrBuild.CommitSha);
+    }
+
     public override string GetTagName(SdkReleaseInformation release)
     {
         var tag = "NET-SDK-" + release.MainVersion;
@@ -122,6 +154,11 @@ internal sealed partial class SdkReleaseTagger
 
     public override string CreateTagMessage(IProduct product, SdkReleaseInformation release, SdkBuildInformation build)
     {
+        if (build is SdkUnifiedBuildInformation unifiedBuild)
+        {
+            return $"{product.Name} VMR Version: {build.ProductVersion}\r\nVMR Commit SHA: {unifiedBuild.VmrCommitSha}\r\nVMR Internal ID: {build.BuildId}\r\nSDK Tag: {release.SdkTagName}";
+        }
+
         return $"{product.Name} Version: {build.ProductVersion}\r\nInternal ID: {build.BuildId}\r\nSDK Tag: {release.SdkTagName}";
     }
 
@@ -169,6 +206,33 @@ internal sealed partial class SdkReleaseTagger
         string productVersion) : BuildInformation(commitSha, buildId)
     {
         public readonly string ProductVersion = productVersion;
+    }
+
+    internal class SdkUnifiedBuildInformation(
+        string commitSha,
+        string vmrBuildId,
+        string vmrProductVersion,
+        string vmrCommitSha) : SdkBuildInformation(commitSha, vmrBuildId, vmrProductVersion)
+    {
+        public readonly string VmrCommitSha = vmrCommitSha;
+    }
+
+    internal class VmrSourceManifest
+    {
+        [JsonPropertyName("repositories")]
+        public VmrSourceRepository[] Repositories { get; set; } = null!;
+    }
+
+    internal class VmrSourceRepository
+    {
+        [JsonPropertyName("barId")]
+        public int? BarId { get; set; } = null;
+        [JsonPropertyName("path")]
+        public string Path { get; set; } = null!;
+        [JsonPropertyName("remoteUri")]
+        public string RemoteUri { get; set; } = null!;
+        [JsonPropertyName("commitSha")]
+        public string CommitSha { get; set; } = null!;
     }
 
     [GeneratedRegex(@"^refs/tags/(?<tagName>v(?<mainVersion>\d+\.\d+\.\d+)(?:-(?<previewVersion>.+))?)$")]
