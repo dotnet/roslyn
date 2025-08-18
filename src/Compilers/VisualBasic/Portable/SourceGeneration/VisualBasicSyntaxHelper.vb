@@ -48,6 +48,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(attribute.Parent.Parent IsNot Nothing)
             Dim owningNode = attribute.Parent.Parent
 
+            ' for attribute statements (like `<Assembly: ...>`) we want to get the parent compilation unit as that's
+            ' what symbol will actually own the attribute.
             If TypeOf owningNode Is AttributesStatementSyntax Then
                 Return owningNode.Parent
             End If
