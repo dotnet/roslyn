@@ -41,7 +41,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
     public readonly IAsynchronousOperationListener Listener;
-    public readonly CancellationToken DisposalToken;
     private readonly IServiceBroker _serviceBroker;
 
     /// <summary>
@@ -70,7 +69,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
         IThreadingContext threadingContext)
     {
-        DisposalToken = threadingContext.DisposalToken;
         _workspace = workspace;
         Listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
 
@@ -79,8 +77,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             TimeSpan.Zero,
             processBatchAsync: ProcessTaskQueueItemsAsync,
             Listener,
-            DisposalToken
-        );
+            threadingContext.DisposalToken);
 
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>

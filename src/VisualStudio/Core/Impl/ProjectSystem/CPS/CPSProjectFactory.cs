@@ -21,35 +21,26 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
 
 [Export(typeof(IWorkspaceProjectContextFactory))]
-internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CPSProjectFactory(
+    IThreadingContext threadingContext,
+    VisualStudioProjectFactory projectFactory,
+    VisualStudioWorkspaceImpl workspace,
+    IProjectCodeModelFactory projectCodeModelFactory,
+    SVsServiceProvider serviceProvider) : IWorkspaceProjectContextFactory
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly VisualStudioProjectFactory _projectFactory;
-    private readonly VisualStudioWorkspaceImpl _workspace;
-    private readonly IProjectCodeModelFactory _projectCodeModelFactory;
-    private readonly IAsyncServiceProvider _serviceProvider;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly VisualStudioProjectFactory _projectFactory = projectFactory;
+    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
+    private readonly IProjectCodeModelFactory _projectCodeModelFactory = projectCodeModelFactory;
+    private readonly IAsyncServiceProvider _serviceProvider = (IAsyncServiceProvider)serviceProvider;
 
     /// <summary>
     /// Solutions containing projects that use older compiler toolset that does not provide a checksum algorithm.
     /// Used only for EnC issue diagnostics.
     /// </summary>
     private ImmutableHashSet<string> _solutionsWithMissingChecksumAlgorithm = [];
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CPSProjectFactory(
-        IThreadingContext threadingContext,
-        VisualStudioProjectFactory projectFactory,
-        VisualStudioWorkspaceImpl workspace,
-        IProjectCodeModelFactory projectCodeModelFactory,
-        SVsServiceProvider serviceProvider)
-    {
-        _threadingContext = threadingContext;
-        _projectFactory = projectFactory;
-        _workspace = workspace;
-        _projectCodeModelFactory = projectCodeModelFactory;
-        _serviceProvider = (IAsyncServiceProvider)serviceProvider;
-    }
 
     public ImmutableArray<string> EvaluationPropertyNames
         => BuildPropertyNames.InitialEvaluationPropertyNames;
@@ -125,7 +116,8 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
             await TaskScheduler.Default;
         }
 
-        var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, id);
+        var project = new CPSProject(
+            _threadingContext, visualStudioProject, _workspace, _projectCodeModelFactory, id);
 
         // Set the properties in a batch; if we set the property directly we'll be taking a synchronous lock here and
         // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.

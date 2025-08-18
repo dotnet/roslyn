@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -63,7 +64,12 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
         set => _projectSystemProject.HasAllInformation = value;
     }
 
-    public CPSProject(ProjectSystemProject projectSystemProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid)
+    public CPSProject(
+        IThreadingContext threadingContext,
+        ProjectSystemProject projectSystemProject,
+        VisualStudioWorkspaceImpl visualStudioWorkspace,
+        IProjectCodeModelFactory projectCodeModelFactory,
+        Guid projectGuid)
     {
         _projectSystemProject = projectSystemProject;
         _visualStudioWorkspace = visualStudioWorkspace;
@@ -78,7 +84,10 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
                 _ => null
             };
 
-            return (prefix != null) ? new ProjectExternalErrorReporter(projectSystemProject.Id, projectGuid, prefix, projectSystemProject.Language, visualStudioWorkspace) : null;
+            return prefix == null
+                ? null
+                : new ProjectExternalErrorReporter(
+                    threadingContext, projectSystemProject.Id, projectGuid, prefix, projectSystemProject.Language, visualStudioWorkspace);
         });
 
         _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(projectSystemProject.Id, new CPSCodeModelInstanceFactory(this));

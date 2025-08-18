@@ -13,26 +13,28 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 
-internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
+internal sealed class ProjectExternalErrorReporter
+    : IVsReportExternalErrors,
+      IVsLanguageServiceBuildErrorReporter2,
+      IAsyncVsLanguageServiceBuildErrorReporter
 {
     internal static readonly ImmutableArray<string> CustomTags = [WellKnownDiagnosticTags.Telemetry];
     internal static readonly ImmutableArray<string> CompilerDiagnosticCustomTags = [WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry];
-
+    private readonly IThreadingContext _threadingContext;
     private readonly ProjectId _projectId;
 
     /// <summary>
@@ -50,12 +52,14 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     private readonly AsyncBatchingWorkQueue<Func<CancellationToken, Task>> _taskQueue;
 
     public ProjectExternalErrorReporter(
+        IThreadingContext threadingContext,
         ProjectId projectId,
         Guid projectHierarchyGuid,
         string errorCodePrefix,
         string language,
         VisualStudioWorkspaceImpl workspace)
     {
+        _threadingContext = threadingContext;
         _projectId = projectId;
         _projectHierarchyGuid = projectHierarchyGuid;
         _errorCodePrefix = errorCodePrefix;
@@ -66,7 +70,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             TimeSpan.Zero,
             ProcessWorkAsync,
             DiagnosticProvider.Listener,
-            DiagnosticProvider.DisposalToken);
+            _threadingContext.DisposalToken);
     }
 
     private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
@@ -161,15 +165,14 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     private int ClearErrorsWorker()
     {
-        // Cancel any inflight work.  No point in processing the work to *add* errors, just to clear them when this task runs.
-        _taskQueue.AddWork(cancellationToken =>
-        {
-            DiagnosticProvider.ClearErrors(_projectId);
-            return Task.CompletedTask;
-        },
-        cancelExistingWork: true);
-
+        _threadingContext.JoinableTaskFactory.Run(() => ClearErrorsAsync());
         return VSConstants.S_OK;
+    }
+
+    public Task ClearErrorsAsync()
+    {
+        DiagnosticProvider.ClearErrors(_projectId);
+        return Task.CompletedTask;
     }
 
     public int GetErrors(out IVsEnumExternalErrors? pErrors)
@@ -261,58 +264,88 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         int iEndColumn,
         string bstrFileName)
     {
+        var result = _threadingContext.JoinableTaskFactory.Run(() => TryReportErrorAsync(
+            bstrErrorMessage, bstrErrorId, nPriority,
+            iStartLine, iStartColumn, iEndLine, iEndColumn, bstrFileName));
 
-        // make sure we have error id, otherwise, we simple don't support
-        // this error
-        if (bstrErrorId == null)
+        // Legacy synchronous behavior.  If we can't handle this error, we let the caller know by throwing an exception.
+        if (!result)
+            throw new NotImplementedException();
+    }
+
+    public async Task<bool> TryReportErrorAsync(
+        string errorMessage,
+        string errorId,
+        VSTASKPRIORITY taskPriority,
+        int startLine,
+        int startColumn,
+        int endLine,
+        int endColumn,
+        string fileName)
+    {
+        var cancellationToken = _threadingContext.DisposalToken;
+
+        try
         {
-            // record NFW to see who violates contract.
-            FatalError.ReportAndCatch(new Exception("errorId is null"));
-            return;
-        }
-
-        _taskQueue.AddWork(ReportErrorAsync);
-
-        async Task ReportErrorAsync(CancellationToken cancellationToken)
-        {
-            // we accept all compiler diagnostics
-            if (!bstrErrorId.StartsWith(_errorCodePrefix) &&
-                !await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
-                    _projectId, bstrErrorId, cancellationToken).ConfigureAwait(false))
+            // make sure we have error id, otherwise, we simple don't support
+            // this error
+            if (errorId == null)
             {
-                return;
+                // record NFW to see who violates contract.
+                FatalError.ReportAndCatch(new Exception("errorId is null"));
+                return false;
             }
 
-            if ((iEndLine >= 0 && iEndColumn >= 0) &&
-               ((iEndLine < iStartLine) ||
-                (iEndLine == iStartLine && iEndColumn < iStartColumn)))
+            // we accept all compiler diagnostics
+            if (!errorId.StartsWith(_errorCodePrefix) &&
+                !await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
+                    _projectId, errorId, cancellationToken).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            // From this point on, we'll always consider ourselves the lang server that 'handles' this error.
+            // (and as such, we always return true from this method).
+            await ReportErrorAsync().ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        return true;
+
+        async Task ReportErrorAsync()
+        {
+            if ((endLine >= 0 && endColumn >= 0) &&
+               ((endLine < startLine) ||
+                (endLine == startLine && endColumn < startColumn)))
             {
                 throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
             }
 
-            var severity = nPriority switch
+            var severity = taskPriority switch
             {
                 VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
                 VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
                 VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
-                _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
+                _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(taskPriority))
             };
 
             DocumentId? documentId;
-            if (iStartLine < 0 || iStartColumn < 0)
+            if (startLine < 0 || startColumn < 0)
             {
                 documentId = null;
-                iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
+                startLine = startColumn = endLine = endColumn = 0;
             }
             else
             {
-                documentId = TryGetDocumentId(bstrFileName);
+                documentId = TryGetDocumentId(fileName);
             }
 
-            if (iEndLine < 0)
-                iEndLine = iStartLine;
-            if (iEndColumn < 0)
-                iEndColumn = iStartColumn;
+            if (endLine < 0)
+                endLine = startLine;
+            if (endColumn < 0)
+                endColumn = startColumn;
 
             var solution = _workspace.CurrentSolution;
             var project = solution.GetProject(_projectId);
@@ -321,19 +354,19 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
             var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
-                solution, [bstrErrorId], cancellationToken).ConfigureAwait(false);
+                solution, [errorId], cancellationToken).ConfigureAwait(false);
 
             var diagnostic = await GetDiagnosticDataAsync(
                 project,
                 documentId,
-                bstrErrorId,
-                bstrErrorMessage,
+                errorId,
+                errorMessage,
                 severity,
                 _language,
                 new FileLinePositionSpan(
-                    bstrFileName,
-                    new LinePosition(iStartLine, iStartColumn),
-                    new LinePosition(iEndLine, iEndColumn)),
+                    fileName,
+                    new LinePosition(startLine, startColumn),
+                    new LinePosition(endLine, endColumn)),
                 errorIdToDescriptor,
                 cancellationToken).ConfigureAwait(false);
 
