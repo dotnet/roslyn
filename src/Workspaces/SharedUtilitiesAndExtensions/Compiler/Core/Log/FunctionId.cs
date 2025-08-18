@@ -578,6 +578,11 @@ internal enum FunctionId
     SourceGenerator_SolutionStatistics = 620,
     SourceGenerator_OtherWorkspaceSessionStatistics = 621,
 
+    /// <summary>
+    /// Telemetry for source generators that were ran in-process; this is only expected to be fired if calling into OOP failed.
+    /// </summary>
+    SourceGenerator_SolutionInProcStatistics = 622,
+
     // 630-650 for sqlite errors.
     SQLite_SqlException = 630,
     SQLite_StorageDisabled = 631,
