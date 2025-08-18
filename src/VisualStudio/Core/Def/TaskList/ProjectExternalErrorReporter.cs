@@ -274,7 +274,7 @@ internal sealed class ProjectExternalErrorReporter
     }
 
     public async Task<bool> TryReportErrorAsync(
-        string errorMessage,
+        string? errorMessage,
         string errorId,
         VSTASKPRIORITY taskPriority,
         int startLine,
@@ -284,6 +284,7 @@ internal sealed class ProjectExternalErrorReporter
         string fileName)
     {
         var cancellationToken = _threadingContext.DisposalToken;
+        errorMessage ??= string.Empty;
 
         try
         {
@@ -291,8 +292,6 @@ internal sealed class ProjectExternalErrorReporter
             // this error
             if (errorId == null)
             {
-                // record NFW to see who violates contract.
-                FatalError.ReportAndCatch(new Exception("errorId is null"));
                 return false;
             }
 

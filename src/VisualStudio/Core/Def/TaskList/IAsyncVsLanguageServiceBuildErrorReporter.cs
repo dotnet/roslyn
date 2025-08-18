@@ -15,5 +15,5 @@ internal interface IAsyncVsLanguageServiceBuildErrorReporter
     Task ClearErrorsAsync();
 
     Task<bool> TryReportErrorAsync(
-        string errorMessage, string errorId, VSTASKPRIORITY taskPriority, int startLine, int startColumn, int endLine, int endColumn, string fileName);
+        string? errorMessage, string errorId, VSTASKPRIORITY taskPriority, int startLine, int startColumn, int endLine, int endColumn, string fileName);
 }
