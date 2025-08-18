@@ -2525,6 +2525,7 @@ class C { }
                 Assert.Equal("""
                     namespace Microsoft.CodeAnalysis
                     {
+                        [global::System.AttributeUsage(global::System.AttributeTargets.All)]
                         internal sealed partial class EmbeddedAttribute : global::System.Attribute
                         {
                         }
@@ -2568,6 +2569,7 @@ class C { }
             Assert.Equal("""
             namespace Microsoft.CodeAnalysis
             {
+                [global::System.AttributeUsage(global::System.AttributeTargets.All)]
                 internal sealed partial class EmbeddedAttribute : global::System.Attribute
                 {
                 }
