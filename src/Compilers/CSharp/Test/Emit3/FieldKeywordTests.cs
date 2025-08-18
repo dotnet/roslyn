@@ -12710,5 +12710,84 @@ class C<T>
             var comp = CreateCompilation([source1, source2]);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""get { return field + "a"; }""")]
+        [InlineData("""get => field + "a";""")]
+        public void PublicAPI_01(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""set { field = value; }""")]
+        [InlineData("""set => field = value;""")]
+        public void PublicAPI_02(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void PublicAPI_03()
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 16));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>());
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => node.ToString() == "field").Single();
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Null(symbolInfo.Symbol);
+        }
     }
 }
