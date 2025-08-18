@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override string EmbeddedAttributeDefinition => """
             namespace Microsoft.CodeAnalysis
             {
+                [global::System.AttributeUsage(global::System.AttributeTargets.All)]
                 internal sealed partial class EmbeddedAttribute : global::System.Attribute
                 {
                 }
