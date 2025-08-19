@@ -415,11 +415,32 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
     {
         if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
         {
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
-            if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
+            await UpdateUseSuggestionModeAsync();
+            var useSuggestionMode = await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken);
+            if (useSuggestionMode != value)
             {
-                throw new InvalidOperationException($"{nameof(WellKnownCommands.Edit)}.{nameof(WellKnownCommands.Edit.ToggleCompletionMode)} did not leave the editor in the expected state.");
+                throw new InvalidOperationException($"Failed to update suggestion mode to {value} (current: {useSuggestionMode})");
             }
+        }
+
+        async Task UpdateUseSuggestionModeAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+            var options = editorOptionsFactory.GlobalOptions;
+
+            EditorOptionKey<bool> optionKey;
+            if (forDebuggerTextView)
+            {
+                optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
+            }
+            else
+            {
+                optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
+            }
+
+            options.SetOptionValue<bool>(optionKey, value);
         }
     }
 

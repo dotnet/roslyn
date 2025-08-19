@@ -720,25 +720,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitExpression(argument, true);
                     break;
 
-                case RefKind.In:
-                    var temp = EmitAddress(argument, AddressKind.ReadOnly);
-                    AddExpressionTemp(temp);
-                    break;
-
                 default:
-                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
-                    // NOTE: passing "ReadOnlyStrict" here. 
-                    //       we should not get an address of a copy if at all possible
-                    var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
-                    if (unexpectedTemp != null)
+                    Debug.Assert(refKind is RefKind.In or RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
+                    var temp = EmitAddress(argument, GetArgumentAddressKind(refKind));
+                    if (temp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
                         // receiver of a ref field can be cloned too
-                        Debug.Assert(argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None }, "passing args byref should not clone them into temps");
-                        AddExpressionTemp(unexpectedTemp);
+                        Debug.Assert(refKind is RefKind.In || argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None }, "passing args byref should not clone them into temps");
+                        AddExpressionTemp(temp);
                     }
 
                     break;
+            }
+        }
+
+        internal static AddressKind GetArgumentAddressKind(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.None:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+
+                case RefKind.In:
+                    return AddressKind.ReadOnly;
+
+                default:
+                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
+                    // NOTE: returning "ReadOnlyStrict" here. 
+                    //       we should not get an address of a copy if at all possible
+                    return refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
             }
         }
 

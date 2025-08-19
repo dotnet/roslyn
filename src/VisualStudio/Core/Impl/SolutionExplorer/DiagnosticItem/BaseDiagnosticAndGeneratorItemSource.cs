@@ -182,7 +182,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                 var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticDescriptorData>>(
                     project,
                     (service, solutionChecksum, cancellationToken) => service.GetDiagnosticDescriptorsAsync(
-                        solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                        solutionChecksum, project.Id, analyzerFileReference.FullPath, project.Language, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 // If the call fails, the OOP substrate will have already reported an error
@@ -193,7 +193,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             }
 
             // Otherwise, do the work in process.
-            return project.GetDiagnosticDescriptors(analyzerReference);
+            return await project.GetDiagnosticDescriptorsAsync(analyzerReference, cancellationToken).ConfigureAwait(false);
         }
 
         async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync()

@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute);
+            ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute | ReservedAttributes.ExtensionMarkerAttribute);
 
             base.DecodeWellKnownAttributeImpl(ref arguments);
         }

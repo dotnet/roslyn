@@ -19,10 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Utilities\Hash.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Shared\Extensions\TelemetryExtensions.cs" Link="Utilities\TelemetryExtensions.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CodeStyle\EditorConfigSeverityStrings.cs" Link="Utilities\EditorConfigSeverityStrings.cs" />
