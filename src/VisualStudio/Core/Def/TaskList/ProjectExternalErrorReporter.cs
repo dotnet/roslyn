@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -99,20 +98,13 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         var project = solution.GetProject(_projectId);
         if (project != null)
         {
-            // First, grab all the data from the input.  Do this on the current thread in case that enumerator has
-            // thread affinity.
-            var allErrors = GetExternalErrors(pErrors);
-
-            // Then, jump to the background to actually process the errors.
-            _taskQueue.AddWork(cancellationToken =>
-                AddNewErrorsAsync(project, allErrors, cancellationToken));
+            AddNewErrors(project, GetExternalErrors(pErrors));
         }
 
         return VSConstants.S_OK;
     }
 
-    private async Task AddNewErrorsAsync(
-        Project project, ImmutableArray<ExternalError> allErrors, CancellationToken cancellationToken)
+    private void AddNewErrors(Project project, ImmutableArray<ExternalError> allErrors)
     {
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
 
@@ -123,8 +115,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         {
             if (error.bstrFileName != null)
             {
-                var diagnostic = await TryCreateDocumentDiagnosticItemAsync(
-                    project, error, cancellationToken).ConfigureAwait(false);
+                var diagnostic = TryCreateDocumentDiagnosticItem(project, error);
                 if (diagnostic != null)
                 {
                     allDiagnostics.Add(diagnostic);
@@ -132,15 +123,14 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                 }
             }
 
-            allDiagnostics.Add(await GetDiagnosticDataAsync(
+            allDiagnostics.Add(GetDiagnosticData(
                 project,
                 documentId: null,
                 GetErrorId(error),
                 error.bstrText,
                 GetDiagnosticSeverity(error),
                 _language,
-                new FileLinePositionSpan(project.FilePath ?? "", span: default),
-                cancellationToken).ConfigureAwait(false));
+                new FileLinePositionSpan(project.FilePath ?? "", span: default)));
         }
 
         DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, allDiagnostics.ToImmutableAndClear());
@@ -179,10 +169,9 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                          .FirstOrDefault();
     }
 
-    private async Task<DiagnosticData?> TryCreateDocumentDiagnosticItemAsync(
+    private DiagnosticData? TryCreateDocumentDiagnosticItem(
         Project project,
-        ExternalError error,
-        CancellationToken cancellationToken)
+        ExternalError error)
     {
         var documentId = TryGetDocumentId(error.bstrFileName);
         if (documentId == null)
@@ -222,7 +211,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
         // save error line/column (surface buffer location) as mapped line/column so that we can display
         // right location on closed Venus file.
-        return await GetDiagnosticDataAsync(
+        return GetDiagnosticData(
             project,
             documentId,
             GetErrorId(error),
@@ -231,8 +220,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             _language,
             new FileLinePositionSpan(error.bstrFileName,
                 new LinePosition(line, column),
-                new LinePosition(line, column)),
-            cancellationToken).ConfigureAwait(false);
+                new LinePosition(line, column)));
     }
 
     public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -262,91 +250,76 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             return;
         }
 
-        _taskQueue.AddWork(ReportErrorAsync);
-
-        async Task ReportErrorAsync(CancellationToken cancellationToken)
+        if ((iEndLine >= 0 && iEndColumn >= 0) &&
+           ((iEndLine < iStartLine) ||
+            (iEndLine == iStartLine && iEndColumn < iStartColumn)))
         {
-            // we accept all compiler diagnostics
-            if (!bstrErrorId.StartsWith(_errorCodePrefix) &&
-                !await DiagnosticProvider.IsSupportedDiagnosticIdAsync(
-                    _projectId, bstrErrorId, cancellationToken).ConfigureAwait(false))
-            {
-                return;
-            }
-
-            if ((iEndLine >= 0 && iEndColumn >= 0) &&
-               ((iEndLine < iStartLine) ||
-                (iEndLine == iStartLine && iEndColumn < iStartColumn)))
-            {
-                throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
-            }
-
-            var severity = nPriority switch
-            {
-                VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
-                VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
-                VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
-                _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
-            };
-
-            DocumentId? documentId;
-            if (iStartLine < 0 || iStartColumn < 0)
-            {
-                documentId = null;
-                iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
-            }
-            else
-            {
-                documentId = TryGetDocumentId(bstrFileName);
-            }
-
-            if (iEndLine < 0)
-                iEndLine = iStartLine;
-            if (iEndColumn < 0)
-                iEndColumn = iStartColumn;
-
-            var solution = _workspace.CurrentSolution;
-            var project = solution.GetProject(_projectId);
-            if (project is null)
-                return;
-
-            var diagnostic = await GetDiagnosticDataAsync(
-                project,
-                documentId,
-                bstrErrorId,
-                bstrErrorMessage,
-                severity,
-                _language,
-                new FileLinePositionSpan(
-                    bstrFileName,
-                    new LinePosition(iStartLine, iStartColumn),
-                    new LinePosition(iEndLine, iEndColumn)),
-                cancellationToken).ConfigureAwait(false);
-
-            DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
+            throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
         }
+
+        var severity = nPriority switch
+        {
+            VSTASKPRIORITY.TP_HIGH => DiagnosticSeverity.Error,
+            VSTASKPRIORITY.TP_NORMAL => DiagnosticSeverity.Warning,
+            VSTASKPRIORITY.TP_LOW => DiagnosticSeverity.Info,
+            _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
+        };
+
+        DocumentId? documentId;
+        if (iStartLine < 0 || iStartColumn < 0)
+        {
+            documentId = null;
+            iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
+        }
+        else
+        {
+            documentId = TryGetDocumentId(bstrFileName);
+        }
+
+        if (iEndLine < 0)
+            iEndLine = iStartLine;
+        if (iEndColumn < 0)
+            iEndColumn = iStartColumn;
+
+        var solution = _workspace.CurrentSolution;
+        var project = solution.GetProject(_projectId);
+        if (project is null)
+            return;
+
+        var diagnostic = GetDiagnosticData(
+            project,
+            documentId,
+            bstrErrorId,
+            bstrErrorMessage,
+            severity,
+            _language,
+            new FileLinePositionSpan(
+                bstrFileName,
+                new LinePosition(iStartLine, iStartColumn),
+                new LinePosition(iEndLine, iEndColumn)));
+
+        DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
     }
 
-    private static async Task<DiagnosticData> GetDiagnosticDataAsync(
+    private static DiagnosticData GetDiagnosticData(
         Project project,
         DocumentId? documentId,
         string errorId,
         string message,
         DiagnosticSeverity severity,
         string language,
-        FileLinePositionSpan unmappedSpan,
-        CancellationToken cancellationToken)
+        FileLinePositionSpan unmappedSpan)
     {
-        var diagnostic = new DiagnosticData(
+        return new DiagnosticData(
             id: errorId,
             category: WellKnownDiagnosticTags.Build,
             message: message,
-            title: (string?)message,
-            description: (string?)message,
+            title: message,
+            description: message,
             severity: severity,
             defaultSeverity: severity,
             isEnabledByDefault: true,
-            warningLevel: (severity == DiagnosticSeverity.Error) ? 0 : 1,
+            warningLevel: severity == DiagnosticSeverity.Error ? 0 : 1,
             customTags: IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags,
             properties: DiagnosticData.PropertiesForBuildDiagnostic,
             projectId: project.Id,
@@ -354,19 +327,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                 unmappedSpan,
                 documentId),
             language: language);
-
-        if (documentId != null &&
-            project.GetDocument(documentId) is Document document &&
-            document.SupportsSyntaxTree)
-        {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
-            var location = diagnostic.DataLocation.WithSpan(span, tree);
-            return diagnostic.WithLocations(location, additionalLocations: default);
-        }
-
-        return diagnostic;
     }
 
     private static bool IsCompilerDiagnostic(string errorId)
