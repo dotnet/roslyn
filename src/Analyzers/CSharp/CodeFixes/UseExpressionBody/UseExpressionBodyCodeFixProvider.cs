@@ -20,16 +20,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBody), Shared]
-internal sealed partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class UseExpressionBodyCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+    private static readonly ImmutableArray<UseExpressionBodyHelper> s_helpers = UseExpressionBodyHelper.Helpers;
 
-    private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = s_helpers.SelectAsArray(h => h.DiagnosticId);
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UseExpressionBodyCodeFixProvider()
-        => FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
+#if WORKSPACE
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.IsSuppressed ||
@@ -77,7 +78,7 @@ internal sealed partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBas
         CancellationToken cancellationToken)
     {
         var declarationLocation = diagnostic.AdditionalLocations[0];
-        var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
+        var helper = s_helpers.Single(h => h.DiagnosticId == diagnostic.Id);
         var declaration = declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
         var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
