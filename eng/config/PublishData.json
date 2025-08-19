@@ -178,6 +178,15 @@
       "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
     },
+    "release/dev18.0": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d18.0",
+      "insertionTitlePrefix": "[d18.0]",
+      "insertionCreateDraftPR": false
+    },
     "release/dev-next": {
       "nugetKind": [
         "Shipping",
