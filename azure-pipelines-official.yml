@@ -3,6 +3,7 @@ trigger:
     include:
     - main
     - main-vs-deps
+    - community
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
