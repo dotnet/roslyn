@@ -22,9 +22,6 @@ internal interface IRemoteDiagnosticAnalyzerService
     ValueTask<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
        Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
 
-    ValueTask<ImmutableDictionary<string, DiagnosticDescriptorData>> TryGetDiagnosticDescriptorsAsync(
-        Checksum solutionChecksum, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
-
     ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Checksum solutionChecksum, CancellationToken cancellationToken);
 

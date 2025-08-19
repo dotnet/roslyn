@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -16,14 +15,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -121,16 +118,13 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
         var solution = project.Solution;
         var errorIds = allErrors.Select(e => e.iErrorID).Distinct().Select(GetErrorId).ToImmutableArray();
-        var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
-            solution, errorIds, cancellationToken).ConfigureAwait(false);
 
         foreach (var error in allErrors)
         {
             if (error.bstrFileName != null)
             {
                 var diagnostic = await TryCreateDocumentDiagnosticItemAsync(
-                    project, error, errorIdToDescriptor, cancellationToken).ConfigureAwait(false);
+                    project, error, cancellationToken).ConfigureAwait(false);
                 if (diagnostic != null)
                 {
                     allDiagnostics.Add(diagnostic);
@@ -146,7 +140,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                 GetDiagnosticSeverity(error),
                 _language,
                 new FileLinePositionSpan(project.FilePath ?? "", span: default),
-                errorIdToDescriptor,
                 cancellationToken).ConfigureAwait(false));
         }
 
@@ -189,7 +182,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     private async Task<DiagnosticData?> TryCreateDocumentDiagnosticItemAsync(
         Project project,
         ExternalError error,
-        ImmutableDictionary<string, DiagnosticDescriptor> errorIdToDescriptor,
         CancellationToken cancellationToken)
     {
         var documentId = TryGetDocumentId(error.bstrFileName);
@@ -240,7 +232,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             new FileLinePositionSpan(error.bstrFileName,
                 new LinePosition(line, column),
                 new LinePosition(line, column)),
-            errorIdToDescriptor,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -319,10 +310,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             if (project is null)
                 return;
 
-            var diagnosticService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-            var errorIdToDescriptor = await diagnosticService.TryGetDiagnosticDescriptorsAsync(
-                solution, [bstrErrorId], cancellationToken).ConfigureAwait(false);
-
             var diagnostic = await GetDiagnosticDataAsync(
                 project,
                 documentId,
@@ -334,7 +321,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                     bstrFileName,
                     new LinePosition(iStartLine, iStartColumn),
                     new LinePosition(iEndLine, iEndColumn)),
-                errorIdToDescriptor,
                 cancellationToken).ConfigureAwait(false);
 
             DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
@@ -349,54 +335,25 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         DiagnosticSeverity severity,
         string language,
         FileLinePositionSpan unmappedSpan,
-        ImmutableDictionary<string, DiagnosticDescriptor> errorIdToDescriptor,
         CancellationToken cancellationToken)
     {
-        string title, description, category;
-        string? helpLink;
-        DiagnosticSeverity defaultSeverity;
-        bool isEnabledByDefault;
-        ImmutableArray<string> customTags;
-
-        if (errorIdToDescriptor.TryGetValue(errorId, out var descriptor))
-        {
-            title = descriptor.Title.ToString(CultureInfo.CurrentUICulture);
-            description = descriptor.Description.ToString(CultureInfo.CurrentUICulture);
-            category = descriptor.Category;
-            defaultSeverity = descriptor.DefaultSeverity;
-            isEnabledByDefault = descriptor.IsEnabledByDefault;
-            customTags = descriptor.CustomTags.AsImmutableOrEmpty();
-            helpLink = descriptor.HelpLinkUri;
-        }
-        else
-        {
-            title = message;
-            description = message;
-            category = WellKnownDiagnosticTags.Build;
-            defaultSeverity = severity;
-            isEnabledByDefault = true;
-            customTags = IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags;
-            helpLink = null;
-        }
-
         var diagnostic = new DiagnosticData(
             id: errorId,
-            category: category,
+            category: WellKnownDiagnosticTags.Build,
             message: message,
-            title: title,
-            description: description,
+            title: (string?)message,
+            description: (string?)message,
             severity: severity,
-            defaultSeverity: defaultSeverity,
-            isEnabledByDefault: isEnabledByDefault,
+            defaultSeverity: severity,
+            isEnabledByDefault: true,
             warningLevel: (severity == DiagnosticSeverity.Error) ? 0 : 1,
-            customTags: customTags,
+            customTags: IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags,
             properties: DiagnosticData.PropertiesForBuildDiagnostic,
             projectId: project.Id,
             location: new DiagnosticDataLocation(
                 unmappedSpan,
                 documentId),
-            language: language,
-            helpLink: helpLink);
+            language: language);
 
         if (documentId != null &&
             project.GetDocument(documentId) is Document document &&
