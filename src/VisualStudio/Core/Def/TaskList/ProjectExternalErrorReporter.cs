@@ -29,8 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 
 internal sealed class ProjectExternalErrorReporter
     : IVsReportExternalErrors,
-      IVsLanguageServiceBuildErrorReporter2,
-      IAsyncVsLanguageServiceBuildErrorReporter
+      IVsLanguageServiceBuildErrorReporter2
 {
     internal static readonly ImmutableArray<string> CustomTags = [WellKnownDiagnosticTags.Telemetry];
     internal static readonly ImmutableArray<string> CompilerDiagnosticCustomTags = [WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry];
@@ -165,14 +164,8 @@ internal sealed class ProjectExternalErrorReporter
 
     private int ClearErrorsWorker()
     {
-        _threadingContext.JoinableTaskFactory.Run(() => ClearErrorsAsync());
-        return VSConstants.S_OK;
-    }
-
-    public Task ClearErrorsAsync()
-    {
         DiagnosticProvider.ClearErrors(_projectId);
-        return Task.CompletedTask;
+        return VSConstants.S_OK;
     }
 
     public int GetErrors(out IVsEnumExternalErrors? pErrors)
@@ -291,9 +284,7 @@ internal sealed class ProjectExternalErrorReporter
             // make sure we have error id, otherwise, we simple don't support
             // this error
             if (errorId == null)
-            {
                 return false;
-            }
 
             // we accept all compiler diagnostics
             if (!errorId.StartsWith(_errorCodePrefix) &&
