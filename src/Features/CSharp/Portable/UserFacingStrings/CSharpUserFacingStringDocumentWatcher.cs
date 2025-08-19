@@ -138,6 +138,8 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
 
             if (!result.isQuotaExceeded && result.responseDictionary != null)
             {
+                var cacheEntriesAdded = 0;
+                
                 // Cache results using basic context for cache key but AI used enhanced context
                 for (var i = 0; i < batch.Length; i++)
                 {
@@ -146,7 +148,32 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
                     {
                         var cacheEntry = new StringCacheEntry(pending.StringValue, pending.BasicContext, analysis);
                         _globalCache.AddOrUpdateEntry(document.Id, cacheEntry);
+                        cacheEntriesAdded++;
                     }
+                }
+
+                // 🎯 NEW: Trigger document refresh if we cached any results
+                if (cacheEntriesAdded > 0)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            // Small delay to ensure cache is fully updated
+                            await Task.Delay(100).ConfigureAwait(false);
+                            
+                            var invalidationService = document.Project.Solution.Services.GetService<IDiagnosticInvalidationService>();
+                            if (invalidationService != null)
+                            {
+                                await invalidationService.TriggerDocumentRefreshAsync(document).ConfigureAwait(false);
+                                System.Diagnostics.Debug.WriteLine($"✅ Triggered refresh for document {document.Name} after caching {cacheEntriesAdded} AI results");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Failed to trigger document refresh: {ex.Message}");
+                        }
+                    });
                 }
             }
         }
