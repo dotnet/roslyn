@@ -34,6 +34,7 @@
 | `/debug`:`pdbonly` | Same as `/debug:full`. For backward compatibility. 
 | `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/portable_pdb.md)
 | `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/portable_pdb.md).
+| `/debugportablenoreferences` | Do not emit reference information into portable PDBs
 | `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/source_link.md) info to embed into PDB.
 | `/optimize`{`+`&#124;`-`} | Enable optimizations (Short form: `/o`)
 | `/deterministic` | Produce a deterministic assembly (including module version GUID and timestamp)

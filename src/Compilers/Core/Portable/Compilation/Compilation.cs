@@ -3306,6 +3306,7 @@ namespace Microsoft.CodeAnalysis
                         emitOptions.IncludePrivateMembers,
                         deterministic,
                         emitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage),
+                        emitOptions.DoNotEmitCompilationMetadataReferences,
                         privateKeyOpt,
                         cancellationToken))
                     {
@@ -3388,6 +3389,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembers,
             bool isDeterministic,
             bool emitTestCoverageData,
+            bool doNotEmitCompilationMetadataReferences,
             RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
@@ -3403,6 +3405,7 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly,
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
+                doNotEmitCompilationMetadataReferences,
                 privateKeyOpt,
                 cancellationToken))
             {
@@ -3425,6 +3428,7 @@ namespace Microsoft.CodeAnalysis
                     metadataOnly: true,
                     isDeterministic: true,
                     emitTestCoverageData: false,
+                    doNotEmitCompilationMetadataReferences: false,
                     privateKeyOpt: privateKeyOpt,
                     cancellationToken: cancellationToken))
                 {

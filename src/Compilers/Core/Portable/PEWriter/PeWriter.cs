@@ -87,6 +87,7 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool isDeterministic,
             bool emitTestCoverageData,
+            bool doNotEmitCompilationMetadataReferences,
             RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
@@ -94,7 +95,7 @@ namespace Microsoft.Cci
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic,
-                emitTestCoverageData, getPortablePdbStreamOpt != null, cancellationToken);
+                emitTestCoverageData, doNotEmitCompilationMetadataReferences, getPortablePdbStreamOpt != null, cancellationToken);
 
             var properties = context.Module.SerializationProperties;
 

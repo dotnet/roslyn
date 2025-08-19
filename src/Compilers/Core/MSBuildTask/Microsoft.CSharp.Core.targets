@@ -95,6 +95,7 @@
          CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
          CodePage="$(CodePage)"
          DebugType="$(DebugType)"
+         DebugPortableNoReferences="$(DebugPortableNoReferences)"
          DefineConstants="$(DefineConstants)"
          DelaySign="$(DelaySign)"
          DisabledWarnings="$(NoWarn)"

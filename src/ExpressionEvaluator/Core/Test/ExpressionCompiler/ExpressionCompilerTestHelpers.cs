@@ -824,6 +824,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         metadataOnly: true,
                         isDeterministic: false,
                         emitTestCoverageData: false,
+                        doNotEmitCompilationMetadataReferences: false,
                         privateKeyOpt: null,
                         cancellationToken: default(CancellationToken));
 

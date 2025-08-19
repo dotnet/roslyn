@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.Emit
         public ImmutableArray<InstrumentationKind> InstrumentationKinds { get; private set; }
 
         /// <summary>
+        /// This only applies to portable type PDBs.
+        /// When this is true, the PDB will not contain a metadata section with the compilation references.
+        /// </summary>
+        public bool DoNotEmitCompilationMetadataReferences { get; private set; }
+
+        /// <summary>
         /// Subsystem version
         /// </summary>
         public SubsystemVersion SubsystemVersion { get; private set; }
@@ -209,6 +215,7 @@ namespace Microsoft.CodeAnalysis.Emit
                   runtimeMetadataVersion,
                   tolerateErrors,
                   includePrivateMembers,
+                  doNotEmitCompilationMetadataReferences: false,
                   instrumentationKinds,
                   pdbChecksumAlgorithm,
                   defaultSourceFileEncoding: null,
@@ -228,6 +235,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string? runtimeMetadataVersion = null,
             bool tolerateErrors = false,
             bool includePrivateMembers = true,
+            bool doNotEmitCompilationMetadataReferences = false,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default,
             HashAlgorithmName? pdbChecksumAlgorithm = null,
             Encoding? defaultSourceFileEncoding = null,
@@ -244,6 +252,7 @@ namespace Microsoft.CodeAnalysis.Emit
             RuntimeMetadataVersion = runtimeMetadataVersion;
             TolerateErrors = tolerateErrors;
             IncludePrivateMembers = includePrivateMembers;
+            DoNotEmitCompilationMetadataReferences = doNotEmitCompilationMetadataReferences;
             InstrumentationKinds = instrumentationKinds.NullToEmpty();
             PdbChecksumAlgorithm = pdbChecksumAlgorithm ?? HashAlgorithmName.SHA256;
             DefaultSourceFileEncoding = defaultSourceFileEncoding;
@@ -262,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Emit
             other.RuntimeMetadataVersion,
             other.TolerateErrors,
             other.IncludePrivateMembers,
+            other.DoNotEmitCompilationMetadataReferences,
             other.InstrumentationKinds,
             other.PdbChecksumAlgorithm,
             other.DefaultSourceFileEncoding,
@@ -297,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
                 TolerateErrors == other.TolerateErrors &&
                 IncludePrivateMembers == other.IncludePrivateMembers &&
+                DoNotEmitCompilationMetadataReferences == other.DoNotEmitCompilationMetadataReferences &&
                 InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b) &&
                 DefaultSourceFileEncoding == other.DefaultSourceFileEncoding &&
                 FallbackSourceFileEncoding == other.FallbackSourceFileEncoding;
@@ -316,9 +327,10 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(RuntimeMetadataVersion,
                    Hash.Combine(TolerateErrors,
                    Hash.Combine(IncludePrivateMembers,
+                   Hash.Combine(DoNotEmitCompilationMetadataReferences,
                    Hash.Combine(Hash.CombineValues(InstrumentationKinds),
                    Hash.Combine(DefaultSourceFileEncoding,
-                   Hash.Combine(FallbackSourceFileEncoding, 0)))))))))))))));
+                   Hash.Combine(FallbackSourceFileEncoding, 0))))))))))))))));
         }
 
         public static bool operator ==(EmitOptions? left, EmitOptions? right)
@@ -501,6 +513,16 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EmitOptions(this) { RuntimeMetadataVersion = version };
+        }
+
+        public EmitOptions WithDoNotEmitCompilationMetadataReferences(bool doNotEmitCompilationMetadataReferences)
+        {
+            if (doNotEmitCompilationMetadataReferences == DoNotEmitCompilationMetadataReferences)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { DoNotEmitCompilationMetadataReferences = doNotEmitCompilationMetadataReferences };
         }
 
         public EmitOptions WithTolerateErrors(bool value)

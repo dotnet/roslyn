@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Emit
                    metadataOnly: false,
                    deterministic: false,
                    emitTestCoverageData: false,
+                   doNotEmitCompilationMetadataReferences: false,
                    cancellationToken: cancellationToken)
         {
             Debug.Assert(previousGeneration != null);

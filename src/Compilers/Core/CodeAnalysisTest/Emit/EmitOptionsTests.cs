@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.Pdb : DebugInformationFormat.PortablePdb);
             TestProperty((old, value) => old.WithTolerateErrors(value), opt => opt.TolerateErrors, true);
             TestProperty((old, value) => old.WithIncludePrivateMembers(value), opt => opt.IncludePrivateMembers, false);
+            TestProperty((old, value) => old.WithDoNotEmitCompilationMetadataReferences(value), opt => opt.DoNotEmitCompilationMetadataReferences, false);
             TestProperty((old, value) => old.WithInstrumentationKinds(value), opt => opt.InstrumentationKinds, ImmutableArray.Create(InstrumentationKind.TestCoverage));
         }
 
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.RuntimeMetadataVersion),
                 nameof(EmitOptions.TolerateErrors),
                 nameof(EmitOptions.IncludePrivateMembers),
+                nameof(EmitOptions.DoNotEmitCompilationMetadataReferences),
                 nameof(EmitOptions.InstrumentationKinds),
                 nameof(EmitOptions.DefaultSourceFileEncoding),
                 nameof(EmitOptions.FallbackSourceFileEncoding),

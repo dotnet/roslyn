@@ -131,6 +131,22 @@ foreach (var handle in metadataReader.GetCustomDebugInformation(EntityHandle.Mod
 }
 ```
 
+#### Disabling Compilation Metadata References
+The `/debugportablenoreferences` command-line option for `csc`/`vbc` (or `DebugPortableNoReferences` in the `Csc` or `Vbc` MSBuild task) can be used to not emit this section.
+
+Consider when an assembly changes in a way that does not affect some/all of the consumers.
+For example if a new method/class/etc is added (if using ref assemblies this only applies to public entites).
+
+When a consumer re-compiles all of its debugging information and IL will come out identically (assuming deterministic compilation is used).
+However, this section will change content since the MVID in of one of its dependencies changed. 
+This causes the PDB to change GUIDs which in turn causes the assembly to change PDB Guids and MVID.
+All of these new DLLs/PDBs need to be copied, indexed, etc which slows down build time and increase space usage.
+With this section disabled, the consumers may produce the same content (assuming the change to the dependency
+doesn't affect them) and will reduce how much further build steps need to happen.
+
+However, the PDB no longer has the information about the exact MVID/details of each of the dependencies making it not possible to reconstruct the exact inputs to compilation from just the PDB.
+If you need this functionality you should not use this flag and you by-design want new PDBs any time a dependency changes.
+
 ### Compiler Options custom debug information
 
 The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type. Keys may be different for Visual Basic and C#. They are serialized to reflect the command line arguments representing the same values

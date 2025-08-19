@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         metadataOnly: false,
                         isDeterministic: false,
                         emitTestCoverageData: false,
+                        doNotEmitCompilationMetadataReferences: false,
                         privateKeyOpt: null,
                         CancellationToken.None);
 
@@ -306,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataOnly: false,
                 isDeterministic: false,
                 emitTestCoverageData: false,
+                doNotEmitCompilationMetadataReferences: false,
                 privateKeyOpt: null,
                 CancellationToken.None);
 
@@ -390,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataOnly: false,
                 isDeterministic: false,
                 emitTestCoverageData: false,
+                doNotEmitCompilationMetadataReferences: false,
                 privateKeyOpt: null,
                 CancellationToken.None);
 
@@ -438,6 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     metadataOnly: false,
                     isDeterministic: false,
                     emitTestCoverageData: false,
+                    doNotEmitCompilationMetadataReferences: false,
                     privateKeyOpt: null,
                     CancellationToken.None);
 

@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
             writer.Write("tolerateErrors", options.TolerateErrors);
             writer.Write("includePrivateMembers", options.IncludePrivateMembers);
+            writer.Write("doNotEmitCompilationMetadataReferences", options.DoNotEmitCompilationMetadataReferences);
             writer.WriteKey("instrumentationKinds");
             writer.WriteArrayStart();
             if (!options.InstrumentationKinds.IsDefault)

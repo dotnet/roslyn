@@ -136,6 +136,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(DebugType)]; }
         }
 
+        public bool DebugPortableNoReferences
+        {
+            set { _store[nameof(DebugPortableNoReferences)] = value; }
+            get { return _store.GetOrDefault(nameof(DebugPortableNoReferences), false); }
+        }
+
         public string? SourceLink
         {
             set { _store[nameof(SourceLink)] = value; }
@@ -879,6 +885,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             commandLine.AppendPlusOrMinusSwitch("/debug", _store, nameof(EmitDebugInformation));
             commandLine.AppendSwitchIfNotNull("/debug:", DebugType);
+            commandLine.AppendWhenTrue("/debugportablenoreferences", _store, nameof(DebugPortableNoReferences));
 
             commandLine.AppendPlusOrMinusSwitch("/delaysign", _store, nameof(DelaySign));
 

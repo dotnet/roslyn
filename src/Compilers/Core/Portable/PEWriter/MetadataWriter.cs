@@ -78,6 +78,7 @@ namespace Microsoft.Cci
 
         internal readonly bool MetadataOnly;
         internal readonly bool EmitTestCoverageData;
+        internal readonly bool DoNotEmitCompilationMetadataReferences;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<(ImmutableArray<byte>, bool), int> _smallMethodBodies;
@@ -99,6 +100,7 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool deterministic,
             bool emitTestCoverageData,
+            bool doNotEmitCompilationMetadataReferences,
             CancellationToken cancellationToken)
         {
             Debug.Assert(metadata != debugMetadataOpt);
@@ -107,6 +109,7 @@ namespace Microsoft.Cci
             _deterministic = deterministic;
             this.MetadataOnly = metadataOnly;
             this.EmitTestCoverageData = emitTestCoverageData;
+            this.DoNotEmitCompilationMetadataReferences = doNotEmitCompilationMetadataReferences;
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
@@ -1818,7 +1821,11 @@ namespace Microsoft.Cci
                     }
 
                     EmbedCompilationOptions(module);
-                    EmbedMetadataReferenceInformation(module);
+
+                    if (!DoNotEmitCompilationMetadataReferences)
+                    {
+                        EmbedMetadataReferenceInformation(module);
+                    }
                 }
             }
 

@@ -382,6 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         metadataOnly:=False,
                         isDeterministic:=False,
                         emitTestCoverageData:=False,
+                        doNotEmitCompilationMetadataReferences:=False,
                         privateKeyOpt:=Nothing,
                         cancellationToken:=Nothing)
 
@@ -431,6 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         metadataOnly:=False,
                         isDeterministic:=False,
                         emitTestCoverageData:=False,
+                        doNotEmitCompilationMetadataReferences:=False,
                         privateKeyOpt:=Nothing,
                         cancellationToken:=Nothing)
 
@@ -481,6 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         metadataOnly:=False,
                         isDeterministic:=False,
                         emitTestCoverageData:=False,
+                        doNotEmitCompilationMetadataReferences:=False,
                         privateKeyOpt:=Nothing,
                         cancellationToken:=Nothing)
 

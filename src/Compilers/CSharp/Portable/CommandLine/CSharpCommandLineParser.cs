@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool emitPdb = false;
             DebugInformationFormat debugInformationFormat = PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb;
             bool debugPlus = false;
+            bool debugPortableNoReferences = false;
             string? pdbPath = null;
             bool noStdLib = IsScriptCommandLineParser; // don't add mscorlib from sdk dir when running scripts
             string? outputDirectory = baseDirectory;
@@ -825,6 +826,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             continue;
 
+                        case "debugportablenoreferences":
+                            debugPortableNoReferences = true;
+                            continue;
+
                         case "debug+":
                             //guard against "debug+:xx"
                             if (valueMemory is not null)
@@ -1531,6 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataOnly: refOnly,
                 includePrivateMembers: !refOnly && outputRefFilePath == null,
                 debugInformationFormat: debugInformationFormat,
+                doNotEmitCompilationMetadataReferences: debugPortableNoReferences,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
                 baseAddress: baseAddress,

@@ -99,6 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim concurrentBuild As Boolean = True
             Dim deterministic As Boolean = False
             Dim emitPdb As Boolean
+            Dim debugPortableNoReferences As Boolean
             Dim debugInformationFormat As DebugInformationFormat = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
@@ -761,6 +762,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             emitPdb = True
+                            Continue For
+
+                        Case "debugportablenoreferences"
+                            debugPortableNoReferences = True
                             Continue For
 
                         Case "debug+"
@@ -1471,6 +1476,7 @@ lVbRuntimePlus:
                 metadataOnly:=refOnly,
                 includePrivateMembers:=Not refOnly AndAlso outputRefFileName Is Nothing,
                 debugInformationFormat:=debugInformationFormat,
+                doNotEmitCompilationMetadataReferences:=debugPortableNoReferences,
                 pdbFilePath:=Nothing, ' to be determined later
                 outputNameOverride:=Nothing,  ' to be determined later
                 fileAlignment:=fileAlignment,
