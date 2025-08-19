@@ -72,8 +72,13 @@
     </PropertyGroup>
     <ItemGroup>
       <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
-      <_CommandLineCompilerReferenceDeduplicated Include="@(_CommandLineCompilerReferenceContent->'%(Filename)%(Extension)')" Original="%(Identity)" KeepDuplicates="false" />
-      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <_CommandLineCompilerReferenceKey Include="@(_CommandLineCompilerReferenceContent->'%(Filename)%(Extension)')" Original="%(Identity)" KeepDuplicates="false" />
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(_CommandLineCompilerReferenceKey)">
+      <Output TaskParameter="Filtered" ItemName="_CommandLineCompilerReferenceDeduplicated" />
+    </RemoveDuplicates>
+    <ItemGroup>
+      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 </Project>
