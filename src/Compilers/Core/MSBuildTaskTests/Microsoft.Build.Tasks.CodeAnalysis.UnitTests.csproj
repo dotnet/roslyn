@@ -16,7 +16,15 @@
     <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all"
-                      OutputItemType="CscReference" />
+                      OutputItemType="CommandLineCompilerReference" />
+    <ProjectReference Include="..\..\VisualBasic\vbc\AnyCpu\vbc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference" />
+    <ProjectReference Include="..\..\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
@@ -58,13 +66,13 @@
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragment>
   </Target>
-  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CscReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
+  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CommandLineCompilerReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
     <PropertyGroup>
-      <_CscReferenceOutputPath>@(CscReference->'%(RootDir)%(Directory)*.*')</_CscReferenceOutputPath>
+      <_CommandLineCompilerReferenceOutputPath>@(CommandLineCompilerReference->'%(RootDir)%(Directory)*.*')</_CommandLineCompilerReferenceOutputPath>
     </PropertyGroup>
     <ItemGroup>
-      <_CscReferenceContent Include="$(_CscReferenceOutputPath)" />
-      <Content Include="@(_CscReferenceContent)" CopyToOutputDirectory="PreserveNewest" />
+      <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
+      <Content Include="@(_CommandLineCompilerReferenceContent)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 </Project>

@@ -558,6 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "sdkpath":
+                            noSdkPath = false;
                             sdkDirectory = RemoveQuotesAndSlashes(valueMemory);
 
                             continue;

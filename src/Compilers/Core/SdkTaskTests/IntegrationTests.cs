@@ -15,10 +15,11 @@ public sealed class IntegrationTests : IntegrationTestBase
         // Our task will search for `../bincore` directory.
         // We cannot populate it during build because our test infrastructure
         // would not rehydrate that (as it's outside the output directory).
-        var realBincoreDirectory = "../bincore";
-        if (!Directory.Exists(realBincoreDirectory))
+        var source = "bincore";
+        var target = "../bincore";
+        if (!Directory.Exists(target))
         {
-            Directory.Move("bincore", "../bincore");
+            Directory.Move(source, target);
         }
     }
 }

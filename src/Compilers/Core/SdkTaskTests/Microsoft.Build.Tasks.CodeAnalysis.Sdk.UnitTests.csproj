@@ -17,7 +17,19 @@
     <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all"
-                      OutputItemType="CscReference"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\VisualBasic\vbc\AnyCpu\vbc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
                       SkipGetTargetFrameworkProperties="true"
                       SetTargetFramework="TargetFramework=$(NetRoslyn)" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
@@ -32,13 +44,13 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CscReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
+  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CommandLineCompilerReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
     <PropertyGroup>
-      <_CscReferenceOutputPath>@(CscReference->'%(RootDir)%(Directory)*.*')</_CscReferenceOutputPath>
+      <_CommandLineCompilerReferenceOutputPath>@(CommandLineCompilerReference->'%(RootDir)%(Directory)*.*')</_CommandLineCompilerReferenceOutputPath>
     </PropertyGroup>
     <ItemGroup>
-      <_CscReferenceContent Include="$(_CscReferenceOutputPath)" />
-      <Content Include="@(_CscReferenceContent)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
+      <Content Include="@(_CommandLineCompilerReferenceContent)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 </Project>

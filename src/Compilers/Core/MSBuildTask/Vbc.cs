@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
+using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
@@ -442,6 +443,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/netcf", this._store, "TargetCompactFramework");
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", this._store, "HighEntropyVA");
+
+            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
+            // Pass this option only to the built-in compiler (customer-supplied compiler might not support it).
+            if (SdkPath is null && IsSdkFrameworkToCoreBridgeTask && UsingBuiltinTool)
+            {
+                commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
+            }
 
             if (0 == String.Compare(this.VBRuntimePath, this.VBRuntime, StringComparison.OrdinalIgnoreCase))
             {

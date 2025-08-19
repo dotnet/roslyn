@@ -89,8 +89,8 @@ public abstract class IntegrationTestBase : TestBase
             additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_Csc(bool useSharedCompilation)
     {
         if (_msbuildExecutable == null) return;
 
@@ -100,20 +100,53 @@ public abstract class IntegrationTestBase : TestBase
             _tempDirectory,
             new Dictionary<string, string>
             {
-                    { "File.cs", """
-                        System.Console.WriteLine("Hello from file");
-                        """ },
-                    { "Test.csproj", $"""
-                        <Project>
-                            <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
-                            <Target Name="CustomTarget">
-                                <Csc Sources="File.cs" />
-                            </Target>
-                        </Project>
-                        """ },
+                { "File.cs", """
+                    System.Console.WriteLine("Hello from file");
+                    """ },
+                { "Test.csproj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="CustomTarget">
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" />
+                        </Target>
+                    </Project>
+                    """ },
             });
         _output.WriteLine(result.Output);
         Assert.Equal(0, result.ExitCode);
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_Vbc(bool useSharedCompilation)
+    {
+        if (_msbuildExecutable == null) return;
+
+        var result = RunCommandLineCompiler(
+            _msbuildExecutable,
+            "/m /nr:false /t:CustomTarget Test.vbproj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "File.vb", """
+                    Public Module Program
+                        Public Sub Main()
+                            System.Console.WriteLine("Hello from file")
+                        End Sub
+                    End Module
+                    """ },
+                { "Test.vbproj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="CustomTarget">
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" />
+                        </Target>
+                    </Project>
+                    """ },
+            });
+        _output.WriteLine(result.Output);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
     }
 }
 
