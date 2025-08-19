@@ -2613,7 +2613,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         {
             var tree = compilation.SyntaxTrees[0];
             SyntaxNode? syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
-            Debug.Assert(syntaxNode is not null, "Did you forget to place /*<bind>*/ comments in your source?");
+            Debug.Assert(syntaxNode is not null, $"Ensure a /*<bind>*/ comment is used around syntax matching the type argument for '{nameof(TSyntaxNode)}'.");
             VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
         }
 
