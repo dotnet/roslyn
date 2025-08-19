@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -25,17 +26,13 @@ internal interface IUserFacingStringDocumentWatcher : ILanguageService
     /// </summary>
     bool TryGetCachedAnalysis(string stringValue, string context, out UserFacingStringAnalysis analysis);
 
-    /// <summary>
-    /// Ensures a document is analyzed, potentially triggering background AI analysis.
-    /// </summary>
-    Task EnsureDocumentAnalyzedAsync(Document document, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets analysis for a specific string, using cache if available or triggering analysis if needed.
+    /// Analyzes a specific list of strings with their basic contexts in the background.
+    /// This method processes only the provided strings rather than the entire document.
     /// </summary>
-    Task<UserFacingStringAnalysis?> GetStringAnalysisAsync(
-        string stringValue, 
-        string context, 
-        Document document, 
+    Task AnalyzeSpecificStringsAsync(
+        Document document,
+        IReadOnlyList<(string stringValue, string basicContext, TextSpan location)> stringsToAnalyze,
         CancellationToken cancellationToken);
 }

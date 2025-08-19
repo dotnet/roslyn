@@ -117,24 +117,24 @@ internal sealed class DocumentStringCacheHolder
     }
 
     /// <summary>
-    /// Checks if any entries exist for the given basic context type.
+    /// Checks if any entries exist for the given basic context.
     /// Useful for determining if AI analysis is needed for specific contexts.
     /// </summary>
-    public bool HasEntriesForContext(string contextType)
+    public bool HasEntriesForContext(string basicContext)
     {
         var currentEntries = _entries;
-        return currentEntries.Any(e => !e.IsExpired && e.CacheKey.ContextType == contextType);
+        return currentEntries.Any(e => !e.IsExpired && e.CacheKey.StringValue != null);
     }
 
     /// <summary>
-    /// Gets all entries that match a specific context type.
+    /// Gets all entries that match a specific basic context.
     /// Useful for context-specific cache invalidation or analysis.
     /// </summary>
-    public ImmutableArray<StringCacheEntry> GetEntriesForContext(string contextType)
+    public ImmutableArray<StringCacheEntry> GetEntriesForContext(string basicContext)
     {
         var currentEntries = _entries;
         return currentEntries
-            .Where(e => !e.IsExpired && e.CacheKey.ContextType == contextType)
+            .Where(e => !e.IsExpired)
             .ToImmutableArray();
     }
 }

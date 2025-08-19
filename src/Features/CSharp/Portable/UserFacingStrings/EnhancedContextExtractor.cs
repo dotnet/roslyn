@@ -21,30 +21,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UserFacingStrings;
 internal static class EnhancedContextExtractor
 {
     /// <summary>
-    /// Extracts basic context information for the AI (descriptive and informative).
+    /// Extracts basic context type for cache key (simple and stable).
     /// </summary>
-    public static string ExtractBasicContext(LiteralExpressionSyntax stringLiteral)
+    public static string ExtractBasicContext(SyntaxToken stringToken)
     {
-        var parent = stringLiteral.Parent;
+        var parent = stringToken.Parent;
 
-        // Provide minimal context information for the AI
         return parent switch
         {
-            ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation =>
-                $"Argument to method: {invocation.Expression}",
-            AssignmentExpressionSyntax assignment =>
-                $"Assignment to: {assignment.Left}",
-            VariableDeclaratorSyntax declarator =>
-                $"Variable initialization: {declarator.Identifier}",
-            ReturnStatementSyntax =>
-                "Return statement",
-            AttributeSyntax =>
-                "Attribute value",
-            ThrowStatementSyntax =>
-                "Exception message",
-            ThrowExpressionSyntax =>
-                "Exception message",
-            _ => "Other context"
+            // Exception-related contexts
+            ThrowStatementSyntax => "Exception",
+            ThrowExpressionSyntax => "Exception",
+            
+            // Assignment contexts
+            AssignmentExpressionSyntax assignment when assignment.Right.Span.Contains(stringToken.Span) => "Assignment",
+            VariableDeclaratorSyntax => "Assignment",
+            
+            // Method call contexts  
+            ArgumentSyntax arg when IsMessageBoxCall(arg) => "MessageBox",
+            ArgumentSyntax => "Argument",
+            
+            // Return contexts
+            ReturnStatementSyntax => "Return",
+            
+            // Other contexts
+            AttributeSyntax => "Other",
+            _ => "Other"
         };
     }
 
@@ -53,19 +55,19 @@ internal static class EnhancedContextExtractor
     /// This includes symbol information, method signatures, surrounding patterns, etc.
     /// </summary>
     public static async Task<string> ExtractEnhancedContextAsync(
-        LiteralExpressionSyntax stringLiteral,
-        Document document,
+        SyntaxToken stringToken, 
+        Document document, 
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel == null)
-            return ExtractBasicContext(stringLiteral);
+            return ExtractBasicContext(stringToken);
 
         var context = new StringBuilder();
-        var node = stringLiteral.Parent;
+        var node = stringToken.Parent;
 
         // Add basic context
-        context.Append("Context: ").Append(ExtractBasicContext(stringLiteral));
+        context.Append("Context: ").Append(ExtractBasicContext(stringToken));
 
         // Add containing member information
         var containingMember = node?.FirstAncestorOrSelf<MemberDeclarationSyntax>();
@@ -111,20 +113,20 @@ internal static class EnhancedContextExtractor
         }
 
         // Add specific usage patterns
-        AddUsagePattern(stringLiteral, context, semanticModel);
+        AddUsagePattern(stringToken, context, semanticModel);
 
         // Add surrounding code context (preceding/following statements)
-        AddSurroundingCodeContext(stringLiteral, context);
+        AddSurroundingCodeContext(stringToken, context);
 
         return context.ToString();
     }
 
     private static void AddUsagePattern(
-        LiteralExpressionSyntax stringLiteral,
-        StringBuilder context,
+        SyntaxToken stringToken, 
+        StringBuilder context, 
         SemanticModel semanticModel)
     {
-        var parent = stringLiteral.Parent;
+        var parent = stringToken.Parent;
 
         switch (parent)
         {
@@ -209,9 +211,9 @@ internal static class EnhancedContextExtractor
         }
     }
 
-    private static void AddSurroundingCodeContext(LiteralExpressionSyntax stringLiteral, StringBuilder context)
+    private static void AddSurroundingCodeContext(SyntaxToken stringToken, StringBuilder context)
     {
-        var node = stringLiteral.Parent;
+        var node = stringToken.Parent;
         
         // Look at preceding statement
         var statement = node?.FirstAncestorOrSelf<StatementSyntax>();

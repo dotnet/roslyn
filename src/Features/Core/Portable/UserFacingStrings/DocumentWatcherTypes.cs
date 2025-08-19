@@ -14,41 +14,25 @@ namespace Microsoft.CodeAnalysis.UserFacingStrings;
 /// </summary>
 internal readonly struct StringCacheKey : IEquatable<StringCacheKey>
 {
-    public int ContentHash { get; }
-    public string ContextType { get; }
+    public string StringValue { get; }
+    public string BasicContext { get; }
 
     public StringCacheKey(string stringValue, string basicContext)
     {
-        ContentHash = stringValue.GetHashCode();
-        ContextType = ExtractContextType(basicContext);
+        StringValue = stringValue;
+        BasicContext = basicContext;
     }
 
     public bool Equals(StringCacheKey other) =>
-        ContentHash == other.ContentHash &&
-        ContextType == other.ContextType;
+        StringValue == other.StringValue &&
+        BasicContext == other.BasicContext;
 
     public override bool Equals(object? obj) => obj is StringCacheKey other && Equals(other);
 
-    public override int GetHashCode() => ContentHash.GetHashCode() ^ (ContextType?.GetHashCode() ?? 0);
+    public override int GetHashCode() => (StringValue?.GetHashCode() ?? 0) ^ (BasicContext?.GetHashCode() ?? 0);
 
     public static bool operator ==(StringCacheKey left, StringCacheKey right) => left.Equals(right);
     public static bool operator !=(StringCacheKey left, StringCacheKey right) => !left.Equals(right);
-
-    private static string ExtractContextType(string context)
-    {
-        if (context.Contains("Exception", StringComparison.OrdinalIgnoreCase))
-            return "Exception";
-        if (context.Contains("MessageBox", StringComparison.OrdinalIgnoreCase))
-            return "MessageBox";
-        if (context.Contains("Argument", StringComparison.OrdinalIgnoreCase))
-            return "Argument";
-        if (context.Contains("Assignment", StringComparison.OrdinalIgnoreCase))
-            return "Assignment";
-        if (context.Contains("Return", StringComparison.OrdinalIgnoreCase))
-            return "Return";
-        
-        return "Other";
-    }
 }
 
 /// <summary>
