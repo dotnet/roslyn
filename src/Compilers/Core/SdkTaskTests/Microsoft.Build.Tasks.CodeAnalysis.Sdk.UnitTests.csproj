@@ -50,7 +50,8 @@
     </PropertyGroup>
     <ItemGroup>
       <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
-      <Content Include="@(_CommandLineCompilerReferenceContent)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <_CommandLineCompilerReferenceDeduplicated Include="@(_CommandLineCompilerReferenceContent->'%(Filename)%(Extension)')" Original="%(Identity)" KeepDuplicates="false" />
+      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 </Project>
