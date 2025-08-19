@@ -2547,6 +2547,9 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static bool ParameterDefaultValuesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
         => oldParameters.SequenceEqual(newParameters, ParameterDefaultValuesEquivalent);
 
+    protected static bool LambdaParametersEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
+        => oldParameters.SequenceEqual(newParameters, LambdaParameterEquivalent);
+
     protected static bool CustomModifiersEquivalent(CustomModifier oldModifier, CustomModifier newModifier, bool exact)
         => oldModifier.IsOptional == newModifier.IsOptional &&
            TypesEquivalent(oldModifier.Modifier, newModifier.Modifier, exact);
@@ -2588,6 +2591,16 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static bool ParameterDefaultValuesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
         => oldParameter.HasExplicitDefaultValue == newParameter.HasExplicitDefaultValue &&
            (!oldParameter.HasExplicitDefaultValue || Equals(oldParameter.ExplicitDefaultValue, newParameter.ExplicitDefaultValue));
+
+    /// <summary>
+    /// Lambda parameters are equivallent if the type of the lambda as emitted to IL doesn't change.
+    /// Tuple element names, dynamic, etc. do not affect lambda natural type. 
+    /// Default values and "params" do.
+    /// </summary>
+    protected static bool LambdaParameterEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
+        => ParameterTypesEquivalent(oldParameter, newParameter, exact: false) &&
+           ParameterDefaultValuesEquivalent(oldParameter, newParameter) &&
+           oldParameter.IsParams == newParameter.IsParams;
 
     protected static bool TypeParameterConstraintsEquivalent(ITypeParameterSymbol oldParameter, ITypeParameterSymbol newParameter, bool exact)
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
@@ -6578,8 +6591,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var newLambdaSymbol = (IMethodSymbol)diagnosticContext.RequiredNewSymbol;
 
         // signature validation:
-        if (!ParameterTypesEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, exact: false) ||
-            !ParameterDefaultValuesEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
+        if (!LambdaParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
         {
             // If a delegate type for the lambda is synthesized (anonymous) changing default parameter value changes the synthesized delegate type.
             // If the delegate type is not synthesized the default value is ignored and warning is reported by the compiler.

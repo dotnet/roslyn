@@ -32,7 +32,7 @@ internal readonly struct SynthesizedTypeMaps(
 
     /// <summary>
     /// In C#, the set of anonymous delegates with name that is not determined by parameter types only 
-    /// and need to suffixed by an index (e.g. delegates may have same parameter types but differ in default parameter values);
+    /// and need to be suffixed by an index (e.g. delegates may have same parameter types but differ in default parameter values);
     /// in VB, this set is unused and empty.
     /// </summary>
     public ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> AnonymousDelegatesWithIndexedNames { get; }

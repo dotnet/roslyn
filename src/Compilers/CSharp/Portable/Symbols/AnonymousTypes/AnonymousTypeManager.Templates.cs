@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-#nullable enable
         private ConcurrentDictionary<string, AnonymousTypeTemplateSymbol> AnonymousTypeTemplates
         {
             get

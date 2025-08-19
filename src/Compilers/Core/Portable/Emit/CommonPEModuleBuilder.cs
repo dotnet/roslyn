@@ -1087,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
-        internal override SynthesizedTypeMaps GetAllSynthesizedTypes()
+        internal sealed override SynthesizedTypeMaps GetAllSynthesizedTypes()
             => Compilation.CommonAnonymousTypeManager.GetSynthesizedTypeMaps();
 
         #endregion
