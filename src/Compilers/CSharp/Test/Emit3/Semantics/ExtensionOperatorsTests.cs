@@ -3647,35 +3647,49 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_UnaryNegation (
                 class C2 x
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_UnaryNegation
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         class C2 op_UnaryNegation (
@@ -3721,35 +3735,49 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_UnaryNegation (
                 class C2 x
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_UnaryNegation
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_UnaryNegation (
@@ -3787,35 +3815,49 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_UnaryNegation (
                 class C2 x
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_UnaryNegation
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_UnaryNegation (
@@ -3856,8 +3898,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -3865,8 +3907,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
-                "(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
+                "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -3898,14 +3940,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+            AssertEx.Equal(["(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -3938,14 +3980,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(S1).operator checked -(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+            AssertEx.Equal(["(E.extension(S1).operator checked -(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -3982,10 +4024,10 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{trueName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{trueName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{falseName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{falseName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{trueName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{trueName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{falseName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{falseName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -3993,10 +4035,10 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator true, System.Boolean E.<>E__0." + trueName + "(S1 x))",
-                "(E.extension(S1).operator true(S1), System.Boolean E.<>E__0." + trueName + "(S1 x))",
-                "(E.extension(S1).operator false, System.Boolean E.<>E__0." + falseName + "(S1 x))",
-                "(E.extension(S1).operator false(S1), System.Boolean E.<>E__0." + falseName + "(S1 x))"],
+                "(E.extension(S1).operator true, System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + trueName + "(S1 x))",
+                "(E.extension(S1).operator true(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + trueName + "(S1 x))",
+                "(E.extension(S1).operator false, System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))",
+                "(E.extension(S1).operator false(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -9867,23 +9909,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_DecrementAssignment () cil managed 
         {
@@ -9892,13 +9943,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_DecrementAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         void op_DecrementAssignment (
@@ -9946,23 +10002,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_DecrementAssignment () cil managed 
         {
@@ -9971,13 +10036,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_DecrementAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_DecrementAssignment (
@@ -10017,23 +10087,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_DecrementAssignment () cil managed 
         {
@@ -10042,13 +10121,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_DecrementAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_DecrementAssignment (
@@ -10089,8 +10173,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -10098,8 +10182,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
-                "(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
+                "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -10131,14 +10215,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(ref S1).operator " + op + "(), void E.<>E__0." + opName + "())"],
+            AssertEx.Equal(["(E.extension(ref S1).operator " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -10173,8 +10257,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -10182,8 +10266,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator checked " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
-                "(E.extension(S1).operator checked " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                "(E.extension(S1).operator checked " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
+                "(E.extension(S1).operator checked " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -10217,14 +10301,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(ref S1).operator checked " + op + "(), void E.<>E__0." + opName + "())"],
+            AssertEx.Equal(["(E.extension(ref S1).operator checked " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -18383,36 +18467,50 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_Subtraction (
                 class C2 x,
                 class C2 y
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_Subtraction
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         class C2 op_Subtraction (
@@ -18459,36 +18557,50 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_Subtraction (
                 class C2 x,
                 class C2 y
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_Subtraction
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_Subtraction (
@@ -18527,36 +18639,50 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_Subtraction (
                 class C2 x,
                 class C2 y
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_Subtraction
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_Subtraction (
@@ -19245,8 +19371,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -19254,8 +19380,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + ToCRefOp(op) + ", S1 E.<>E__0." + opName + "(S1 x, S1 y))",
-                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1), S1 E.<>E__0." + opName + "(S1 x, S1 y))"],
+                "(E.extension(S1).operator " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
+                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -19290,8 +19416,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -19299,8 +19425,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", S1 E.<>E__0." + opName + "(S1 x, S1 y))",
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1), S1 E.<>E__0." + opName + "(S1 x, S1 y))"],
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -26467,23 +26593,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_SubtractionAssignment (
                 class C2 y
@@ -26494,13 +26629,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_SubtractionAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         void op_SubtractionAssignment (
@@ -26549,23 +26689,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_SubtractionAssignment (
                 class C2 y
@@ -26576,13 +26725,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_SubtractionAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_SubtractionAssignment (
@@ -26623,23 +26777,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_SubtractionAssignment (
                 class C2 y
@@ -26650,13 +26813,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_SubtractionAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_SubtractionAssignment (
@@ -26698,8 +26866,8 @@ public class S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -26707,8 +26875,8 @@ public class S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + ToCRefOp(op) + ", void E.<>E__0." + opName + "(S1 y))",
-                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1), void E.<>E__0." + opName + "(S1 y))"],
+                "(E.extension(S1).operator " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
+                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -26743,8 +26911,8 @@ public class S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -26752,8 +26920,8 @@ public class S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", void E.<>E__0." + opName + "(S1 y))",
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1), void E.<>E__0." + opName + "(S1 y))"],
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 

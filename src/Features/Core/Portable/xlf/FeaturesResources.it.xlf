@@ -3613,6 +3613,11 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
         <target state="translated">Incorporata</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
       </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="external">
         <source>external</source>
         <target state="translated">external</target>

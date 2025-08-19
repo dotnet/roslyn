@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(right);
                                 Debug.Assert(assignment.Type.IsDynamic() || TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false, AssignmentKind.SimpleAssignment));
                                 return;
                             }
                         }
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite simple assignment to field/property.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
                             return;
                         }
 
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite as simple assignment.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
                             return;
                         }
 
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var rewrittenRight = VisitExpression(right);
                         Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false));
+                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false, AssignmentKind.SimpleAssignment));
                         return;
                     }
 

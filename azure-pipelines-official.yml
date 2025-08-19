@@ -3,6 +3,7 @@ trigger:
     include:
     - main
     - main-vs-deps
+    - community
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
@@ -111,6 +112,7 @@ extends:
   parameters:
     featureFlags:
       autoBaseline: true
+      incrementalSDLBinaryAnalysis: false
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
@@ -127,7 +129,7 @@ extends:
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
       name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022preview.amd64
+      image: windows.vs2022preview.scout.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -137,11 +139,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.13') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.14') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.13
+            MirrorBranch: release/dev17.14
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 

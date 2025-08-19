@@ -4604,7 +4604,7 @@ outerDefault:
                     Debug.Assert(
                         !forExtensionMethodThisArg ||
                         (!conversion.IsDynamic ||
-                            (ignoreOpenTypes && parameters.ParameterTypes[argumentPosition].Type.ContainsTypeParameter(parameterContainer: (MethodSymbol)candidate))));
+                            (ignoreOpenTypes && TypeContainsTypeParameterFromContainer(candidate, parameters.ParameterTypes[argumentPosition].Type))));
 
                     if (forExtensionMethodThisArg && !conversion.IsDynamic && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
@@ -4702,7 +4702,7 @@ outerDefault:
             // - Then, any parameter whose type is open (i.e. contains a type parameter; see §4.4.2) is elided, along with its corresponding parameter(s).
             // and
             // - The modified parameter list for F is applicable to the modified argument list in terms of section §7.5.3.1
-            if (ignoreOpenTypes && parameterType.ContainsTypeParameter(parameterContainer: (MethodSymbol)candidate))
+            if (ignoreOpenTypes && TypeContainsTypeParameterFromContainer(candidate, parameterType))
             {
                 // defer applicability check to runtime:
                 return Conversion.ImplicitDynamic;
@@ -4746,6 +4746,16 @@ outerDefault:
             {
                 return Conversion.NoConversion;
             }
+        }
+
+        private static bool TypeContainsTypeParameterFromContainer(Symbol container, TypeSymbol parameterType)
+        {
+            if (parameterType.ContainsTypeParameter(typeParameterContainer: container))
+            {
+                return true;
+            }
+
+            return container.GetIsNewExtensionMember() && parameterType.ContainsTypeParameter(typeParameterContainer: container.ContainingType);
         }
 
         private static TMember GetConstructedFrom<TMember>(TMember member) where TMember : Symbol
