@@ -40,11 +40,6 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     private readonly VisualStudioWorkspaceImpl _workspace;
 
-    /// <summary>
-    /// Protects <see cref="DiagnosticProvider"/>, serializing all access to it.
-    /// </summary>
-    private readonly AsyncBatchingWorkQueue<Func<CancellationToken, Task>> _taskQueue;
-
     public ProjectExternalErrorReporter(
         ProjectId projectId,
         Guid projectHierarchyGuid,
@@ -57,26 +52,9 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         _errorCodePrefix = errorCodePrefix;
         _language = language;
         _workspace = workspace;
-
-        _taskQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
-            TimeSpan.Zero,
-            ProcessWorkAsync,
-            DiagnosticProvider.Listener,
-            DiagnosticProvider.DisposalToken);
     }
 
     private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
-
-    private async ValueTask ProcessWorkAsync(
-        ImmutableSegmentedList<Func<CancellationToken, Task>> list, CancellationToken cancellationToken)
-    {
-        foreach (var func in list)
-        {
-            await func(cancellationToken)
-                .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
-                .ConfigureAwait(false);
-        }
-    }
 
     private static ImmutableArray<ExternalError> GetExternalErrors(IVsEnumExternalErrors pErrors)
     {
@@ -144,14 +122,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
 
     private int ClearErrorsWorker()
     {
-        // Cancel any inflight work.  No point in processing the work to *add* errors, just to clear them when this task runs.
-        _taskQueue.AddWork(cancellationToken =>
-        {
-            DiagnosticProvider.ClearErrors(_projectId);
-            return Task.CompletedTask;
-        },
-        cancelExistingWork: true);
-
+        DiagnosticProvider.ClearErrors(_projectId);
         return VSConstants.S_OK;
     }
 
