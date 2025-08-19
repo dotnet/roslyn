@@ -497,7 +497,9 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
-                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference Then
+                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
