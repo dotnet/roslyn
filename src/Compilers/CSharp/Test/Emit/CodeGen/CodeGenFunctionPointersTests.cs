@@ -12325,22 +12325,22 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalTheory(typeof(NotOnAnyMono), Reason = "https://github.com/dotnet/runtime/issues/118568")]
-        [CombinatorialData]
-        [WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594"), WorkItem("https://github.com/dotnet/runtime/issues/118568")]
         public void Attribute_TypedParamsConstant_EnumArray_ConstructorArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
         {
+            var EvalString = ExecutionConditionUtil.IsMonoCore ? "Console.WriteLine(((((IEnumerable)arg.Value).Cast<object>().SingleOrDefault())) ?? \"null\");" : "Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? \"null\");";
+            var IncludeString = ExecutionConditionUtil.IsMonoCore ? "" : "using System.Reflection;";
             var source = $$"""
                 using System;
                 using System.Collections;
                 using System.Linq;
-                using System.Reflection;
+                {{IncludeString}}
 
                 var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
                 var arg = attr.ConstructorArguments.Single();
-                Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? "null");
+                {{EvalString}}
 
                 class A : Attribute
                 {
