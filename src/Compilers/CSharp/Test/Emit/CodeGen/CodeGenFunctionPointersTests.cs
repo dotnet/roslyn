@@ -12325,7 +12325,9 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [ConditionalTheory(typeof(NotOnAnyMono), Reason = "https://github.com/dotnet/runtime/issues/118568")]
+        [CombinatorialData]
+        [WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
         public void Attribute_TypedParamsConstant_EnumArray_ConstructorArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
