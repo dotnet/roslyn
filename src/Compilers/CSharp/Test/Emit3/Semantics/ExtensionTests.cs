@@ -25539,19 +25539,20 @@ static class E
     }
 }
 """;
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
-        try
-        {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
+        src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
 
-        Debug.Assert(false);
+static class E
+{
+    public static void Deconstruct(this System.Span<int> s, out int i, out int j) { i = 42; j = 43; }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
@@ -25579,7 +25580,6 @@ namespace System
     }
 }
 """;
-#if RELEASE
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
@@ -25588,22 +25588,6 @@ namespace System
             // (8,22): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
             //     extension(System.Span<int> s)
             Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(8, 22));
-#endif
-
-#if DEBUG
-        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
-        try
-        {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            comp.VerifyEmitDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-
-        Debug.Assert(false);
-#endif
     }
 
     [Fact]
