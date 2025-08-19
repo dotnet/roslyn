@@ -723,6 +723,37 @@ True").VerifyDiagnostics();
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70221")]
+        public void Equality_EquatableMember_Struct_NotToSelf()
+        {
+            var source = """
+                using System;
+
+                record struct R(MyStruct Ms);
+
+                struct MyStruct : IEquatable<int>
+                {
+                    public bool Equals(int other) => false;
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular10);
+
+            verifier.VerifyIL("R.Equals(R)", """
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  3
+                  IL_0000:  call       "System.Collections.Generic.EqualityComparer<MyStruct> System.Collections.Generic.EqualityComparer<MyStruct>.Default.get"
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_000b:  ldarg.1
+                  IL_000c:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_0011:  callvirt   "bool System.Collections.Generic.EqualityComparer<MyStruct>.Equals(MyStruct, MyStruct)"
+                  IL_0016:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void RecordStructLanguageVersion()
         {

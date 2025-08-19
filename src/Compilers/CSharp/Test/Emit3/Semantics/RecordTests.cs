@@ -24619,6 +24619,52 @@ record C
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70221")]
+        public void Equality_EquatableMember_Struct_NotToSelf()
+        {
+            var source = """
+                using System;
+
+                record R(MyStruct Ms);
+
+                struct MyStruct : IEquatable<int>
+                {
+                    public bool Equals(int other) => false;
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9);
+
+            verifier.VerifyIL("R.Equals(R)", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0033
+                  IL_0004:  ldarg.1
+                  IL_0005:  brfalse.s  IL_0031
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "System.Type R.EqualityContract.get"
+                  IL_0013:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
+                  IL_0018:  brfalse.s  IL_0031
+                  IL_001a:  call       "System.Collections.Generic.EqualityComparer<MyStruct> System.Collections.Generic.EqualityComparer<MyStruct>.Default.get"
+                  IL_001f:  ldarg.0
+                  IL_0020:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_0025:  ldarg.1
+                  IL_0026:  ldfld      "MyStruct R.<Ms>k__BackingField"
+                  IL_002b:  callvirt   "bool System.Collections.Generic.EqualityComparer<MyStruct>.Equals(MyStruct, MyStruct)"
+                  IL_0030:  ret
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  ret
+                  IL_0033:  ldc.i4.1
+                  IL_0034:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void IEquatableT_01()
         {
