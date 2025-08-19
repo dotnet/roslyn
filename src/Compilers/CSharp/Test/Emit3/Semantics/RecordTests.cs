@@ -24196,6 +24196,146 @@ record C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70221")]
+        public void Equality_Enums()
+        {
+            var source = """
+                using System;
+
+                enum ByteEnum : byte { A, B }
+                enum SByteEnum : sbyte { A, B }
+                enum ShortEnum : short { A, B }
+                enum UShortEnum : ushort { A, B }
+                enum IntEnum : int { A, B }
+                enum UIntEnum : uint { A, B }
+                enum LongEnum : long { A, B }
+                enum ULongEnum : ulong { A, B }
+
+                record EnumsHolder(
+                    ByteEnum A,
+                    SByteEnum B,
+                    ShortEnum C,
+                    UShortEnum D,
+                    IntEnum E,
+                    UIntEnum F,
+                    LongEnum G,
+                    ULongEnum H);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var e1 = new EnumsHolder(
+                            ByteEnum.A,
+                            SByteEnum.A,
+                            ShortEnum.A,
+                            UShortEnum.A,
+                            IntEnum.A,
+                            UIntEnum.A,
+                            LongEnum.A,
+                            ULongEnum.A);
+
+                        var e2 = new EnumsHolder(
+                            ByteEnum.A,
+                            SByteEnum.A,
+                            ShortEnum.A,
+                            UShortEnum.A,
+                            IntEnum.A,
+                            UIntEnum.A,
+                            LongEnum.A,
+                            ULongEnum.A);
+
+                        Console.WriteLine(e1 == e2);
+                        Console.WriteLine(e1 == e1 with { });
+                        Console.WriteLine(e1 == e1 with { A = ByteEnum.B });
+                        Console.WriteLine(e1 == e1 with { B = SByteEnum.B });
+                        Console.WriteLine(e1 == e1 with { C = ShortEnum.B });
+                        Console.WriteLine(e1 == e1 with { D = UShortEnum.B });
+                        Console.WriteLine(e1 == e1 with { E = IntEnum.B });
+                        Console.WriteLine(e1 == e1 with { F = UIntEnum.B });
+                        Console.WriteLine(e1 == e1 with { G = LongEnum.B });
+                        Console.WriteLine(e1 == e1 with { H = ULongEnum.B });
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9, expectedOutput: """
+                True
+                True
+                False
+                False
+                False
+                False
+                False
+                False
+                False
+                False
+                """);
+
+            verifier.VerifyIL("EnumsHolder.Equals(EnumsHolder)", """
+                {
+                  // Code size      149 (0x95)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq        IL_0093
+                  IL_0007:  ldarg.1
+                  IL_0008:  brfalse    IL_0091
+                  IL_000d:  ldarg.0
+                  IL_000e:  callvirt   "System.Type EnumsHolder.EqualityContract.get"
+                  IL_0013:  ldarg.1
+                  IL_0014:  callvirt   "System.Type EnumsHolder.EqualityContract.get"
+                  IL_0019:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
+                  IL_001e:  brfalse.s  IL_0091
+                  IL_0020:  ldarg.0
+                  IL_0021:  ldfld      "ByteEnum EnumsHolder.<A>k__BackingField"
+                  IL_0026:  ldarg.1
+                  IL_0027:  ldfld      "ByteEnum EnumsHolder.<A>k__BackingField"
+                  IL_002c:  bne.un.s   IL_0091
+                  IL_002e:  ldarg.0
+                  IL_002f:  ldfld      "SByteEnum EnumsHolder.<B>k__BackingField"
+                  IL_0034:  ldarg.1
+                  IL_0035:  ldfld      "SByteEnum EnumsHolder.<B>k__BackingField"
+                  IL_003a:  bne.un.s   IL_0091
+                  IL_003c:  ldarg.0
+                  IL_003d:  ldfld      "ShortEnum EnumsHolder.<C>k__BackingField"
+                  IL_0042:  ldarg.1
+                  IL_0043:  ldfld      "ShortEnum EnumsHolder.<C>k__BackingField"
+                  IL_0048:  bne.un.s   IL_0091
+                  IL_004a:  ldarg.0
+                  IL_004b:  ldfld      "UShortEnum EnumsHolder.<D>k__BackingField"
+                  IL_0050:  ldarg.1
+                  IL_0051:  ldfld      "UShortEnum EnumsHolder.<D>k__BackingField"
+                  IL_0056:  bne.un.s   IL_0091
+                  IL_0058:  ldarg.0
+                  IL_0059:  ldfld      "IntEnum EnumsHolder.<E>k__BackingField"
+                  IL_005e:  ldarg.1
+                  IL_005f:  ldfld      "IntEnum EnumsHolder.<E>k__BackingField"
+                  IL_0064:  bne.un.s   IL_0091
+                  IL_0066:  ldarg.0
+                  IL_0067:  ldfld      "UIntEnum EnumsHolder.<F>k__BackingField"
+                  IL_006c:  ldarg.1
+                  IL_006d:  ldfld      "UIntEnum EnumsHolder.<F>k__BackingField"
+                  IL_0072:  bne.un.s   IL_0091
+                  IL_0074:  ldarg.0
+                  IL_0075:  ldfld      "LongEnum EnumsHolder.<G>k__BackingField"
+                  IL_007a:  ldarg.1
+                  IL_007b:  ldfld      "LongEnum EnumsHolder.<G>k__BackingField"
+                  IL_0080:  bne.un.s   IL_0091
+                  IL_0082:  ldarg.0
+                  IL_0083:  ldfld      "ULongEnum EnumsHolder.<H>k__BackingField"
+                  IL_0088:  ldarg.1
+                  IL_0089:  ldfld      "ULongEnum EnumsHolder.<H>k__BackingField"
+                  IL_008e:  ceq
+                  IL_0090:  ret
+                  IL_0091:  ldc.i4.0
+                  IL_0092:  ret
+                  IL_0093:  ldc.i4.1
+                  IL_0094:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70221")]
         public void Equality_FloatAndDouble()
         {
             var source = """

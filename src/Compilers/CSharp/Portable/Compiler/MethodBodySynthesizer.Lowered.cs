@@ -430,7 +430,8 @@ start:
                 var otherField = F.Field(otherReceiver, field);
 
                 var fieldType = field.Type;
-                var specificBinaryOperatorKind = fieldType.SpecialType switch
+
+                var specificBinaryOperatorKind = fieldType.EnumUnderlyingTypeOrSelf().SpecialType switch
                 {
                     SpecialType.System_Boolean => BinaryOperatorKind.BoolEqual,
                     SpecialType.System_Char => BinaryOperatorKind.CharEqual,
