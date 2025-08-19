@@ -2342,11 +2342,6 @@
         <target state="translated">O membro do registro '{0}' precisa retornar '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">Não é possível especificar /main quando há uma unidade de compilação com instruções de nível superior.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">Pelo menos uma instrução de nível superior não pode estar vazia.</target>

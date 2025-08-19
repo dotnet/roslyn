@@ -2342,11 +2342,6 @@
         <target state="translated">Le membre d'enregistrement '{0}' doit retourner '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">Impossible de spécifier /main s'il existe une unité de compilation avec des instructions de niveau supérieur.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">Au moins une instruction de niveau supérieur ne doit pas être vide.</target>

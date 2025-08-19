@@ -23377,6 +23377,9 @@ static class E
             // (6,12): error CS8352: Cannot use variable 'new MyStruct() { i = ref i }' in this context because it may expose referenced variables outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
             Diagnostic(ErrorCode.ERR_EscapeVariable, "new MyStruct() { i = ref i }").WithArguments("new MyStruct() { i = ref i }").WithLocation(6, 12),
+            // (6,12): error CS8347: Cannot use a result of 'E.extension(scoped MyStruct).M(InterpolationHandler)' in this context because it may expose variables referenced by parameter 'h' outside of their declaration scope
+            //     return new MyStruct() { i = ref i }.M($"");
+            Diagnostic(ErrorCode.ERR_EscapeCall, @"new MyStruct() { i = ref i }.M($"""")").WithArguments("E.extension(scoped MyStruct).M(InterpolationHandler)", "h").WithLocation(6, 12),
             // (6,43): error CS8347: Cannot use a result of 'InterpolationHandler.InterpolationHandler(int, int, MyStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
             Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""").WithArguments("InterpolationHandler.InterpolationHandler(int, int, MyStruct)", "s2").WithLocation(6, 43)
@@ -36378,12 +36381,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<U>(U).M<T>(T)' requires a receiver of type 'U'
+            // (2,1): error CS1973: 'object' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // object.M(d);
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension<U>(U).M<T>(T)", "U").WithLocation(2, 1),
-            // (3,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<U>(U).M<T>(T)' requires a receiver of type 'U'
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "object.M(d)").WithArguments("object", "M").WithLocation(2, 1),
+            // (3,1): error CS0176: Member 'E.extension<U>(U).M<T>(T)' cannot be accessed with an instance reference; qualify it with a type name instead
             // new object().M(d);
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M", "E.extension<U>(U).M<T>(T)", "U").WithLocation(3, 1));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().M").WithArguments("E.extension<U>(U).M<T>(T)").WithLocation(3, 1));
     }
 
     [Fact]
@@ -36432,9 +36435,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<U>(U).M(object)' requires a receiver of type 'U'
+            // (2,1): error CS1973: 'object' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // object.M(d);
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension<U>(U).M(object)", "U").WithLocation(2, 1),
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "object.M(d)").WithArguments("object", "M").WithLocation(2, 1),
             // (3,1): error CS1973: 'object' has no applicable method named 'M2' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // new object().M2(d);
             Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new object().M2(d)").WithArguments("object", "M2").WithLocation(3, 1));
@@ -48528,7 +48531,7 @@ static class E
 {
     extension<T>(MyCollection<T> c)
     {
-        public void Add(T o) { }
+        public void Add(T o) { System.Console.Write(o is null ? "True " : "False "); }
     }
 }
 
@@ -48538,15 +48541,31 @@ public class MyCollection<T> : IEnumerable<T>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
-        // https://github.com/dotnet/roslyn/issues/78960
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-                // (7,26): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                // MyCollection<object> c = [oNull, oNotNull];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[oNull, oNotNull]").WithArguments("MyCollection<object>").WithLocation(7, 26),
-                // (7,26): error CS1929: 'MyCollection<object>' does not contain a definition for 'Add' and the best extension method overload 'E.extension<T>(MyCollection<T>).Add(T)' requires a receiver of type 'MyCollection<T>'
-                // MyCollection<object> c = [oNull, oNotNull];
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "[oNull, oNotNull]").WithArguments("MyCollection<object>", "Add", "E.extension<T>(MyCollection<T>).Add(T)", "MyCollection<T>").WithLocation(7, 26));
+        CompileAndVerify(comp, expectedOutput: "True False").VerifyDiagnostics();
+
+        src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection<object> c = [oNull, oNotNull];
+
+static class E
+{
+    public static void Add<T>(this MyCollection<T> c, T o) { System.Console.Write(o is null ? "True " : "False ");  }
+}
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "True False").VerifyDiagnostics();
     }
 
     [Fact]

@@ -1354,6 +1354,29 @@ namespace NS
         }
 
         [ClrOnlyFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79894")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78963")]
+        public void Extensions_01()
+        {
+            var source1 = @"
+public static class Extensions
+{
+    extension(int)
+    {
+    }
+}";
+
+            var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Extensions))]
+";
+
+            // https://github.com/dotnet/roslyn/issues/78963 - The grouping and marker types should be among the forwarded types since they are public.
+            //                                                 They also should be among exported types for library built from source1. Type symbols
+            //                                                 representing extensions from the language perspective should not be in either set.
+            CheckForwarderEmit(source1, source2, "Extensions");
+        }
+
+        [ClrOnlyFact]
         public void EmitForwarder_Nested_Private()
         {
             var source1 = @"

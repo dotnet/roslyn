@@ -2342,11 +2342,6 @@
         <target state="translated">레코드 멤버 '{0}'은(는) '{1}'을(를) 반환해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">최상위 문이 포함된 컴파일 단위가 있으면 /main을 지정할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">최소한 하나의 최상위 문은 비어 있지 않아야 합니다.</target>

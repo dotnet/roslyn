@@ -2342,11 +2342,6 @@
         <target state="translated">记录成员“{0}”必须返回“{1}”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">如果存在包含顶级语句的编译单元，则不能指定 /main。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">至少一个顶级语句必须为非空。</target>

@@ -1899,15 +1899,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
                         entryPoint = new EntryPoint(entryPointMethod, diagnostics);
                     }
-
-                    if (this.Options.MainTypeName != null && simpleProgramEntryPointSymbol is object)
-                    {
-                        var diagnostics = DiagnosticBag.GetInstance();
-                        diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
-                        entryPoint = new EntryPoint(entryPoint.MethodSymbol,
-                                                    new ReadOnlyBindingDiagnostic<AssemblySymbol>(
-                                                        entryPoint.Diagnostics.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()), entryPoint.Diagnostics.Dependencies));
-                    }
                 }
 
                 Interlocked.CompareExchange(ref _lazyEntryPoint, entryPoint, null);
