@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 
             private static void RenderFormatMethod(string indent, Lang language, bool supportsNullable, StringBuilder strings, ResourceString resourceString)
             {
-                strings.AppendLine($"{indent}internal static string Format{resourceString.Name}({resourceString.GetMethodParameters(language, supportsNullable)})");
+                strings.AppendLine($"{indent}public static string Format{resourceString.Name}({resourceString.GetMethodParameters(language, supportsNullable)})");
                 if (resourceString.UsingNamedArgs)
                 {
                     strings.AppendLine($@"{indent}   => string.Format(Culture, GetResourceString(""{resourceString.Name}"", new[] {{ {resourceString.GetArgumentNames()} }}), {resourceString.GetArguments()});");
