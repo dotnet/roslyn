@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (awaitableInfo.RuntimeAsyncAwaitCallPlaceholder is { } runtimePlaceholder)
             {
-                placeholders.Add((runtimePlaceholder, valEscapeScope));
+                placeholders.Add((runtimePlaceholder, SafeContextAndLocation.Create(valEscapeScope)));
             }
         }
 
