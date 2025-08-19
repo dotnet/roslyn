@@ -266,7 +266,7 @@ internal sealed class ProjectExternalErrorReporter
             throw new NotImplementedException();
     }
 
-    public async Task<bool> TryReportErrorAsync(
+    private async Task<bool> TryReportErrorAsync(
         string? errorMessage,
         string errorId,
         VSTASKPRIORITY taskPriority,
