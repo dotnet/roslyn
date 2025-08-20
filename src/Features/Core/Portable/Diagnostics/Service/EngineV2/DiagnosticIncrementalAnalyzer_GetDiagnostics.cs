@@ -18,10 +18,17 @@ internal sealed partial class DiagnosticAnalyzerService
 {
     private sealed partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
+            Project project,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            DocumentId? documentId,
+            ImmutableHashSet<string>? diagnosticIds,
+            bool includeLocalDocumentDiagnostics,
+            bool includeNonLocalDocumentDiagnostics,
+            CancellationToken cancellationToken)
         {
             return ProduceProjectDiagnosticsAsync(
-                project, diagnosticIds, shouldIncludeAnalyzer,
+                project, analyzers, diagnosticIds,
                 // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
                 // project if no specific document id was requested.
                 documentId != null ? [documentId] : [.. project.DocumentIds, .. project.AdditionalDocumentIds],
@@ -34,13 +41,13 @@ internal sealed partial class DiagnosticAnalyzerService
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
             Project project,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableHashSet<string>? diagnosticIds,
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             bool includeNonLocalDocumentDiagnostics,
             CancellationToken cancellationToken)
         {
             return ProduceProjectDiagnosticsAsync(
-               project, diagnosticIds, shouldIncludeAnalyzer,
+               project, analyzers, diagnosticIds,
                documentIds: [],
                includeLocalDocumentDiagnostics: false,
                includeNonLocalDocumentDiagnostics: includeNonLocalDocumentDiagnostics,
@@ -50,8 +57,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
         private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
             Project project,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableHashSet<string>? diagnosticIds,
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             IReadOnlyList<DocumentId> documentIds,
             bool includeLocalDocumentDiagnostics,
             bool includeNonLocalDocumentDiagnostics,
@@ -61,11 +68,9 @@ internal sealed partial class DiagnosticAnalyzerService
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
             var solution = project.Solution;
-            var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(
-                solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
+
             var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(
                 solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
-            var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
             var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
 
@@ -133,20 +138,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 var result = await ComputeDiagnosticAnalysisResultsAsync(
                     compilation, project, [.. analyzers.OfType<DocumentDiagnosticAnalyzer>()], cancellationToken).ConfigureAwait(false);
                 return result;
-            }
-
-            bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
-            {
-                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this.GlobalOptions))
-                    return false;
-
-                if (shouldIncludeAnalyzer != null && !shouldIncludeAnalyzer(analyzer))
-                    return false;
-
-                if (diagnosticIds != null && this.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
-                    return false;
-
-                return true;
             }
         }
     }

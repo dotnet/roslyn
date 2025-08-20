@@ -141,18 +141,52 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return await _incrementalAnalyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
     }
 
-    public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
+    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
-        return _incrementalAnalyzer.GetDiagnosticsForIdsAsync(project, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+        var analyzers = await GetDiagnosticAnalyzersAsync(
+            project, diagnosticIds, shouldIncludeAnalyzer, cancellationToken).ConfigureAwait(false);
+        return await _incrementalAnalyzer.GetDiagnosticsForIdsAsync(
+            project, analyzers, documentId, diagnosticIds, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken).ConfigureAwait(false);
     }
 
-    public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+    public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
         Project project, ImmutableHashSet<string>? diagnosticIds,
         Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
         bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
-        return _incrementalAnalyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
+        var analyzers = await GetDiagnosticAnalyzersAsync(
+            project, diagnosticIds, shouldIncludeAnalyzer, cancellationToken).ConfigureAwait(false);
+        return await _incrementalAnalyzer.GetProjectDiagnosticsForIdsAsync(
+            project, analyzers, diagnosticIds, includeNonLocalDocumentDiagnostics, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersAsync(
+        Project project,
+        ImmutableHashSet<string>? diagnosticIds,
+        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
+        CancellationToken cancellationToken)
+    {
+        var analyzersForProject = await _stateManager.GetOrCreateAnalyzersAsync(
+            project.Solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
+
+        var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
+
+        return analyzers;
+
+        bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
+        {
+            if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this.GlobalOptions))
+                return false;
+
+            if (shouldIncludeAnalyzer != null && !shouldIncludeAnalyzer(analyzer))
+                return false;
+
+            if (diagnosticIds != null && _analyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
+                return false;
+
+            return true;
+        }
     }
 
     public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
