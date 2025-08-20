@@ -204,6 +204,7 @@
       <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="--opt-cross-module:*" />
+      <_RspFileLines Include="--non-local-generics-module:*" />
       <_RspFileLines Include="@(_RuntimeLibraryPathsNotInPublishDir->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_CrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_NonCrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
