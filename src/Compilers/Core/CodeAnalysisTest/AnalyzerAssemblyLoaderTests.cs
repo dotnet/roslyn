@@ -1681,7 +1681,10 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_DoesNotUseCollectibleALCs(AnalyzerTestKind kind)
         {
-            // When an assembly is loaded into a collectible AssemblyLoadContext it prevents any of the R2R logic from being used.
+            // This validation is critical to our VS / CLI performance. We ship several analyzers and source-generators in the
+            // SDK (NetAnalyzers & Razor generators) that are added to most projects. We want to ship these as Ready2Run so that
+            // we reduce JIT time. However, when an assembly is loaded into a collectible AssemblyLoadContext it prevents any of
+            // the R2R logic from being used.
 
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
