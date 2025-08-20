@@ -200,6 +200,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
+            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
+            // Pass this option only to the built-in compiler (customer-supplied compiler might not support it).
+            if (IsSdkFrameworkToCoreBridgeTask && UsingBuiltinTool)
+            {
+                commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
+            }
+
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
@@ -222,13 +229,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
             commandLine.AppendSwitchIfNotNull("/nullable:", Nullable);
             commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
-
-            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
-            // Pass this option only to the built-in compiler (customer-supplied compiler might not support it).
-            if (IsSdkFrameworkToCoreBridgeTask && UsingBuiltinTool)
-            {
-                commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
-            }
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;

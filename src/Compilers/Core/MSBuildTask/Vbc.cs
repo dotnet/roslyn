@@ -385,6 +385,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
+            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
+            // Pass this option only to the built-in compiler (customer-supplied compiler might not support it).
+            if (SdkPath is null && IsSdkFrameworkToCoreBridgeTask && UsingBuiltinTool)
+            {
+                commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
+            }
+
             commandLine.AppendSwitchIfNotNull("/baseaddress:", this.GetBaseAddressInHex());
             commandLine.AppendSwitchIfNotNull("/libpath:", this.AdditionalLibPaths, ",");
             commandLine.AppendSwitchIfNotNull("/imports:", this.Imports, ",");
@@ -443,13 +450,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/netcf", this._store, "TargetCompactFramework");
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", this._store, "HighEntropyVA");
-
-            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
-            // Pass this option only to the built-in compiler (customer-supplied compiler might not support it).
-            if (SdkPath is null && IsSdkFrameworkToCoreBridgeTask && UsingBuiltinTool)
-            {
-                commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
-            }
 
             if (0 == String.Compare(this.VBRuntimePath, this.VBRuntime, StringComparison.OrdinalIgnoreCase))
             {

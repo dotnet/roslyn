@@ -21,4 +21,16 @@ public sealed class CscTests
 
         AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} /out:test.exe test.cs", csc.GenerateResponseFileContents());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_DisableSdkPath()
+    {
+        var csc = new Csc
+        {
+            Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            DisableSdkPath = true,
+        };
+
+        AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} /nosdkpath /out:test.exe test.cs", csc.GenerateResponseFileContents());
+    }
 }

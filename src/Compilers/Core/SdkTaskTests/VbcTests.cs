@@ -19,6 +19,18 @@ public sealed class VbcTests
             Sources = MSBuildUtil.CreateTaskItems("test.vb"),
         };
 
-        AssertEx.Equal($"/optionstrict:custom /sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} /optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_DisableSdkPath()
+    {
+        var vbc = new Vbc
+        {
+            Sources = MSBuildUtil.CreateTaskItems("test.vb"),
+            DisableSdkPath = true,
+        };
+
+        AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} /optionstrict:custom /nosdkpath /out:test.exe test.vb", vbc.GenerateResponseFileContents());
     }
 }

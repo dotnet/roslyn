@@ -90,7 +90,7 @@ public abstract class IntegrationTestBase : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Csc(bool useSharedCompilation)
+    public void StdLib_Csc(bool useSharedCompilation, bool disableSdkPath)
     {
         if (_msbuildExecutable == null) return;
 
@@ -107,18 +107,29 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" />
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+
+        if (disableSdkPath)
+        {
+            Assert.NotEqual(0, result.ExitCode);
+            // Either error CS0006: Metadata file could not be found
+            // or error CS0518: Predefined type is not defined or imported
+            Assert.Contains("error CS", result.Output);
+        }
+        else
+        {
+            Assert.Equal(0, result.ExitCode);
+            Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        }
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Vbc(bool useSharedCompilation)
+    public void StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath)
     {
         if (_msbuildExecutable == null) return;
 
@@ -139,14 +150,24 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" />
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+
+        if (disableSdkPath)
+        {
+            Assert.NotEqual(0, result.ExitCode);
+            // error BC2017: could not find library 'Microsoft.VisualBasic.dll'
+            Assert.Contains("error BC2017", result.Output);
+        }
+        else
+        {
+            Assert.Equal(0, result.ExitCode);
+            Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        }
     }
 }
 
