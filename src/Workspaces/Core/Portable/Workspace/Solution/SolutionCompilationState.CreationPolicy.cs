@@ -23,7 +23,12 @@ internal sealed partial class SolutionCompilationState
         /// <remarks>
         /// Today the only required generator is Razor.
         /// </remarks>
-        CreateOnlyRequired
+        CreateOnlyRequired,
+
+        /// <summary>
+        /// Source generators should not run.  Whatever results were previously computed should be reused.
+        /// </summary>
+        DoNotCreate,
     }
 
     /// <summary>
@@ -58,8 +63,9 @@ internal sealed partial class SolutionCompilationState
         public static readonly CreationPolicy Create = new(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create);
 
         /// <summary>
-        /// A combination of <see cref="GeneratedDocumentCreationPolicy.CreateOnlyRequired"/>and <see cref="SkeletonReferenceCreationPolicy.DoNotCreate"/>
+        /// Do not create up to date source generator docs and do not create up to date skeleton references for P2P
+        /// references.  For both, use whatever has been generated most recently.
         /// </summary>
-        public static readonly CreationPolicy CreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferences = new(GeneratedDocumentCreationPolicy.CreateOnlyRequired, SkeletonReferenceCreationPolicy.DoNotCreate);
+        public static readonly CreationPolicy DoNotCreate = new(GeneratedDocumentCreationPolicy.DoNotCreate, SkeletonReferenceCreationPolicy.DoNotCreate);
     }
 }

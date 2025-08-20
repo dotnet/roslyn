@@ -1599,7 +1599,7 @@ internal sealed partial class SolutionCompilationState
 
                 // Since we're freezing, set generators to run only required and skeletons to not be created.
                 // We don't want to take any perf hit on either of those at all for our clients.
-                var newTracker = oldTracker.WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
+                var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
                 if (oldTracker == newTracker)
                     continue;
 
@@ -1746,6 +1746,9 @@ internal sealed partial class SolutionCompilationState
                 // ToImmutableAndFree once per ArrayBuilder.
                 missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
                 GetAddDocumentsTranslationAction);
+
+           // currentState.SolutionState.
+           //currentState = currentState.WithDo
 
             return currentState;
         }

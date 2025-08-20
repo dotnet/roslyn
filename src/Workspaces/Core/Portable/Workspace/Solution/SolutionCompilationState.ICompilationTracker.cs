@@ -47,9 +47,9 @@ internal sealed partial class SolutionCompilationState
         ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration);
 
         /// <summary>
-        /// Updates the creation policy for this tracker. Setting it to <see cref="CreationPolicy.CreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferences"/>.
+        /// Updates the creation policy for this tracker. Setting it to <see cref="CreationPolicy.DoNotCreate"/>.
         /// </summary>
-        ICompilationTracker WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
+        ICompilationTracker WithDoNotCreateCreationPolicy();
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

@@ -742,17 +742,17 @@ internal sealed partial class SolutionCompilationState
                 skeletonReferenceCacheToClone: _skeletonReferenceCache);
         }
 
-        ICompilationTracker ICompilationTracker.WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy()
-            => WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy();
+        ICompilationTracker ICompilationTracker.WithDoNotCreateCreationPolicy()
+            => WithDoNotCreateCreationPolicy();
 
-        public RegularCompilationTracker WithCreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferencesCreationPolicy()
+        public RegularCompilationTracker WithDoNotCreateCreationPolicy()
         {
             var state = this.ReadState();
 
             // We're freezing the solution for features where latency performance is paramount.  Do not run SGs or
             // create skeleton references at this point.  Just use whatever we've already generated for each in the
             // past.
-            var desiredCreationPolicy = CreationPolicy.CreateOnlyRequiredGeneratorDocs_DoNotCreateSkeletonReferences;
+            var desiredCreationPolicy = CreationPolicy.DoNotCreate;
 
             if (state is FinalCompilationTrackerState finalState)
             {

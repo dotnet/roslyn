@@ -37,34 +37,48 @@ internal sealed partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            //TODO: don't even go to OOP if we know there is no work to be done.
-
-            // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
-            // back over to us to ensure that both processes are in total agreement about the SG docs and their
-            // contents.
-            var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
-                compilationState, compilationWithoutGeneratedFiles, generatorInfo.Documents, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
-            if (result.HasValue)
+            if (creationPolicy == CreationPolicy.DoNotCreate)
             {
-                var updatedCompilationWithGeneratedFiles = result.Value.compilationWithGeneratedFiles;
-                var updatedGeneratedDocuments = result.Value.generatedDocuments;
+                // We're frozen.  So we do not want to go through the expensive cost of running generators.  Instead, we
+                // just whatever prior generated docs we have.
+                var generatedSyntaxTrees = await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
+                    static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
 
-                // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
-                // Just return `null` for the driver as there's nothing to track for it on the host side.
-                return (updatedCompilationWithGeneratedFiles, new(updatedGeneratedDocuments, Driver: null));
+                var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(generatedSyntaxTrees);
+
+                // Return the old generator info as is.
+                return (compilationWithGeneratedFiles, generatorInfo);
             }
+            else
+            {
+                //TODO: don't even go to OOP if we know there is no work to be done.
 
-            // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
-            var (compilationWithGeneratedFiles, nextGeneratedDocuments, nextGeneratorDriver) = await ComputeNewGeneratorInfoInCurrentProcessAsync(
-                compilationState,
-                compilationWithoutGeneratedFiles,
-                generatorInfo.Documents,
-                generatorInfo.Driver,
-                compilationWithStaleGeneratedTrees,
-                creationPolicy.GeneratedDocumentCreationPolicy,
-                cancellationToken).ConfigureAwait(false);
-            return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
+                // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
+                // back over to us to ensure that both processes are in total agreement about the SG docs and their
+                // contents.
+                var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
+                    compilationState, compilationWithoutGeneratedFiles, generatorInfo.Documents, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                if (result.HasValue)
+                {
+                    var updatedCompilationWithGeneratedFiles = result.Value.compilationWithGeneratedFiles;
+                    var updatedGeneratedDocuments = result.Value.generatedDocuments;
 
+                    // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
+                    // Just return `null` for the driver as there's nothing to track for it on the host side.
+                    return (updatedCompilationWithGeneratedFiles, new(updatedGeneratedDocuments, Driver: null));
+                }
+
+                // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
+                var (compilationWithGeneratedFiles, nextGeneratedDocuments, nextGeneratorDriver) = await ComputeNewGeneratorInfoInCurrentProcessAsync(
+                    compilationState,
+                    compilationWithoutGeneratedFiles,
+                    generatorInfo.Documents,
+                    generatorInfo.Driver,
+                    compilationWithStaleGeneratedTrees,
+                    creationPolicy.GeneratedDocumentCreationPolicy,
+                    cancellationToken).ConfigureAwait(false);
+                return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
+            }
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
