@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -49,9 +48,12 @@ internal sealed partial class DiagnosticAnalyzerService
     /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
     /// cref="DiagnosticAnalyzer"/>s passed along with the project.
     /// <para/>
-    /// The value of the table is a <see cref="Dictionary{TKey, TValue}"/> that maps from the 
+    /// The value of the table is a SmallDictionary that maps from the 
     /// <see cref="Project"/> checksum the set of <see cref="DiagnosticAnalyzer"/>s being requested.
-    /// Note: this dictionary must be locked with <see cref="s_gate"/> before accessing it.
+    /// Note: this dictionary must be locked with <see cref="s_gate"/> before accessing it.  A 
+    /// small dictionary is chosen as this will normally only have one item in it (the current project
+    /// and all its analyzers).  Occasionally it will have more, if (for example) a request to run
+    /// a single analyzer is performed.
     /// </summary>
     private static readonly ConditionalWeakTable<
         ProjectState,
