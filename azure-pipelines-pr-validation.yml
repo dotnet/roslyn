@@ -225,9 +225,8 @@ extends:
 
         - task: MicroBuildSigningPlugin@4
           inputs:
-            signType: $(SignType)
+            signType: test
             zipSources: false
-          condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
         - task: PowerShell@2
           displayName: Build
@@ -250,7 +249,7 @@ extends:
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
-                       /p:DotNetSignType=$(SignType)
+                       /p:DotNetSignType=test
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
