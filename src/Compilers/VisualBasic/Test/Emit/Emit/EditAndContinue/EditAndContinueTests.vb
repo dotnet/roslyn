@@ -1457,8 +1457,9 @@ End Class
                         Sub(g)
                             g.VerifyTypeDefNames("HotReloadException")
                             g.VerifyFieldDefNames("Code")
-                            g.VerifyMethodDefNames("deleted_add_E", "deleted_remove_E", "deleted_raise_E", ".ctor")
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E", ".ctor")
                             g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+                            g.VerifyEventDefNames("E")
 
                             g.VerifyEncLogDefinitions(
                             {
@@ -1474,7 +1475,7 @@ End Class
                             })
 
                             g.VerifyIL("
-deleted_add_E, deleted_remove_E, deleted_raise_E
+add_E, remove_E, raise_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -1624,7 +1625,7 @@ End Class
                             g.VerifyFieldDefNames("Code")
 
                             ' We do not update raise_E since its signature has not changed.
-                            g.VerifyMethodDefNames("deleted_add_E", "deleted_remove_E", "add_E", "remove_E", ".ctor")
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E", ".ctor")
                             g.VerifyDeletedMembers("C: {add_E, remove_E}")
 
                             ' New event is added to the Event table associated with the new accessors.
@@ -1653,7 +1654,7 @@ End Class
                             })
 
                             g.VerifyIL("
-deleted_add_E, deleted_remove_E
+add_E, remove_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -1725,7 +1726,7 @@ End Class
                             g.VerifyFieldDefNames()
 
                             ' We do not update raise_E since its signature has not changed.
-                            g.VerifyMethodDefNames("add_E", "remove_E", "deleted_add_E", "deleted_remove_E")
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
                             g.VerifyDeletedMembers("C: {add_E, remove_E}")
 
                             ' Updating existing members, no new additions.
@@ -1764,7 +1765,7 @@ remove_E
   IL_000b:  nop
   IL_000c:  ret
 }
-deleted_add_E, deleted_remove_E
+add_E, remove_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2316,8 +2317,9 @@ End Class
                             g.VerifyFieldDefNames("Code")
 
                             ' old accessors are updated to throw, new accessors are added:
-                            g.VerifyMethodDefNames("deleted_get_P", "deleted_set_P", "get_P", "set_P", ".ctor")
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P", ".ctor")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+                            g.VerifyPropertyDefNames("P")
 
                             ' New property is added to the Property table associated with the new accessors.
                             ' Properties can be overloaded on name and signature, so we need to insert a new entry for the new signature.
@@ -2335,7 +2337,7 @@ End Class
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' HotReloadException..ctor
-                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),        ' deleted_P
+                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),        ' P
                                 Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty), ' Action<bool> P                         
                                 Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
@@ -2345,7 +2347,7 @@ End Class
                             })
 
                             g.VerifyIL("
-deleted_get_P, deleted_set_P
+get_P, set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2422,8 +2424,9 @@ End Class
                             g.VerifyFieldDefNames()
 
                             ' old accessors are updated to throw, new accessors are added:
-                            g.VerifyMethodDefNames("get_P", "set_P", "deleted_get_P", "deleted_set_P")
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+                            g.VerifyPropertyDefNames("P")
 
                             ' Changing the signature back updates the the original property and accessors.
                             ' No new property/method is added.
@@ -2435,7 +2438,7 @@ End Class
                                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<int> get_P
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<int>)
                                 Row(1, TableIndex.Property, EditAndContinueOperation.Default),  ' Action<int> P
-                                Row(2, TableIndex.Property, EditAndContinueOperation.Default),  ' deleted_P
+                                Row(2, TableIndex.Property, EditAndContinueOperation.Default),  ' P
                                 Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                                 Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<int> P <-> Action<int> get_P
                                 Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<int> P <-> set_P(Action<int>)
@@ -2466,7 +2469,7 @@ set_P
   IL_000b:  nop
   IL_000c:  ret
 }
-deleted_get_P, deleted_set_P
+get_P, set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2523,8 +2526,9 @@ End Class
                             g.VerifyFieldDefNames("Code")
 
                             ' deleted getter is updated to throw:
-                            g.VerifyMethodDefNames("deleted_get_P", "deleted_set_P", ".ctor")
+                            g.VerifyMethodDefNames("get_P", "set_P", ".ctor")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+                            g.VerifyPropertyDefNames("P")
 
                             g.VerifyEncLogDefinitions(
                             {
@@ -2539,7 +2543,7 @@ End Class
                             })
 
                             g.VerifyIL("
-deleted_get_P, deleted_set_P
+get_P, set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2656,7 +2660,7 @@ End Class
                             g.VerifyDeletedMembers("C: {get_P}")
 
                             ' deleted getter is updated to throw:
-                            g.VerifyMethodDefNames("deleted_get_P", ".ctor")
+                            g.VerifyMethodDefNames("get_P", ".ctor")
 
                             g.VerifyEncLogDefinitions(
                             {
@@ -2669,7 +2673,7 @@ End Class
                             })
 
                             g.VerifyIL("
-deleted_get_P
+get_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6113,7 +6117,7 @@ End Class
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1-1, _Lambda$__1-1}")
                         g.VerifyTypeDefNames("HotReloadException")
-                        g.VerifyMethodDefNames("F", "deleted__Lambda$__1-0", "_Lambda$__1-1", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor")
                         g.VerifyTypeRefNames("Object", "Action", "CompilerGeneratedAttribute", "Exception", "Console")
                         g.VerifyMemberRefNames(".ctor", ".ctor", "WriteLine", ".ctor")
 
@@ -6159,7 +6163,7 @@ F
   IL_0025:  stloc.2
   IL_0026:  ret
 }
-deleted__Lambda$__1-0
+_Lambda$__1-0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6227,7 +6231,7 @@ End Class
                     Sub(g)
                         g.VerifySynthesizedMembers("System.Runtime.CompilerServices.HotReloadException")
                         g.VerifyTypeDefNames("HotReloadException")
-                        g.VerifyMethodDefNames("deleted_F", "deleted__Lambda$__1-0", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor")
                         g.VerifyTypeRefNames("Object", "Exception")
                         g.VerifyMemberRefNames(".ctor")
 
@@ -6252,7 +6256,7 @@ End Class
                         })
 
                         g.VerifyIL("
-deleted_F
+F
 {
     // Code size       13 (0xd)
     .maxstack  8
@@ -6261,7 +6265,7 @@ deleted_F
     IL_0007:  newobj     0x06000006
     IL_000c:  throw
 }
-deleted__Lambda$__1-0
+_Lambda$__1-0
 {
     // Code size       12 (0xc)
     .maxstack  8
@@ -6388,7 +6392,7 @@ End Class
                             "C._Closure$__: {$I1#2-0#2, _Lambda$__1#2-0#2}")
 
                         g.VerifyTypeDefNames()
-                        g.VerifyMethodDefNames("deleted_F", "deleted__Lambda$__1#2-0#2")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1#2-0#2")
                         g.VerifyTypeRefNames("Object")
                         g.VerifyMemberRefNames()
 
@@ -6405,7 +6409,7 @@ End Class
                         })
 
                         g.VerifyIL("
-deleted_F
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6414,7 +6418,7 @@ deleted_F
   IL_0007:  newobj     0x06000006
   IL_000c:  throw
 }
-deleted__Lambda$__1#2-0#2
+_Lambda$__1#2-0#2
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6486,7 +6490,7 @@ End Class
                             "C._Closure$__: {$I1#1-0#1, _Lambda$__1#1-0#1}")
 
                         g.VerifyTypeDefNames("HotReloadException")
-                        g.VerifyMethodDefNames("deleted_F", "deleted__Lambda$__1#1-0#1", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1#1-0#1", ".ctor")
                         g.VerifyTypeRefNames("Object", "Exception")
                         g.VerifyMemberRefNames(".ctor")
 
@@ -6510,7 +6514,7 @@ End Class
                         })
 
                         g.VerifyIL("
-deleted_F
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6519,7 +6523,7 @@ deleted_F
   IL_0007:  newobj     0x06000006
   IL_000c:  throw
 }
-deleted__Lambda$__1#1-0#1
+_Lambda$__1#1-0#1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6625,7 +6629,7 @@ End Class
                             "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
 
                         g.VerifyTypeDefNames("HotReloadException")
-                        g.VerifyMethodDefNames("deleted_F", "deleted__Lambda$__1-0", "deleted__Lambda$__1-1#1", "deleted__Lambda$__1-2#2", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1#1", "_Lambda$__1-2#2", ".ctor")
                         g.VerifyTypeRefNames("Object", "Exception")
 
                         g.VerifyMemberRefNames(".ctor")
@@ -6655,7 +6659,7 @@ End Class
                         })
 
                         g.VerifyIL("
-deleted_F
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6664,7 +6668,7 @@ deleted_F
   IL_0007:  newobj     0x06000009
   IL_000c:  throw
 }
-deleted__Lambda$__1-0, deleted__Lambda$__1-1#1, deleted__Lambda$__1-2#2
+_Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6783,7 +6787,7 @@ End Class
                         g.VerifyTypeDefNames()
 
                         ' Only lambdas that were not deleted before are updated:
-                        g.VerifyMethodDefNames("deleted_F", "deleted__Lambda$__1#4-0#4")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1#4-0#4")
 
                         g.VerifyTypeRefNames("Object")
                         g.VerifyMemberRefNames()
@@ -6801,7 +6805,7 @@ End Class
                         })
 
                         g.VerifyIL("
-deleted_F
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6810,7 +6814,7 @@ deleted_F
   IL_0007:  newobj     0x06000009
   IL_000c:  throw
 }
-deleted__Lambda$__1#4-0#4
+_Lambda$__1#4-0#4
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -7447,7 +7451,7 @@ End Class",
                     validator:=
                     Sub(v)
                         v.VerifyTypeDefNames("HotReloadException")
-                        v.VerifyMethodDefNames("deleted_M", ".ctor")
+                        v.VerifyMethodDefNames("M", ".ctor")
 
                         v.VerifyEncLogDefinitions(
                         {
@@ -7505,7 +7509,7 @@ End Class",
                         v.VerifyTypeRefNames("Object")
 
                         v.VerifyIL("
-deleted_M
+M
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -7558,7 +7562,7 @@ End Class",
                         v.VerifyTypeRefNames("Exception", "Object")
 
                         v.VerifyIL("
-deleted_M
+M
 {
   // Code size       13 (0xd)
   .maxstack  8
