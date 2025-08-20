@@ -46,6 +46,13 @@ internal sealed class DiagnosticAnalyzerServiceFactory(
     }
 }
 
+/// <summary>
+/// Only implementation of <see cref="IDiagnosticAnalyzerService"/>.  Note: all methods in this class
+/// should attempt to run in OOP as soon as possible.  This is not always easy, especially if the apis
+/// involve working with in-memory data structures that are not serializable.  In those cases, we should
+/// do all that work in-proc, and then send the results to OOP for further processing.  Examples of this
+/// are apis that take in a delegate callback to determine which analyzers to actually execute.
+/// </summary>
 internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
 {
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
