@@ -22,9 +22,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </remarks>
     void RequestDiagnosticRefresh();
 
-    /// <summary>
-    /// Force analyzes the given project by running all applicable analyzers on the project.
-    /// </summary>
+    /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.ForceAnalyzeProjectAsync"/>
     Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
 
     /// <summary>
