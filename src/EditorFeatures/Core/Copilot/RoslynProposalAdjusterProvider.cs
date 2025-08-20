@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         // Common properties that all adjustments will log.
         map["ProviderName"] = providerName;
         map["AdjustProposalBeforeDisplay"] = before;
-        map["ComputationTime"] = elapsedTime.TotalMilliseconds.ToString("G17");
+        map["ComputationTime"] = elapsedTime.TotalMilliseconds.ToString("G17", CultureInfo.InvariantCulture);
     }
 
     private async Task<ProposalBase> AdjustProposalAsync(
