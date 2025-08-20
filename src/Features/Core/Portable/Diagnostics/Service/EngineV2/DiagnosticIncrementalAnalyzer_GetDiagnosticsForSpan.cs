@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.ConvertIfToSwitch.AbstractConvertIfToSwitchCodeRefactoringProvider<TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax>;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -216,43 +218,13 @@ internal sealed partial class DiagnosticAnalyzerService
                     return;
 
                 // We log performance info when we are computing diagnostics for a span
-                var logPerformanceInfo = range.HasValue;
-                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-                    document.Project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(
+                    FunctionId.RequestDiagnostics_Summary,
+                    $"Pri{priorityProvider.Priority.GetPriorityInt()}.{(incrementalAnalysis ? "Incremental" : "Document")}");
 
-                var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
-                var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
-                var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo);
-                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-
-                ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
-                if (incrementalAnalysis)
-                {
-                    using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Incremental");
-
-                    diagnosticsMap = await _incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(
-                        executor,
-                        analyzers,
-                        version,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Document");
-
-                    diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
-                }
-
-                foreach (var analyzer in analyzers)
-                {
-                    var diagnostics = diagnosticsMap[analyzer];
-                    builder.AddRange(diagnostics.Where(ShouldInclude));
-                }
-
-                if (incrementalAnalysis)
-                    _incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+                var allDiagnostics = await ComputeDiagnosticsAsync(
+                    document, analyzers, kind, span, incrementalAnalysis, logPerformanceInfo: range.HasValue, cancellationToken).ConfigureAwait(false);
+                builder.AddRange(allDiagnostics.Where(ShouldInclude));
             }
 
             async Task<ImmutableArray<DiagnosticAnalyzer>> FilterAnalyzersAsync(
@@ -328,6 +300,41 @@ internal sealed partial class DiagnosticAnalyzerService
                     (range == null || range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)))
                     && (shouldIncludeDiagnostic == null || shouldIncludeDiagnostic(diagnostic.Id));
             }
+        }
+
+        private async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+            TextDocument document,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalysisKind kind,
+            TextSpan? span,
+            bool incrementalAnalysis,
+            bool logPerformanceInfo,
+            CancellationToken cancellationToken)
+        {
+            // We log performance info when we are computing diagnostics for a span
+            var project = document.Project;
+            var solution = project.Solution;
+
+            var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(
+                solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
+            var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                document.Project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+
+            var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
+            var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
+            var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
+            var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo);
+            var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+
+            var computeTask = incrementalAnalysis
+                ? _incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(executor, analyzers, version, cancellationToken)
+                : ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken);
+            var diagnosticsMap = await computeTask.ConfigureAwait(false);
+
+            if (incrementalAnalysis)
+                _incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+
+            return [.. diagnosticsMap.SelectMany(kvp => kvp.Value)];
         }
     }
 }
