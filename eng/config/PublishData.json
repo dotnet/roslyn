@@ -187,15 +187,6 @@
       "insertionTitlePrefix": "[d18.0]",
       "insertionCreateDraftPR": false
     },
-    "release/dev-next": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionTitlePrefix": "[Validation]",
-      "insertionCreateDraftPR": true
-    },
     "community": {
       "nugetKind": [
         "Shipping",
