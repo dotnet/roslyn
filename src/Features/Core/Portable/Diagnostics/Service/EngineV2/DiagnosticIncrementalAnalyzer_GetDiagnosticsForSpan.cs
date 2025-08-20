@@ -302,7 +302,7 @@ internal sealed partial class DiagnosticAnalyzerService
             }
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+        public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
             TextDocument document,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind,

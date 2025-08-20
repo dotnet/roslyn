@@ -433,6 +433,32 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         }
     }
 
+    public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+        TextDocument document,
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        AnalysisKind kind,
+        TextSpan? span,
+        bool incrementalAnalysis,
+        bool logPerformanceInfo,
+        CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var analyzerIds = analyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                document.Project,
+                (service, solution, cancellationToken) => service.ComputeDiagnosticsAsync(
+                    solution, document.Id, analyzerIds, kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            return result.HasValue ? result.Value : [];
+        }
+
+        return await _incrementalAnalyzer.ComputeDiagnosticsAsync(
+            document, analyzers, kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
+    }
+
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
     {
         public static readonly DiagnosticAnalyzerComparer Instance = new();
