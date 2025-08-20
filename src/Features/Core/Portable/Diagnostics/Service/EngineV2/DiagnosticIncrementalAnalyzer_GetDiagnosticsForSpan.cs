@@ -264,7 +264,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
             bool TryDeprioritizeAnalyzer(
                 DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span,
-                HashSet<DiagnosticAnalyzer> deprioritizedAnalyzers)
+                HashSet<DiagnosticAnalyzer> deprioritizationCandidates)
             {
                 // PERF: In order to improve lightbulb performance, we perform de-prioritization optimization for certain analyzers
                 // that moves the analyzer to a lower priority bucket. However, to ensure that de-prioritization happens for very rare cases,
@@ -287,7 +287,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 // Condition 3.
                 // Check if this is a candidate analyzer that can be de-prioritized into a lower priority bucket based on registered actions.
-                if (!deprioritizedAnalyzers.Contains(analyzer))
+                if (!deprioritizationCandidates.Contains(analyzer))
                     return false;
 
                 // 'LightbulbSkipExecutingDeprioritizedAnalyzers' option determines if we want to execute this analyzer
