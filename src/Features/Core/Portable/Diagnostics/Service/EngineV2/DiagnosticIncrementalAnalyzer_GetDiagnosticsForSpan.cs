@@ -66,29 +66,37 @@ internal sealed partial class DiagnosticAnalyzerService
                 .ConfigureAwait(false);
             var analyzers = unfilteredAnalyzers
                 .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, document.Project, GlobalOptions));
-            var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
 
             // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
             // We clear out range for such cases as we are computing full document diagnostics.
             if (range == new TextSpan(0, text.Length))
                 range = null;
 
-            // We log performance info when we are computing diagnostics for a span
-            var logPerformanceInfo = range.HasValue;
-            var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-                document.Project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-
             // If we are computing full document diagnostics, we will attempt to perform incremental
             // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
             var incrementalAnalysis = !range.HasValue
                 && document is Document { SupportsSyntaxTree: true };
 
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
-            await GetAsync(list).ConfigureAwait(false);
+            var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = GetAllAnalyzers();
 
-            return list.ToImmutableAndClear();
+            try
+            {
+                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
-            async Task GetAsync(ArrayBuilder<DiagnosticData> list)
+                await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers, AnalysisKind.Syntax, range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
+                await ComputeDocumentDiagnosticsAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range, list, incrementalAnalysis, cancellationToken).ConfigureAwait(false);
+                await ComputeDocumentDiagnosticsAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
+
+                return list.ToImmutableAndClear();
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            (ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
+             ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
+             ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers) GetAllAnalyzers()
             {
                 try
                 {
@@ -153,11 +161,10 @@ internal sealed partial class DiagnosticAnalyzerService
                         }
                     }
 
-                    await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers.ToImmutable(), AnalysisKind.Syntax, range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticSpanBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, range, list, incrementalAnalysis, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticDocumentBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-
-                    return;
+                    return (
+                        syntaxAnalyzers.ToImmutableAndClear(),
+                        semanticSpanBasedAnalyzers.ToImmutableAndClear(),
+                        semanticDocumentBasedAnalyzers.ToImmutableAndClear());
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -204,29 +211,15 @@ internal sealed partial class DiagnosticAnalyzerService
                 Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
                 Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
-                using var _2 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
-
-                deprioritizationCandidates.AddRange(await this.AnalyzerService.GetDeprioritizationCandidatesAsync(
-                    project, analyzers, cancellationToken).ConfigureAwait(false));
-
-                foreach (var analyzer in analyzers)
-                {
-                    Debug.Assert(priorityProvider.MatchesPriority(analyzer));
-
-                    // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
-                    // If so, we skip this analyzer from execution in the current priority bucket.
-                    // We will subsequently execute this analyzer in the lower priority bucket.
-                    if (TryDeprioritizeAnalyzer(analyzer, kind, span, deprioritizationCandidates))
-                        continue;
-
-                    filteredAnalyzers.Add(analyzer);
-                }
-
-                if (filteredAnalyzers.Count == 0)
+                analyzers = await FilterAnalyzersAsync(analyzers).ConfigureAwait(false);
+                if (analyzers.Length == 0)
                     return;
 
-                analyzers = filteredAnalyzers.ToImmutable();
+                // We log performance info when we are computing diagnostics for a span
+                var logPerformanceInfo = range.HasValue;
+                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                    document.Project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
@@ -260,6 +253,33 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 if (incrementalAnalysis)
                     _incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+            }
+
+            async Task<ImmutableArray<DiagnosticAnalyzer>> FilterAnalyzersAsync(
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                AnalysisKind kind,
+                TextSpan? span)
+            {
+                using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
+                using var _2 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
+
+                deprioritizationCandidates.AddRange(await this.AnalyzerService.GetDeprioritizationCandidatesAsync(
+                    project, analyzers, cancellationToken).ConfigureAwait(false));
+
+                foreach (var analyzer in analyzers)
+                {
+                    Debug.Assert(priorityProvider.MatchesPriority(analyzer));
+
+                    // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
+                    // If so, we skip this analyzer from execution in the current priority bucket.
+                    // We will subsequently execute this analyzer in the lower priority bucket.
+                    if (TryDeprioritizeAnalyzer(analyzer, kind, span, deprioritizationCandidates))
+                        continue;
+
+                    filteredAnalyzers.Add(analyzer);
+                }
+
+                return filteredAnalyzers.ToImmutableAndClear();
             }
 
             bool TryDeprioritizeAnalyzer(
