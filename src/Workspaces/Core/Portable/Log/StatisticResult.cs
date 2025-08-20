@@ -74,7 +74,7 @@ internal readonly struct StatisticResult(int max, int min, double mean, int rang
     /// </summary>
     /// <param name="prefix">The prefix given to any properties written. A period is used to delimit between the 
     /// prefix and the value.</param>
-    public void WriteTelemetryPropertiesTo(Dictionary<string, object?> properties, string prefix)
+    public void WriteTelemetryPropertiesTo(IDictionary<string, object?> properties, string prefix)
     {
         prefix += ".";
 

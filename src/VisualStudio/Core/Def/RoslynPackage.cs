@@ -216,12 +216,11 @@ internal sealed class RoslynPackage : AbstractPackage
         base.Dispose(disposing);
     }
 
-    private void ReportSessionWideTelemetry()
+    private static void ReportSessionWideTelemetry()
     {
         AsyncCompletionLogger.ReportTelemetry();
         InheritanceMarginLogger.ReportTelemetry();
         FeaturesSessionTelemetry.Report();
-        ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
     }
 
     private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)

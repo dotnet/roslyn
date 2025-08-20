@@ -30,7 +30,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
 
-    private static string MSBuildWorkspaceDirectory => Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!;
+    private static string MSBuildWorkspaceDirectory => Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location) ?? AppContext.BaseDirectory;
     private static bool IsLoadedFromNuGetPackage => File.Exists(Path.Combine(MSBuildWorkspaceDirectory, "..", "..", "microsoft.codeanalysis.workspaces.msbuild.nuspec"));
 
     private static readonly string DotnetExecutable = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet";

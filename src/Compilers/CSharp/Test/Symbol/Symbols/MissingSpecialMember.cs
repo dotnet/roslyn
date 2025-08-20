@@ -567,7 +567,10 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                     || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
-                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference)
+                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
+                    )
                 {
                     Assert.Null(symbol); // Not available
                 }
@@ -917,7 +920,7 @@ namespace System
             }
 
             // There were 200 well-known types prior to CSharp7
-            Assert.Equal(200, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
+            Assert.Equal(200, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First - 1 /* WellKnownTypes.ExtSentinel is before CSharp7Sentinel */));
         }
 
         [Fact]
