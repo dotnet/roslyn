@@ -18,44 +18,7 @@ internal sealed partial class DiagnosticAnalyzerService
 {
     private sealed partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-            Project project,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            DocumentId? documentId,
-            ImmutableHashSet<string>? diagnosticIds,
-            bool includeLocalDocumentDiagnostics,
-            bool includeNonLocalDocumentDiagnostics,
-            CancellationToken cancellationToken)
-        {
-            return ProduceProjectDiagnosticsAsync(
-                project, analyzers, diagnosticIds,
-                // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
-                // project if no specific document id was requested.
-                documentId != null ? [documentId] : [.. project.DocumentIds, .. project.AdditionalDocumentIds],
-                includeLocalDocumentDiagnostics,
-                includeNonLocalDocumentDiagnostics,
-                // return diagnostics specific to one project or document
-                includeProjectNonLocalResult: documentId == null,
-                cancellationToken);
-        }
-
-        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-            Project project,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            ImmutableHashSet<string>? diagnosticIds,
-            bool includeNonLocalDocumentDiagnostics,
-            CancellationToken cancellationToken)
-        {
-            return ProduceProjectDiagnosticsAsync(
-               project, analyzers, diagnosticIds,
-               documentIds: [],
-               includeLocalDocumentDiagnostics: false,
-               includeNonLocalDocumentDiagnostics: includeNonLocalDocumentDiagnostics,
-               includeProjectNonLocalResult: true,
-               cancellationToken);
-        }
-
-        private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
+        public async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
             Project project,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableHashSet<string>? diagnosticIds,
