@@ -89,12 +89,11 @@ internal sealed partial class DiagnosticAnalyzerService
             var checksumAndAnalyzers = (checksum, analyzers);
             if (!map.TryGetValue(checksumAndAnalyzers, out lazy))
             {
-                lazy = AsyncLazy.Create(static async (tuple, cancellationToken) =>
+                lazy = AsyncLazy.Create(static (tuple, cancellationToken) =>
                 {
                     var (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException) = tuple;
-                    var compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync(
-                        project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-                    return compilationWithAnalyzersPair;
+                    return CreateCompilationWithAnalyzersAsync(
+                        project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException, cancellationToken);
                 }, (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException));
                 map.Add(checksumAndAnalyzers, lazy);
             }
