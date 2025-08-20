@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -16,6 +17,17 @@ internal interface IRemoteDiagnosticAnalyzerService
     /// Force analyzes the given project by running all applicable analyzers on the project.
     /// </summary>
     ValueTask<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the analyzers that are candidates to be de-prioritized to
+    /// <see cref="CodeActionRequestPriority.Low"/> priority for improvement in analyzer
+    /// execution performance for priority buckets above 'Low' priority.
+    /// Based on performance measurements, currently only analyzers which register SymbolStart/End actions
+    /// or SemanticModel actions are considered candidates to be de-prioritized. However, these semantics
+    /// could be changed in future based on performance measurements.
+    /// </summary>
+    ValueTask<ImmutableHashSet<string>> GetDeprioritizationCandidatesAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableHashSet<string> analyzerIds, CancellationToken cancellationToken);
 
     ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
     ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(

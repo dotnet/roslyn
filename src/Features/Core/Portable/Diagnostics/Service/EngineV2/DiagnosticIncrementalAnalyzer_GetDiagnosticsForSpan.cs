@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -203,7 +204,12 @@ internal sealed partial class DiagnosticAnalyzerService
                 Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
                 Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
+                using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
+                using var _2 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
+
+                deprioritizationCandidates.AddRange(await this.AnalyzerService.GetDeprioritizationCandidatesAsync(
+                    project, analyzers, cancellationToken).ConfigureAwait(false));
+
                 foreach (var analyzer in analyzers)
                 {
                     Debug.Assert(priorityProvider.MatchesPriority(analyzer));
@@ -211,10 +217,8 @@ internal sealed partial class DiagnosticAnalyzerService
                     // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                     // If so, we skip this analyzer from execution in the current priority bucket.
                     // We will subsequently execute this analyzer in the lower priority bucket.
-                    if (await TryDeprioritizeAnalyzerAsync(analyzer, kind, span).ConfigureAwait(false))
-                    {
+                    if (TryDeprioritizeAnalyzer(analyzer, kind, span, deprioritizationCandidates))
                         continue;
-                    }
 
                     filteredAnalyzers.Add(analyzer);
                 }
@@ -223,8 +227,6 @@ internal sealed partial class DiagnosticAnalyzerService
                     return;
 
                 analyzers = filteredAnalyzers.ToImmutable();
-
-                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
@@ -235,7 +237,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
                 if (incrementalAnalysis)
                 {
-                    using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Incremental");
+                    using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Incremental");
 
                     diagnosticsMap = await _incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(
                         executor,
@@ -245,7 +247,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
                 else
                 {
-                    using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Document");
+                    using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Document");
 
                     diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
@@ -260,8 +262,9 @@ internal sealed partial class DiagnosticAnalyzerService
                     _incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
             }
 
-            async Task<bool> TryDeprioritizeAnalyzerAsync(
-                DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span)
+            bool TryDeprioritizeAnalyzer(
+                DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span,
+                HashSet<DiagnosticAnalyzer> deprioritizedAnalyzers)
             {
                 // PERF: In order to improve lightbulb performance, we perform de-prioritization optimization for certain analyzers
                 // that moves the analyzer to a lower priority bucket. However, to ensure that de-prioritization happens for very rare cases,
@@ -284,10 +287,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 // Condition 3.
                 // Check if this is a candidate analyzer that can be de-prioritized into a lower priority bucket based on registered actions.
-                if (!await IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer).ConfigureAwait(false))
-                {
+                if (!deprioritizedAnalyzers.Contains(analyzer))
                     return false;
-                }
 
                 // 'LightbulbSkipExecutingDeprioritizedAnalyzers' option determines if we want to execute this analyzer
                 // in low priority bucket or skip it completely. If the option is not set, track the de-prioritized
@@ -299,31 +300,6 @@ internal sealed partial class DiagnosticAnalyzerService
                     priorityProvider.AddDeprioritizedAnalyzerWithLowPriority(analyzer);
 
                 return true;
-            }
-
-            // Returns true if this is an analyzer that is a candidate to be de-prioritized to
-            // 'CodeActionRequestPriority.Low' priority for improvement in analyzer
-            // execution performance for priority buckets above 'Low' priority.
-            // Based on performance measurements, currently only analyzers which register SymbolStart/End actions
-            // or SemanticModel actions are considered candidates to be de-prioritized. However, these semantics
-            // could be changed in future based on performance measurements.
-            async Task<bool> IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(DiagnosticAnalyzer analyzer)
-            {
-                // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
-                // as these are computationally more expensive.
-                // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
-                if (compilationWithAnalyzers == null ||
-                    analyzer.IsWorkspaceDiagnosticAnalyzer() ||
-                    analyzer.IsCompilerAnalyzer())
-                {
-                    return false;
-                }
-
-                var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                if (telemetryInfo == null)
-                    return false;
-
-                return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
             }
 
             bool ShouldInclude(DiagnosticData diagnostic)

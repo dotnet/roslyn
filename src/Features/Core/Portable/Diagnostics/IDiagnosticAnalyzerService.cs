@@ -25,6 +25,10 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.ForceAnalyzeProjectAsync"/>
     Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
 
+    /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
+    Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
+        Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken);
+
     /// <summary>
     /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned
     /// should be up-to-date with respect to the given solution. Note that for project case, this method returns

@@ -95,17 +95,8 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
                 var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
 
-                using var _ = PooledDictionary<string, DiagnosticAnalyzer>.GetInstance(out var analyzerMap);
-                foreach (var analyzer in allProjectAnalyzers)
-                {
-                    // In the case of multiple analyzers with the same ID, we keep the last one.
-                    var analyzerId = analyzer.GetAnalyzerId();
-                    if (analyzerIds.Contains(analyzerId))
-                        analyzerMap[analyzerId] = analyzer;
-                }
-
                 return await service.ProduceProjectDiagnosticsAsync(
-                    project, [.. analyzerMap.Values], diagnosticIds, documentIds,
+                    project, allProjectAnalyzers.FilterAnalyzers(analyzerIds), diagnosticIds, documentIds,
                     includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, includeProjectNonLocalResult,
                     cancellationToken).ConfigureAwait(false);
             },
@@ -288,6 +279,26 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                     kvp => kvp.Key,
                     kvp => kvp.Value.SelectAsArray(DiagnosticDescriptorData.Create));
 
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableHashSet<string>> GetDeprioritizationCandidatesAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableHashSet<string> analyzerIds, CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+                var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+
+                var candidates = await service.GetDeprioritizationCandidatesAsync(
+                    project, allProjectAnalyzers.FilterAnalyzers(analyzerIds), cancellationToken).ConfigureAwait(false);
+
+                return candidates.Select(c => c.GetAnalyzerId()).ToImmutableHashSet();
             },
             cancellationToken);
     }
