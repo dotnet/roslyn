@@ -73,13 +73,12 @@ internal sealed partial class DiagnosticAnalyzerService
         if (!project.SupportsCompilation)
             return null;
 
-        var projectState = project.State;
         var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
 
         // Make sure the cached pair was computed with the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         var map = s_projectToCompilationWithAnalyzers.GetValue(
-            projectState,
+            project.State,
             // We will almost always have one item in this dict
             static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
 
@@ -89,12 +88,14 @@ internal sealed partial class DiagnosticAnalyzerService
             var checksumAndAnalyzers = (checksum, analyzers);
             if (!map.TryGetValue(checksumAndAnalyzers, out lazy))
             {
-                lazy = AsyncLazy.Create(async cancellationToken =>
+                lazy = AsyncLazy.Create(static async (tuple, cancellationToken) =>
                 {
+                    var (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException) = tuple;
                     var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
+                    var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(
+                        project.State, compilation, analyzers, hostAnalyzerInfo, crashOnAnalyzerException);
                     return compilationWithAnalyzersPair;
-                });
+                }, (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException));
                 map.Add(checksumAndAnalyzers, lazy);
             }
         }
@@ -104,8 +105,12 @@ internal sealed partial class DiagnosticAnalyzerService
         // <summary>
         // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
         // </summary>
-        CompilationWithAnalyzersPair? CreateCompilationWithAnalyzers(
-            ProjectState project, Compilation compilation)
+        static CompilationWithAnalyzersPair? CreateCompilationWithAnalyzers(
+            ProjectState project,
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            HostAnalyzerInfo hostAnalyzerInfo,
+            bool crashOnAnalyzerException)
         {
             var projectAnalyzers = analyzers.WhereAsArray(static (s, info) => !info.IsHostAnalyzer(s), hostAnalyzerInfo);
             var hostAnalyzers = analyzers.WhereAsArray(static (s, info) => info.IsHostAnalyzer(s), hostAnalyzerInfo);
