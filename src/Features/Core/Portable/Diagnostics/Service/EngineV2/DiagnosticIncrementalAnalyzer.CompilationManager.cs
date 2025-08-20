@@ -61,6 +61,9 @@ internal sealed partial class DiagnosticAnalyzerService
             (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers),
             AsyncLazy<CompilationWithAnalyzersPair?>>> s_projectToCompilationWithAnalyzers = new();
 
+    /// <summary>
+    /// Protection around the SmallDictionary in <see cref="s_projectToCompilationWithAnalyzers"/>.
+    /// </summary>
     private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
     private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
@@ -78,9 +81,7 @@ internal sealed partial class DiagnosticAnalyzerService
         // Make sure the cached pair was computed with the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         var map = s_projectToCompilationWithAnalyzers.GetValue(
-            project.State,
-            // We will almost always have one item in this dict
-            static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
+            project.State, static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
 
         AsyncLazy<CompilationWithAnalyzersPair?>? lazy;
         using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -91,9 +92,8 @@ internal sealed partial class DiagnosticAnalyzerService
                 lazy = AsyncLazy.Create(static async (tuple, cancellationToken) =>
                 {
                     var (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException) = tuple;
-                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(
-                        project.State, compilation, analyzers, hostAnalyzerInfo, crashOnAnalyzerException);
+                    var compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync(
+                        project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                     return compilationWithAnalyzersPair;
                 }, (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException));
                 map.Add(checksumAndAnalyzers, lazy);
@@ -105,13 +105,15 @@ internal sealed partial class DiagnosticAnalyzerService
         // <summary>
         // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
         // </summary>
-        static CompilationWithAnalyzersPair? CreateCompilationWithAnalyzers(
-            ProjectState project,
-            Compilation compilation,
+        static async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(
+            Project project,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             HostAnalyzerInfo hostAnalyzerInfo,
-            bool crashOnAnalyzerException)
+            bool crashOnAnalyzerException,
+            CancellationToken cancellationToken)
         {
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
             var projectAnalyzers = analyzers.WhereAsArray(static (s, info) => !info.IsHostAnalyzer(s), hostAnalyzerInfo);
             var hostAnalyzers = analyzers.WhereAsArray(static (s, info) => info.IsHostAnalyzer(s), hostAnalyzerInfo);
 
@@ -147,7 +149,7 @@ internal sealed partial class DiagnosticAnalyzerService
             var projectCompilation = !filteredProjectAnalyzers.Any()
                 ? null
                 : compilation.WithAnalyzers(filteredProjectAnalyzers, new CompilationWithAnalyzersOptions(
-                    options: project.ProjectAnalyzerOptions,
+                    options: project.State.ProjectAnalyzerOptions,
                     onAnalyzerException: null,
                     analyzerExceptionFilter: exceptionFilter,
                     concurrentAnalysis: false,
