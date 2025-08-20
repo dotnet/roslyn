@@ -61,9 +61,9 @@ internal sealed partial class DiagnosticAnalyzerService
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
             var solution = project.Solution;
-            var analyzersForProject = await _stateManager.GetOrCreateAnalyzersAsync(
+            var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(
                 solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
-            var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(
+            var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(
                 solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
             var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 

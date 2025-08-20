@@ -21,7 +21,6 @@ internal sealed partial class DiagnosticAnalyzerService
     private sealed partial class DiagnosticIncrementalAnalyzer
     {
         private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
-        private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
@@ -37,16 +36,16 @@ internal sealed partial class DiagnosticAnalyzerService
             AnalyzerService = analyzerService;
             GlobalOptions = globalOptionService;
 
-            _stateManager = new StateManager(analyzerInfoCache);
-
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
         }
+
+        private StateManager StateManager => this.AnalyzerService._stateManager;
 
         internal IGlobalOptionService GlobalOptions { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
-            => _stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
+            => StateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
 
         private static string GetProjectLogMessage(Project project, ImmutableArray<DocumentDiagnosticAnalyzer> analyzers)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";

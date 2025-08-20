@@ -58,6 +58,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticIncrementalAnalyzer _incrementalAnalyzer;
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+    private readonly StateManager _stateManager;
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -71,6 +72,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
         _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, _analyzerInfoCache, this.GlobalOptions);
+        _stateManager = new StateManager(_analyzerInfoCache);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {
