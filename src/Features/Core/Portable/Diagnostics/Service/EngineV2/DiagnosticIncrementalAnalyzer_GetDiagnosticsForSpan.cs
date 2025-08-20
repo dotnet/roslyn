@@ -65,24 +65,18 @@ internal sealed partial class DiagnosticAnalyzerService
                 .ConfigureAwait(false);
             var analyzers = unfilteredAnalyzers
                 .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, document.Project, GlobalOptions));
-            var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
 
             // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
             // We clear out range for such cases as we are computing full document diagnostics.
             if (range == new TextSpan(0, text.Length))
                 range = null;
 
-            // We log performance info when we are computing diagnostics for a span
-            var logPerformanceInfo = range.HasValue;
-            var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-                document.Project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-
             // If we are computing full document diagnostics, we will attempt to perform incremental
             // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
             var incrementalAnalysis = !range.HasValue
                 && document is Document { SupportsSyntaxTree: true };
 
-            var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = await GetAllAnalyzers().ConfigureAwait(false);
+            var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = GetAllAnalyzers();
 
             try
             {
@@ -237,7 +231,11 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 analyzers = filteredAnalyzers.ToImmutable();
 
+                // We log performance info when we are computing diagnostics for a span
+                var logPerformanceInfo = range.HasValue;
                 var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                    document.Project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
