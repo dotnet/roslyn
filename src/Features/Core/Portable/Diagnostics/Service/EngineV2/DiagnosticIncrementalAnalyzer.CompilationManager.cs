@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -16,14 +18,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
+    private sealed class ChecksumAndAnalyzersEqualityComparer
+        : IEqualityComparer<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers)>
+    {
+        public static readonly ChecksumAndAnalyzersEqualityComparer Instance = new();
+
+        public bool Equals((Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) x, (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) y)
+        {
+            if (x.checksum != y.checksum)
+                return false;
+
+            // Fast path for when the analyzers are the same reference.
+            return x.analyzers == y.analyzers || x.analyzers.SetEquals(y.analyzers);
+        }
+
+        public int GetHashCode((Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) obj)
+        {
+            var hashCode = obj.checksum.GetHashCode();
+
+            // Use addition so that we're resilient to any order for the analyzers.
+            foreach (var analyzer in obj.analyzers)
+                hashCode += analyzer.GetHashCode();
+
+            return hashCode;
+        }
+    }
+
     /// <summary>
-    /// Cached data from a <see cref="ProjectState"/> to the last <see cref="CompilationWithAnalyzersPair"/> instance
-    /// created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
-    /// cref="DiagnosticAnalyzer"/>s passed along with the project.  As such, we might not be able to use a prior cached
-    /// value if the set of analyzers changes.  In that case, a new instance will be created and will be cached for the
-    /// next caller.
+    /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzersPair"/>s
+    /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
+    /// cref="DiagnosticAnalyzer"/>s passed along with the project.
+    /// <para/>
+    /// The value of the table is a <see cref="ConcurrentDictionary{TKey, TValue}"/> that maps from the 
+    /// <see cref="Project"/> checksum the set of <see cref="DiagnosticAnalyzer"/>s being requested.
     /// </summary>
-    private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersPair? compilationWithAnalyzersPair)>> s_projectToCompilationWithAnalyzers = new();
+    private static readonly ConditionalWeakTable<
+        ProjectState,
+        ConcurrentDictionary<
+            (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers),
+            AsyncLazy<CompilationWithAnalyzersPair?>>> s_projectToCompilationWithAnalyzers = new();
 
     private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
         Project project,
@@ -40,29 +73,20 @@ internal sealed partial class DiagnosticAnalyzerService
 
         // Make sure the cached pair was computed with the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
-        if (!s_projectToCompilationWithAnalyzers.TryGetValue(projectState, out var tupleBox) ||
-            tupleBox.Value.checksum != checksum ||
-            !analyzers.SetEquals(tupleBox.Value.analyzers))
-        {
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
-            tupleBox = new((checksum, analyzers, compilationWithAnalyzersPair));
+        var map = s_projectToCompilationWithAnalyzers.GetValue(
+            projectState,
+            static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
 
-#if NET
-            s_projectToCompilationWithAnalyzers.AddOrUpdate(projectState, tupleBox);
-#else
-            // Make a best effort attempt to store the latest computed value against these state sets. If this
-            // fails (because another thread interleaves with this), that's ok.  We still return the pair we 
-            // computed, so our caller will still see the right data
-            s_projectToCompilationWithAnalyzers.Remove(projectState);
+        var lazy = map.GetOrAdd(
+            (checksum, analyzers),
+            checksumAndAnalyzers => AsyncLazy.Create(async cancellationToken =>
+            {
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
+                return compilationWithAnalyzersPair;
+            }));
 
-            // Intentionally ignore the result of this.  We still want to use the value we computed above, even if
-            // another thread interleaves and sets a different value.
-            s_projectToCompilationWithAnalyzers.GetValue(projectState, _ => tupleBox);
-#endif
-        }
-
-        return tupleBox.Value.compilationWithAnalyzersPair;
+        return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
         // <summary>
         // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
