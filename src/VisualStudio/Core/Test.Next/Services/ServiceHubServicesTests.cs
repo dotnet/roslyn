@@ -478,6 +478,20 @@ public sealed partial class ServiceHubServicesTests
             var remoteCompilation = await remoteProject.GetCompilationAsync();
 
             await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: sourceTexts.Length);
+
+            // make another change
+            Assert.True(localWorkspace.SetCurrentSolution(s => s.WithDocumentText(tempDocId, SourceText.From("// abc " + i)), WorkspaceChangeKind.SolutionChanged));
+            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
+
+            localProject = localWorkspace.CurrentSolution.Projects.Single();
+            remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+
+            throwIfCalled = false;
+            localCompilation = await localProject.GetCompilationAsync();
+
+            // Now run them remotely.  This must not actually call into the generator since nothing has changed.
+            throwIfCalled = true;
+            remoteCompilation = await remoteProject.GetCompilationAsync();
         }
 
         static async Task AssertSourceGeneratedDocumentsAreSame(Project localProject, Project remoteProject, int expectedCount)
@@ -1435,6 +1449,7 @@ public sealed partial class ServiceHubServicesTests
         using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
+        // synchronize the remote workspace with the inproc one
         _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
             (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
@@ -1453,6 +1468,7 @@ public sealed partial class ServiceHubServicesTests
 
         if (enqueueChangeBeforeEdit)
         {
+            // if we force regeneration we expect generators to run
             expectedCallCount += forceRegeneration ? 1 : 0;
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
         }
@@ -1465,6 +1481,8 @@ public sealed partial class ServiceHubServicesTests
         // Now, make a simple edit to the main document.
         Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(normalDocId, SourceText.From("// new text"))));
 
+        // If we're in automatic, we'll always run, because we made a change.
+        // If we're in balanced, we won't expect to run *unless* we queued a change before hand, in which case we *would* expect to run
         expectedCallCount += executionPreference == SourceGeneratorExecutionPreference.Automatic || enqueueChangeBeforeEdit ? 1 : 0;
 
         solution = workspace.CurrentSolution;
@@ -1476,6 +1494,10 @@ public sealed partial class ServiceHubServicesTests
 
         if (enqueueChangeAfterEdit)
         {
+            // if we force regeneration we expect to run
+            // In auto we don't expect to run, because we already did for the edit.
+            // If we are in balanced mode and we *didn't* queue a change beforehand then we expect to run. If we already
+            // queued a change before the edit, then we will have run for the edit, so *don't* expect to run again.
             expectedCallCount += forceRegeneration || executionPreference == SourceGeneratorExecutionPreference.Balanced && !enqueueChangeBeforeEdit ? 1 : 0;
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
         }
@@ -1488,7 +1510,7 @@ public sealed partial class ServiceHubServicesTests
         document = Assert.Single(documents);
 
         Assert.Equal("// callCount: " + expectedCallCount, (await document.GetTextAsync()).ToString());
-        }
+    }
 
     [Theory, CombinatorialData]
     internal async Task TestSourceGenerationExecution_RazorGeneratorAlwaysRuns_OtherGeneratorsRespectPreference(SourceGeneratorExecutionPreference executionPreference)
