@@ -38,11 +38,11 @@ internal sealed partial class DiagnosticAnalyzerService
         var projectState = project.State;
         var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-        // Make sure the cached pair was computed with at least the same state sets we're asking about.  if not,
+        // Make sure the cached pair was computed with the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         if (!s_projectToCompilationWithAnalyzers.TryGetValue(projectState, out var tupleBox) ||
             tupleBox.Value.checksum != checksum ||
-            !analyzers.IsSubsetOf(tupleBox.Value.analyzers))
+            !analyzers.SetEquals(tupleBox.Value.analyzers))
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
