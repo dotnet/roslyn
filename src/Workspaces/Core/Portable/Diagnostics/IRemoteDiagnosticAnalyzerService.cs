@@ -12,7 +12,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IRemoteDiagnosticAnalyzerService
 {
+    /// <summary>
+    /// Force analyzes the given project by running all applicable analyzers on the project.
+    /// </summary>
+    ValueTask<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+
     ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
+
     ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
     ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken);
 
