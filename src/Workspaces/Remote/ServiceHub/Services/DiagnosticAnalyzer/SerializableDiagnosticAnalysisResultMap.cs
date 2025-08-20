@@ -17,8 +17,14 @@ internal readonly struct DiagnosticAnalysisResults(
     internal readonly ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo telemetry)> Telemetry => telemetry.NullToEmpty();
 }
 
-internal readonly record struct DiagnosticMap(
-    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> Syntax,
-    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> Semantic,
-    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> NonLocal,
-    ImmutableArray<DiagnosticData> Other);
+internal readonly struct DiagnosticMap(
+    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> syntax,
+    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> semantic,
+    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> nonLocal,
+    ImmutableArray<DiagnosticData> other)
+{
+    public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> Syntax = syntax;
+    public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> Semantic = semantic;
+    public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> NonLocal = nonLocal;
+    public readonly ImmutableArray<DiagnosticData> Other = other;
+}
