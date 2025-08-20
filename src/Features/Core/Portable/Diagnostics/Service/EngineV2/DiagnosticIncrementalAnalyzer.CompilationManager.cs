@@ -89,12 +89,9 @@ internal sealed partial class DiagnosticAnalyzerService
             var checksumAndAnalyzers = (checksum, analyzers);
             if (!map.TryGetValue(checksumAndAnalyzers, out lazy))
             {
-                lazy = AsyncLazy.Create(static (tuple, cancellationToken) =>
-                {
-                    var (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException) = tuple;
-                    return CreateCompilationWithAnalyzersAsync(
-                        project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException, cancellationToken);
-                }, (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException));
+                lazy = AsyncLazy.Create(
+                    asynchronousComputeFunction: CreateCompilationWithAnalyzersAsync,
+                    arg: (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException));
                 map.Add(checksumAndAnalyzers, lazy);
             }
         }
@@ -105,12 +102,14 @@ internal sealed partial class DiagnosticAnalyzerService
         // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
         // </summary>
         static async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(
-            Project project,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            HostAnalyzerInfo hostAnalyzerInfo,
-            bool crashOnAnalyzerException,
+            (Project project,
+             ImmutableArray<DiagnosticAnalyzer> analyzers,
+             HostAnalyzerInfo hostAnalyzerInfo,
+             bool crashOnAnalyzerException) tuple,
             CancellationToken cancellationToken)
         {
+            var (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException) = tuple;
+
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var projectAnalyzers = analyzers.WhereAsArray(static (s, info) => !info.IsHostAnalyzer(s), hostAnalyzerInfo);
