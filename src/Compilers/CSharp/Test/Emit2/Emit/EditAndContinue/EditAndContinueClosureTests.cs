@@ -4842,7 +4842,7 @@ class C
                             "C.<>c: {<>9__0_1, <F>b__0_1}",
                             "C.<>c__DisplayClass0_0#1: {x, <F>b__0#1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__0_0", "<F>b__0_1", ".ctor", ".ctor", "<F>b__0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", ".ctor", "<F>b__0#1");
 
                         g.VerifyIL(
                         """
@@ -4865,7 +4865,7 @@ class C
                           IL_0026:  stsfld     0x04000003
                           IL_002b:  ret
                         }
-                        deleted_<F>b__0_0
+                        <F>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -4989,7 +4989,7 @@ class C
                             "C: {<F>g__L1|0_0#1, <F>g__L2|0_1, <>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -5005,7 +5005,7 @@ class C
                           IL_000a:  nop
                           IL_000b:  ret
                         }
-                        deleted_<F>g__L1|0_0
+                        <F>g__L1|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5098,7 +5098,7 @@ class C
                             "C.<>c: {<>9__0_1, <F>b__0_1}",
                             "C.<>c__DisplayClass0_0#1: {x, <F>b__0#1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__0_0", "<F>b__0_1", ".ctor", ".ctor", "<F>b__0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", ".ctor", "<F>b__0#1");
 
                         g.VerifyIL(
                         """
@@ -5121,7 +5121,7 @@ class C
                           IL_0026:  stsfld     0x04000003
                           IL_002b:  ret
                         }
-                        deleted_<F>b__0_0
+                        <F>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5243,7 +5243,7 @@ class C
                             "C: {<F>g__L1|0_0#1, <F>g__L2|0_1, <>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1", ".ctor");
 
                         g.VerifyIL("""
                         F
@@ -5258,7 +5258,7 @@ class C
                           IL_000a:  nop
                           IL_000b:  ret
                         }
-                        deleted_<F>g__L1|0_0
+                        <F>g__L1|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5352,7 +5352,7 @@ class C
                             "C.<>c: {<>9__1_0, <F>b__1_0}",
                             "C.<>c__DisplayClass1_0#1: {x, <F>b__1#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__1_0", "deleted_<F>b__1_1", ".ctor", ".ctor", "<F>b__1#1");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", ".ctor", ".ctor", "<F>b__1#1");
 
                         g.VerifyIL(
                         """
@@ -5388,7 +5388,7 @@ class C
                           IL_0019:  call       0x06000001
                           IL_001e:  ret
                         }
-                        deleted_<F>b__1_1
+                        <F>b__1_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -5480,7 +5480,7 @@ class C
                             "C.<>c__DisplayClass0_0#1: {x, y, <.ctor>b__0#1, <.ctor>b__1#1}");
 
                         g.VerifyMethodDefNames(
-                            ".ctor", "deleted_<.ctor>b__0_0", "deleted_<.ctor>b__0_1", ".ctor", ".ctor", "<.ctor>b__0#1", "<.ctor>b__1#1");
+                            ".ctor", "<.ctor>b__0_0", "<.ctor>b__0_1", ".ctor", ".ctor", "<.ctor>b__0#1", "<.ctor>b__1#1");
 
                         g.VerifyIL(
                         """
@@ -5506,7 +5506,7 @@ class C
                           IL_0028:  nop
                           IL_0029:  ret
                         }
-                        deleted_<.ctor>b__0_0
+                        <.ctor>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5515,7 +5515,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
-                        deleted_<.ctor>b__0_1
+                        <.ctor>b__0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -5604,7 +5604,7 @@ class C
                             "C.<>c__DisplayClass0_0#1: {x, <.ctor>b__0#1}");
 
                         g.VerifyMethodDefNames(
-                            ".ctor", "deleted_<.ctor>b__0_0", ".ctor", ".ctor", "<.ctor>b__0#1");
+                            ".ctor", "<.ctor>b__0_0", ".ctor", ".ctor", "<.ctor>b__0#1");
 
                         g.VerifyIL(
                         """
@@ -5625,7 +5625,7 @@ class C
                           IL_001f:  nop
                           IL_0020:  ret
                         }
-                        deleted_<.ctor>b__0_0
+                        <.ctor>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5704,7 +5704,7 @@ class C
                             "Program.<>c__DisplayClass0_0#1: {args, <<Main>$>b__0#1}");
 
                         g.VerifyMethodDefNames(
-                            "<Main>$", "deleted_<<Main>$>b__0_0", ".ctor", ".ctor", "<<Main>$>b__0#1");
+                            "<Main>$", "<<Main>$>b__0_0", ".ctor", ".ctor", "<<Main>$>b__0#1");
 
                         g.VerifyIL(
                         """
@@ -5723,7 +5723,7 @@ class C
                           IL_0019:  stloc.2
                           IL_001a:  ret
                         }
-                        deleted_<<Main>$>b__0_0
+                        <<Main>$>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5840,7 +5840,7 @@ class C
                             "C: {<F>b__1_0#1, <>c}",
                             "C.<>c: {<>9__1_1, <F>b__1_1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -5858,7 +5858,7 @@ class C
                           IL_0019:  stsfld     0x04000004
                           IL_001e:  ret
                         }
-                        deleted_<F>b__1_0
+                        <F>b__1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5975,7 +5975,7 @@ class C
                             "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -5988,7 +5988,7 @@ class C
                           IL_0002:  nop
                           IL_0003:  ret
                         }
-                        deleted_<F>g__L1|1_0
+                        <F>g__L1|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6080,7 +6080,7 @@ class C
                             "C: {<F>b__1_0#1, <>c}",
                             "C.<>c: {<>9__1_1, <F>b__1_1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -6098,7 +6098,7 @@ class C
                           IL_0019:  stsfld     0x04000003
                           IL_001e:  ret
                         }
-                        deleted_<F>b__1_0
+                        <F>b__1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6187,7 +6187,7 @@ class C
                             "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -6200,7 +6200,7 @@ class C
                           IL_0002:  nop
                           IL_0003:  ret
                         }
-                        deleted_<F>g__L1|1_0
+                        <F>g__L1|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6501,7 +6501,7 @@ class C
                             "C: {<>c}",
                             "C.<>c: {<>9__0_0#1, <F>b__0_0#1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__0", ".ctor", ".cctor", ".ctor", "<F>b__0_0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", ".ctor", ".cctor", ".ctor", "<F>b__0_0#1");
 
                         g.VerifyIL(
                         """
@@ -6520,7 +6520,7 @@ class C
                           IL_001a:  stsfld     0x04000004
                           IL_001f:  ret
                         }
-                        deleted_<F>b__0
+                        <F>b__0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6598,7 +6598,7 @@ class C
                         // <HotReloadException> was emitted in previous generation and TypeRef is emitted to the current one:
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Console");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__0_0#1", ".ctor", "<F>b__0#2");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0#1", ".ctor", "<F>b__0#2");
 
                         g.VerifyIL(
                         """
@@ -6615,7 +6615,7 @@ class C
                           IL_000e:  nop
                           IL_000f:  ret
                         }
-                        deleted_<F>b__0_0#1
+                        <F>b__0_0#1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -6728,7 +6728,7 @@ class C
                             "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L|0_0#1, <F>g__L|0_1#1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L|0_0", "deleted_<F>g__L|0_1", "<F>g__L|0_0#1", "<F>g__L|0_1#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_1", "<F>g__L|0_0#1", "<F>g__L|0_1#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -6751,7 +6751,7 @@ class C
                           IL_000c:  nop
                           IL_000d:  ret
                         }
-                        deleted_<F>g__L|0_0
+                        <F>g__L|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6760,7 +6760,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
-                        deleted_<F>g__L|0_1
+                        <F>g__L|0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -6898,7 +6898,7 @@ class C
                             "C: {<>c}",
                             "C.<>c: {<>9__1_0#1, <>9__1_1, <F>b__1_0#1, <F>b__1_1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__1_0", "<F>b__1_1", ".ctor", "<F>b__1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", ".ctor", "<F>b__1_0#1");
 
                         g.VerifyIL(
                         """
@@ -6921,7 +6921,7 @@ class C
                           IL_0034:  stsfld     0x04000003
                           IL_0039:  ret
                         }
-                        deleted_<F>b__1_0
+                        <F>b__1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -7056,7 +7056,7 @@ class C
                             "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -7069,7 +7069,7 @@ class C
                           IL_0002:  nop
                           IL_0003:  ret
                         }
-                        deleted_<F>g__L1|1_0
+                        <F>g__L1|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -7222,7 +7222,7 @@ class C
                         // <HotReloadException> is emitted as a definition in this generation
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>b__0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>b__0#1", ".ctor");
 
                         g.VerifyIL("""
                         F
@@ -7234,7 +7234,7 @@ class C
                           IL_0002:  stloc.2
                           IL_0003:  ret
                         }
-                        deleted_<F>b__0#1
+                        <F>b__0#1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7353,7 +7353,7 @@ class C
                             "C: {<F>g__L|0#1_0#1, <>c__DisplayClass0#1_0#1}",
                             "C.<>c__DisplayClass0#1_0#1: {x}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L|0#1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0#1_0#1", ".ctor");
 
                         g.VerifyIL("""
                         F
@@ -7365,7 +7365,7 @@ class C
                           IL_0002:  stloc.2
                           IL_0003:  ret
                         }
-                        deleted_<F>g__L|0#1_0#1
+                        <F>g__L|0#1_0#1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7474,7 +7474,7 @@ class C
                             "C.<>c__DisplayClass1_1#1: {x1, CS$<>8__locals1, <F>b__1#1}",
                             "C.<>c__DisplayClass1_0: {x0, <F>b__0}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0", "deleted_<F>b__1", ".ctor", ".ctor", "<F>b__1#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", ".ctor", "<F>b__1#1");
 
                         g.VerifyIL(
                         """
@@ -7523,7 +7523,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
-                        deleted_<F>b__1
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7673,7 +7673,7 @@ class C
                             "C.<>c__DisplayClass0_0: {x0}",
                             "C.<>c__DisplayClass0_1: {x1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "deleted_<F>g__L2|0_1", "<F>g__L2|0_1#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -7704,7 +7704,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
-                        deleted_<F>g__L2|0_1
+                        <F>g__L2|0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7825,7 +7825,7 @@ class C
                             "C.<>c__DisplayClass1_0: {x0, <F>b__0}",
                             "C.<>c__DisplayClass1_1#1: {x1, <F>b__1#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0", "deleted_<F>b__1", ".ctor", ".ctor", "<F>b__1#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", ".ctor", "<F>b__1#1");
 
                         g.VerifyIL(
                         """
@@ -7868,7 +7868,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
-                        deleted_<F>b__1
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8017,7 +8017,7 @@ class C
                             "C.<>c__DisplayClass0_1: {x1}",
                             "C.<>c__DisplayClass0_0: {x0}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "deleted_<F>g__L2|0_1", "<F>g__L2|0_1#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -8048,7 +8048,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
-                        deleted_<F>g__L2|0_1
+                        <F>g__L2|0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8155,7 +8155,7 @@ class C
                         g.VerifyMethodDefNames(
                             "F",
                             "<F>b__0",
-                            "deleted_<F>b__1",
+                            "<F>b__1",
                             ".ctor",
                             ".ctor",
                             ".ctor",
@@ -8222,7 +8222,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
-                        deleted_<F>b__1
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8579,7 +8579,7 @@ class C
                             "C.<>c__DisplayClass1_0: {x, <F>b__0}",
                             "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>b__2#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0", "deleted_<F>b__2", "<F>b__1", ".ctor", "<F>b__2#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__2", "<F>b__1", ".ctor", "<F>b__2#1");
 
                         g.VerifyIL(
                         """
@@ -8625,7 +8625,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
-                        deleted_<F>b__2
+                        <F>b__2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8784,7 +8784,7 @@ class C
                             "C.<>c__DisplayClass0_0: {x}",
                             "C.<>c__DisplayClass0_1: {y}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "deleted_<F>g__L3|0_2", "<F>g__L3|0_2#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L3|0_2", "<F>g__L3|0_2#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -8822,7 +8822,7 @@ class C
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
                         }
-                        deleted_<F>g__L3|0_2
+                        <F>g__L3|0_2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8955,7 +8955,7 @@ class C
                             "C.<>c__DisplayClass1_0#1: {x}",
                             "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>b__2#1}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L1|0", "deleted_<F>b__2", "<F>b__1", "<F>g__L1|1_0#1", ".ctor", "<F>b__2#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0", "<F>b__2", "<F>b__1", "<F>g__L1|1_0#1", ".ctor", "<F>b__2#1");
 
                         g.VerifyIL(
                         """
@@ -8987,7 +8987,7 @@ class C
                           IL_003c:  nop
                           IL_003d:  ret
                         }
-                        deleted_<F>g__L1|0
+                        <F>g__L1|0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -8996,7 +8996,7 @@ class C
                           IL_0007:  newobj     0x0600000A
                           IL_000c:  throw
                         }
-                        deleted_<F>b__2
+                        <F>b__2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -9165,7 +9165,7 @@ class C
                             "C.<>c__DisplayClass1_0: {x}",
                             "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>g__L3|2#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "deleted_<F>g__L3|1_2", "<F>b__1", ".ctor", "<F>g__L3|2#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L3|1_2", "<F>b__1", ".ctor", "<F>g__L3|2#1");
 
                         g.VerifyIL("""
                         F
@@ -9200,7 +9200,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
-                        deleted_<F>g__L3|1_2
+                        <F>g__L3|1_2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -9408,7 +9408,7 @@ class C
                             "C: {<F>g__L|0_0#1, <>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x, y}");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L|0_0", "<F>g__L|0_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_0#1", ".ctor");
 
                         g.VerifyIL("""
                         F
@@ -9425,7 +9425,7 @@ class C
                           IL_0011:  nop
                           IL_0012:  ret
                         }
-                        deleted_<F>g__L|0_0
+                        <F>g__L|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9632,7 +9632,7 @@ class C
                             "class C: {<F>g__L|1_0#1, <>c__DisplayClass1_0#1}"
                         ]);
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L|0", "deleted_<F>b__1", "<F>g__L|1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>b__1", "<F>g__L|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -9647,7 +9647,7 @@ class C
                           IL_0009:  nop
                           IL_000a:  ret
                         }
-                        deleted_<F>g__L|0
+                        <F>g__L|0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9656,7 +9656,7 @@ class C
                           IL_0007:  newobj     0x06000008
                           IL_000c:  throw
                         }
-                        deleted_<F>b__1
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -9769,7 +9769,7 @@ class C
                             "class C: {<F>g__L|1_0#1, <>c__DisplayClass1_0#1}"
                         ]);
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L|0", "<F>g__L|1_0#1", ".ctor");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>g__L|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -9784,7 +9784,7 @@ class C
                           IL_0009:  nop
                           IL_000a:  ret
                         }
-                        deleted_<F>g__L|0
+                        <F>g__L|0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9877,7 +9877,7 @@ class C
 
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Func`1");
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1", "<F>b__1#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1", "<F>b__1#1");
 
                         g.VerifyIL("""
                         F
@@ -9898,7 +9898,7 @@ class C
                           IL_0020:  nop
                           IL_0021:  ret
                         }
-                        deleted_<F>g__L|1_0
+                        <F>g__L|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9998,7 +9998,7 @@ class C
                             "class C.<>c__DisplayClass1_0#1: {x, <F>g__L|0#1}"
                         ]);
 
-                        g.VerifyMethodDefNames("F", "deleted_<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1");
 
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Func`1");
 
@@ -10022,7 +10022,7 @@ class C
                           IL_0020:  nop
                           IL_0021:  ret
                         }
-                        deleted_<F>g__L|1_0
+                        <F>g__L|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -10118,7 +10118,7 @@ class C
                             "C.<>c: {<>9__0_0#1, <F>b__0_0#1}");
 
                         g.VerifyMethodDefNames(
-                            "F", "deleted_<F>b__0_0", ".ctor", "<F>b__0_0#1");
+                            "F", "<F>b__0_0", ".ctor", "<F>b__0_0#1");
 
                         g.VerifyIL(
                         """
@@ -10135,7 +10135,7 @@ class C
                           IL_0018:  stsfld     0x04000004
                           IL_001d:  ret
                         }
-                        deleted_<F>b__0_0
+                        <F>b__0_0
                         {
                           // Code size       16 (0x10)
                           .maxstack  8

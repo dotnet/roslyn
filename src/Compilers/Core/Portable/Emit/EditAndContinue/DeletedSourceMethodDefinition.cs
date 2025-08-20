@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool IsSealed => OldDefinition.IsSealed;
 
-        public bool IsSpecialName => true;
+        public bool IsSpecialName => OldDefinition.IsSpecialName;
 
         public bool IsStatic => OldDefinition.IsStatic;
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool ReturnValueIsByRef => OldDefinition.ReturnValueIsByRef;
 
-        public string? Name => OldDefinition.Name != null ? DeltaMetadataWriter.GetDeletedDefinitionName(OldDefinition.Name) : null;
+        public string? Name => OldDefinition.Name;
 
         public override void Dispatch(MetadataVisitor visitor)
         {

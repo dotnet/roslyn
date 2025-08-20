@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
 
-        public bool IsSpecialName => true;
+        public bool IsSpecialName => false;
 
         public ImmutableArray<IParameterDefinition> Parameters => StaticCast<IParameterDefinition>.From(_parameters);
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool ReturnValueIsByRef => OldDefinition.ReturnValueIsByRef;
 
-        public string? Name => OldDefinition.Name != null ? DeltaMetadataWriter.GetDeletedDefinitionName(OldDefinition.Name) : null;
+        public string? Name => OldDefinition.Name;
 
         public MetadataConstant? DefaultValue => OldDefinition.DefaultValue;
 

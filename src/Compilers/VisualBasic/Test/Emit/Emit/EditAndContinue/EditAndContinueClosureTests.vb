@@ -2269,7 +2269,7 @@ End Class
                             "C._Closure$__: {$I1-1, _Lambda$__1-1}",
                             "C._Closure$__1-0#1: {_Lambda$__0#1}")
 
-                        g.VerifyMethodDefNames("F", "deleted__Lambda$__1-0", "_Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__0#1")
 
                         g.VerifyIL("
 F
@@ -2298,7 +2298,7 @@ F
   IL_0040:  stloc.s    V_5
   IL_0042:  ret
 }
-deleted__Lambda$__1-0
+_Lambda$__1-0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2392,7 +2392,7 @@ End Class
                             "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                             "C._Closure$__1-0#1: {_Lambda$__1#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "deleted__Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__1#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
 F
@@ -2431,7 +2431,7 @@ _Lambda$__1-0
   IL_0007:  nop
   IL_0008:  ret
 }
-deleted__Lambda$__1-1
+_Lambda$__1-1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2518,7 +2518,7 @@ End Class
                             "C: {_Lambda$__2-1#1, _Closure$__}",
                             "C._Closure$__: {$I2-0, _Lambda$__2-0}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "deleted__Lambda$__2-1", "_Lambda$__2-1#1", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", "_Lambda$__2-1#1", ".ctor")
 
                         g.VerifyIL("
 F
@@ -2552,7 +2552,7 @@ _Lambda$__2-0
   IL_0007:  nop
   IL_0008:  ret
 }
-deleted__Lambda$__2-1
+_Lambda$__2-1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2704,7 +2704,7 @@ End Class
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}")
 
-                        g.VerifyMethodDefNames("F", "deleted__Lambda$__0", ".ctor", ".ctor", ".cctor", "_Lambda$__1-0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", ".ctor", ".ctor", ".cctor", "_Lambda$__1-0#1")
 
                         g.VerifyIL("
 F
@@ -2726,7 +2726,7 @@ F
   IL_0027:  stloc.3
   IL_0028:  ret
 }
-deleted__Lambda$__0
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2795,7 +2795,7 @@ End Class
                             "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}",
                             "C._Closure$__1-0#2: {_Lambda$__0#2}")
 
-                        g.VerifyMethodDefNames("F", "deleted__Lambda$__1-0#1", ".ctor", "_Lambda$__0#2")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0#1", ".ctor", "_Lambda$__0#2")
 
                         g.VerifyIL("
 F
@@ -2814,7 +2814,7 @@ F
   IL_001d:  stloc.s    V_5
   IL_001f:  ret
 }
-deleted__Lambda$__1-0#1
+_Lambda$__1-0#1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -2892,7 +2892,7 @@ End Class
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I2-0#1, $I2-1, _Lambda$__2-0#1, _Lambda$__2-1}")
 
-                        g.VerifyMethodDefNames("F", "deleted__Lambda$__2-0", "_Lambda$__2-1", ".ctor", "_Lambda$__2-0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", ".ctor", "_Lambda$__2-0#1")
 
                         g.VerifyIL("
 F
@@ -2922,7 +2922,7 @@ F
   IL_004a:  stloc.3
   IL_004b:  ret
 }
-deleted__Lambda$__2-0
+_Lambda$__2-0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3063,7 +3063,7 @@ End Class
                             "C: {_Closure$__1#1-0#1}",
                             "C._Closure$__1#1-0#1: {_Lambda$__0#1}")
 
-                        g.VerifyMethodDefNames("F", "deleted__Lambda$__0#1", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0#1", ".ctor")
 
                         g.VerifyIL("
 F
@@ -3075,7 +3075,7 @@ F
   IL_0002:  stloc.3
   IL_0003:  ret
 }
-deleted__Lambda$__0#1
+_Lambda$__0#1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3157,7 +3157,7 @@ End Class
                             "C._Closure$__2-1#1: {$VB$NonLocal_$VB$Closure_2, _Lambda$__1#1}",
                             "C._Closure$__2-0: {$I0, _Lambda$__0}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "deleted__Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
 F
@@ -3221,7 +3221,7 @@ _Lambda$__0
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
-deleted__Lambda$__1
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3329,7 +3329,7 @@ End Class
                             "C._Closure$__1-0: {$I0, _Lambda$__0}",
                             "C._Closure$__1-1#1: {_Lambda$__1#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "deleted__Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
 F
@@ -3386,7 +3386,7 @@ _Lambda$__0
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
-deleted__Lambda$__1
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3505,7 +3505,7 @@ End Class
                             "C._Closure$__2-1#1: {$VB$NonLocal_$VB$Closure_3, _Lambda$__1#1, _Lambda$__2#1}",
                             "C._Closure$__2-2#1: {$VB$NonLocal_$VB$Closure_2}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "deleted__Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1", "_Lambda$__2#1", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1", "_Lambda$__2#1", ".ctor")
 
                         g.VerifyIL("
 F
@@ -3590,7 +3590,7 @@ _Lambda$__0
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
-deleted__Lambda$__1
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -3736,7 +3736,7 @@ End Class
                             "C._Closure$__1-0: {$I0, _Lambda$__0}",
                             "C._Closure$__1-1: {_Lambda$__1, _Lambda$__2#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "deleted__Lambda$__2", "_Lambda$__1", ".ctor", "_Lambda$__2#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__2", "_Lambda$__1", ".ctor", "_Lambda$__2#1")
 
                         g.VerifyIL("
 F
@@ -3797,7 +3797,7 @@ _Lambda$__0
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
-deleted__Lambda$__2
+_Lambda$__2
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -4061,7 +4061,7 @@ End Class
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}")
 
-                        g.VerifyMethodDefNames("F", "deleted__Lambda$__1-0", ".ctor", "_Lambda$__1-0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor", "_Lambda$__1-0#1")
 
                         g.VerifyIL("
 F
@@ -4081,7 +4081,7 @@ F
   IL_0025:  stloc.1
   IL_0026:  ret
 }
-deleted__Lambda$__1-0
+_Lambda$__1-0
 {
   // Code size       12 (0xc)
   .maxstack  8

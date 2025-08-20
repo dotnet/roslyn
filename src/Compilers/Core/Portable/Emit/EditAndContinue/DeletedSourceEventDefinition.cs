@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
 
-        public bool IsSpecialName => true;
+        public bool IsSpecialName => false;
 
         public TypeMemberVisibility Visibility => OldDefinition.Visibility;
 
-        public string? Name => OldDefinition.Name != null ? DeltaMetadataWriter.GetDeletedDefinitionName(OldDefinition.Name) : null;
+        public string? Name => OldDefinition.Name;
 
         public ITypeDefinition ContainingTypeDefinition => throw ExceptionUtilities.Unreachable();
 
