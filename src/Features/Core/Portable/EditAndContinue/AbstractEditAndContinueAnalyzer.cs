@@ -2544,6 +2544,12 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static bool ParameterTypesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters, bool exact)
         => oldParameters.SequenceEqual(newParameters, exact, ParameterTypesEquivalent);
 
+    protected static bool ParameterDefaultValuesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
+        => oldParameters.SequenceEqual(newParameters, ParameterDefaultValuesEquivalent);
+
+    protected static bool LambdaParametersEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
+        => oldParameters.SequenceEqual(newParameters, LambdaParameterEquivalent);
+
     protected static bool CustomModifiersEquivalent(CustomModifier oldModifier, CustomModifier newModifier, bool exact)
         => oldModifier.IsOptional == newModifier.IsOptional &&
            TypesEquivalent(oldModifier.Modifier, newModifier.Modifier, exact);
@@ -2581,6 +2587,20 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
     protected static bool ParameterTypesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter, bool exact)
         => (exact ? s_exactSymbolEqualityComparer : s_runtimeSymbolEqualityComparer).ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
+
+    protected static bool ParameterDefaultValuesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
+        => oldParameter.HasExplicitDefaultValue == newParameter.HasExplicitDefaultValue &&
+           (!oldParameter.HasExplicitDefaultValue || Equals(oldParameter.ExplicitDefaultValue, newParameter.ExplicitDefaultValue));
+
+    /// <summary>
+    /// Lambda parameters are equivallent if the type of the lambda as emitted to IL doesn't change.
+    /// Tuple element names, dynamic, etc. do not affect lambda natural type. 
+    /// Default values and "params" do.
+    /// </summary>
+    protected static bool LambdaParameterEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
+        => ParameterTypesEquivalent(oldParameter, newParameter, exact: false) &&
+           ParameterDefaultValuesEquivalent(oldParameter, newParameter) &&
+           oldParameter.IsParams == newParameter.IsParams;
 
     protected static bool TypeParameterConstraintsEquivalent(ITypeParameterSymbol oldParameter, ITypeParameterSymbol newParameter, bool exact)
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
@@ -4521,8 +4541,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     hasGeneratedAttributeChange = true;
                 }
 
-                if (oldParameter.HasExplicitDefaultValue != newParameter.HasExplicitDefaultValue ||
-                    oldParameter.HasExplicitDefaultValue && !Equals(oldParameter.ExplicitDefaultValue, newParameter.ExplicitDefaultValue))
+                if (!ParameterDefaultValuesEquivalent(oldParameter, newParameter))
                 {
                     rudeEdit = RudeEditKind.InitializerUpdate;
                 }
@@ -6620,8 +6639,12 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var newLambdaSymbol = (IMethodSymbol)diagnosticContext.RequiredNewSymbol;
 
         // signature validation:
-        if (!ParameterTypesEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, exact: false))
+        if (!LambdaParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
         {
+            // If a delegate type for the lambda is synthesized (anonymous) changing default parameter value changes the synthesized delegate type.
+            // If the delegate type is not synthesized the default value is ignored and warning is reported by the compiler.
+            // Technically, the runtime rude edit does not need to be reported in the latter case but we report it anyway for simplicity.
+
             runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingLambdaParameters, cancellationToken);
             return;
         }
@@ -6633,7 +6656,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         }
 
         if (!TypeParametersEquivalent(oldLambdaSymbol.TypeParameters, newLambdaSymbol.TypeParameters, exact: false) ||
-                 !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
+            !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
         {
             runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingTypeParameters, cancellationToken);
             return;
