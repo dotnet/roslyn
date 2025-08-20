@@ -18,6 +18,15 @@ internal interface IRemoteDiagnosticAnalyzerService
     ValueTask<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
     ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
+        Checksum solutionChecksum, ProjectId projectId,
+        ImmutableHashSet<string> analyzerIds,
+        ImmutableHashSet<string>? diagnosticIds,
+        ImmutableArray<DocumentId> documentIds,
+        bool includeLocalDocumentDiagnostics,
+        bool includeNonLocalDocumentDiagnostics,
+        bool includeProjectNonLocalResult,
+        CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
     ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken);

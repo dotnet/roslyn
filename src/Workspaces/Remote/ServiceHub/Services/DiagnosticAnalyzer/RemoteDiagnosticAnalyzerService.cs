@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -73,6 +74,42 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                     return result;
                 }, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    public ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
+        Checksum solutionChecksum, ProjectId projectId,
+        ImmutableHashSet<string> analyzerIds,
+        ImmutableHashSet<string>? diagnosticIds,
+        ImmutableArray<DocumentId> documentIds,
+        bool includeLocalDocumentDiagnostics,
+        bool includeNonLocalDocumentDiagnostics,
+        bool includeProjectNonLocalResult,
+        CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+                var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+
+                using var _ = PooledDictionary<string, DiagnosticAnalyzer>.GetInstance(out var analyzerMap);
+                foreach (var analyzer in allProjectAnalyzers)
+                {
+                    // In the case of multiple analyzers with the same ID, we keep the last one.
+                    var analyzerId = analyzer.GetAnalyzerId();
+                    if (analyzerIds.Contains(analyzerId))
+                        analyzerMap[analyzerId] = analyzer;
+                }
+
+                return await service.ProduceProjectDiagnosticsAsync(
+                    project, [.. analyzerMap.Values], diagnosticIds, documentIds,
+                    includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, includeProjectNonLocalResult,
+                    cancellationToken).ConfigureAwait(false);
+            },
+            cancellationToken);
     }
 
     public ValueTask<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(

@@ -22,7 +22,7 @@ internal sealed partial class DiagnosticAnalyzerService
             Project project,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableHashSet<string>? diagnosticIds,
-            IReadOnlyList<DocumentId> documentIds,
+            ImmutableArray<DocumentId> documentIds,
             bool includeLocalDocumentDiagnostics,
             bool includeNonLocalDocumentDiagnostics,
             bool includeProjectNonLocalResult,
