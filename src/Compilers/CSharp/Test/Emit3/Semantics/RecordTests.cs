@@ -24119,7 +24119,7 @@ record C
                 False
                 False
                 False
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("PrimitivesHolder.Equals(PrimitivesHolder)", """
                 {
@@ -24269,7 +24269,7 @@ record C
                 False
                 False
                 False
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("EnumsHolder.Equals(EnumsHolder)", """
                 {
@@ -24366,7 +24366,7 @@ record C
                 False
                 True
                 True
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("R.Equals(R)", """
                 {
@@ -24445,7 +24445,7 @@ record C
                 True
                 False
                 True
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("R.Equals(R)", """
                 {
@@ -24515,7 +24515,7 @@ record C
                 True
                 False
                 True
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("R.Equals(R)", """
                 {
@@ -24587,7 +24587,7 @@ record C
                 True
                 False
                 True
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("R.Equals(R)", """
                 {
@@ -24633,7 +24633,7 @@ record C
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9);
+            var verifier = CompileAndVerify([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("R.Equals(R)", """
                 {

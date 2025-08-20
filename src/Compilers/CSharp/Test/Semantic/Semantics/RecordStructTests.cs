@@ -649,7 +649,7 @@ True").VerifyDiagnostics();
                 True
                 False
                 True
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("R.Equals(R)", """
                 {
@@ -706,7 +706,7 @@ True").VerifyDiagnostics();
                 True
                 False
                 True
-                """);
+                """, verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyIL("R.Equals(R)", """
                 {
