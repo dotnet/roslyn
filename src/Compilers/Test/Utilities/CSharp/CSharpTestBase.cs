@@ -1244,6 +1244,31 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 """;
         #endregion A string containing expression-tree dumping utilities
 
+        internal const string RuntimeAsyncAwaitHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
+
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+        internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method)]
+            public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+            """;
+
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
             where T : notnull
         {
@@ -1814,7 +1839,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             return compilation;
         }
 
-        private static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
+        protected static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
         {
             bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
 

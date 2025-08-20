@@ -37,6 +37,8 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
     private static readonly BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> s_equivalenceKeyMap
         = CreateEquivalanceKeyMap(UseExpressionBodyHelper.Helpers);
 
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+
     private static BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> CreateEquivalanceKeyMap(
         ImmutableArray<UseExpressionBodyHelper> helpers)
     {

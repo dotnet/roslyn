@@ -210,6 +210,9 @@ internal sealed class ProjectExternalErrorReporter(
             return;
         }
 
+        if (!bstrErrorId.StartsWith(_errorCodePrefix))
+            return;
+
         if ((iEndLine >= 0 && iEndColumn >= 0) &&
            ((iEndLine < iStartLine) ||
             (iEndLine == iStartLine && iEndColumn < iStartColumn)))

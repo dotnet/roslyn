@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
-using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;

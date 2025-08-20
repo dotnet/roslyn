@@ -178,14 +178,14 @@
       "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
     },
-    "release/dev-next": {
+    "release/dev18.0": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionTitlePrefix": "[Validation]",
-      "insertionCreateDraftPR": true
+      "insertionTitlePrefix": "[d18.0]",
+      "insertionCreateDraftPR": false
     },
     "community": {
       "nugetKind": [
@@ -202,8 +202,8 @@
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[dNext]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
     }
   }
 }

@@ -24,13 +24,13 @@ public sealed class ProjectModel
 
     public string FilePath { get; }
 
-    internal ProjectModel(string filePath)
+    public ProjectModel(string filePath)
     {
         FilePath = filePath;
         _lazyResxFiles = new(LoadResxFiles, isThreadSafe: true);
     }
 
-    internal ProjectModel(string filePath, ImmutableDictionary<string, ResxFile> resxFiles)
+    public ProjectModel(string filePath, ImmutableDictionary<string, ResxFile> resxFiles)
     {
         FilePath = filePath;
         _lazyResxFiles = new(() => resxFiles, isThreadSafe: true);
@@ -56,7 +56,7 @@ public sealed class ProjectModel
         return resxFiles.ToImmutable();
     }
 
-    internal static IEnumerable<(string filePath, string? newContent)> GetChanges(ProjectModel oldModel, ProjectModel newModel)
+    public static IEnumerable<(string filePath, string? newContent)> GetChanges(ProjectModel oldModel, ProjectModel newModel)
     {
         if (!oldModel._lazyResxFiles.IsValueCreated && !newModel._lazyResxFiles.IsValueCreated)
         {
