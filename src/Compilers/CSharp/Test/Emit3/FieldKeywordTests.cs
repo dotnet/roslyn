@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
@@ -12709,6 +12710,155 @@ class C<T>
 
             var comp = CreateCompilation([source1, source2]);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""get { return field + "a"; }""")]
+        [InlineData("""get => field + "a";""")]
+        public void PublicAPI_01(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""set { field = value; }""")]
+        [InlineData("""set => field = value;""")]
+        public void PublicAPI_02(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void PublicAPI_03()
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 16));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>());
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => node.ToString() == "field").Single();
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void PublicAPI_04()
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            comp.VerifyAnalyzerDiagnostics(analyzers: [new TestAnalyzer1()],
+                expected: [Diagnostic("TEST_Field", "field").WithLocation(5, 16)]);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 16));
+            comp.VerifyAnalyzerDiagnostics(analyzers: [new TestAnalyzer1()],
+                expected: [Diagnostic("TEST_Invalid", "field").WithLocation(5, 16)]);
+        }
+
+        private class TestAnalyzer1 : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor_Field = new(id: "TEST_Field", title: "Test", messageFormat: "", category: "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            public static readonly DiagnosticDescriptor Descriptor_Invalid = new(id: "TEST_Invalid", title: "Test", messageFormat: "", category: "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor_Field, Descriptor_Invalid];
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(context =>
+                {
+                    foreach (var block in context.OperationBlocks)
+                    {
+                        var walker = new OperationWalker1();
+                        walker.Visit(block);
+
+                        if (walker.FieldReference is not null)
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor_Field, walker.FieldReference.Syntax.Location));
+
+                        if (walker.Invalid is not null)
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor_Invalid, walker.Invalid.Syntax.Location));
+                    }
+                });
+            }
+        }
+
+        private class OperationWalker1 : OperationWalker
+        {
+            public IOperation FieldReference = null;
+            public IOperation Invalid = null;
+
+            public override void VisitFieldReference(IFieldReferenceOperation operation)
+            {
+                FieldReference = operation;
+                base.VisitFieldReference(operation);
+            }
+
+            public override void VisitInvalid(IInvalidOperation operation)
+            {
+                Invalid = operation;
+                base.VisitInvalid(operation);
+            }
         }
     }
 }

@@ -429,6 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.RuntimeSupportsInlineArrayTypes;
                 case RuntimeCapability.ByRefLikeGenerics:
                     return this.RuntimeSupportsByRefLikeGenerics;
+                case RuntimeCapability.RuntimeAsyncMethods:
+                    return this.RuntimeSupportsAsyncMethods;
             }
 
             return false;
@@ -493,6 +495,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics);
             }
         }
+
+#nullable enable
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsAsyncMethods
+        internal bool RuntimeSupportsAsyncMethods
+            => GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers) is { TypeKind: TypeKind.Class, IsStatic: true };
+#nullable disable
 
         protected bool RuntimeSupportsFeature(SpecialMember feature)
         {

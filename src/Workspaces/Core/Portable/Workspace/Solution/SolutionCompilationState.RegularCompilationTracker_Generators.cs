@@ -105,6 +105,9 @@ internal sealed partial class SolutionCompilationState
                     solutionChecksum, projectId, withFrozenSourceGeneratedDocuments: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
+            // Since we called out to the OOP side, we'll want to later report summarized telemetry numbers.
+            solution.Services.GetService<ISourceGeneratorTelemetryReporterWorkspaceService>()?.QueueReportingOfTelemetry();
+
             if (!infosOpt.HasValue)
                 return null;
 
@@ -275,6 +278,9 @@ internal sealed partial class SolutionCompilationState
             telemetryCollector?.CollectRunResult(
                 runResult, generatorDriver.GetTimingInfo(),
                 g => GetAnalyzerReference(this.ProjectState, g));
+
+            var telemetryReporter = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryReporterWorkspaceService>();
+            telemetryReporter?.QueueReportingOfTelemetry();
 
             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
             // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees

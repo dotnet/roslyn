@@ -50,14 +50,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
-            Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer) From {SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute}
+            Dim knownMissingSpecialTypes As HashSet(Of SpecialType) = New HashSet(Of SpecialType) From {SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute}
+            Dim knownMissingInternalSpecialTypes As HashSet(Of InternalSpecialType) = New HashSet(Of InternalSpecialType) From {InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers}
 
             For i As Integer = 1 To SpecialType.Count
-                Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
+                Dim specialType = CType(i, SpecialType)
+                Dim t = msCorLibRef.GetSpecialType(specialType)
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
                 Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
-                If knownMissingTypes.Contains(i) Then
+                If knownMissingSpecialTypes.Contains(specialType) Then
                     ' not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind)
                 Else
@@ -66,11 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Next
 
             For i As Integer = InternalSpecialType.First To InternalSpecialType.NextAvailable - 1
-                Dim t = msCorLibRef.GetSpecialType(CType(i, InternalSpecialType))
+                Dim internalSpecialType = CType(i, InternalSpecialType)
+                Dim t = msCorLibRef.GetSpecialType(internalSpecialType)
                 Assert.Equal(SpecialType.None, t.SpecialType)
                 Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
-                If knownMissingTypes.Contains(i) Then
+                If knownMissingInternalSpecialTypes.Contains(internalSpecialType) Then
                     ' not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind)
                 Else
@@ -106,8 +109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
                 Next
             End While
 
-            Assert.Equal(count + knownMissingTypes.Count, CType(SpecialType.Count, Integer))
-            Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+            Assert.Equal(count + knownMissingSpecialTypes.Count, CType(SpecialType.Count, Integer))
+            Assert.Equal(knownMissingSpecialTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes)
         End Sub
 
         <Fact()>

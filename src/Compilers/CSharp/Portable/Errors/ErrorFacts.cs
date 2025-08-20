@@ -638,6 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.

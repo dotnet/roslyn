@@ -99,6 +99,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqTypeCheckAndCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyAccessor\SimplifyPropertyAccessorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransposeRecordKeyword\TransposeRecordKeywordTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.cs" />
