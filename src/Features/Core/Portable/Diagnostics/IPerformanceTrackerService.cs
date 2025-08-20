@@ -4,10 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IPerformanceTrackerService : IWorkspaceService
 {
