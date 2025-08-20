@@ -12330,17 +12330,19 @@ class C<T> {}
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
         {
-            var EvalString = ExecutionConditionUtil.IsMonoCore ? "Console.WriteLine(((((IEnumerable)arg.Value).Cast<object>().SingleOrDefault())) ?? \"null\");" : "Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? \"null\");";
-            var IncludeString = ExecutionConditionUtil.IsMonoCore ? "" : "using System.Reflection;";
+            var evalString = ExecutionConditionUtil.IsMonoCore
+                ? "Console.WriteLine(((((IEnumerable)arg.Value).Cast<object>().SingleOrDefault())) ?? \"null\");"
+                : "Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? \"null\");";
+            var includeString = ExecutionConditionUtil.IsMonoCore ? "" : "using System.Reflection;";
             var source = $$"""
                 using System;
                 using System.Collections;
                 using System.Linq;
-                {{IncludeString}}
+                {{includeString}}
 
                 var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
                 var arg = attr.ConstructorArguments.Single();
-                {{EvalString}}
+                {{evalString}}
 
                 class A : Attribute
                 {
