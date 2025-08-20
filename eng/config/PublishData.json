@@ -202,8 +202,8 @@
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[dNext]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
     }
   }
 }
