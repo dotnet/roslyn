@@ -211,7 +211,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
                 Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                analyzers = await FilterAnalyzersAsync(analyzers).ConfigureAwait(false);
+                analyzers = await FilterAnalyzersAsync(analyzers, kind, span).ConfigureAwait(false);
                 if (analyzers.Length == 0)
                     return;
 
