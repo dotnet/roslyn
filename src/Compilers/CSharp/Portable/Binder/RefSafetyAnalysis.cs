@@ -1045,6 +1045,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 placeholders.Add((placeholder, SafeContextAndLocation.Create(valEscapeScope)));
             }
+
+            if (awaitableInfo.RuntimeAsyncAwaitCallPlaceholder is { } runtimePlaceholder)
+            {
+                placeholders.Add((runtimePlaceholder, SafeContextAndLocation.Create(valEscapeScope)));
+            }
         }
 
         public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
