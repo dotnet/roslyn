@@ -82,12 +82,26 @@ internal sealed partial class DiagnosticAnalyzerService
             var incrementalAnalysis = !range.HasValue
                 && document is Document { SupportsSyntaxTree: true };
 
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
-            await GetAsync(list).ConfigureAwait(false);
+            var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = await GetAllAnalyzers().ConfigureAwait(false);
 
-            return list.ToImmutableAndClear();
+            try
+            {
+                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
-            async Task GetAsync(ArrayBuilder<DiagnosticData> list)
+                await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers, AnalysisKind.Syntax, range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
+                await ComputeDocumentDiagnosticsAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range, list, incrementalAnalysis, cancellationToken).ConfigureAwait(false);
+                await ComputeDocumentDiagnosticsAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
+
+                return list.ToImmutableAndClear();
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            (ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
+             ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
+             ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers) GetAllAnalyzers()
             {
                 try
                 {
@@ -152,11 +166,10 @@ internal sealed partial class DiagnosticAnalyzerService
                         }
                     }
 
-                    await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers.ToImmutable(), AnalysisKind.Syntax, range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticSpanBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, range, list, incrementalAnalysis, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticDocumentBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-
-                    return;
+                    return (
+                        syntaxAnalyzers.ToImmutableAndClear(),
+                        semanticSpanBasedAnalyzers.ToImmutableAndClear(),
+                        semanticDocumentBasedAnalyzers.ToImmutableAndClear());
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
