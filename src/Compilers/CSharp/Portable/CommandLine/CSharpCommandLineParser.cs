@@ -559,6 +559,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "sdkpath":
                             noSdkPath = false;
+
+                            if (valueMemory is not { Length: > 0 })
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<path>", name);
+                                continue;
+                            }
+
                             sdkDirectory = RemoveQuotesAndSlashes(valueMemory);
 
                             continue;
