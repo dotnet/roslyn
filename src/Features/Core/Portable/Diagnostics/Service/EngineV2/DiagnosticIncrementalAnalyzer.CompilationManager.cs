@@ -49,14 +49,17 @@ internal sealed partial class DiagnosticAnalyzerService
     /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
     /// cref="DiagnosticAnalyzer"/>s passed along with the project.
     /// <para/>
-    /// The value of the table is a <see cref="ConcurrentDictionary{TKey, TValue}"/> that maps from the 
+    /// The value of the table is a <see cref="Dictionary{TKey, TValue}"/> that maps from the 
     /// <see cref="Project"/> checksum the set of <see cref="DiagnosticAnalyzer"/>s being requested.
+    /// Note: this dictionary must be locked with <see cref="s_gate"/> before accessing it.
     /// </summary>
     private static readonly ConditionalWeakTable<
         ProjectState,
-        ConcurrentDictionary<
+        SmallDictionary<
             (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers),
             AsyncLazy<CompilationWithAnalyzersPair?>>> s_projectToCompilationWithAnalyzers = new();
+
+    private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
     private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
         Project project,
@@ -75,16 +78,24 @@ internal sealed partial class DiagnosticAnalyzerService
         // recompute and cache with the new state sets.
         var map = s_projectToCompilationWithAnalyzers.GetValue(
             projectState,
+            // We will almost always have one item in this dict
             static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
 
-        var lazy = map.GetOrAdd(
-            (checksum, analyzers),
-            checksumAndAnalyzers => AsyncLazy.Create(async cancellationToken =>
+        AsyncLazy<CompilationWithAnalyzersPair?>? lazy;
+        using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var checksumAndAnalyzers = (checksum, analyzers);
+            if (!map.TryGetValue(checksumAndAnalyzers, out lazy))
             {
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
-                return compilationWithAnalyzersPair;
-            }));
+                lazy = AsyncLazy.Create(async cancellationToken =>
+                {
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
+                    return compilationWithAnalyzersPair;
+                });
+                map.Add(checksumAndAnalyzers, lazy);
+            }
+        }
 
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
