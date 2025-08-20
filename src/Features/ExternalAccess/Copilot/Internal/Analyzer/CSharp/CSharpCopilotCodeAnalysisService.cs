@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.ResxSelection;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UserFacingStrings;
@@ -35,6 +36,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     private IExternalCSharpOnTheFlyDocsService? OnTheFlyDocsService { get; }
     private IExternalCSharpCopilotGenerateImplementationService? GenerateImplementationService { get; }
     private IExternalCSharpUserFacingStringService? UserFacingStringService { get; }
+    private IExternalCSharpResxFileSelectionService? ResxFileSelectionService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,6 +46,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         [Import(AllowDefault = true)] IExternalCSharpOnTheFlyDocsService? externalCSharpOnTheFlyDocsService,
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateImplementationService? externalCSharpCopilotGenerateImplementationService,
         [Import(AllowDefault = true)] IExternalCSharpUserFacingStringService? externalCSharpUserFacingStringService,
+        [Import(AllowDefault = true)] IExternalCSharpResxFileSelectionService? externalCSharpResxFileSelectionService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
@@ -64,6 +67,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         OnTheFlyDocsService = externalCSharpOnTheFlyDocsService;
         GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
         UserFacingStringService = externalCSharpUserFacingStringService;
+        ResxFileSelectionService = externalCSharpResxFileSelectionService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
@@ -259,5 +263,28 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         var keyParts = words.Take(3).Select(w => char.ToUpperInvariant(w[0]) + w.Substring(1).ToLowerInvariant());
         var key = string.Join("_", keyParts);
         return string.IsNullOrEmpty(key) ? "StringResource" : key;
+    }
+
+    protected override async Task<ResxFileSelectionResult?> SelectBestResxFileCoreAsync(
+        ResxFileSelectionRequest request, 
+        CancellationToken cancellationToken)
+    {
+        if (ResxFileSelectionService is not null)
+        {
+            var wrapper = new CopilotResxFileSelectionRequestWrapper(request);
+            var (selectedFilePath, confidenceScore, reasoning, suggestedKey, isQuotaExceeded) = 
+                await ResxFileSelectionService.SelectBestResxFileAsync(wrapper, cancellationToken).ConfigureAwait(false);
+
+            if (!string.IsNullOrEmpty(selectedFilePath))
+            {
+                return new ResxFileSelectionResult(
+                    selectedFilePath, 
+                    confidenceScore, 
+                    reasoning,
+                    suggestedKey);
+            }
+        }
+
+        return null;
     }
 }

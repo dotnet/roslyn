@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.ResxSelection;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UserFacingStrings;
 
@@ -110,4 +111,12 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <param name="proposal">The proposal containing all string literals found in the code.</param>
     /// <returns>A dictionary mapping string candidates to AI analysis results and whether quota has been exceeded.</returns>
     Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Analyzes available .resx files and determines the best one for a given string and context.
+    /// Uses AI to consider file organization, existing content patterns, and proximity to source.
+    /// </summary>
+    /// <param name="request">Request containing the string to move and available .resx files.</param>
+    /// <returns>The best .resx file selection with confidence score and reasoning.</returns>
+    Task<ResxFileSelectionResult?> SelectBestResxFileAsync(ResxFileSelectionRequest request, CancellationToken cancellationToken);
 }

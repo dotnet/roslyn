@@ -77,8 +77,7 @@ internal sealed class CSharpUserFacingStringExtractorService : IUserFacingString
         // Only send NEW/CHANGED strings to AI
         if (newCandidates.Count > 0)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newProposal = new UserFacingStringProposal(sourceText.ToString(), newCandidates.ToImmutable());
+            var newProposal = new UserFacingStringProposal(newCandidates.ToImmutable());
             
             var result = await copilotService.GetUserFacingStringAnalysisAsync(newProposal, cancellationToken).ConfigureAwait(false);
 

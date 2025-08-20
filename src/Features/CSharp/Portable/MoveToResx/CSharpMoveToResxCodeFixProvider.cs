@@ -19,7 +19,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.ResxSelection;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -59,7 +61,34 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
             return;
         }
 
-        var nestedActions = validResxFiles
+        // Try to get AI recommendation first
+        var aiRecommendation = await GetAIResxFileRecommendationAsync(context.Document, node, validResxFiles, context.CancellationToken).ConfigureAwait(false);
+        
+        var allActions = new List<CodeAction>();
+        
+        // Add AI recommendation as the first option if available
+        if (aiRecommendation != null)
+        {
+            var aiResxFile = validResxFiles.FirstOrDefault(f => 
+                string.Equals(f.FilePath, aiRecommendation.SelectedResxFilePath, StringComparison.OrdinalIgnoreCase));
+                
+            if (aiResxFile != null)
+            {
+                var confidencePercent = (aiRecommendation.ConfidenceScore * 100).ToString("F0");
+                var aiTitle = $"⭐ {Path.GetFileName(aiRecommendation.SelectedResxFilePath)} (AI Recommended - {confidencePercent}% confidence)";
+                
+                allActions.Add(CodeAction.Create(
+                    title: aiTitle,
+                    createChangedSolution: cancellationToken => MoveStringToResxAndReplaceLiteralAsync(
+                        context.Document, node, aiResxFile, cancellationToken, aiRecommendation.SuggestedResourceKey),
+                    equivalenceKey: $"MoveStringTo_AI_{Path.GetFileName(aiRecommendation.SelectedResxFilePath)}"));
+            }
+        }
+
+        // Add all other resx files as options
+        var regularActions = validResxFiles
+            .Where(resx => aiRecommendation == null || 
+                          !string.Equals(resx.FilePath, aiRecommendation.SelectedResxFilePath, StringComparison.OrdinalIgnoreCase))
             .SelectAsArray(resx =>
             {
                 var resxName = Path.GetFileName(resx.FilePath) ?? CSharpFeaturesResources.Unnamed_Resource;
@@ -69,10 +98,12 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
                     equivalenceKey: $"MoveStringTo_{resxName}");
             });
 
+        allActions.AddRange(regularActions);
+
         context.RegisterCodeFix(
             CodeAction.Create(
                 CSharpFeaturesResources.Move_string_to_resx_resource,
-                nestedActions,
+                allActions.ToImmutableArray(),
                 isInlinable: false),
             diagnostic);
     }
@@ -116,17 +147,256 @@ internal sealed class CSharpMoveToResxCodeFixProvider : CodeFixProvider
         return validFiles.ToImmutable();
     }
 
+    /// <summary>
+    /// Gets AI-powered recommendation for the best .resx file for the given string.
+    /// </summary>
+    private static async Task<ResxFileSelectionResult?> GetAIResxFileRecommendationAsync(
+        Document document,
+        LiteralExpressionSyntax stringLiteral,
+        ImmutableArray<TextDocument> availableResxFiles,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get the AI service
+            var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
+            if (copilotService == null)
+            {
+                // Service not available (likely no external Copilot service registered)
+                return null;
+            }
+
+            if (!await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // Service is registered but not available (quota, disabled, etc.)
+                return null;
+            }
+
+            // Gather information about available .resx files
+            var resxFileInfos = new List<ResxFileInfo>();
+            var currentDocumentPath = document.FilePath ?? "";
+
+            foreach (var resxFile in availableResxFiles)
+            {
+                var entries = await ParseResxEntriesAsync(resxFile, cancellationToken).ConfigureAwait(false);
+                var relativePath = GetRelativePath(
+                    Path.GetDirectoryName(currentDocumentPath) ?? "", 
+                    resxFile.FilePath ?? "");
+                var nameSpace = ExtractNamespaceFromResx(resxFile);
+
+                resxFileInfos.Add(new ResxFileInfo(
+                    filePath: resxFile.FilePath ?? "",
+                    relativePathFromDocument: relativePath,
+                    existingEntries: entries,
+                    nameSpace: nameSpace));
+            }
+
+            // Extract context about the string
+            var stringValue = stringLiteral.Token.ValueText;
+            var context = ExtractStringContext(stringLiteral);
+            var suggestedKey = ToDeterministicResourceKey(stringValue);
+
+            // Create the AI request
+            var request = new ResxFileSelectionRequest(
+                stringToMove: stringValue,
+                stringContext: context,
+                currentDocumentPath: currentDocumentPath,
+                availableResxFiles: resxFileInfos.ToImmutableArray(),
+                suggestedResourceKey: suggestedKey);
+
+            // Ask AI for recommendation
+            return await copilotService.SelectBestResxFileAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // If AI fails, gracefully degrade to no recommendation
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Parses .resx file entries for AI analysis.
+    /// </summary>
+    private static async Task<ImmutableArray<ResxEntry>> ParseResxEntriesAsync(
+        TextDocument resxFile, 
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var sourceText = await resxFile.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var doc = XDocument.Parse(sourceText.ToString());
+            
+            using var _ = ArrayBuilder<ResxEntry>.GetInstance(out var entries);
+
+            foreach (var dataElement in doc.Root?.Elements("data") ?? Enumerable.Empty<XElement>())
+            {
+                var name = dataElement.Attribute("name")?.Value;
+                var value = dataElement.Element("value")?.Value;
+                var comment = dataElement.Element("comment")?.Value;
+
+                if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(value))
+                {
+                    entries.Add(new ResxEntry(name, value, comment));
+                }
+            }
+
+            return entries.ToImmutable();
+        }
+        catch
+        {
+            return ImmutableArray<ResxEntry>.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Extracts namespace from .resx file for AI analysis.
+    /// </summary>
+    private static string? ExtractNamespaceFromResx(TextDocument resxFile)
+    {
+        try
+        {
+            // Simple heuristic: use the directory structure or file name
+            var filePath = resxFile.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+                return null;
+
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            var directory = Path.GetDirectoryName(filePath);
+            
+            // Try to infer namespace from path structure
+            if (!string.IsNullOrEmpty(directory))
+            {
+                var pathParts = directory.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+                var namespaceParts = pathParts.Where(p =>
+                    !string.Equals(p, "Properties", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(p, "Resources", StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+                
+                if (namespaceParts.Length > 0)
+                {
+                    return string.Join(".", namespaceParts) + "." + fileName;
+                }
+            }
+
+            return fileName;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Extracts context information about the string for AI analysis.
+    /// </summary>
+    private static string ExtractStringContext(LiteralExpressionSyntax stringLiteral)
+    {
+        var parent = stringLiteral.Parent;
+        var context = new StringBuilder();
+
+        // Add parent node context
+        switch (parent)
+        {
+            case ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation:
+                context.Append($"Argument to method: {invocation.Expression}");
+                break;
+            case AssignmentExpressionSyntax assignment:
+                context.Append($"Assignment to: {assignment.Left}");
+                break;
+            case VariableDeclaratorSyntax declarator:
+                context.Append($"Variable initialization: {declarator.Identifier}");
+                break;
+            case ReturnStatementSyntax:
+                context.Append("Return statement");
+                break;
+            case AttributeSyntax:
+                context.Append("Attribute value");
+                break;
+            case ThrowStatementSyntax:
+                context.Append("Exception message");
+                break;
+            default:
+                context.Append("String literal");
+                break;
+        }
+
+        // Add containing method/class context if available
+        var containingMethod = stringLiteral.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+        if (containingMethod != null)
+        {
+            context.Append($" in method {containingMethod.Identifier}");
+        }
+
+        var containingClass = stringLiteral.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        if (containingClass != null)
+        {
+            context.Append($" in class {containingClass.Identifier}");
+        }
+
+        return context.ToString();
+    }
+
+    /// <summary>
+    /// Gets the relative path from one directory to another (compatibility method for .NET Standard 2.0).
+    /// </summary>
+    private static string GetRelativePath(string fromPath, string toPath)
+    {
+        if (string.IsNullOrEmpty(fromPath) || string.IsNullOrEmpty(toPath))
+            return toPath;
+
+        try
+        {
+            var fromUri = new Uri(Path.GetFullPath(fromPath) + Path.DirectorySeparatorChar);
+            var toUri = new Uri(Path.GetFullPath(toPath));
+            
+            if (fromUri.Scheme != toUri.Scheme)
+                return toPath;
+
+            var relativeUri = fromUri.MakeRelativeUri(toUri);
+            var relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+            
+            // Convert forward slashes to platform-specific directory separators
+            return relativePath.Replace('/', Path.DirectorySeparatorChar);
+        }
+        catch
+        {
+            // Fallback to absolute path if relative path calculation fails
+            return toPath;
+        }
+    }
+
+    private static async Task<Solution> MoveStringToResxAndReplaceLiteralAsync(
+        Document document,
+        LiteralExpressionSyntax stringLiteral,
+        TextDocument resxFile,
+        CancellationToken cancellationToken,
+        string? suggestedResourceKey = null)
+    {
+        var value = stringLiteral.Token.ValueText;
+        
+        // Use suggested key from AI or generate one deterministically 
+        var resourceKey = suggestedResourceKey ?? ToDeterministicResourceKey(value);
+
+        return await MoveStringToResxAndReplaceLiteralCoreAsync(document, stringLiteral, resxFile, value, resourceKey, cancellationToken).ConfigureAwait(false);
+    }
+
     private static async Task<Solution> MoveStringToResxAndReplaceLiteralAsync(
         Document document,
         LiteralExpressionSyntax stringLiteral,
         TextDocument resxFile,
         CancellationToken cancellationToken)
     {
-        var value = stringLiteral.Token.ValueText;
-        
-        // Generate resource key deterministically 
-        var resourceKey = ToDeterministicResourceKey(value);
+        return await MoveStringToResxAndReplaceLiteralAsync(document, stringLiteral, resxFile, cancellationToken, null).ConfigureAwait(false);
+    }
 
+    private static async Task<Solution> MoveStringToResxAndReplaceLiteralCoreAsync(
+        Document document,
+        LiteralExpressionSyntax stringLiteral,
+        TextDocument resxFile,
+        string value,
+        string resourceKey,
+        CancellationToken cancellationToken)
+    {
         var resourceOperation = new ResourceOperation(value, resourceKey);
         var replacementOperation = new ReplacementOperation(stringLiteral, resourceKey);
 

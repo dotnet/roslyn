@@ -85,6 +85,8 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
             var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
             if (copilotService == null || !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             {
+                // AI not available, fallback to heuristic analysis
+                await AnalyzeWithHeuristicAsync(document, stringsToAnalyze, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -95,11 +97,19 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
             {
                 // Extract enhanced context for AI
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                if (root?.FindNode(location) is LiteralExpressionSyntax literal)
+                var foundNode = root?.FindNode(location, getInnermostNodeForTie: true);
+                
+                System.Diagnostics.Debug.WriteLine("String: " + stringValue + ", Location: " + location + ", Found node type: " + (foundNode?.GetType().Name ?? "null"));
+                
+                if (foundNode is LiteralExpressionSyntax literal)
                 {
                     var token = literal.Token;
                     var enhancedContext = await EnhancedContextExtractor.ExtractEnhancedContextAsync(token, document, cancellationToken).ConfigureAwait(false);
                     pendingAnalyses.Add(new PendingStringAnalysis(stringValue, basicContext, enhancedContext, location));
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to find LiteralExpressionSyntax for: " + stringValue);
                 }
             }
 
@@ -112,6 +122,16 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error analyzing specific strings in document {document.Name}: {ex.Message}");
+            
+            // AI analysis failed, fallback to heuristic analysis
+            try
+            {
+                await AnalyzeWithHeuristicAsync(document, stringsToAnalyze, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception heuristicEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"Heuristic fallback also failed: {heuristicEx.Message}");
+            }
         }
     }
 
@@ -131,8 +151,7 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
                 p.EnhancedContext)) // Use enhanced context for AI
                 .ToImmutableArray();
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var proposal = new UserFacingStringProposal(sourceText.ToString(), aiCandidates);
+            var proposal = new UserFacingStringProposal(aiCandidates);
 
             var result = await copilotService.GetUserFacingStringAnalysisAsync(proposal, cancellationToken).ConfigureAwait(false);
 
@@ -155,31 +174,71 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
                 // 🎯 NEW: Trigger document refresh if we cached any results
                 if (cacheEntriesAdded > 0)
                 {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            // Small delay to ensure cache is fully updated
-                            await Task.Delay(100).ConfigureAwait(false);
-                            
-                            var invalidationService = document.Project.Solution.Services.GetService<IDiagnosticInvalidationService>();
-                            if (invalidationService != null)
-                            {
-                                await invalidationService.TriggerDocumentRefreshAsync(document).ConfigureAwait(false);
-                                System.Diagnostics.Debug.WriteLine($"✅ Triggered refresh for document {document.Name} after caching {cacheEntriesAdded} AI results");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Failed to trigger document refresh: {ex.Message}");
-                        }
-                    });
+                    await TriggerDocumentRefreshAsync(document, cacheEntriesAdded, "AI").ConfigureAwait(false);
                 }
+            }
+            else if (result.isQuotaExceeded)
+            {
+                // Quota exceeded: fallback to heuristic analysis for the same strings
+                System.Diagnostics.Debug.WriteLine("AI quota exceeded for document " + document.Name + ", falling back to heuristic analysis for " + batch.Length + " strings");
+                
+                var stringsToAnalyze = batch.Select(p => (p.StringValue, p.BasicContext, p.Location)).ToList();
+                await AnalyzeWithHeuristicAsync(document, stringsToAnalyze, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in AI analysis batch: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine("Error in AI analysis batch: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Triggers a document refresh after caching analysis results.
+    /// </summary>
+    private Task TriggerDocumentRefreshAsync(Document document, int cacheEntriesAdded, string analysisMethod)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                // Small delay to ensure cache is fully updated
+                await Task.Delay(100).ConfigureAwait(false);
+                
+                var invalidationService = document.Project.Solution.Services.GetService<IDiagnosticInvalidationService>();
+                if (invalidationService != null)
+                {
+                    await invalidationService.TriggerDocumentRefreshAsync(document).ConfigureAwait(false);
+                    System.Diagnostics.Debug.WriteLine($"✅ Triggered refresh for document {document.Name} after caching {cacheEntriesAdded} {analysisMethod} results");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to trigger document refresh: {ex.Message}");
+            }
+        });
+        
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Analyzes a specific list of strings using heuristic analysis and updates the cache.
+    /// </summary>
+    private async Task AnalyzeWithHeuristicAsync(
+        Document document,
+        IReadOnlyList<(string stringValue, string basicContext, TextSpan location)> stringsToAnalyze,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await CSharp.MoveToResx.CSharpMoveToResxHeuristicHelper.AnalyzeBatchAsync(
+                document, stringsToAnalyze, _globalCache, cancellationToken).ConfigureAwait(false);
+            
+            // Trigger refresh after heuristic analysis
+            await TriggerDocumentRefreshAsync(document, stringsToAnalyze.Count, "Heuristic").ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in heuristic analysis: {ex.Message}");
         }
     }
 }

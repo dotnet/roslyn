@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.ResxSelection;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -711,6 +712,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         public Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken)
         {
             return Task.FromResult<(Dictionary<string, UserFacingStringAnalysis>?, bool)>((null, false));
+        }
+
+        public Task<ResxFileSelectionResult?> SelectBestResxFileAsync(ResxFileSelectionRequest request, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<ResxFileSelectionResult?>(null);
         }
     }
 }

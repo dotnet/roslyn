@@ -21,6 +21,7 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.QuickInfo
+Imports Microsoft.CodeAnalysis.ResxSelection
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.UserFacingStrings
@@ -385,6 +386,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
             Public Function GetUserFacingStringAnalysisAsync(proposal As UserFacingStringProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, UserFacingStringAnalysis), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetUserFacingStringAnalysisAsync
                 Return Task.FromResult((DirectCast(Nothing, Dictionary(Of String, UserFacingStringAnalysis)), False))
+            End Function
+
+            Public Function SelectBestResxFileAsync(request As ResxFileSelectionRequest, cancellationToken As CancellationToken) As Task(Of ResxFileSelectionResult) Implements ICopilotCodeAnalysisService.SelectBestResxFileAsync
+                Return Task.FromResult(DirectCast(Nothing, ResxFileSelectionResult))
             End Function
         End Class
     End Class

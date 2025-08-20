@@ -22,11 +22,11 @@ internal static class BasicContextExtractor
         return parent switch
         {
             ArgumentSyntax arg when arg.Parent?.Parent is InvocationExpressionSyntax invocation =>
-                $"Argument to method: {invocation.Expression}",
+                "Argument to method: " + invocation.Expression,
             AssignmentExpressionSyntax assignment =>
-                $"Assignment to: {assignment.Left}",
+                "Assignment to: " + assignment.Left,
             VariableDeclaratorSyntax declarator =>
-                $"Variable initialization: {declarator.Identifier}",
+                "Variable initialization: " + declarator.Identifier,
             ReturnStatementSyntax =>
                 "Return statement",
             AttributeSyntax =>

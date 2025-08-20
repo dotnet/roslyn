@@ -35,4 +35,6 @@ internal interface IUserFacingStringDocumentWatcher : ILanguageService
         Document document,
         IReadOnlyList<(string stringValue, string basicContext, TextSpan location)> stringsToAnalyze,
         CancellationToken cancellationToken);
+
+
 }

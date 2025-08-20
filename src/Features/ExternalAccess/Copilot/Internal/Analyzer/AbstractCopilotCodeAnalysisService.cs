@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.ResxSelection;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UserFacingStrings;
@@ -50,6 +51,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties, CancellationToken cancellationToken);
     protected abstract bool IsImplementNotImplementedExceptionsAvailableCore();
     protected abstract Task<(Dictionary<string, UserFacingStringAnalysis>? responseDictionary, bool isQuotaExceeded)> GetUserFacingStringAnalysisCoreAsync(UserFacingStringProposal proposal, CancellationToken cancellationToken);
+    protected abstract Task<ResxFileSelectionResult?> SelectBestResxFileCoreAsync(ResxFileSelectionRequest request, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -230,5 +232,13 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
             return (null, false);
 
         return await GetUserFacingStringAnalysisCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ResxFileSelectionResult?> SelectBestResxFileAsync(ResxFileSelectionRequest request, CancellationToken cancellationToken)
+    {
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return null;
+
+        return await SelectBestResxFileCoreAsync(request, cancellationToken).ConfigureAwait(false);
     }
 }

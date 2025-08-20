@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -88,13 +89,34 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
 
         if (missedStrings.Count > 0)
         {
-            // Fire-and-forget analysis of only the missed strings
-            _ = documentWatcher.AnalyzeSpecificStringsAsync(document, missedStrings, cancellationToken);
+            // Check if AI is available
+            var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
+            bool aiAvailable = copilotService != null && await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
+            
+            if (aiAvailable)
+            {
+                // AI available: use document watcher for AI analysis and caching
+                _ = documentWatcher.AnalyzeSpecificStringsAsync(document, missedStrings, cancellationToken);
+            }
+            else
+            {
+                // AI not available: run heuristic analysis immediately and create diagnostics
+                var heuristicResults = await CSharpMoveToResxHeuristicHelper.AnalyzeBatchForDiagnosticsAsync(
+                    document, missedStrings, cancellationToken).ConfigureAwait(false);
+                
+                foreach (var result in heuristicResults)
+                {
+                    if (result.ShouldCreateDiagnostic)
+                    {
+                        var location = Location.Create(tree, result.Location);
+                        diagnostics.Add(CreateAIDiagnostic(location, result.StringValue, result.Analysis));
+                    }
+                }
+            }
         }
 
         return diagnostics.ToImmutable();
     }
-
 
     /// <summary>
     /// Creates a diagnostic from AI analysis results.
@@ -105,7 +127,7 @@ internal sealed class CSharpMoveToResxDiagnosticAnalyzer : DocumentDiagnosticAna
         properties.Add("ConfidenceScore", analysis.ConfidenceScore.ToString("F2"));
         properties.Add("SuggestedResourceKey", analysis.SuggestedResourceKey);
         properties.Add("Reasoning", analysis.Reasoning);
-        properties.Add("AnalysisMethod", "AI");
+        properties.Add("AnalysisMethod", analysis.Reasoning.Contains("Heuristic") ? "Heuristic" : "AI");
         properties.Add("StringValue", stringValue);
         properties.Add("StringLength", stringValue.Length.ToString());
         properties.Add("AIAnalysisCompleted", "true");
