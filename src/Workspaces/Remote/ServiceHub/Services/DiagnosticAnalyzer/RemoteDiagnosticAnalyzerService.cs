@@ -252,10 +252,11 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
     }
 
     public ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
-        Checksum solutionChecksum, DocumentId documentId,
-        ImmutableHashSet<string> analyzerIds,
-        AnalysisKind kind,
-        TextSpan? span,
+        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
+        ImmutableHashSet<string> allAnalyzerIds,
+        ImmutableHashSet<string> syntaxAnalyzersIds,
+        ImmutableHashSet<string> semanticSpanAnalyzersIds,
+        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
         bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
@@ -269,11 +270,14 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
                 var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
-                var diagnostics = await service.ComputeDiagnosticsAsync(
-                    document, allProjectAnalyzers.FilterAnalyzers(analyzerIds),
-                    kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
+                var allAnalyzers = allProjectAnalyzers.FilterAnalyzers(allAnalyzerIds);
+                var syntaxAnalyzers = allProjectAnalyzers.FilterAnalyzers(syntaxAnalyzersIds);
+                var semanticSpanAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticSpanAnalyzersIds);
+                var semanticDocumentAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticDocumentAnalyzersIds);
 
-                return diagnostics;
+                return await service.ComputeDiagnosticsAsync(
+                    document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
+                    incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }

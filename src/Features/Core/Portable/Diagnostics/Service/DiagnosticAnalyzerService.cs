@@ -442,28 +442,40 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
     public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
         TextDocument document,
-        ImmutableArray<DiagnosticAnalyzer> analyzers,
-        AnalysisKind kind,
-        TextSpan? span,
+        TextSpan? range,
+        ImmutableArray<DiagnosticAnalyzer> allAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers,
         bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
     {
+        if (allAnalyzers.Length == 0)
+            return [];
+
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
-            var analyzerIds = analyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var allAnalyzerIds = allAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var syntaxAnalyzersIds = syntaxAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var semanticSpanAnalyzersIds = semanticSpanAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var semanticDocumentAnalyzersIds = semanticDocumentAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
                 document.Project,
                 (service, solution, cancellationToken) => service.ComputeDiagnosticsAsync(
-                    solution, document.Id, analyzerIds, kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken),
+                    solution, document.Id, range,
+                    allAnalyzerIds, syntaxAnalyzersIds, semanticSpanAnalyzersIds, semanticDocumentAnalyzersIds,
+                    incrementalAnalysis, logPerformanceInfo, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : [];
         }
 
         return await _incrementalAnalyzer.ComputeDiagnosticsAsync(
-            document, analyzers, kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
+            document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
+            incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
     }
 
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
