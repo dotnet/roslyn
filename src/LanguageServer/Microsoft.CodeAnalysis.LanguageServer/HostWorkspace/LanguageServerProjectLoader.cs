@@ -104,11 +104,8 @@ internal abstract class LanguageServerProjectLoader
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binLogPathProvider = binLogPathProvider;
-        var razorDesignTimePath = serverConfigurationFactory.ServerConfiguration?.RazorDesignTimePath;
 
-        AdditionalProperties = razorDesignTimePath is null
-            ? ImmutableDictionary<string, string>.Empty
-            : ImmutableDictionary<string, string>.Empty.Add("RazorDesignTimeTargets", razorDesignTimePath);
+        AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
         _projectsToReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
@@ -116,6 +113,28 @@ internal abstract class LanguageServerProjectLoader
             ProjectToLoad.Comparer,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+    }
+
+    private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
+    {
+        var properties = ImmutableDictionary<string, string>.Empty;
+
+        if (serverConfiguration is null)
+        {
+            return properties;
+        }
+
+        if (serverConfiguration.RazorDesignTimePath is { } razorDesignTimePath)
+        {
+            properties = properties.Add("RazorDesignTimeTargets", razorDesignTimePath);
+        }
+
+        if (serverConfiguration.CSharpDesignTimePath is { } csharpDesignTimePath)
+        {
+            properties = properties.Add("CSharpDesignTimeTargetsPath", csharpDesignTimePath);
+        }
+
+        return properties;
     }
 
     private sealed class ToastErrorReporter
