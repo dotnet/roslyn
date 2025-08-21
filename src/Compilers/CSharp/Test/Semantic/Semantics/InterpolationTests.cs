@@ -6643,17 +6643,20 @@ literal:Literal");
 ");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
-        public void PassAsRefWithoutKeyword_05()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("in")]
+        public void PassAsRefWithoutKeyword_05_WithReorder(string refKind)
         {
-            var code = """
+            var code = $$"""
                 BadFunc(
                     message: $"abc",
                     value2: 0,
                     value1: 1);
  
                 static void BadFunc(
-                    ref InterpolatedStringHandler message,
+                    {{refKind}} InterpolatedStringHandler message,
                     in int? value1,
                     int? value2)
                 {
@@ -6677,8 +6680,8 @@ literal:Literal");
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null);
-            verifier.VerifyIL("<top-level-statements-entry-point>", """
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
                 {
                   // Code size       47 (0x2f)
                   .maxstack  3
@@ -6701,8 +6704,72 @@ literal:Literal");
                   IL_0025:  stloc.2
                   IL_0026:  ldloca.s   V_2
                   IL_0028:  ldloc.0
-                  IL_0029:  call       "void Program.<<Main>$>g__BadFunc|0_0(ref InterpolatedStringHandler, in int?, int?)"
+                  IL_0029:  call       "void Program.<<Main>$>g__BadFunc|0_0({{refKind}} InterpolatedStringHandler, in int?, int?)"
                   IL_002e:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("in")]
+        public void PassAsRefWithoutKeyword_05_WithoutReorder(string refKind)
+        {
+            var code = $$"""
+                BadFunc(
+                    message: $"abc",
+                    value1: 1,
+                    value2: 0);
+ 
+                static void BadFunc(
+                    {{refKind}} InterpolatedStringHandler message,
+                    in int? value1,
+                    int? value2)
+                {
+                    System.Console.Write(value1);
+                    System.Console.Write(value2);
+                }
+ 
+                [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                public ref struct InterpolatedStringHandler
+                {
+                    public InterpolatedStringHandler(
+                        int literalLength,
+                        int formattedCount)
+                    {
+                    }
+ 
+                    public void AppendLiteral(string value)
+                    {
+                        System.Console.Write(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (InterpolatedStringHandler V_0,
+                                  int? V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  call       "InterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  ldstr      "abc"
+                  IL_0010:  call       "void InterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  newobj     "int?..ctor(int)"
+                  IL_001d:  stloc.1
+                  IL_001e:  ldloca.s   V_1
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  newobj     "int?..ctor(int)"
+                  IL_0026:  call       "void Program.<<Main>$>g__BadFunc|0_0({{refKind}} InterpolatedStringHandler, in int?, int?)"
+                  IL_002b:  ret
                 }
                 """);
         }
