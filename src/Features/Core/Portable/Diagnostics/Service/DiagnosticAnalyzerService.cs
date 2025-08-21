@@ -434,22 +434,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
     }
 
-    private sealed class DiagnosticAnalyzerByIdComparer : IEqualityComparer<DiagnosticAnalyzer>
-    {
-        public static readonly DiagnosticAnalyzerByIdComparer Instance = new();
-
-        public bool Equals(DiagnosticAnalyzer? x, DiagnosticAnalyzer? y)
-            => (x, y) switch
-            {
-                (null, null) => true,
-                (null, _) => false,
-                (_, null) => false,
-                _ => x.GetAnalyzerId() == y.GetAnalyzerId(),
-            };
-
-        public int GetHashCode(DiagnosticAnalyzer obj) => obj.GetAnalyzerId().GetHashCode();
-    }
-
     public TestAccessor GetTestAccessor()
         => new(this);
 
