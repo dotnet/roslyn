@@ -71,11 +71,14 @@ internal sealed partial class DiagnosticAnalyzerService
     /// <summary>
     /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
     /// </summary>
-    public async Task<ImmutableArray<DiagnosticAnalyzer>> GetOrCreateAnalyzersAsync(
-        SolutionState solution, ProjectState project, CancellationToken cancellationToken)
+    internal async Task<ImmutableArray<DiagnosticAnalyzer>> GetProjectAnalyzersAsync(
+        Project project, CancellationToken cancellationToken)
     {
-        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
-        var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
+        var solutionState = project.Solution.SolutionState;
+        var projectState = project.State;
+
+        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
+        var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
         return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
     }
 

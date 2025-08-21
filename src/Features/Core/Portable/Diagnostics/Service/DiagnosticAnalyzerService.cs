@@ -129,13 +129,6 @@ internal sealed partial class DiagnosticAnalyzerService
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
-    internal Task<ImmutableArray<DiagnosticAnalyzer>> GetProjectAnalyzersAsync(
-        Project project, CancellationToken cancellationToken)
-    {
-        return GetOrCreateAnalyzersAsync(
-            project.Solution.SolutionState, project.State, cancellationToken);
-    }
-
     private async Task<ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersAsync(
         Project project,
         ImmutableHashSet<string>? diagnosticIds,
