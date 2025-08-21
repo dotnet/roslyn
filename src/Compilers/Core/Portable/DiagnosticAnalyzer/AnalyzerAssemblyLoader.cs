@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
             ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
             System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null,
-            bool isCollectible = false)
+            bool collectOnDispose = false)
         {
             CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
             pathResolvers = pathResolvers.NullToEmpty();
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis
                     pathResolvers,
                     [.. assemblyResolvers, StreamResolver.Instance],
                     compilerLoadContext,
-                    isCollectible);
+                    collectOnDispose);
             }
 
             // The goal here is to avoid locking files on disk that are reasonably expected to be changed by 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis
                 [.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath)],
                 [.. assemblyResolvers, DiskResolver.Instance],
                 compilerLoadContext,
-                isCollectible);
+                collectOnDispose);
         }
 
 #else

@@ -76,7 +76,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     {
         var compilerLoadContext = new AssemblyLoadContext("Compiler", isCollectible: true);
         var currentLoadContext = new AssemblyLoadContext("Current", isCollectible: true);
-        var loader = new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], compilerLoadContext, isCollectible: false);
+        var loader = new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], compilerLoadContext, collectOnDispose: false);
 #pragma warning disable 612 
         var resolver = CreateResolver();
 #pragma warning restore 612 

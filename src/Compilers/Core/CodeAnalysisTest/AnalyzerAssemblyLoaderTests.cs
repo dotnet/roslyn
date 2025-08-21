@@ -1646,19 +1646,19 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(AnalyzerTestKind kind, bool isCollectible)
+        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(AnalyzerTestKind kind, bool collectOnDispose)
         {
             // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
             // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
             // in the host context.
-            var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible);
+            var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), collectOnDispose);
             _ = alc.LoadFromAssemblyPath(TestFixture.UserSystemCollectionsImmutable);
             _ = alc.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
             var loader = kind switch
             {
-                AnalyzerTestKind.LoadStream => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver], alc, isCollectible),
-                AnalyzerTestKind.LoadDirect => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc, isCollectible),
-                AnalyzerTestKind.ShadowLoad => new AnalyzerAssemblyLoader([new ShadowCopyAnalyzerPathResolver(Temp.CreateDirectory().Path)], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc, isCollectible),
+                AnalyzerTestKind.LoadStream => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver], alc, collectOnDispose),
+                AnalyzerTestKind.LoadDirect => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc, collectOnDispose),
+                AnalyzerTestKind.ShadowLoad => new AnalyzerAssemblyLoader([new ShadowCopyAnalyzerPathResolver(Temp.CreateDirectory().Path)], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc, collectOnDispose),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
 
@@ -1676,7 +1676,7 @@ Delta.2: Test D2
                 Assert.Equal("42", sb.ToString());
             });
 
-            if (isCollectible)
+            if (collectOnDispose)
             {
                 alc.Unload();
             }
@@ -1792,7 +1792,7 @@ Delta.2: Test D2
             var resolver1 = new TestAnalyzerAssemblyResolver((_, assemblyName, current, _) =>
                 assemblyName.Name == name ? current.LoadFromAssemblyPath(TestFixture.Delta1) : null);
             var resolver2 = new TestAnalyzerAssemblyResolver((_, _, assemblyName, _) => null);
-            var loader = new AnalyzerAssemblyLoader([], [resolver1, resolver2], alc, isCollectible: false);
+            var loader = new AnalyzerAssemblyLoader([], [resolver1, resolver2], alc, collectOnDispose: false);
 
             Run(loader, state: name, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -1814,7 +1814,7 @@ Delta.2: Test D2
             var name = Path.GetFileNameWithoutExtension(TestFixture.Delta1);
             var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible: true);
             var resolver = new TestAnalyzerAssemblyResolver((_, _, assemblyName, _) => null);
-            var loader = new AnalyzerAssemblyLoader([], [resolver], alc, isCollectible: false);
+            var loader = new AnalyzerAssemblyLoader([], [resolver], alc, collectOnDispose: false);
 
             Run(loader, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {

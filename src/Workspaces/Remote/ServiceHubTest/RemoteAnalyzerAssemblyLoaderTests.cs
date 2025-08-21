@@ -20,7 +20,7 @@ public sealed class RemoteAnalyzerAssemblyLoaderTests
         [new RemoteAnalyzerPathResolver(baseDirectory)],
         [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver],
         compilerLoadContext: null,
-        isCollectible: false);
+        collectOnDispose: false);
 
     [Fact]
     public void NonIdeAnalyzerAssemblyShouldBeLoadedInSeparateALC()

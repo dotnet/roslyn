@@ -34,7 +34,7 @@ public sealed class CompilerResolverTests : IDisposable
         CompilerContext = new AssemblyLoadContext(nameof(CompilerResolverTests), isCollectible: true);
         AssemblyInCompilerContext = CompilerContext.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).Assembly.Location);
         ScratchContext = new AssemblyLoadContext("Scratch", isCollectible: true);
-        Loader = new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], CompilerContext, isCollectible: false);
+        Loader = new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], CompilerContext, collectOnDispose: false);
     }
 
     public void Dispose()

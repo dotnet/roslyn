@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         public IAnalyzerAssemblyResolver CompilerAnalyzerAssemblyResolver { get; }
         public AssemblyLoadContext CompilerLoadContext { get; }
         public ImmutableArray<IAnalyzerAssemblyResolver> AnalyzerAssemblyResolvers { get; }
-        public bool IsCollectible { get; }
+        public bool CollectOnDispose { get; }
 
         internal AnalyzerAssemblyLoader()
             : this(pathResolvers: [])
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerPathResolver> pathResolvers)
-            : this(pathResolvers, assemblyResolvers: [DiskAnalyzerAssemblyResolver], compilerLoadContext: null, isCollectible: false)
+            : this(pathResolvers, assemblyResolvers: [DiskAnalyzerAssemblyResolver], compilerLoadContext: null, collectOnDispose: false)
         {
         }
 
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<IAnalyzerPathResolver> pathResolvers,
             ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
             AssemblyLoadContext? compilerLoadContext,
-            bool isCollectible)
+            bool collectOnDispose)
         {
             if (assemblyResolvers.Length == 0)
             {
                 throw new ArgumentException("Cannot be empty", nameof(assemblyResolvers));
             }
 
-            IsCollectible = isCollectible;
+            CollectOnDispose = collectOnDispose;
             CompilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(SyntaxTree).GetTypeInfo().Assembly)!;
             CompilerAnalyzerAssemblyResolver = new CompilerResolver(CompilerLoadContext);
             AnalyzerPathResolvers = pathResolvers;
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
 
         private partial void DisposeWorker()
         {
-            if (IsCollectible)
+            if (CollectOnDispose)
             {
                 disposeCollectibleWorker();
             }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
             private readonly AnalyzerAssemblyLoader _loader;
 
             public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader)
-                : base(isCollectible: loader.IsCollectible)
+                : base(isCollectible: loader.CollectOnDispose)
             {
                 Directory = directory;
                 _loader = loader;
