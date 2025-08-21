@@ -112,8 +112,8 @@ internal sealed partial class DiagnosticAnalyzerService
                 return ([.. analyzersPerReference.Values], []);
             }
 
-            var hostAnalyzerCollection = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance();
-            var projectAnalyzerCollection = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance();
+            using var _1 = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance(out var hostAnalyzerCollection);
+            using var _2 = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance(out var projectAnalyzerCollection);
 
             foreach (var (referenceId, analyzers) in analyzersPerReference)
             {
@@ -127,7 +127,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
             }
 
-            return (hostAnalyzerCollection.ToImmutableAndFree(), projectAnalyzerCollection.ToImmutableAndFree());
+            return (hostAnalyzerCollection.ToImmutableAndClear(), projectAnalyzerCollection.ToImmutableAndClear());
         }
     }
 
