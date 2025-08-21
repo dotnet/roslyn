@@ -19,7 +19,8 @@ public sealed class RemoteAnalyzerAssemblyLoaderTests
     private static AnalyzerAssemblyLoader Create(string baseDirectory) => new(
         [new RemoteAnalyzerPathResolver(baseDirectory)],
         [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver],
-        compilerLoadContext: null);
+        compilerLoadContext: null,
+        isCollectible: false);
 
     [Fact]
     public void NonIdeAnalyzerAssemblyShouldBeLoadedInSeparateALC()

@@ -25,7 +25,13 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
     /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
     /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
     /// </summary>
-    IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader();
+    IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader() => CreateNewShadowCopyLoader(isCollectible: false);
+
+    /// <summary>
+    /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
+    /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
+    /// </summary>
+    IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader(bool isCollectible);
 #endif
 }
 
@@ -43,18 +49,20 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers, IEnumerable<IAnalyzerPathResolver> assemblyPathResolvers)
     {
         _assemblyResolvers = [.. assemblyResolvers];
-        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
+        _shadowCopyLoader = new(CreateNewShadowCopyLoader(isCollectible: false));
         _assemblyPathResolvers = [.. assemblyPathResolvers];
     }
 
     public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
         => _shadowCopyLoader.Value;
 
-    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader(bool isCollectible)
         => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
                 _assemblyPathResolvers,
-                _assemblyResolvers));
+                _assemblyResolvers,
+                compilerLoadContext: null,
+                isCollectible));
 #else
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 

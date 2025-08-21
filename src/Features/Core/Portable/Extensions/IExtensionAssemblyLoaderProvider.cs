@@ -54,7 +54,7 @@ internal sealed class DefaultExtensionAssemblyLoaderProviderFactory() : IWorkspa
             // These lines should always succeed.  If they don't, they indicate a bug in our code that we want
             // to bubble out as it must be fixed.
             var analyzerAssemblyLoaderProvider = _workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-            var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+            var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader(isCollectible: true);
 
             // Catch exceptions here related to working with the file system.  If we can't properly enumerate,
             // we want to report that back to the client, while not blocking the entire extension service.
