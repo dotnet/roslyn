@@ -62,9 +62,26 @@ internal sealed partial class DiagnosticAnalyzerService
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
-    private readonly StateManager _stateManager;
     private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
     private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
+
+    /// <summary>
+    /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
+    /// Maps language name to the analyzers and their state.
+    /// </summary>
+    private ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo>.Empty;
+
+    /// <summary>
+    /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
+    /// ImmutableDictionary used to present a safe, non-immutable view to users.
+    /// </summary>
+    private ImmutableDictionary<ProjectId, ProjectAnalyzerInfo> _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerInfo>.Empty;
+
+    /// <summary>
+    /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
+    /// duplicated calculations for a project during contentious calls.
+    /// </summary>
+    private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(initialCount: 1);
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -77,8 +94,6 @@ internal sealed partial class DiagnosticAnalyzerService
         _listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         _globalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-
-        _stateManager = new StateManager(_analyzerInfoCache);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {
@@ -117,7 +132,7 @@ internal sealed partial class DiagnosticAnalyzerService
     internal Task<ImmutableArray<DiagnosticAnalyzer>> GetProjectAnalyzersAsync(
         Project project, CancellationToken cancellationToken)
     {
-        return _stateManager.GetOrCreateAnalyzersAsync(
+        return GetOrCreateAnalyzersAsync(
             project.Solution.SolutionState, project.State, cancellationToken);
     }
 
@@ -188,7 +203,7 @@ internal sealed partial class DiagnosticAnalyzerService
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
-            => service._stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
+            => service.GetProjectAnalyzersAsync(project, cancellationToken);
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
             Project project, CompilationWithAnalyzersPair compilationWithAnalyzers, bool logPerformanceInfo, bool getTelemetryInfo, CancellationToken cancellationToken)

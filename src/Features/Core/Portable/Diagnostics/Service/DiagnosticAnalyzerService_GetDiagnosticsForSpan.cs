@@ -56,9 +56,8 @@ internal sealed partial class DiagnosticAnalyzerService
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         var project = document.Project;
-        var unfilteredAnalyzers = await _stateManager
-            .GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken)
-            .ConfigureAwait(false);
+        var unfilteredAnalyzers = await GetProjectAnalyzersAsync(
+            project, cancellationToken).ConfigureAwait(false);
         var analyzers = unfilteredAnalyzers
             .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, _globalOptions));
 
@@ -282,7 +281,7 @@ internal sealed partial class DiagnosticAnalyzerService
         // We log performance info when we are computing diagnostics for a span
         var project = document.Project;
 
-        var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(
+        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(
             project.Solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
         var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
             document.Project, allAnalyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);

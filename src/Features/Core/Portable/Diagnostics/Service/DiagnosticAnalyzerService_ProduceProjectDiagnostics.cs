@@ -30,7 +30,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
         var solution = project.Solution;
 
-        var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(
+        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(
             solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
 
         var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
