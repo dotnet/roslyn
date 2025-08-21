@@ -1597,8 +1597,8 @@ internal sealed partial class SolutionCompilationState
                     updatedIdToTrackerMapBuilder[projectId] = oldTracker;
                 }
 
-                // Since we're freezing, set generators to run only required and skeletons to not be created.
-                // We don't want to take any perf hit on either of those at all for our clients.
+                // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
+                // perf hit on either of those at all for our clients.
                 var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
                 if (oldTracker == newTracker)
                     continue;
