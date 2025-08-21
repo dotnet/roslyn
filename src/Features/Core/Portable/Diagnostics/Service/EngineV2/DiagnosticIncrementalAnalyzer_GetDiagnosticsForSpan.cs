@@ -217,7 +217,7 @@ internal sealed partial class DiagnosticAnalyzerService
                     return;
 
                 // We log performance info when we are computing diagnostics for a span
-                using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(
+                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(
                     FunctionId.RequestDiagnostics_Summary,
                     $"Pri{priorityProvider.Priority.GetPriorityInt()}.{(incrementalAnalysis ? "Incremental" : "Document")}");
 
