@@ -32,10 +32,9 @@ internal interface IRemoteDiagnosticAnalyzerService
 
     ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
     ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
-        Checksum solutionChecksum, DocumentId documentId,
-        ImmutableHashSet<string> analyzerIds,
-        AnalysisKind kind,
-        TextSpan? span,
+        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
+        ImmutableHashSet<string> allAnalyzerIds,
+        ImmutableArray<ImmutableHashSet<string>> orderedAnalyzerIds,
         bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken);

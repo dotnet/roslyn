@@ -306,10 +306,9 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
     }
 
     public ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
-        Checksum solutionChecksum, DocumentId documentId,
-        ImmutableHashSet<string> analyzerIds,
-        AnalysisKind kind,
-        TextSpan? span,
+        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
+        ImmutableHashSet<string> allAnalyzerIds,
+        ImmutableArray<ImmutableHashSet<string>> orderedAnalyzerIds,
         bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
@@ -323,11 +322,14 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
                 var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
-                var diagnostics = await service.ComputeDiagnosticsAsync(
-                    document, allProjectAnalyzers.FilterAnalyzers(analyzerIds),
-                    kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
+                var allAnalyzers = allProjectAnalyzers.FilterAnalyzers(allAnalyzerIds);
+                var orderedAnalyzers = orderedAnalyzerIds.SelectAsArray(
+                    static (ids, allProjectAnalyzers) => allProjectAnalyzers.FilterAnalyzers(ids),
+                    allProjectAnalyzers);
 
-                return diagnostics;
+                return await service.ComputeDiagnosticsAsync(
+                    document, range, allAnalyzers, orderedAnalyzers,
+                    incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }

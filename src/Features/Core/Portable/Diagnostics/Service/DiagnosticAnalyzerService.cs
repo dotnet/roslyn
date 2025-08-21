@@ -442,9 +442,9 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
     public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
         TextDocument document,
-        ImmutableArray<DiagnosticAnalyzer> analyzers,
-        AnalysisKind kind,
-        TextSpan? span,
+        TextSpan? range,
+        ImmutableArray<DiagnosticAnalyzer> allAnalyzers,
+        ImmutableArray<ImmutableArray<DiagnosticAnalyzer>> orderedAnalyzers,
         bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
@@ -452,18 +452,19 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
-            var analyzerIds = analyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var allAnalyzerIds = allAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var orderedAnalyzerIds = orderedAnalyzers.SelectAsArray(a => a.Select(b => b.GetAnalyzerId()).ToImmutableHashSet());
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
                 document.Project,
                 (service, solution, cancellationToken) => service.ComputeDiagnosticsAsync(
-                    solution, document.Id, analyzerIds, kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken),
+                    solution, document.Id, range, allAnalyzerIds, orderedAnalyzerIds, incrementalAnalysis, logPerformanceInfo, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : [];
         }
 
         return await _incrementalAnalyzer.ComputeDiagnosticsAsync(
-            document, analyzers, kind, span, incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
+            document, range, allAnalyzers, orderedAnalyzers, incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
     }
 
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
