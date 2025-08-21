@@ -37,7 +37,7 @@ internal sealed partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            if (creationPolicy == CreationPolicy.DoNotCreate)
+            if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
             {
                 // We're frozen.  So we do not want to go through the expensive cost of running generators.  Instead, we
                 // just whatever prior generated docs we have.
@@ -60,12 +60,9 @@ internal sealed partial class SolutionCompilationState
                     compilationState, compilationWithoutGeneratedFiles, generatorInfo.Documents, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
                 if (result.HasValue)
                 {
-                    var updatedCompilationWithGeneratedFiles = result.Value.compilationWithGeneratedFiles;
-                    var updatedGeneratedDocuments = result.Value.generatedDocuments;
-
                     // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
                     // Just return `null` for the driver as there's nothing to track for it on the host side.
-                    return (updatedCompilationWithGeneratedFiles, new(updatedGeneratedDocuments, Driver: null));
+                    return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, Driver: null));
                 }
 
                 // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
