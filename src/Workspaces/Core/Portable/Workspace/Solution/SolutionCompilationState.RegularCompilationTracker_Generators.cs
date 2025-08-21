@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +50,8 @@ internal sealed partial class SolutionCompilationState
             }
             else
             {
-                //TODO: don't even go to OOP if we know there is no work to be done.
+                // Note: If we're in GeneratedDocumentCreationPolicy.CreateRequired it may be possible to skip going to OOP at all. If we know which generators are going to run
+                // we can see upfront if they are present and skip them if so. This is left as a future optimiziation for now.
 
                 // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
                 // back over to us to ensure that both processes are in total agreement about the SG docs and their
