@@ -65,7 +65,7 @@ internal sealed class AnalyzerSettingsProvider
         var csharpDescriptors = await service.GetDiagnosticDescriptorsAsync(solution, someReferencingProject.Id, analyzerReference, LanguageNames.CSharp, cancellationToken).ConfigureAwait(false);
         var vbDescriptors = await service.GetDiagnosticDescriptorsAsync(solution, someReferencingProject.Id, analyzerReference, LanguageNames.VisualBasic, cancellationToken).ConfigureAwait(false);
 
-        var dotnetDescriptors = csharpDescriptors.Intersect(vbDescriptors, this);
+        var dotnetDescriptors = csharpDescriptors.Intersect(vbDescriptors, this).ToImmutableArray();
 
         return [
             .. ToAnalyzerSettings(csharpDescriptors.Except(dotnetDescriptors), Language.CSharp),
