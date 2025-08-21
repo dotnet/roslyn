@@ -3561,8 +3561,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResult(withExpr, resultState, resultType);
             VisitObjectCreationInitializer(resultSlot, resultType.Type, withExpr.InitializerExpression, delayCompletionForType: false);
 
-            // Note: this does not account for the scenario where `Clone()` returns maybe-null and the with-expression has no initializers.
-            // Tracking in https://github.com/dotnet/roslyn/issues/44759
             return null;
         }
 
@@ -4420,7 +4418,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return AsMemberOfType(containingType, symbol);
                 }
 
-                if (symbol.OriginalDefinition.ContainingType is not { Arity: not 0 } extension)
+                var extension = symbol.OriginalDefinition.ContainingType;
+                if (extension.Arity == 0)
                 {
                     // reinference not needed for non-generic extension
                     return symbol;
@@ -4432,8 +4431,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(objectInitializer.HasErrors);
                     return symbol;
                 }
-
-                var propertyOriginalDefinition = property.OriginalDefinition;
 
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
@@ -4454,7 +4451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (inferenceResult.Success)
                 {
                     extension = extension.Construct(inferenceResult.InferredTypeArguments);
-                    property = propertyOriginalDefinition.AsMember(extension);
+                    property = property.OriginalDefinition.AsMember(extension);
                     SetUpdatedSymbol(objectInitializer, symbol, property);
                 }
 
