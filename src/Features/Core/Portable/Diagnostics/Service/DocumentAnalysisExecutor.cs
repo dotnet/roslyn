@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal sealed partial class DocumentAnalysisExecutor
 {
+    private readonly DiagnosticAnalyzerService _diagnosticAnalyzerService;
     private readonly CompilationWithAnalyzersPair? _compilationWithAnalyzers;
-    private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
     private readonly bool _logPerformanceInfo;
     private readonly Action? _onAnalysisException;
 
@@ -37,15 +37,15 @@ internal sealed partial class DocumentAnalysisExecutor
     private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? _lazySemanticDiagnostics;
 
     public DocumentAnalysisExecutor(
+        DiagnosticAnalyzerService diagnosticAnalyzerService,
         DocumentAnalysisScope analysisScope,
         CompilationWithAnalyzersPair? compilationWithAnalyzers,
-        InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
         bool logPerformanceInfo,
         Action? onAnalysisException = null)
     {
         AnalysisScope = analysisScope;
+        _diagnosticAnalyzerService = diagnosticAnalyzerService;
         _compilationWithAnalyzers = compilationWithAnalyzers;
-        _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
         _logPerformanceInfo = logPerformanceInfo;
         _onAnalysisException = onAnalysisException;
 
@@ -63,12 +63,12 @@ internal sealed partial class DocumentAnalysisExecutor
     public DocumentAnalysisScope AnalysisScope { get; }
 
     public DocumentAnalysisExecutor With(DocumentAnalysisScope analysisScope)
-        => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _logPerformanceInfo, _onAnalysisException);
+        => new(_diagnosticAnalyzerService, analysisScope, _compilationWithAnalyzers, _logPerformanceInfo, _onAnalysisException);
 
     /// <summary>
     /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
     /// </summary>
-    public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+    public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsInProcessAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(AnalysisScope.ProjectAnalyzers.Contains(analyzer) || AnalysisScope.HostAnalyzers.Contains(analyzer));
 
@@ -120,8 +120,8 @@ internal sealed partial class DocumentAnalysisExecutor
 
         var diagnostics = kind switch
         {
-            AnalysisKind.Syntax => await GetSyntaxDiagnosticsAsync(analyzer, isCompilerAnalyzer, cancellationToken).ConfigureAwait(false),
-            AnalysisKind.Semantic => await GetSemanticDiagnosticsAsync(analyzer, isCompilerAnalyzer, cancellationToken).ConfigureAwait(false),
+            AnalysisKind.Syntax => await GetSyntaxDiagnosticsInProcessAsync(analyzer, isCompilerAnalyzer, cancellationToken).ConfigureAwait(false),
+            AnalysisKind.Semantic => await GetSemanticDiagnosticsInProcessAsync(analyzer, isCompilerAnalyzer, cancellationToken).ConfigureAwait(false),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
 
@@ -149,13 +149,13 @@ internal sealed partial class DocumentAnalysisExecutor
         return diagnostics;
     }
 
-    private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultAsync(DocumentAnalysisScope analysisScope, CancellationToken cancellationToken)
+    private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultInProcessAsync(DocumentAnalysisScope analysisScope, CancellationToken cancellationToken)
     {
         RoslynDebug.Assert(_compilationWithAnalyzers != null);
 
         try
         {
-            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(
+            var resultAndTelemetry = await _diagnosticAnalyzerService.AnalyzeDocumentInProcessAsync(
                 analysisScope, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
             return resultAndTelemetry.AnalysisResult;
         }
@@ -166,7 +166,7 @@ internal sealed partial class DocumentAnalysisExecutor
         }
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsInProcessAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
     {
         RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
         RoslynDebug.Assert(_compilationWithAnalyzers != null);
@@ -176,7 +176,7 @@ internal sealed partial class DocumentAnalysisExecutor
         var analysisScope = _compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer)
             ? AnalysisScope.WithAnalyzers([analyzer], []).WithSpan(span)
             : AnalysisScope.WithAnalyzers([], [analyzer]).WithSpan(span);
-        var analysisResult = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
+        var analysisResult = await GetAnalysisResultInProcessAsync(analysisScope, cancellationToken).ConfigureAwait(false);
         if (!analysisResult.TryGetValue(analyzer, out var result))
         {
             return [];
@@ -185,7 +185,7 @@ internal sealed partial class DocumentAnalysisExecutor
         return result.GetDocumentDiagnostics(analysisScope.TextDocument.Id, analysisScope.Kind);
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, bool isCompilerAnalyzer, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetSyntaxDiagnosticsInProcessAsync(DiagnosticAnalyzer analyzer, bool isCompilerAnalyzer, CancellationToken cancellationToken)
     {
         // PERF:
         //  1. Compute diagnostics for all analyzers with a single invocation into CompilationWithAnalyzers.
@@ -203,15 +203,15 @@ internal sealed partial class DocumentAnalysisExecutor
                 return [];
             }
 
-            return await GetCompilerAnalyzerDiagnosticsAsync(analyzer, AnalysisScope.Span, cancellationToken).ConfigureAwait(false);
+            return await GetCompilerAnalyzerDiagnosticsInProcessAsync(analyzer, AnalysisScope.Span, cancellationToken).ConfigureAwait(false);
         }
 
         if (_lazySyntaxDiagnostics == null)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSyntaxDiagnosticsAsync)}.{nameof(GetAnalysisResultAsync)}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSyntaxDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
 
             var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedProjectAnalyzersInAnalysisScope, _compilationBasedHostAnalyzersInAnalysisScope);
-            var syntaxDiagnostics = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
+            var syntaxDiagnostics = await GetAnalysisResultInProcessAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             Interlocked.CompareExchange(ref _lazySyntaxDiagnostics, syntaxDiagnostics, null);
         }
 
@@ -220,7 +220,7 @@ internal sealed partial class DocumentAnalysisExecutor
             : [];
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, bool isCompilerAnalyzer, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetSemanticDiagnosticsInProcessAsync(DiagnosticAnalyzer analyzer, bool isCompilerAnalyzer, CancellationToken cancellationToken)
     {
         // PERF:
         //  1. Compute diagnostics for all analyzers with a single invocation into CompilationWithAnalyzers.
@@ -239,15 +239,15 @@ internal sealed partial class DocumentAnalysisExecutor
 #endif
 
             var adjustedSpan = await GetAdjustedSpanForCompilerAnalyzerAsync().ConfigureAwait(false);
-            return await GetCompilerAnalyzerDiagnosticsAsync(analyzer, adjustedSpan, cancellationToken).ConfigureAwait(false);
+            return await GetCompilerAnalyzerDiagnosticsInProcessAsync(analyzer, adjustedSpan, cancellationToken).ConfigureAwait(false);
         }
 
         if (_lazySemanticDiagnostics == null)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSemanticDiagnosticsAsync)}.{nameof(GetAnalysisResultAsync)}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSemanticDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
 
             var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedProjectAnalyzersInAnalysisScope, _compilationBasedHostAnalyzersInAnalysisScope);
-            var semanticDiagnostics = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
+            var semanticDiagnostics = await GetAnalysisResultInProcessAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             Interlocked.CompareExchange(ref _lazySemanticDiagnostics, semanticDiagnostics, null);
         }
 

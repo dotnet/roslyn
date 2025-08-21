@@ -79,13 +79,13 @@ internal sealed partial class DiagnosticAnalyzerService
 
             var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
                 static (analyzer, arg) => IsCandidateForFullSolutionAnalysis(
-                    arg.self.DiagnosticAnalyzerInfoCache, analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
+                    arg.self._analyzerInfoCache, analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
                 (self: this, project, hostAnalyzerInfo));
 
             var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
                 project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-            var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(
+            var projectAnalysisData = await ComputeDiagnosticAnalysisResultsInProcessAsync(
                 compilationWithAnalyzers, project, [.. fullSolutionAnalysisAnalyzers.OfType<DocumentDiagnosticAnalyzer>()], cancellationToken).ConfigureAwait(false);
             return (checksum, fullSolutionAnalysisAnalyzers, projectAnalysisData);
         }

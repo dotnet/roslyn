@@ -22,7 +22,7 @@ internal sealed partial class DiagnosticAnalyzerService
     /// Return all diagnostics that belong to given project for the given <see cref="DiagnosticAnalyzer"/> either
     /// from cache or by calculating them.
     /// </summary>
-    private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsAsync(
+    private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsInProcessAsync(
         CompilationWithAnalyzersPair? compilationWithAnalyzers,
         Project project,
         ImmutableArray<DocumentDiagnosticAnalyzer> analyzers,
@@ -94,7 +94,7 @@ internal sealed partial class DiagnosticAnalyzerService
                     || compilationWithAnalyzers?.HostAnalyzers.Length > 0)
                 {
                     // calculate regular diagnostic analyzers diagnostics
-                    var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(
+                    var resultMap = await this.AnalyzeProjectInProcessAsync(
                         project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
 
                     result = resultMap.AnalysisResult;
@@ -162,7 +162,7 @@ internal sealed partial class DiagnosticAnalyzerService
         {
             foreach (var (analyzer, telemetryInfo) in telemetry)
             {
-                var isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
+                var isTelemetryCollectionAllowed = _analyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
                 _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
             }
         }

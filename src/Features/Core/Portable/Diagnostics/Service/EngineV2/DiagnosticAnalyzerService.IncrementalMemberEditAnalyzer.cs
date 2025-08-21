@@ -51,7 +51,7 @@ internal sealed partial class DiagnosticAnalyzerService
         public void UpdateDocumentWithCachedDiagnostics(Document document)
             => _lastDocumentWithCachedDiagnostics.SetTarget(document);
 
-        public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsAsync(
+        public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsInProcessAsync(
             DocumentAnalysisExecutor executor,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             VersionStamp version,
@@ -72,7 +72,7 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 // This is not a member-edit scenario, so compute full document diagnostics
                 // without incremental analysis.
-                return await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
+                return await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
             }
 
             var (changedMember, changedMemberId, newMemberSpans, oldDocument) = changedMemberAndIdAndSpansAndDocument.Value;
@@ -108,7 +108,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 if (spanBasedAnalyzers.Count == 0 && (!compilerAnalyzerData.HasValue || !compilerAnalyzerData.Value.spanBased))
                 {
                     // No incremental span based-analysis to be performed.
-                    return await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
+                    return await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Get or create the member spans for all member nodes in the old document.
@@ -181,7 +181,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 foreach (var analyzer in analyzers)
                 {
-                    var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreInProcessAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
                     builder.Add(analyzer, diagnostics);
                 }
             }

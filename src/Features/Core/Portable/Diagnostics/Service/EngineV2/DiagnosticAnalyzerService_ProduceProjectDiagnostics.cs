@@ -96,7 +96,7 @@ internal sealed partial class DiagnosticAnalyzerService
             var compilation = await GetOrCreateCompilationWithAnalyzersAsync(
                 project, analyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-            var result = await ComputeDiagnosticAnalysisResultsAsync(
+            var result = await ComputeDiagnosticAnalysisResultsInProcessAsync(
                 compilation, project, [.. analyzers.OfType<DocumentDiagnosticAnalyzer>()], cancellationToken).ConfigureAwait(false);
             return result;
         }

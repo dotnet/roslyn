@@ -23,28 +23,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    private static async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreAsync(
+    private static async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreInProcessAsync(
         DocumentAnalysisExecutor executor,
         CancellationToken cancellationToken)
     {
         using var _ = PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.GetInstance(out var builder);
         foreach (var analyzer in executor.AnalysisScope.ProjectAnalyzers.ConcatFast(executor.AnalysisScope.HostAnalyzers))
         {
-            var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreInProcessAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
             builder.Add(analyzer, diagnostics);
         }
 
         return builder.ToImmutableDictionary();
     }
 
-    private static async Task<ImmutableArray<DiagnosticData>> ComputeDocumentDiagnosticsForAnalyzerCoreAsync(
+    private static async Task<ImmutableArray<DiagnosticData>> ComputeDocumentDiagnosticsForAnalyzerCoreInProcessAsync(
         DiagnosticAnalyzer analyzer,
         DocumentAnalysisExecutor executor,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+        var diagnostics = await executor.ComputeDiagnosticsInProcessAsync(analyzer, cancellationToken).ConfigureAwait(false);
         return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
     }
 
@@ -199,7 +199,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
             // Skip analyzer if none of its reported diagnostics should be included.
             if (shouldIncludeDiagnostic != null &&
-                !owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).Any(static (a, shouldIncludeDiagnostic) => shouldIncludeDiagnostic(a.Id), shouldIncludeDiagnostic))
+                !owner._analyzerInfoCache.GetDiagnosticDescriptors(analyzer).Any(static (a, shouldIncludeDiagnostic) => shouldIncludeDiagnostic(a.Id), shouldIncludeDiagnostic))
             {
                 return false;
             }
@@ -321,12 +321,12 @@ internal sealed partial class DiagnosticAnalyzerService
             var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
             var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
             var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
-            var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo);
+            var executor = new DocumentAnalysisExecutor(this, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
             var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
             var computeTask = incrementalAnalysis
-                ? _incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(executor, analyzers, version, cancellationToken)
-                : ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken);
+                ? _incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(executor, analyzers, version, cancellationToken)
+                : ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken);
             var diagnosticsMap = await computeTask.ConfigureAwait(false);
 
             if (incrementalAnalysis)

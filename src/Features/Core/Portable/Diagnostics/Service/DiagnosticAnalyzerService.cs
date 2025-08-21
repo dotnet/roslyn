@@ -9,15 +9,12 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -62,7 +59,6 @@ internal sealed partial class DiagnosticAnalyzerService
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
     private readonly StateManager _stateManager;
-    private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
     private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
     private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
@@ -77,7 +73,6 @@ internal sealed partial class DiagnosticAnalyzerService
         _listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         _globalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_analyzerInfoCache, this._listener);
 
         _stateManager = new StateManager(_analyzerInfoCache);
 
