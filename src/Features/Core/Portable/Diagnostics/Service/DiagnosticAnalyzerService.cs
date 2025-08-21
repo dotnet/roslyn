@@ -60,9 +60,11 @@ internal sealed partial class DiagnosticAnalyzerService
     private IGlobalOptionService GlobalOptions { get; }
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
-    private readonly DiagnosticIncrementalAnalyzer _incrementalAnalyzer;
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
     private readonly StateManager _stateManager;
+    private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
+    private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
+    private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -75,7 +77,8 @@ internal sealed partial class DiagnosticAnalyzerService
         Listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, _analyzerInfoCache, this.GlobalOptions);
+        _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_analyzerInfoCache, this.Listener);
+
         _stateManager = new StateManager(_analyzerInfoCache);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
@@ -124,7 +127,7 @@ internal sealed partial class DiagnosticAnalyzerService
         await Task.Yield().ConfigureAwait(false);
         priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
-        return await _incrementalAnalyzer.GetDiagnosticsForSpanAsync(
+        return await GetDiagnosticsForSpanWorkerAsync(
             document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, cancellationToken).ConfigureAwait(false);
     }
 
@@ -202,6 +205,6 @@ internal sealed partial class DiagnosticAnalyzerService
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
-            => service._incrementalAnalyzer.GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
+            => service.GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
     }
 }

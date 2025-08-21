@@ -14,6 +14,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
+// this part contains the methods that will attempt to call out to OOP to do the work, and fall back
+// to processing locally if it is not available (or we are already in OOP).
+
 internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
 {
     public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
@@ -30,7 +33,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         }
 
         // No OOP connection. Compute in proc.
-        return await _incrementalAnalyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+        return await ForceAnalyzeProjectInProcessAsync(project, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
@@ -247,7 +250,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         }
 
         // Fallback to proccessing in proc.
-        return await _incrementalAnalyzer.ProduceProjectDiagnosticsAsync(
+        return await ProduceProjectDiagnosticsInProcessAsync(
             project, analyzers, diagnosticIds, documentIds,
             includeLocalDocumentDiagnostics,
             includeNonLocalDocumentDiagnostics,
@@ -288,7 +291,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             return result.HasValue ? result.Value : [];
         }
 
-        return await _incrementalAnalyzer.ComputeDiagnosticsAsync(
+        return await ComputeDiagnosticsInProcessAsync(
             document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
             incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
     }

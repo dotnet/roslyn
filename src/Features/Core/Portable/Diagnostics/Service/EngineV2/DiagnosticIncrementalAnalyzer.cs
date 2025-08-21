@@ -13,41 +13,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    /// <summary>
-    /// Diagnostic Analyzer Engine V2
-    /// 
-    /// This one follows pattern compiler has set for diagnostic analyzer.
-    /// </summary>
-    private sealed partial class DiagnosticIncrementalAnalyzer
-    {
-        private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
-        private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-        private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
+    internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
-        internal DiagnosticAnalyzerService AnalyzerService { get; }
+    public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
+        => _stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
 
-        public DiagnosticIncrementalAnalyzer(
-            DiagnosticAnalyzerService analyzerService,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            IGlobalOptionService globalOptionService)
-        {
-            Contract.ThrowIfNull(analyzerService);
-
-            AnalyzerService = analyzerService;
-            GlobalOptions = globalOptionService;
-
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
-        }
-
-        private StateManager StateManager => this.AnalyzerService._stateManager;
-
-        internal IGlobalOptionService GlobalOptions { get; }
-        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
-
-        public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
-            => StateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
-
-        private static string GetProjectLogMessage(Project project, ImmutableArray<DocumentDiagnosticAnalyzer> analyzers)
-            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
-    }
+    private static string GetProjectLogMessage(Project project, ImmutableArray<DocumentDiagnosticAnalyzer> analyzers)
+        => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
 }
