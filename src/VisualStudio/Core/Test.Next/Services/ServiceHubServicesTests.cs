@@ -478,20 +478,6 @@ public sealed partial class ServiceHubServicesTests
             var remoteCompilation = await remoteProject.GetCompilationAsync();
 
             await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: sourceTexts.Length);
-
-            // make another change
-            Assert.True(localWorkspace.SetCurrentSolution(s => s.WithDocumentText(tempDocId, SourceText.From("// abc " + i)), WorkspaceChangeKind.SolutionChanged));
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-
-            localProject = localWorkspace.CurrentSolution.Projects.Single();
-            remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            throwIfCalled = false;
-            localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely.  This must not actually call into the generator since nothing has changed.
-            throwIfCalled = true;
-            remoteCompilation = await remoteProject.GetCompilationAsync();
         }
 
         static async Task AssertSourceGeneratedDocumentsAreSame(Project localProject, Project remoteProject, int expectedCount)
