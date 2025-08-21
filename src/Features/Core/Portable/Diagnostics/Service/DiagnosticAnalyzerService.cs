@@ -449,6 +449,9 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
     {
+        if (allAnalyzers.Length == 0)
+            return [];
+
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {

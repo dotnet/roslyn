@@ -72,10 +72,12 @@ internal sealed partial class DiagnosticAnalyzerService
             if (range == new TextSpan(0, text.Length))
                 range = null;
 
+            // We log performance info when we are computing diagnostics for a span
+            var logPerformanceInfo = range.HasValue;
+
             // If we are computing full document diagnostics, we will attempt to perform incremental
             // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
             var incrementalAnalysis = range is null && document is Document { SupportsSyntaxTree: true };
-            var logPerformanceInfo = range.HasValue;
 
             using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
 
@@ -93,21 +95,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 incrementalAnalysis, logPerformanceInfo,
                 cancellationToken).ConfigureAwait(false);
             return allDiagnostics.WhereAsArray(ShouldInclude);
-
-            //try
-            //{
-            //    using var _2 = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
-
-            //    await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers, AnalysisKind.Syntax, range, list, incrementalAnalysis: false, deprioritizationCandidates, cancellationToken).ConfigureAwait(false);
-            //    await ComputeDocumentDiagnosticsAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range, list, incrementalAnalysis, deprioritizationCandidates, cancellationToken).ConfigureAwait(false);
-            //    await ComputeDocumentDiagnosticsAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, deprioritizationCandidates, cancellationToken).ConfigureAwait(false);
-
-            //    return list.ToImmutableAndClear();
-            //}
-            //catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            //{
-            //    throw ExceptionUtilities.Unreachable();
-            //}
 
             (ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
              ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
@@ -349,6 +336,12 @@ internal sealed partial class DiagnosticAnalyzerService
                 TextSpan? span,
                 bool incrementalAnalysis)
             {
+                if (analyzers.Length == 0)
+                    return;
+
+                Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
+                Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
