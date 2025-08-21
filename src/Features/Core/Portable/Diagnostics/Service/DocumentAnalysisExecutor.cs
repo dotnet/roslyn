@@ -70,7 +70,7 @@ internal sealed partial class DiagnosticAnalyzerService
         /// <summary>
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
         /// </summary>
-        public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsInProcessAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsInProcessAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(AnalysisScope.ProjectAnalyzers.Contains(analyzer) || AnalysisScope.HostAnalyzers.Contains(analyzer));
 

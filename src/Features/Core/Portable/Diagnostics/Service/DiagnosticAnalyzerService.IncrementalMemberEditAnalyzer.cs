@@ -181,7 +181,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 foreach (var analyzer in analyzers)
                 {
-                    var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreInProcessAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await executor.ComputeDiagnosticsInProcessAsync(analyzer, cancellationToken).ConfigureAwait(false);
                     builder.Add(analyzer, diagnostics);
                 }
             }

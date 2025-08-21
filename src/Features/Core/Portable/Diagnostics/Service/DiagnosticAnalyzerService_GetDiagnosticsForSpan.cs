@@ -30,22 +30,11 @@ internal sealed partial class DiagnosticAnalyzerService
         using var _ = PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.GetInstance(out var builder);
         foreach (var analyzer in executor.AnalysisScope.ProjectAnalyzers.ConcatFast(executor.AnalysisScope.HostAnalyzers))
         {
-            var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreInProcessAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await executor.ComputeDiagnosticsInProcessAsync(analyzer, cancellationToken).ConfigureAwait(false);
             builder.Add(analyzer, diagnostics);
         }
 
         return builder.ToImmutableDictionary();
-    }
-
-    private static async Task<ImmutableArray<DiagnosticData>> ComputeDocumentDiagnosticsForAnalyzerCoreInProcessAsync(
-        DiagnosticAnalyzer analyzer,
-        DocumentAnalysisExecutor executor,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var diagnostics = await executor.ComputeDiagnosticsInProcessAsync(analyzer, cancellationToken).ConfigureAwait(false);
-        return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
     }
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(

@@ -77,13 +77,13 @@ internal sealed partial class DiagnosticAnalyzerService
                 return new HostAnalyzerInfo(hostAnalyzers, allAnalyzers);
             }
 
-            static (IEnumerable<ImmutableArray<DiagnosticAnalyzer>> HostAnalyzerCollection, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> ProjectAnalyzerCollection) GetAnalyzerCollections(
+            static (ImmutableArray<ImmutableArray<DiagnosticAnalyzer>> HostAnalyzerCollection, ImmutableArray<ImmutableArray<DiagnosticAnalyzer>> ProjectAnalyzerCollection) GetAnalyzerCollections(
                 ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersPerReference,
                 ImmutableHashSet<object> referenceIdsToRedirectAsProjectAnalyzers)
             {
                 if (referenceIdsToRedirectAsProjectAnalyzers.IsEmpty)
                 {
-                    return (analyzersPerReference.Values, []);
+                    return ([.. analyzersPerReference.Values], []);
                 }
 
                 var hostAnalyzerCollection = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance();
@@ -106,8 +106,8 @@ internal sealed partial class DiagnosticAnalyzerService
         }
 
         private static (ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers, ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers) PartitionAnalyzers(
-            IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
-            IEnumerable<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
+            ImmutableArray<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
+            ImmutableArray<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
             bool includeWorkspacePlaceholderAnalyzers)
         {
             using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var hostAnalyzers);

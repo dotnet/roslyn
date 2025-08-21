@@ -70,7 +70,7 @@ internal sealed partial class DiagnosticAnalyzerService
             }
 
             var (newHostAnalyzers, newAllAnalyzers) = PartitionAnalyzers(
-                analyzersPerReference.Values, hostAnalyzerCollection: [], includeWorkspacePlaceholderAnalyzers: false);
+                [.. analyzersPerReference.Values], hostAnalyzerCollection: [], includeWorkspacePlaceholderAnalyzers: false);
 
             // We passed an empty array for 'hostAnalyzeCollection' above, and we specifically asked to not include
             // workspace placeholder analyzers.  So we should never get host analyzers back here.
