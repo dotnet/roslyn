@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -25,55 +22,6 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
     {
         protected override IRemoteDiagnosticAnalyzerService CreateService(in ServiceConstructionArguments arguments)
             => new RemoteDiagnosticAnalyzerService(arguments);
-    }
-
-    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
-
-    /// <summary>
-    /// Calculate diagnostics. this works differently than other ones such as todo comments or designer attribute scanner
-    /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
-    /// that needs to pass through between processes
-    /// </summary>
-    public async ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken)
-    {
-        // Complete RPC right away so the client can start reading from the stream.
-        // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
-
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.PerformAnalysis_Summary, $"Total"))
-        using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
-        {
-            return await RunWithSolutionAsync(
-                solutionChecksum,
-                async solution =>
-                {
-                    var documentId = arguments.DocumentId;
-                    var projectId = arguments.ProjectId;
-                    var project = solution.GetRequiredProject(projectId);
-                    var document = arguments.DocumentId != null
-                        ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
-                        : null;
-                    var documentSpan = arguments.DocumentSpan;
-                    var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                    var hostWorkspaceServices = this.GetWorkspace().Services;
-
-                    var result = await DiagnosticComputer.GetDiagnosticsAsync(
-                        document, project, solutionChecksum,
-                        documentSpan,
-                        arguments.ProjectAnalyzerIds, arguments.HostAnalyzerIds, documentAnalysisKind,
-                        _analyzerInfoCache, hostWorkspaceServices,
-                        logPerformanceInfo: arguments.LogPerformanceInfo,
-                        getTelemetryInfo: arguments.GetTelemetryInfo,
-                        cancellationToken).ConfigureAwait(false);
-
-                    // save log for debugging
-                    var diagnosticCount = result.Diagnostics.Sum(
-                        entry => entry.diagnosticMap.Syntax.Length + entry.diagnosticMap.Semantic.Length + entry.diagnosticMap.NonLocal.Length + entry.diagnosticMap.Other.Length);
-
-                    Log(TraceEventType.Information, $"diagnostics: {diagnosticCount}, telemetry: {result.Telemetry.Length}");
-
-                    return result;
-                }, cancellationToken).ConfigureAwait(false);
-        }
     }
 
     public ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
