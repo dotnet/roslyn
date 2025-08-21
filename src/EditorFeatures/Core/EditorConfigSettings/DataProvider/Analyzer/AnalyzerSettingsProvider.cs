@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 
 internal sealed class AnalyzerSettingsProvider
     : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>,
+    // So we can unify descriptors across VB/C# to create single settings that apply to both languages.
     IEqualityComparer<DiagnosticDescriptor>
 {
     public AnalyzerSettingsProvider(
