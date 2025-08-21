@@ -244,10 +244,8 @@ internal sealed partial class SolutionCompilationState
             if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
 
-            // If we already have a generator driver, and we only want required documents, we can skip any non
-            // required generators and use their values from the previous run.
-            var runRequiredGeneratorsOnly = creationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired
-                                            && generatorDriver is not null;
+            // Hold onto the prior results so we can compare when filtering
+            var priorRunResult = generatorDriver?.GetRunResult();
 
             // If we don't already have an existing generator driver, create one from scratch
             generatorDriver ??= CreateGeneratorDriver(this.ProjectState);
@@ -432,8 +430,22 @@ internal sealed partial class SolutionCompilationState
 
             bool ShouldGeneratorRun(GeneratorFilterContext context)
             {
-                if (!runRequiredGeneratorsOnly)
+                if (creationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
+                    return false;
+
+                if (creationPolicy is GeneratedDocumentCreationPolicy.Create)
                     return true;
+
+                // If this generator has never been executed before and there are no existing results available to return,
+                // we have ti run the generator regardless of the specified creation policy to ensure correctness.
+                if (priorRunResult?.Results.Any(r => r.Generator == context.Generator) == false)
+                {
+                    return true;
+                }
+
+                Debug.Assert(creationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired);
+
+                // Otherwise only run it if it's a required generator
                 // For now, we hard code the required generator list to Razor.
                 // In the future we might want to expand this to e.g. run any generators with open generated files
                 return context.Generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
