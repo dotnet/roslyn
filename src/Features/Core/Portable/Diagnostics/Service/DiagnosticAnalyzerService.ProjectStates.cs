@@ -37,7 +37,7 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
-    private ProjectAnalyzerInfo? TryGetProjectAnalyzerInfo(ProjectState project)
+    private ProjectAnalyzerInfo? TryGetProjectAnalyzerInfo(Project project)
     {
         // check if the analyzer references have changed since the last time we updated the map:
         // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
@@ -50,18 +50,38 @@ internal sealed partial class DiagnosticAnalyzerService
         return null;
     }
 
-    private async Task<ProjectAnalyzerInfo> GetOrCreateProjectAnalyzerInfoAsync(SolutionState solution, ProjectState project, CancellationToken cancellationToken)
-        => TryGetProjectAnalyzerInfo(project) ?? await UpdateProjectAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
+    private async Task<ProjectAnalyzerInfo> GetOrCreateProjectAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
+    {
+        var result = TryGetProjectAnalyzerInfo(project);
+        if (result != null)
+            return result.Value;
 
-    private ProjectAnalyzerInfo CreateProjectAnalyzerInfo(SolutionState solution, ProjectState project)
+        // This code is called concurrently for a project, so the guard prevents duplicated effort calculating StateSets.
+        using (await _projectAnalyzerStateMapGuard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var projectAnalyzerInfo = TryGetProjectAnalyzerInfo(project);
+
+            if (projectAnalyzerInfo == null)
+            {
+                projectAnalyzerInfo = CreateProjectAnalyzerInfo(project);
+
+                // update cache. 
+                _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectAnalyzerInfo.Value);
+            }
+
+            return projectAnalyzerInfo.Value;
+        }
+    }
+
+    private ProjectAnalyzerInfo CreateProjectAnalyzerInfo(Project project)
     {
         if (project.AnalyzerReferences.Count == 0)
         {
             return ProjectAnalyzerInfo.Default;
         }
 
-        var solutionAnalyzers = solution.Analyzers;
-        var analyzersPerReference = solutionAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
+        var solutionAnalyzers = project.Solution.SolutionState.Analyzers;
+        var analyzersPerReference = solutionAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project.State);
         if (analyzersPerReference.Count == 0)
         {
             return ProjectAnalyzerInfo.Default;
@@ -74,30 +94,7 @@ internal sealed partial class DiagnosticAnalyzerService
         // workspace placeholder analyzers.  So we should never get host analyzers back here.
         Contract.ThrowIfTrue(newHostAnalyzers.Count > 0);
 
-        var skippedAnalyzersInfo = solutionAnalyzers.GetSkippedAnalyzersInfo(project, _analyzerInfoCache);
+        var skippedAnalyzersInfo = solutionAnalyzers.GetSkippedAnalyzersInfo(project.State, _analyzerInfoCache);
         return new ProjectAnalyzerInfo(project.AnalyzerReferences, newAllAnalyzers, skippedAnalyzersInfo);
-    }
-
-    /// <summary>
-    /// Updates the map to the given project snapshot.
-    /// </summary>
-    private async Task<ProjectAnalyzerInfo> UpdateProjectAnalyzerInfoAsync(
-        SolutionState solution, ProjectState project, CancellationToken cancellationToken)
-    {
-        // This code is called concurrently for a project, so the guard prevents duplicated effort calculating StateSets.
-        using (await _projectAnalyzerStateMapGuard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            var projectAnalyzerInfo = TryGetProjectAnalyzerInfo(project);
-
-            if (projectAnalyzerInfo == null)
-            {
-                projectAnalyzerInfo = CreateProjectAnalyzerInfo(solution, project);
-
-                // update cache. 
-                _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectAnalyzerInfo.Value);
-            }
-
-            return projectAnalyzerInfo.Value;
-        }
     }
 }

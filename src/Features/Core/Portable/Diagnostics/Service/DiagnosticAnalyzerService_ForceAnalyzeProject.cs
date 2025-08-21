@@ -75,7 +75,7 @@ internal sealed partial class DiagnosticAnalyzerService
         {
             var solutionState = project.Solution.SolutionState;
             var allAnalyzers = await GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-            var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
+            var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
 
             var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
                 static (analyzer, arg) => IsCandidateForFullSolutionAnalysis(

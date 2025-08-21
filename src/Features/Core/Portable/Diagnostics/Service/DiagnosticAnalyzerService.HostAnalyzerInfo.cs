@@ -74,29 +74,22 @@ internal sealed partial class DiagnosticAnalyzerService
     internal async Task<ImmutableArray<DiagnosticAnalyzer>> GetProjectAnalyzersAsync(
         Project project, CancellationToken cancellationToken)
     {
-        var solutionState = project.Solution.SolutionState;
-        var projectState = project.State;
-
-        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
-        var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
+        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+        var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
         return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
     }
 
     private async Task<HostAnalyzerInfo> GetOrCreateHostAnalyzerInfoAsync(
-        SolutionState solution, ProjectState project, CancellationToken cancellationToken)
+        Project project, CancellationToken cancellationToken)
     {
-        var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
-        return GetOrCreateHostAnalyzerInfo(solution, project, projectAnalyzerInfo);
-    }
+        var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
 
-    private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(
-        SolutionState solution, ProjectState project, ProjectAnalyzerInfo projectAnalyzerInfo)
-    {
-        var key = new HostAnalyzerInfoKey(project.Language, project.HasSdkCodeStyleAnalyzers, solution.Analyzers.HostAnalyzerReferences);
+        var solution = project.Solution;
+        var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, solution.SolutionState.Analyzers.HostAnalyzerReferences);
         // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
         // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
-        var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(solution, project);
-        var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (solution.Analyzers, referenceIdsToRedirect));
+        var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
+        var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (solution.SolutionState.Analyzers, referenceIdsToRedirect));
         return hostAnalyzerInfo.WithExcludedAnalyzers(projectAnalyzerInfo.SkippedAnalyzersInfo.SkippedAnalyzers);
 
         static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzerInfoKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
@@ -176,15 +169,14 @@ internal sealed partial class DiagnosticAnalyzerService
         return (hostAnalyzers.ToImmutableHashSet(), allAnalyzers.ToImmutableHashSet());
     }
 
-    private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(
-        SolutionState solution, ProjectState project)
+    private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(Project project)
     {
-        if (project.HasSdkCodeStyleAnalyzers)
+        if (project.State.HasSdkCodeStyleAnalyzers)
         {
             // When a project uses CodeStyle analyzers added by the SDK, we remove them in favor of the
             // Features analyzers. We need to then treat the Features analyzers as Project analyzers so
             // they do not get access to the Host fallback options.
-            return GetFeaturesAnalyzerReferenceIds(solution.Analyzers);
+            return GetFeaturesAnalyzerReferenceIds(project.Solution.SolutionState.Analyzers);
         }
 
         return [];

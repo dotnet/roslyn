@@ -281,8 +281,7 @@ internal sealed partial class DiagnosticAnalyzerService
         // We log performance info when we are computing diagnostics for a span
         var project = document.Project;
 
-        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(
-            project.Solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
+        var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
         var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
             document.Project, allAnalyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
