@@ -31,10 +31,13 @@ internal interface IRemoteDiagnosticAnalyzerService
         Checksum solutionChecksum, ProjectId projectId, ImmutableHashSet<string> analyzerIds, CancellationToken cancellationToken);
 
     ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
+
     ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
         Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
         ImmutableHashSet<string> allAnalyzerIds,
-        ImmutableArray<ImmutableHashSet<string>> orderedAnalyzerIds,
+        ImmutableHashSet<string> syntaxAnalyzersIds,
+        ImmutableHashSet<string> semanticSpanAnalyzersIds,
+        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
         bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken);

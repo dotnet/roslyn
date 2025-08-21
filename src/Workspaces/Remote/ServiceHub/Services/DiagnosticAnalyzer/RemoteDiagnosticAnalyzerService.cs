@@ -308,7 +308,9 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
     public ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
         Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
         ImmutableHashSet<string> allAnalyzerIds,
-        ImmutableArray<ImmutableHashSet<string>> orderedAnalyzerIds,
+        ImmutableHashSet<string> syntaxAnalyzersIds,
+        ImmutableHashSet<string> semanticSpanAnalyzersIds,
+        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
         bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
@@ -323,12 +325,12 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
                 var allAnalyzers = allProjectAnalyzers.FilterAnalyzers(allAnalyzerIds);
-                var orderedAnalyzers = orderedAnalyzerIds.SelectAsArray(
-                    static (ids, allProjectAnalyzers) => allProjectAnalyzers.FilterAnalyzers(ids),
-                    allProjectAnalyzers);
+                var syntaxAnalyzers = allProjectAnalyzers.FilterAnalyzers(syntaxAnalyzersIds);
+                var semanticSpanAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticSpanAnalyzersIds);
+                var semanticDocumentAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticDocumentAnalyzersIds);
 
                 return await service.ComputeDiagnosticsAsync(
-                    document, range, allAnalyzers, orderedAnalyzers,
+                    document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
                     incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);

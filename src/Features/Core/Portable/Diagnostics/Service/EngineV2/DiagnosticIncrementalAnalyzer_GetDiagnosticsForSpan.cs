@@ -90,8 +90,7 @@ internal sealed partial class DiagnosticAnalyzerService
             semanticDocumentAnalyzers = FilterAnalyzers(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, deprioritizationCandidates);
 
             var allDiagnostics = await this.AnalyzerService.ComputeDiagnosticsAsync(
-                document, range, analyzers,
-                [syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers],
+                document, range, analyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
                 incrementalAnalysis, logPerformanceInfo,
                 cancellationToken).ConfigureAwait(false);
             return allDiagnostics.WhereAsArray(ShouldInclude);
@@ -202,32 +201,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
             }
 
-            //async Task ComputeDocumentDiagnosticsAsync(
-            //    ImmutableArray<DiagnosticAnalyzer> analyzers,
-            //    AnalysisKind kind,
-            //    TextSpan? span,
-            //    ArrayBuilder<DiagnosticData> builder,
-            //    bool incrementalAnalysis,
-            //    HashSet<DiagnosticAnalyzer> deprioritizationCandidates,
-            //    CancellationToken cancellationToken)
-            //{
-            //    Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
-            //    Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
-
-            //    analyzers = FilterAnalyzers(syntaxAnalyzers, kind, span, deprioritizationCandidates);
-            //    if (analyzers.Length == 0)
-            //        return;
-
-            //    // We log performance info when we are computing diagnostics for a span
-            //    using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(
-            //        FunctionId.RequestDiagnostics_Summary,
-            //        $"Pri{priorityProvider.Priority.GetPriorityInt()}.{(incrementalAnalysis ? "Incremental" : "Document")}");
-
-            //    var allDiagnostics = await ComputeDiagnosticsAsync(
-            //        document, analyzers, kind, span, incrementalAnalysis, logPerformanceInfo: range.HasValue, cancellationToken).ConfigureAwait(false);
-            //    builder.AddRange(allDiagnostics.Where(ShouldInclude));
-            //}
-
             ImmutableArray<DiagnosticAnalyzer> FilterAnalyzers(
                 ImmutableArray<DiagnosticAnalyzer> analyzers,
                 AnalysisKind kind,
@@ -304,21 +277,18 @@ internal sealed partial class DiagnosticAnalyzerService
             TextDocument document,
             TextSpan? range,
             ImmutableArray<DiagnosticAnalyzer> allAnalyzers,
-            ImmutableArray<ImmutableArray<DiagnosticAnalyzer>> orderedAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers,
             bool incrementalAnalysis,
             bool logPerformanceInfo,
             CancellationToken cancellationToken)
         {
             // We log performance info when we are computing diagnostics for a span
             var project = document.Project;
-            var solution = project.Solution;
-
-            var syntaxAnalyzers = orderedAnalyzers[0];
-            var semanticSpanAnalyzers = orderedAnalyzers[1];
-            var semanticDocumentAnalyzers = orderedAnalyzers[2];
 
             var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(
-                solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
+                project.Solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
             var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
                 document.Project, allAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
