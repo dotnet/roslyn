@@ -1747,9 +1747,6 @@ internal sealed partial class SolutionCompilationState
                 missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
                 GetAddDocumentsTranslationAction);
 
-           // currentState.SolutionState.
-           //currentState = currentState.WithDo
-
             return currentState;
         }
     }
