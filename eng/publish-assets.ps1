@@ -13,7 +13,6 @@ Param(
   [string]$branchName = "",
   [string]$releaseName = "",
   [switch]$test,
-  [switch]$prValidation,
 
   # Credentials
   [string]$nugetApiKey = ""
@@ -38,27 +37,12 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     # Retrieve the feed name to source mapping.
     $feedData = GetFeedPublishData
     
-    # Let packageFeeds default to the default set of feeds
-    $packageFeeds = "default"
-    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
-      $packageFeeds = $publishData.packageFeeds
-    }
+    # The default feed we publish to for our official build is the VS feed.
+    $feedName = "vs"
 
-    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
-    if ($packageFeeds.equals("arcade") -and -not $prValidation) {
-      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
-      continue
+    if ($publishData.PSobject.Properties.Name -contains "feed") {
+      $feedName = $publishData.feed
     }
-
-    # Let packageFeeds default to the default set of feeds
-    $packageFeeds = "default"
-    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
-      $packageFeeds = $publishData.packageFeeds
-    }
-
-    # Each branch stores the name of the package to feed map it should use.
-    # Retrieve the correct map for this particular branch.
-    $packagesData = GetPackagesPublishData $packageFeeds
 
     foreach ($package in Get-ChildItem *.nupkg) {
       Write-Host ""
@@ -71,29 +55,6 @@ function Publish-Nuget($publishData, [string]$packageDir) {
 
       if ($nupkg.EndsWith(".symbols.nupkg")) {
         Write-Host "Skipping symbol package $nupkg"
-        continue
-      }
-
-      $nupkgWithoutVersion = $nupkg -replace '(\.\d+){3}-.*.nupkg', ''
-      if ($nupkgWithoutVersion.EndsWith(".Symbols")) {
-        Write-Host "Skipping symbol package $nupkg"
-        continue
-      }
-
-      # Lookup the feed name from the packages map using the package name without the version or extension.
-      if (-not (Get-Member -InputObject $packagesData -Name $nupkgWithoutVersion)) {
-        throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
-      }
-
-      $feedName = $packagesData.$nupkgWithoutVersion
-
-      if ($prValidation) {
-        $feedName = "vs"
-      }
-
-      # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
-      if ($feedName.equals("arcade")) {
-        Write-Host "Skipping publishing for $nupkg as it is published by arcade"
         continue
       }
 
@@ -116,23 +77,11 @@ function Publish-Nuget($publishData, [string]$packageDir) {
   }
 }
 
-# Do basic verification on the values provided in the publish configuration
-function Test-Entry($publishData, [switch]$isBranch) {
-  if ($isBranch) {
-    foreach ($nugetKind in $publishData.nugetKind) {
-      if ($nugetKind -ne "PerBuildPreRelease" -and $nugetKind -ne "Shipping" -and $nugetKind -ne "NonShipping") {
-                    throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
-      }
-    }
-  }
-}
-
 # Publish a given entry: branch or release.
 function Publish-Entry($publishData, [switch]$isBranch) {
-  Test-Entry $publishData -isBranch:$isBranch
-
   # First publish the NuGet packages to the specified feeds
-  foreach ($nugetKind in $publishData.nugetKind) {
+  $nugetKinds = @('Shipping', 'NonShipping')
+  foreach ($nugetKind in $nugetKinds) {
     Publish-NuGet $publishData (Join-Path $PackagesDir $nugetKind)
   }
 

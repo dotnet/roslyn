@@ -270,7 +270,7 @@ extends:
         # Authenticate with service connections to be able to publish packages to external nuget feeds.
         - task: NuGetAuthenticate@1
           inputs:
-            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling, DevDiv - VS package feed
 
         # Needed for SBOM tool
         - task: UseDotNet@2
@@ -403,7 +403,7 @@ extends:
             componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
-            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"
             publishDataAccessToken: "$(System.AccessToken)"
             dropPath: '$(Pipeline.Workspace)\VSSetup'
             cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
