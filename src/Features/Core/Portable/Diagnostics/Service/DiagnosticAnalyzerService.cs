@@ -46,6 +46,13 @@ internal sealed class DiagnosticAnalyzerServiceFactory(
     }
 }
 
+/// <summary>
+/// Only implementation of <see cref="IDiagnosticAnalyzerService"/>.  Note: all methods in this class
+/// should attempt to run in OOP as soon as possible.  This is not always easy, especially if the apis
+/// involve working with in-memory data structures that are not serializable.  In those cases, we should
+/// do all that work in-proc, and then send the results to OOP for further processing.  Examples of this
+/// are apis that take in a delegate callback to determine which analyzers to actually execute.
+/// </summary>
 internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
 {
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
@@ -431,6 +438,44 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
             return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
         }
+    }
+
+    public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+        TextDocument document,
+        TextSpan? range,
+        ImmutableArray<DiagnosticAnalyzer> allAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers,
+        bool incrementalAnalysis,
+        bool logPerformanceInfo,
+        CancellationToken cancellationToken)
+    {
+        if (allAnalyzers.Length == 0)
+            return [];
+
+        var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var allAnalyzerIds = allAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var syntaxAnalyzersIds = syntaxAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var semanticSpanAnalyzersIds = semanticSpanAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+            var semanticDocumentAnalyzersIds = semanticDocumentAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
+
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                document.Project,
+                (service, solution, cancellationToken) => service.ComputeDiagnosticsAsync(
+                    solution, document.Id, range,
+                    allAnalyzerIds, syntaxAnalyzersIds, semanticSpanAnalyzersIds, semanticDocumentAnalyzersIds,
+                    incrementalAnalysis, logPerformanceInfo, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            return result.HasValue ? result.Value : [];
+        }
+
+        return await _incrementalAnalyzer.ComputeDiagnosticsAsync(
+            document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
+            incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
     }
 
     private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>

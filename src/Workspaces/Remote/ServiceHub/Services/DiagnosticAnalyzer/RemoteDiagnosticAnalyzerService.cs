@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.CodeAnalysis.Text;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -299,6 +299,37 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                     project, allProjectAnalyzers.FilterAnalyzers(analyzerIds), cancellationToken).ConfigureAwait(false);
 
                 return candidates.Select(c => c.GetAnalyzerId()).ToImmutableHashSet();
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
+        ImmutableHashSet<string> allAnalyzerIds,
+        ImmutableHashSet<string> syntaxAnalyzersIds,
+        ImmutableHashSet<string> semanticSpanAnalyzersIds,
+        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
+        bool incrementalAnalysis,
+        bool logPerformanceInfo,
+        CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var document = solution.GetRequiredTextDocument(documentId);
+                var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+                var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(document.Project, cancellationToken).ConfigureAwait(false);
+
+                var allAnalyzers = allProjectAnalyzers.FilterAnalyzers(allAnalyzerIds);
+                var syntaxAnalyzers = allProjectAnalyzers.FilterAnalyzers(syntaxAnalyzersIds);
+                var semanticSpanAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticSpanAnalyzersIds);
+                var semanticDocumentAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticDocumentAnalyzersIds);
+
+                return await service.ComputeDiagnosticsAsync(
+                    document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
+                    incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }

@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -30,6 +31,17 @@ internal interface IRemoteDiagnosticAnalyzerService
         Checksum solutionChecksum, ProjectId projectId, ImmutableHashSet<string> analyzerIds, CancellationToken cancellationToken);
 
     ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
+
+    ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
+        ImmutableHashSet<string> allAnalyzerIds,
+        ImmutableHashSet<string> syntaxAnalyzersIds,
+        ImmutableHashSet<string> semanticSpanAnalyzersIds,
+        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
+        bool incrementalAnalysis,
+        bool logPerformanceInfo,
+        CancellationToken cancellationToken);
+
     ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
         Checksum solutionChecksum, ProjectId projectId,
         ImmutableHashSet<string> analyzerIds,
