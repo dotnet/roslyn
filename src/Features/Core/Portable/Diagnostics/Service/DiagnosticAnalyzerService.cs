@@ -75,13 +75,7 @@ internal sealed partial class DiagnosticAnalyzerService
     /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
     /// ImmutableDictionary used to present a safe, non-immutable view to users.
     /// </summary>
-    private ImmutableDictionary<ProjectId, ProjectAnalyzerInfo> _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerInfo>.Empty;
-
-    /// <summary>
-    /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
-    /// duplicated calculations for a project during contentious calls.
-    /// </summary>
-    private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(initialCount: 1);
+    private ImmutableDictionary<(ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences), ProjectAnalyzerInfo> _projectAnalyzerStateMap = ImmutableDictionary<(ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences), ProjectAnalyzerInfo>.Empty;
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -129,13 +123,12 @@ internal sealed partial class DiagnosticAnalyzerService
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
-    private async Task<ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersAsync(
+    private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(
         Project project,
         ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-        CancellationToken cancellationToken)
+        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
     {
-        var analyzersForProject = await GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+        var analyzersForProject = GetProjectAnalyzers(project);
         var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
         return analyzers;
@@ -158,8 +151,7 @@ internal sealed partial class DiagnosticAnalyzerService
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
-        var analyzers = await GetDiagnosticAnalyzersAsync(
-            project, diagnosticIds, shouldIncludeAnalyzer, cancellationToken).ConfigureAwait(false);
+        var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
 
         return await ProduceProjectDiagnosticsAsync(
             project, analyzers, diagnosticIds,
@@ -178,8 +170,7 @@ internal sealed partial class DiagnosticAnalyzerService
         Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
         bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
-        var analyzers = await GetDiagnosticAnalyzersAsync(
-            project, diagnosticIds, shouldIncludeAnalyzer, cancellationToken).ConfigureAwait(false);
+        var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
 
         return await ProduceProjectDiagnosticsAsync(
             project, analyzers, diagnosticIds,
@@ -195,8 +186,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
-        public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
-            => service.GetProjectAnalyzersAsync(project, cancellationToken);
+        public ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(Project project)
+            => service.GetProjectAnalyzers(project);
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
             Project project, CompilationWithAnalyzersPair compilationWithAnalyzers, bool logPerformanceInfo, bool getTelemetryInfo, CancellationToken cancellationToken)

@@ -74,8 +74,8 @@ internal sealed partial class DiagnosticAnalyzerService
         async Task<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
         {
             var solutionState = project.Solution.SolutionState;
-            var allAnalyzers = await GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-            var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+            var allAnalyzers = GetProjectAnalyzers(project);
+            var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
 
             var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
                 static (analyzer, arg) => IsCandidateForFullSolutionAnalysis(

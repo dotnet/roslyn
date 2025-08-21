@@ -37,40 +37,17 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
-    private ProjectAnalyzerInfo? TryGetProjectAnalyzerInfo(Project project)
+    private ProjectAnalyzerInfo GetOrCreateProjectAnalyzerInfo(Project project)
     {
-        // check if the analyzer references have changed since the last time we updated the map:
-        // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-        if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry) &&
-            entry.AnalyzerReferences.SequenceEqual(project.AnalyzerReferences))
-        {
-            return entry;
-        }
-
-        return null;
-    }
-
-    private async Task<ProjectAnalyzerInfo> GetOrCreateProjectAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
-    {
-        var result = TryGetProjectAnalyzerInfo(project);
-        if (result != null)
-            return result.Value;
-
-        // This code is called concurrently for a project, so the guard prevents duplicated effort calculating StateSets.
-        using (await _projectAnalyzerStateMapGuard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            var projectAnalyzerInfo = TryGetProjectAnalyzerInfo(project);
-
-            if (projectAnalyzerInfo == null)
+        return ImmutableInterlocked.GetOrAdd(
+            ref _projectAnalyzerStateMap,
+            (project.Id, project.AnalyzerReferences),
+            static (_, tuple) =>
             {
-                projectAnalyzerInfo = CreateProjectAnalyzerInfo(project);
-
-                // update cache. 
-                _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectAnalyzerInfo.Value);
-            }
-
-            return projectAnalyzerInfo.Value;
-        }
+                var (@this, project) = tuple;
+                return @this.CreateProjectAnalyzerInfo(project);
+            },
+            (this, project));
     }
 
     private ProjectAnalyzerInfo CreateProjectAnalyzerInfo(Project project)

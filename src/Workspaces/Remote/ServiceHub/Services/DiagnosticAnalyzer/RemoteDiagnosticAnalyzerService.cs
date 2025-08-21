@@ -41,7 +41,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var project = solution.GetRequiredProject(projectId);
                 var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-                var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                var allProjectAnalyzers = service.GetProjectAnalyzers(project);
 
                 return await service.ProduceProjectDiagnosticsAsync(
                     project, allProjectAnalyzers.FilterAnalyzers(analyzerIds), diagnosticIds, documentIds,
@@ -241,7 +241,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var project = solution.GetRequiredProject(projectId);
                 var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-                var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                var allProjectAnalyzers = service.GetProjectAnalyzers(project);
 
                 var candidates = await service.GetDeprioritizationCandidatesAsync(
                     project, allProjectAnalyzers.FilterAnalyzers(analyzerIds), cancellationToken).ConfigureAwait(false);
@@ -268,15 +268,14 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var document = solution.GetRequiredTextDocument(documentId);
                 var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-                var allProjectAnalyzers = await service.GetProjectAnalyzersAsync(document.Project, cancellationToken).ConfigureAwait(false);
-
-                var allAnalyzers = allProjectAnalyzers.FilterAnalyzers(allAnalyzerIds);
-                var syntaxAnalyzers = allProjectAnalyzers.FilterAnalyzers(syntaxAnalyzersIds);
-                var semanticSpanAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticSpanAnalyzersIds);
-                var semanticDocumentAnalyzers = allProjectAnalyzers.FilterAnalyzers(semanticDocumentAnalyzersIds);
+                var allProjectAnalyzers = service.GetProjectAnalyzers(document.Project);
 
                 return await service.ComputeDiagnosticsAsync(
-                    document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
+                    document, range,
+                    allProjectAnalyzers.FilterAnalyzers(allAnalyzerIds),
+                    allProjectAnalyzers.FilterAnalyzers(syntaxAnalyzersIds),
+                    allProjectAnalyzers.FilterAnalyzers(semanticSpanAnalyzersIds),
+                    allProjectAnalyzers.FilterAnalyzers(semanticDocumentAnalyzersIds),
                     incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
