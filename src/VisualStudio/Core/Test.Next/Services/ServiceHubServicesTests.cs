@@ -797,7 +797,7 @@ public sealed partial class ServiceHubServicesTests
     private static async Task WaitForSourceGeneratorsAsync(TestWorkspace workspace)
     {
         var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators, FeatureAttribute.SolutionChecksumUpdater]);
+        await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
     }
 
     [Theory, CombinatorialData]
