@@ -355,8 +355,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -367,7 +366,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Параметры компилятора Visual Basic 
+        <target state="needs-review-translation">                  Параметры компилятора Visual Basic 
 
                                   - ВЫХОДНОЙ ФАЙЛ - 
 -out:&lt;file&gt;                       Задает имя выходного файла. 
