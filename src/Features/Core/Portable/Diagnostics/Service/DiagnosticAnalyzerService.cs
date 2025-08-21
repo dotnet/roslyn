@@ -115,22 +115,6 @@ internal sealed partial class DiagnosticAnalyzerService
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
-    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-        TextDocument document,
-        TextSpan? range,
-        Func<string, bool>? shouldIncludeDiagnostic,
-        ICodeActionRequestPriorityProvider priorityProvider,
-        DiagnosticKind diagnosticKinds,
-        CancellationToken cancellationToken)
-    {
-        // always make sure that analyzer is called on background thread.
-        await Task.Yield().ConfigureAwait(false);
-        priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
-
-        return await GetDiagnosticsForSpanWorkerAsync(
-            document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, cancellationToken).ConfigureAwait(false);
-    }
-
     internal Task<ImmutableArray<DiagnosticAnalyzer>> GetProjectAnalyzersAsync(
         Project project, CancellationToken cancellationToken)
     {

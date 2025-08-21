@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -47,14 +48,22 @@ internal sealed partial class DiagnosticAnalyzerService
         return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
     }
 
-    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanWorkerAsync(
+    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document,
         TextSpan? range,
         Func<string, bool>? shouldIncludeDiagnostic,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        ICodeActionRequestPriorityProvider? priorityProvider,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
+        // Note: due to the in-memory work that priorityProvider and shouldIncludeDiagnostic need to do,
+        // much of this function runs locally (in process) to determine which analyzers to run, before
+        // finally making a call out to OOP to actually do the work.
+
+        // always make sure that analyzer is called on background thread.
+        await Task.Yield().ConfigureAwait(false);
+        priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
+
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         var project = document.Project;
