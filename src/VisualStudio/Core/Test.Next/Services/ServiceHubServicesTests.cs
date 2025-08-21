@@ -36,6 +36,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 
@@ -1580,6 +1581,101 @@ public sealed partial class ServiceHubServicesTests
                     .GetTextAsync();
             Assert.Equal($"// callCount: {expectedCount}", text.ToString());
         }
+    }
+
+    [Fact]
+    internal async Task TestSourceGenerationExecution_GeneratorRuns_WhenAddedAfterEarlierRuns_Balanced()
+    {
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+        var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var callBackCallCount1 = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callBackCallCount1++));
+
+        var callBackCallCount2 = 0;
+        var generator2 = new CallbackGenerator2((i) => { }, (e) => { e.AddSource("hintName2.cs", "// secondCallCount: " + callBackCallCount2++); });
+
+        // add a single generator
+        var projectId = ProjectId.CreateNewId();
+        var project = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+            .GetRequiredProject(projectId)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                generatedFilesOutputDirectory: null))
+            .AddAnalyzerReference(new TestGeneratorReference(generator1));
+        var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var documents = await project.GetSourceGeneratedDocumentsAsync();
+        var doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // Now, make a simple edit to the main document.
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // we don't run because we're not a 'required' generator
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // add the second generator
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithProjectAnalyzerReferences(projectId, [.. project.AnalyzerReferences, new TestGeneratorReference(generator2)])));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // generator1 still doesn't run, but generator2 does, because it's never run before
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        Assert.Equal(2, documents.Count());
+
+        var doc1 = documents.Single(d => d.Name == "hintName.cs");
+        Assert.Equal($"// callCount: 0", (await doc1.GetTextAsync()).ToString());
+
+        var doc2 = documents.Single(d => d.Name == "hintName2.cs");
+        Assert.Equal($"// secondCallCount: 0", (await doc2.GetTextAsync()).ToString());
+
+        // now run again, ensuring this time the second generator didn't run either
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        Assert.Equal(2, documents.Count());
+
+        doc1 = documents.Single(d => d.Name == "hintName.cs");
+        Assert.Equal($"// callCount: 0", (await doc1.GetTextAsync()).ToString());
+
+        doc2 = documents.Single(d => d.Name == "hintName2.cs");
+        Assert.Equal($"// secondCallCount: 0", (await doc2.GetTextAsync()).ToString());
+
+        // make another change, but this time enqueue an update
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// more new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        Assert.Equal(2, documents.Count());
+
+        doc1 = documents.Single(d => d.Name == "hintName.cs");
+        Assert.Equal($"// callCount: 1", (await doc1.GetTextAsync()).ToString());
+
+        doc2 = documents.Single(d => d.Name == "hintName2.cs");
+        Assert.Equal($"// secondCallCount: 1", (await doc2.GetTextAsync()).ToString());
     }
 
     private static async Task<Solution> VerifyIncrementalUpdatesAsync(

@@ -436,9 +436,9 @@ internal sealed partial class SolutionCompilationState
                 if (creationPolicy is GeneratedDocumentCreationPolicy.Create)
                     return true;
 
-                // If this generator has never been executed before and there are no existing results available to return,
-                // we have ti run the generator regardless of the specified creation policy to ensure correctness.
-                if (priorRunResult?.Results.Any(r => r.Generator == context.Generator) == false)
+                // If this generator has never been executed before or there are no existing results available to return,
+                // we have it run the generator regardless of the specified creation policy to ensure correctness.
+                if (priorRunResult?.Results.Any(r => r.Generator == context.Generator && !r.GeneratedSources.IsDefault) == false)
                 {
                     return true;
                 }
