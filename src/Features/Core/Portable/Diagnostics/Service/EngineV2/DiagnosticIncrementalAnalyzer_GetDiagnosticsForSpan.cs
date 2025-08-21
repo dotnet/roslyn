@@ -78,15 +78,20 @@ internal sealed partial class DiagnosticAnalyzerService
             var incrementalAnalysis = !range.HasValue
                 && document is Document { SupportsSyntaxTree: true };
 
+            using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
+
+            deprioritizationCandidates.AddRange(await this.AnalyzerService.GetDeprioritizationCandidatesAsync(
+                project, analyzers, cancellationToken).ConfigureAwait(false));
+
             var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = GetAllAnalyzers();
 
             try
             {
-                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
+                using var _2 = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
-                await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers, AnalysisKind.Syntax, range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-                await ComputeDocumentDiagnosticsAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range, list, incrementalAnalysis, cancellationToken).ConfigureAwait(false);
-                await ComputeDocumentDiagnosticsAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
+                await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers, AnalysisKind.Syntax, range, list, incrementalAnalysis: false, deprioritizationCandidates, cancellationToken).ConfigureAwait(false);
+                await ComputeDocumentDiagnosticsAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range, list, incrementalAnalysis, deprioritizationCandidates, cancellationToken).ConfigureAwait(false);
+                await ComputeDocumentDiagnosticsAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, deprioritizationCandidates, cancellationToken).ConfigureAwait(false);
 
                 return list.ToImmutableAndClear();
             }
@@ -207,12 +212,13 @@ internal sealed partial class DiagnosticAnalyzerService
                 TextSpan? span,
                 ArrayBuilder<DiagnosticData> builder,
                 bool incrementalAnalysis,
+                HashSet<DiagnosticAnalyzer> deprioritizationCandidates,
                 CancellationToken cancellationToken)
             {
                 Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
                 Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                analyzers = await FilterAnalyzersAsync(analyzers, kind, span).ConfigureAwait(false);
+                analyzers = FilterAnalyzers(syntaxAnalyzers, kind, span, deprioritizationCandidates);
                 if (analyzers.Length == 0)
                     return;
 
@@ -226,16 +232,13 @@ internal sealed partial class DiagnosticAnalyzerService
                 builder.AddRange(allDiagnostics.Where(ShouldInclude));
             }
 
-            async Task<ImmutableArray<DiagnosticAnalyzer>> FilterAnalyzersAsync(
+            ImmutableArray<DiagnosticAnalyzer> FilterAnalyzers(
                 ImmutableArray<DiagnosticAnalyzer> analyzers,
                 AnalysisKind kind,
-                TextSpan? span)
+                TextSpan? span,
+                HashSet<DiagnosticAnalyzer> deprioritizationCandidates)
             {
                 using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
-                using var _2 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
-
-                deprioritizationCandidates.AddRange(await this.AnalyzerService.GetDeprioritizationCandidatesAsync(
-                    project, analyzers, cancellationToken).ConfigureAwait(false));
 
                 foreach (var analyzer in analyzers)
                 {
