@@ -62,7 +62,7 @@ internal sealed partial class DiagnosticAnalyzerService
             .GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken)
             .ConfigureAwait(false);
         var analyzers = unfilteredAnalyzers
-            .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions));
+            .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, _globalOptions));
 
         // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
         // We clear out range for such cases as we are computing full document diagnostics.
@@ -256,7 +256,7 @@ internal sealed partial class DiagnosticAnalyzerService
             // Note that 'AddDeprioritizedAnalyzerWithLowPriority' call below mutates the state in the provider to
             // track this analyzer. This ensures that when the owner of this provider calls us back to execute
             // the low priority bucket, we can still get back to this analyzer and execute it that time.
-            if (!this.GlobalOptions.GetOption(DiagnosticOptionsStorage.LightbulbSkipExecutingDeprioritizedAnalyzers))
+            if (!this._globalOptions.GetOption(DiagnosticOptionsStorage.LightbulbSkipExecutingDeprioritizedAnalyzers))
                 priorityProvider.AddDeprioritizedAnalyzerWithLowPriority(analyzer);
 
             return true;

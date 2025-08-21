@@ -56,8 +56,8 @@ internal sealed partial class DiagnosticAnalyzerService
     private static readonly ImmutableArray<string> s_visualBasicLanguageArray = [LanguageNames.VisualBasic];
     private static readonly ImmutableArray<string> s_csharpAndVisualBasicLanguageArray = [.. s_csharpLanguageArray, .. s_visualBasicLanguageArray];
 
-    public IAsynchronousOperationListener Listener { get; }
-    private IGlobalOptionService GlobalOptions { get; }
+    private readonly IAsynchronousOperationListener _listener;
+    private readonly IGlobalOptionService _globalOptions;
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
@@ -74,10 +74,10 @@ internal sealed partial class DiagnosticAnalyzerService
         Workspace workspace)
     {
         _analyzerInfoCache = globalCache.AnalyzerInfoCache;
-        Listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
-        GlobalOptions = globalOptions;
+        _listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
+        _globalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_analyzerInfoCache, this.Listener);
+        _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_analyzerInfoCache, this._listener);
 
         _stateManager = new StateManager(_analyzerInfoCache);
 
@@ -98,7 +98,7 @@ internal sealed partial class DiagnosticAnalyzerService
         => project.GetDependentVersionAsync(cancellationToken);
 
     public bool CrashOnAnalyzerException
-        => GlobalOptions.GetOption(s_crashOnAnalyzerException);
+        => _globalOptions.GetOption(s_crashOnAnalyzerException);
 
     public static bool IsGlobalOptionAffectingDiagnostics(IOption2 option)
         => option == NamingStyleOptions.NamingPreferences ||
@@ -151,7 +151,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
         bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
         {
-            if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this.GlobalOptions))
+            if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this._globalOptions))
                 return false;
 
             if (shouldIncludeAnalyzer != null && !shouldIncludeAnalyzer(analyzer))
