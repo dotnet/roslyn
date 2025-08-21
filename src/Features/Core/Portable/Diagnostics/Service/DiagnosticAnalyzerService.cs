@@ -188,7 +188,7 @@ internal sealed partial class DiagnosticAnalyzerService
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
-            => service.GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
+            => service._stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
             Project project, CompilationWithAnalyzersPair compilationWithAnalyzers, bool logPerformanceInfo, bool getTelemetryInfo, CancellationToken cancellationToken)

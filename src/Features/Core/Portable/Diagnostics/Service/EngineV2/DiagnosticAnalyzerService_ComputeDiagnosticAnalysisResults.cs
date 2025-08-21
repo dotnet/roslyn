@@ -47,6 +47,9 @@ internal sealed partial class DiagnosticAnalyzerService
             }
         }
 
+        static string GetProjectLogMessage(Project project, ImmutableArray<DocumentDiagnosticAnalyzer> analyzers)
+            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
+
         async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
