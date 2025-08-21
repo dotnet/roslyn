@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -47,6 +48,9 @@ internal sealed class DiagnosticAnalyzerServiceFactory(
 /// </summary>
 internal sealed partial class DiagnosticAnalyzerService
 {
+    // Shared with Compiler
+    public const string AnalyzerExceptionDiagnosticId = "AD0001";
+
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
 
     private static readonly ImmutableArray<string> s_csharpLanguageArray = [LanguageNames.CSharp];
@@ -185,5 +189,9 @@ internal sealed partial class DiagnosticAnalyzerService
     {
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
             => service.GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
+
+        public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
+            Project project, CompilationWithAnalyzersPair compilationWithAnalyzers, bool logPerformanceInfo, bool getTelemetryInfo, CancellationToken cancellationToken)
+            => service.AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
     }
 }

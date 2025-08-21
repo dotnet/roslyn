@@ -163,7 +163,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
                 [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
                 project.AnalyzerOptions));
 
-        var result = await diagnosticAnalyzerService.AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
+        var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
         var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.HostAnalyzers[0]];
 
         // check result
@@ -202,7 +202,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
             (await project.GetCompilationAsync()).WithAnalyzers(analyzers, project.AnalyzerOptions),
             hostCompilationWithAnalyzers: null);
 
-        var result = await diagnosticAnalyzerService.AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers,
+        var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers,
             logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
 
         var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.ProjectAnalyzers[0]];
@@ -236,7 +236,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
             ? new CompilationWithAnalyzersPair(projectCompilationWithAnalyzers: null, compilationWithAnalyzers)
             : new CompilationWithAnalyzersPair(compilationWithAnalyzers, hostCompilationWithAnalyzers: null);
 
-        var result = await diagnosticAnalyzerService.AnalyzeProjectInProcessAsync(
+        var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(
             project, analyzerDriver, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);
 
         return result.AnalysisResult[(isHostAnalyzer ? analyzerDriver.HostAnalyzers : analyzerDriver.ProjectAnalyzers)[0]];

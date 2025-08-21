@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeDocumentInProcessAsync(
+    private Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeDocumentInProcessAsync(
         DocumentAnalysisScope documentAnalysisScope,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
         bool logPerformanceInfo,
@@ -27,7 +27,7 @@ internal sealed partial class DiagnosticAnalyzerService
         CancellationToken cancellationToken)
         => AnalyzeInProcessAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
-    public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
+    private Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
         Project project,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
         bool logPerformanceInfo,
