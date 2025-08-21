@@ -931,6 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
                 isCompleted: awaitableInfo.IsCompleted.GetPublicSymbol(),
                 getResult: awaitableInfo.GetResult.GetPublicSymbol(),
+                runtimeAwaitMethod: awaitableInfo.RuntimeAsyncAwaitCall?.Method.GetPublicSymbol(),
                 isDynamic: awaitableInfo.IsDynamic);
         }
 
