@@ -144,12 +144,12 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
-    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
+    public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
         var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
 
-        return await ProduceProjectDiagnosticsAsync(
+        return ProduceProjectDiagnosticsAsync(
             project, analyzers, diagnosticIds,
             // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
             // project if no specific document id was requested.
@@ -158,23 +158,23 @@ internal sealed partial class DiagnosticAnalyzerService
             includeNonLocalDocumentDiagnostics,
             // return diagnostics specific to one project or document
             includeProjectNonLocalResult: documentId == null,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
-    public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+    public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
         Project project, ImmutableHashSet<string>? diagnosticIds,
         Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
         bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
         var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
 
-        return await ProduceProjectDiagnosticsAsync(
+        return ProduceProjectDiagnosticsAsync(
             project, analyzers, diagnosticIds,
             documentIds: [],
             includeLocalDocumentDiagnostics: false,
             includeNonLocalDocumentDiagnostics: includeNonLocalDocumentDiagnostics,
             includeProjectNonLocalResult: true,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     public TestAccessor GetTestAccessor()
@@ -187,6 +187,6 @@ internal sealed partial class DiagnosticAnalyzerService
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
             Project project, CompilationWithAnalyzersPair compilationWithAnalyzers, bool logPerformanceInfo, bool getTelemetryInfo, CancellationToken cancellationToken)
-            => service.AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+            => service.AnalyzeInProcessAsync(documentAnalysisScope: null, project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
     }
 }
