@@ -129,7 +129,7 @@ internal sealed partial class DiagnosticAnalyzerService
             };
 
             // Remap diagnostic locations, if required.
-            diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
+            diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(diagnostics).ConfigureAwait(false);
 
             if (span.HasValue)
             {
@@ -202,7 +202,7 @@ internal sealed partial class DiagnosticAnalyzerService
                     await VerifySpanBasedCompilerDiagnosticsAsync(document).ConfigureAwait(false);
 #endif
 
-                    var adjustedSpan = await GetAdjustedSpanForCompilerAnalyzerAsync().ConfigureAwait(false);
+                    var adjustedSpan = await GetAdjustedSpanForCompilerAnalyzerAsync(document).ConfigureAwait(false);
                     return await GetCompilerAnalyzerDiagnosticsInProcessAsync(adjustedSpan).ConfigureAwait(false);
                 }
 
@@ -218,41 +218,41 @@ internal sealed partial class DiagnosticAnalyzerService
                 return _lazySemanticDiagnostics.TryGetValue(analyzer, out var diagnosticAnalysisResult)
                     ? diagnosticAnalysisResult.GetDocumentDiagnostics(AnalysisScope.TextDocument.Id, AnalysisScope.Kind)
                     : [];
+            }
 
-                async Task<TextSpan?> GetAdjustedSpanForCompilerAnalyzerAsync()
+            async Task<TextSpan?> GetAdjustedSpanForCompilerAnalyzerAsync(Document document)
+            {
+                // This method is to workaround a bug (https://github.com/dotnet/roslyn/issues/1557)
+                // once that bug is fixed, we should be able to use given span as it is.
+
+                Debug.Assert(isCompilerAnalyzer);
+
+                if (!span.HasValue)
                 {
-                    // This method is to workaround a bug (https://github.com/dotnet/roslyn/issues/1557)
-                    // once that bug is fixed, we should be able to use given span as it is.
-
-                    Debug.Assert(isCompilerAnalyzer);
-
-                    if (!span.HasValue)
-                    {
-                        return null;
-                    }
-
-                    var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var startNode = service.GetContainingMemberDeclaration(root, span.Value.Start);
-                    var endNode = service.GetContainingMemberDeclaration(root, span.Value.End);
-
-                    if (startNode == endNode)
-                    {
-                        // use full member span
-                        if (service.IsMethodLevelMember(startNode))
-                        {
-                            return startNode.FullSpan;
-                        }
-
-                        // use span as it is
-                        return span;
-                    }
-
-                    var startSpan = service.IsMethodLevelMember(startNode) ? startNode.FullSpan : span.Value;
-                    var endSpan = service.IsMethodLevelMember(endNode) ? endNode.FullSpan : span.Value;
-
-                    return TextSpan.FromBounds(Math.Min(startSpan.Start, endSpan.Start), Math.Max(startSpan.End, endSpan.End));
+                    return null;
                 }
+
+                var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var startNode = service.GetContainingMemberDeclaration(root, span.Value.Start);
+                var endNode = service.GetContainingMemberDeclaration(root, span.Value.End);
+
+                if (startNode == endNode)
+                {
+                    // use full member span
+                    if (service.IsMethodLevelMember(startNode))
+                    {
+                        return startNode.FullSpan;
+                    }
+
+                    // use span as it is
+                    return span;
+                }
+
+                var startSpan = service.IsMethodLevelMember(startNode) ? startNode.FullSpan : span.Value;
+                var endSpan = service.IsMethodLevelMember(endNode) ? endNode.FullSpan : span.Value;
+
+                return TextSpan.FromBounds(Math.Min(startSpan.Start, endSpan.Start), Math.Max(startSpan.End, endSpan.End));
             }
 
 #if DEBUG
@@ -344,34 +344,28 @@ internal sealed partial class DiagnosticAnalyzerService
                     throw;
                 }
             }
-        }
 
-        private static async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
-            TextDocument textDocument,
-            ImmutableArray<DiagnosticData> diagnostics,
-            CancellationToken cancellationToken)
-        {
-            if (diagnostics.IsEmpty)
+            async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
+               ImmutableArray<DiagnosticData> diagnostics)
             {
-                return diagnostics;
-            }
+                if (diagnostics.IsEmpty)
+                    return diagnostics;
 
-            // Check if IWorkspaceVenusSpanMappingService is present for remapping.
-            var diagnosticSpanMappingService = textDocument.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
-            if (diagnosticSpanMappingService == null)
-            {
-                return diagnostics;
-            }
+                // Check if IWorkspaceVenusSpanMappingService is present for remapping.
+                var diagnosticSpanMappingService = textDocument.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
+                if (diagnosticSpanMappingService == null)
+                    return diagnostics;
 
-            // Round tripping the diagnostics should ensure they get correctly remapped.
-            var builder = new FixedSizeArrayBuilder<DiagnosticData>(diagnostics.Length);
-            foreach (var diagnosticData in diagnostics)
-            {
-                var diagnostic = await diagnosticData.ToDiagnosticAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
-                builder.Add(DiagnosticData.Create(diagnostic, textDocument));
-            }
+                // Round tripping the diagnostics should ensure they get correctly remapped.
+                var builder = new FixedSizeArrayBuilder<DiagnosticData>(diagnostics.Length);
+                foreach (var diagnosticData in diagnostics)
+                {
+                    var diagnostic = await diagnosticData.ToDiagnosticAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+                    builder.Add(DiagnosticData.Create(diagnostic, textDocument));
+                }
 
-            return builder.MoveToImmutable();
+                return builder.MoveToImmutable();
+            }
         }
     }
 }
