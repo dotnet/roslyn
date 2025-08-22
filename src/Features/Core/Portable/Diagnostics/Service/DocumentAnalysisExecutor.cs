@@ -151,6 +151,24 @@ internal sealed partial class DiagnosticAnalyzerService
 
             return diagnostics;
 
+            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultInProcessAsync(
+                DocumentAnalysisScope analysisScope)
+            {
+                RoslynDebug.Assert(_compilationWithAnalyzers != null);
+
+                try
+                {
+                    var resultAndTelemetry = await _diagnosticAnalyzerService.AnalyzeInProcessAsync(
+                        analysisScope, analysisScope.TextDocument.Project, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+                    return resultAndTelemetry.AnalysisResult;
+                }
+                catch when (_onAnalysisException != null)
+                {
+                    _onAnalysisException.Invoke();
+                    throw;
+                }
+            }
+
             async Task<ImmutableArray<DiagnosticData>> GetSyntaxDiagnosticsInProcessAsync()
             {
                 // PERF:
@@ -325,24 +343,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
 
                 return result.GetDocumentDiagnostics(analysisScope.TextDocument.Id, analysisScope.Kind);
-            }
-
-            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultInProcessAsync(
-                DocumentAnalysisScope analysisScope)
-            {
-                RoslynDebug.Assert(_compilationWithAnalyzers != null);
-
-                try
-                {
-                    var resultAndTelemetry = await _diagnosticAnalyzerService.AnalyzeInProcessAsync(
-                        analysisScope, analysisScope.TextDocument.Project, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
-                    return resultAndTelemetry.AnalysisResult;
-                }
-                catch when (_onAnalysisException != null)
-                {
-                    _onAnalysisException.Invoke();
-                    throw;
-                }
             }
 
             async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
