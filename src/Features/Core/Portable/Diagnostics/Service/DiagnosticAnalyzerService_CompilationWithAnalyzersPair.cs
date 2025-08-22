@@ -116,30 +116,30 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
             };
 
-            // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
-            // async being used with synchronous blocking concurrency.
-            var projectCompilation = !filteredProjectAnalyzers.Any()
-                ? null
-                : compilation.WithAnalyzers(filteredProjectAnalyzers, new CompilationWithAnalyzersOptions(
-                    options: project.State.ProjectAnalyzerOptions,
-                    onAnalyzerException: null,
-                    analyzerExceptionFilter: exceptionFilter,
-                    concurrentAnalysis: false,
-                    logAnalyzerExecutionTime: true,
-                    reportSuppressedDiagnostics: true));
-
-            var hostCompilation = !filteredHostAnalyzers.Any()
-                ? null
-                : compilation.WithAnalyzers(filteredHostAnalyzers, new CompilationWithAnalyzersOptions(
-                    options: project.HostAnalyzerOptions,
-                    onAnalyzerException: null,
-                    analyzerExceptionFilter: exceptionFilter,
-                    concurrentAnalysis: false,
-                    logAnalyzerExecutionTime: true,
-                    reportSuppressedDiagnostics: true));
-
             // Create driver that holds onto compilation and associated analyzers
-            return new CompilationWithAnalyzersPair(projectCompilation, hostCompilation);
+            return new(
+                CreateCompilationWithAnalyzers(compilation, filteredProjectAnalyzers, project.State.ProjectAnalyzerOptions, exceptionFilter),
+                CreateCompilationWithAnalyzers(compilation, filteredHostAnalyzers, project.HostAnalyzerOptions, exceptionFilter));
+        }
+
+        static CompilationWithAnalyzers? CreateCompilationWithAnalyzers(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerOptions? options,
+            Func<Exception, bool> exceptionFilter)
+        {
+            if (analyzers.Length == 0)
+                return null;
+
+            return compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(
+                options: options,
+                onAnalyzerException: null,
+                analyzerExceptionFilter: exceptionFilter,
+                // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
+                // async being used with synchronous blocking concurrency.
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: true,
+                reportSuppressedDiagnostics: true));
         }
     }
 }
