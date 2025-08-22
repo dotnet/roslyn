@@ -201,8 +201,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
-            // Pass this option only to the built-in compiler (customer-supplied compiler might not support it).
-            if (IsSdkFrameworkToCoreBridgeTask && UsingBuiltinTool)
+            if (IsSdkFrameworkToCoreBridgeTask)
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
             }
