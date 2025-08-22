@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     {
         private readonly EventDefinitionHandle _handle;
 
-        public DeletedSourceEventDefinition(IEventDefinition oldEvent, EventDefinitionHandle handle, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
-            : base(oldEvent, typesUsedByDeletedMembers)
+        public DeletedSourceEventDefinition(IEventDefinition oldEvent, EventDefinitionHandle handle, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers, ICustomAttribute? deletedAttribute)
+            : base(oldEvent, typesUsedByDeletedMembers, deletedAttribute)
         {
             _handle = handle;
         }

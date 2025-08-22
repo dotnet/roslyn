@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<DeletedSourceParameterDefinition> _parameters;
 
-        public DeletedSourcePropertyDefinition(IPropertyDefinition oldProperty, PropertyDefinitionHandle handle, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
-            : base(oldProperty, typesUsedByDeletedMembers)
+        public DeletedSourcePropertyDefinition(IPropertyDefinition oldProperty, PropertyDefinitionHandle handle, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers, ICustomAttribute? deletedAttribute)
+            : base(oldProperty, typesUsedByDeletedMembers, deletedAttribute)
         {
             _handle = handle;
             _parameters = WrapParameters(oldProperty.Parameters);

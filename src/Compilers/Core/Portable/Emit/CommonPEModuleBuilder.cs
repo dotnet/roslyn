@@ -175,7 +175,9 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly);
         public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
-        internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
+#nullable enable
+        internal abstract Cci.ICustomAttribute? SynthesizeAttribute(WellKnownMember attributeConstructor);
+#nullable disable
         public abstract Cci.IMethodReference GetInitArrayHelper();
 
         public abstract Cci.IFieldReference GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics);

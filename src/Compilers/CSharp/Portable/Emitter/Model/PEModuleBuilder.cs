@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get { return _metadataName; }
         }
-
-        internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
+#nullable enable
+        internal sealed override Cci.ICustomAttribute? SynthesizeAttribute(WellKnownMember attributeConstructor)
         {
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
-
+#nullable disable
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
             return SourceModule.ContainingSourceAssembly

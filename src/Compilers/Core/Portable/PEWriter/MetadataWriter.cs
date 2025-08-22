@@ -2117,12 +2117,6 @@ namespace Microsoft.Cci
         {
             foreach (var parent in parentList)
             {
-                if (parent.IsEncDeleted)
-                {
-                    // Custom attributes are not needed for EnC definition deletes
-                    continue;
-                }
-
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }

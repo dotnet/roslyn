@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         private readonly DeletedSourceMethodDefinition _method;
 
         public DeletedSourceGenericParameter(IGenericMethodParameter oldParameter, DeletedSourceMethodDefinition method, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
-            : base(oldParameter, typesUsedByDeletedMembers)
+            : base(oldParameter, typesUsedByDeletedMembers, deletedAttribute: null)
         {
             _method = method;
         }
