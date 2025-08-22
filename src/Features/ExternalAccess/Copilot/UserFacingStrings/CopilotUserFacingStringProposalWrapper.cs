@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 
 /// <summary>
 /// Wrapper for UserFacingStringProposal to expose to external Copilot services.
-/// Each candidate contains its own enhanced context for AI prompting.
 /// </summary>
 internal sealed class CopilotUserFacingStringProposalWrapper
 {
@@ -23,8 +22,12 @@ internal sealed class CopilotUserFacingStringProposalWrapper
     }
 
     /// <summary>
+    /// The source code context where the strings were found.
+    /// </summary>
+    public string SourceCode => _proposal.SourceCode;
+
+    /// <summary>
     /// All string literal candidates found in the code.
-    /// Each candidate contains enhanced context for prompting instead of using source code.
     /// </summary>
     public ImmutableArray<CopilotUserFacingStringCandidateWrapper> Candidates => _wrappedCandidates;
 }

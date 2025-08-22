@@ -151,7 +151,8 @@ internal sealed class CSharpUserFacingStringDocumentWatcher : IUserFacingStringD
                 p.EnhancedContext)) // Use enhanced context for AI
                 .ToImmutableArray();
 
-            var proposal = new UserFacingStringProposal(aiCandidates);
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var proposal = new UserFacingStringProposal(sourceText.ToString(), aiCandidates);
 
             var result = await copilotService.GetUserFacingStringAnalysisAsync(proposal, cancellationToken).ConfigureAwait(false);
 

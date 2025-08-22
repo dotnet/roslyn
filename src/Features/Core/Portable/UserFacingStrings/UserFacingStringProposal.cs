@@ -8,14 +8,15 @@ namespace Microsoft.CodeAnalysis.UserFacingStrings;
 
 /// <summary>
 /// Represents a proposal containing all string literals found in code for AI analysis.
-/// Each candidate contains its own enhanced context for prompting.
 /// </summary>
 internal sealed record UserFacingStringProposal
 {
+    public string SourceCode { get; }
     public ImmutableArray<UserFacingStringCandidate> Candidates { get; }
 
-    public UserFacingStringProposal(ImmutableArray<UserFacingStringCandidate> candidates)
+    public UserFacingStringProposal(string sourceCode, ImmutableArray<UserFacingStringCandidate> candidates)
     {
+        SourceCode = sourceCode;
         Candidates = candidates;
     }
 }
