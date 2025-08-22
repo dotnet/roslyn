@@ -94,7 +94,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         IAnalyzerAssemblyLoaderProvider provider)
     {
         // Make a fresh loader that uses that ALC that will ensure these references are properly isolated.
-        _shadowCopyLoader = provider.CreateNewShadowCopyLoader();
+        _shadowCopyLoader = provider.CreateNewShadowCopyLoader(collectOnDispose: false);
     }
 
     /// <summary>

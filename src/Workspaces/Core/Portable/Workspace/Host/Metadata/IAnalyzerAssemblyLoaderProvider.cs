@@ -25,12 +25,6 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
     /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
     /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
     /// </summary>
-    IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader() => CreateNewShadowCopyLoader(collectOnDispose: false);
-
-    /// <summary>
-    /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
-    /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
-    /// </summary>
     IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader(bool collectOnDispose);
 #endif
 }
