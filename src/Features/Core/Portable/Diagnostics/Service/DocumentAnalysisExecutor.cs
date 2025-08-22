@@ -157,8 +157,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
             try
             {
-                var resultAndTelemetry = await _diagnosticAnalyzerService.AnalyzeDocumentInProcessAsync(
-                    analysisScope, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+                var resultAndTelemetry = await _diagnosticAnalyzerService.AnalyzeInProcessAsync(
+                    analysisScope, analysisScope.TextDocument.Project, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
             catch when (_onAnalysisException != null)
