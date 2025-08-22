@@ -508,16 +508,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
             => new MethodInstrumentation { Kinds = EmitOptions.InstrumentationKinds };
 
-        internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
-        {
-            return ImmutableArray<AnonymousTypeKey>.Empty;
-        }
-
-        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
-        {
-            return ImmutableArray<SynthesizedDelegateKey>.Empty;
-        }
-
         internal virtual int GetNextAnonymousTypeIndex()
         {
             return 0;
@@ -603,7 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             foreach (var member in symbol.GetMembers())
             {
                 var namespaceOrType = member as NamespaceOrTypeSymbol;
-                if ((object)namespaceOrType != null)
+                if ((object)namespaceOrType != null &&
+                    member is not NamedTypeSymbol { IsExtension: true }) // https://github.com/dotnet/roslyn/issues/78963 - This is a temporary handling, we should get grouping and marker types processed instead.
                 {
                     GetExportedTypes(namespaceOrType, index, builder);
                 }
@@ -792,6 +783,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
                             for (int i = nested.Length - 1; i >= 0; i--)
                             {
+                                if (nested[i].IsExtension)
+                                {
+                                    continue; // https://github.com/dotnet/roslyn/issues/78963 - This is a temporary handling, we should get grouping and marker types processed instead.
+                                }
+
                                 stack.Push((nested[i], index));
                             }
                         }

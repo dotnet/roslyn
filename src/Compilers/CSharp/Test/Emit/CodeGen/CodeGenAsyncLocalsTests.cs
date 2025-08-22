@@ -260,7 +260,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SynthesizedVariables1()
         {
             var source =
@@ -334,7 +334,9 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            vd.VerifyPdb("C.M", @"
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                vd.VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""disposable"">
@@ -374,6 +376,7 @@ class C
   </methods>
 </symbols>
 ", options: PdbValidationOptions.ExcludeDocuments);
+            }
         }
 
         [Fact]
@@ -477,6 +480,13 @@ class Test
 42
 ";
             CompileAndVerify(source, expectedOutput: expected, references: new[] { CSharpRef });
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): error CS9328: Method 'Test.F(dynamic)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         return await t;
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await t").WithArguments("Test.F(dynamic)").WithLocation(9, 16)
+            );
         }
 
         [Fact]

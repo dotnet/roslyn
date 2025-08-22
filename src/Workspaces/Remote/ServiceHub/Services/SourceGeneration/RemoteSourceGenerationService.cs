@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SourceGeneration;
+using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -164,5 +165,11 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
 
             return ValueTask.FromResult(analyzerReference.HasAnalyzersOrSourceGenerators(project.Language));
         }, cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<ImmutableDictionary<string, object?>>> FetchAndClearTelemetryKeyValuePairsAsync(CancellationToken _)
+    {
+        var workspaceService = GetWorkspaceServices().GetRequiredService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
+        return ValueTask.FromResult(workspaceService.FetchKeysAndAndClear());
     }
 }

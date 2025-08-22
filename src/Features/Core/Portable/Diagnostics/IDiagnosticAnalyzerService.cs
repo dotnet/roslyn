@@ -22,10 +22,12 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </remarks>
     void RequestDiagnosticRefresh();
 
-    /// <summary>
-    /// Force analyzes the given project by running all applicable analyzers on the project.
-    /// </summary>
+    /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.ForceAnalyzeProjectAsync"/>
     Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
+
+    /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
+    Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
+        Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned
@@ -84,22 +86,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Returns all the descriptors for all <see cref="DiagnosticAnalyzer"/>s defined within <paramref name="analyzerReference"/>.
-    /// The results are returned in a dictionary where the key is an <see cref="ImmutableArray{T}"/> of languages that descriptor
-    /// is defined for.  This can be <c>[<see cref="LanguageNames.CSharp"/>]</c>, <c>[<see cref="LanguageNames.VisualBasic"/>]</c>,
-    /// or an array containing both languages if the descriptor is defined for both languages.
-    /// </summary>
-    /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
-    Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
-        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Given a list of errors ids (like CS1234), attempts to find an associated descriptor for each id.
-    /// </summary>
-    Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
-        Solution solution, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(

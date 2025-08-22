@@ -715,5 +715,113 @@ class C<T>
                 Assert.Equal(fieldSym.GetHashCode(), fieldReferenceOperation.Field.GetHashCode());
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void FieldKeyword_01()
+        {
+            var source = """
+                class C
+                {
+                    public string Prop
+                    {
+                        get
+                        {
+                            /*<bind>*/
+                            return field + "a";
+                            /*</bind>*/
+                        }
+                    }
+                }
+                """;
+
+            VerifyOperationTreeAndDiagnosticsForTest<StatementSyntax>(
+                source,
+                expectedOperationTree: """
+                    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return field + "a";')
+                      ReturnedValue:
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'field + "a"')
+                          Left:
+                            IFieldReferenceOperation: System.String C.<Prop>k__BackingField (OperationKind.FieldReference, Type: System.String) (Syntax: 'field')
+                              Instance Receiver:
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'field')
+                          Right:
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: '"a"')
+                    """,
+                expectedDiagnostics: []);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void FieldKeyword_02()
+        {
+            var source = """
+                class C
+                {
+                    public string Prop
+                    {
+                        set
+                        {
+                            /*<bind>*/
+                            field = value;
+                            /*</bind>*/
+                        }
+                    }
+                }
+                """;
+
+            VerifyOperationTreeAndDiagnosticsForTest<StatementSyntax>(
+                source,
+                expectedOperationTree: """
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'field = value;')
+                      Expression:
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'field = value')
+                          Left:
+                            IFieldReferenceOperation: System.String C.<Prop>k__BackingField (OperationKind.FieldReference, Type: System.String) (Syntax: 'field')
+                              Instance Receiver:
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'field')
+                          Right:
+                            IParameterReferenceOperation: value (OperationKind.ParameterReference, Type: System.String) (Syntax: 'value')
+                    """,
+                expectedDiagnostics: []);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void FieldKeyword_03()
+        {
+            var source = """
+                class C
+                {
+                    public string Prop
+                    {
+                        get
+                        {
+                            /*<bind>*/
+                            return field + "a";
+                            /*</bind>*/
+                        }
+                    }
+                }
+                """;
+
+            VerifyOperationTreeAndDiagnosticsForTest<StatementSyntax>(
+                source,
+                expectedOperationTree: """
+                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return field + "a";')
+                      ReturnedValue:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'field + "a"')
+                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'field + "a"')
+                              Left:
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'field')
+                                  Children(0)
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: '"a"')
+                    """,
+                expectedDiagnostics: [
+                    // (8,20): error CS0103: The name 'field' does not exist in the current context
+                    //             return field + "a";
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 20)],
+                parseOptions: TestOptions.Regular13);
+        }
     }
 }

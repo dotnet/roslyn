@@ -75,6 +75,11 @@ public partial struct SyntaxValueProvider
     /// langword="true"/> for <paramref name="predicate"/> and which have a matching <see cref="AttributeData"/> whose
     /// <see cref="AttributeData.AttributeClass"/> has the same fully qualified, metadata name as <paramref
     /// name="fullyQualifiedMetadataName"/>.</param>
+    /// <remarks>
+    /// In the case of partial types, only the parts of the partial type that have the attribute syntactically
+    /// declared on them will be returned.  If multiple parts have the same attribute declared on them, then
+    /// all of those parts will be returned.
+    /// </remarks>
     public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
         string fullyQualifiedMetadataName,
         Func<SyntaxNode, CancellationToken, bool> predicate,
@@ -114,7 +119,8 @@ public partial struct SyntaxValueProvider
                         if (targetSymbol is null)
                             continue;
 
-                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
+                        var attributes = getMatchingAttributes(
+                            syntaxHelper, targetNode, targetSymbol, fullyQualifiedMetadataName, cancellationToken);
                         if (attributes.Length > 0)
                         {
                             result.Add(transform(
@@ -124,7 +130,7 @@ public partial struct SyntaxValueProvider
                     }
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
             finally
             {
@@ -135,12 +141,16 @@ public partial struct SyntaxValueProvider
         return finalProvider;
 
         static ImmutableArray<AttributeData> getMatchingAttributes(
+            ISyntaxHelper syntaxHelper,
             SyntaxNode attributeTarget,
             ISymbol symbol,
-            string fullyQualifiedMetadataName)
+            string fullyQualifiedMetadataName,
+            CancellationToken cancellationToken)
         {
             var targetSyntaxTree = attributeTarget.SyntaxTree;
             var result = ArrayBuilder<AttributeData>.GetInstance();
+
+            var remappedTarget = syntaxHelper.RemapAttributeTarget(attributeTarget);
 
             addMatchingAttributes(symbol.GetAttributes());
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
@@ -163,7 +173,14 @@ public partial struct SyntaxValueProvider
                     if (attribute.ApplicationSyntaxReference?.SyntaxTree == targetSyntaxTree &&
                         attribute.AttributeClass?.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
                     {
-                        result.Add(attribute);
+                        // We're seeing all the attributes merged from all parts of a particular symbol.
+                        // Ensure that we're only actually returning the attributes declared on this specific
+                        // syntax node that we're currently looking at.
+                        var attributeSyntax = attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken);
+                        var attributeOwnerSyntax = syntaxHelper.GetAttributeOwningNode(attributeSyntax);
+
+                        if (attributeOwnerSyntax == remappedTarget)
+                            result.Add(attribute);
                     }
                 }
             }
