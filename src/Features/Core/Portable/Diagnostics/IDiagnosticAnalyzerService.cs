@@ -88,16 +88,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns all the descriptors for all <see cref="DiagnosticAnalyzer"/>s defined within <paramref name="analyzerReference"/>.
-    /// The results are returned in a dictionary where the key is an <see cref="ImmutableArray{T}"/> of languages that descriptor
-    /// is defined for.  This can be <c>[<see cref="LanguageNames.CSharp"/>]</c>, <c>[<see cref="LanguageNames.VisualBasic"/>]</c>,
-    /// or an array containing both languages if the descriptor is defined for both languages.
-    /// </summary>
-    /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
-    Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
-        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, CancellationToken cancellationToken);
-
-    /// <summary>
     /// Given a list of errors ids (like CS1234), attempts to find an associated descriptor for each id.
     /// </summary>
     Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(

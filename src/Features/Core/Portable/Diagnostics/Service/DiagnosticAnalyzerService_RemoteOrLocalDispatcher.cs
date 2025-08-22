@@ -60,46 +60,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
     }
 
-    public async Task<ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>> GetLanguageKeyedDiagnosticDescriptorsAsync(
-        Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, CancellationToken cancellationToken)
-    {
-        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-        if (client is not null &&
-            analyzerReference is AnalyzerFileReference analyzerFileReference)
-        {
-            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptorData>>>(
-                solution,
-                (service, solution, cancellationToken) => service.GetLanguageKeyedDiagnosticDescriptorsAsync(solution, projectId, analyzerFileReference.FullPath, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!map.HasValue)
-                return ImmutableDictionary<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>.Empty;
-
-            return map.Value.ToImmutableDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
-        }
-
-        // Otherwise, fallback to computing in proc.
-        var mapBuilder = ImmutableDictionary.CreateBuilder<ImmutableArray<string>, ImmutableArray<DiagnosticDescriptor>>();
-
-        var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
-        var visualBasicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
-
-        var dotnetAnalyzers = csharpAnalyzers.Intersect(visualBasicAnalyzers, DiagnosticAnalyzerComparer.Instance).ToImmutableArray();
-        csharpAnalyzers = [.. csharpAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
-        visualBasicAnalyzers = [.. visualBasicAnalyzers.Except(dotnetAnalyzers, DiagnosticAnalyzerComparer.Instance)];
-
-        mapBuilder.Add(s_csharpLanguageArray, GetDiagnosticDescriptors(csharpAnalyzers));
-        mapBuilder.Add(s_visualBasicLanguageArray, GetDiagnosticDescriptors(visualBasicAnalyzers));
-        mapBuilder.Add(s_csharpAndVisualBasicLanguageArray, GetDiagnosticDescriptors(dotnetAnalyzers));
-
-        return mapBuilder.ToImmutable();
-
-        ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(ImmutableArray<DiagnosticAnalyzer> analyzers)
-            => analyzers.SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
-    }
-
     public async Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
         Solution solution, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {

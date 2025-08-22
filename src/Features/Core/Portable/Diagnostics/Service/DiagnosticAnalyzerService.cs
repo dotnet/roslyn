@@ -53,10 +53,6 @@ internal sealed partial class DiagnosticAnalyzerService
 
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
 
-    private static readonly ImmutableArray<string> s_csharpLanguageArray = [LanguageNames.CSharp];
-    private static readonly ImmutableArray<string> s_visualBasicLanguageArray = [LanguageNames.VisualBasic];
-    private static readonly ImmutableArray<string> s_csharpAndVisualBasicLanguageArray = [.. s_csharpLanguageArray, .. s_visualBasicLanguageArray];
-
     private readonly IAsynchronousOperationListener _listener;
     private readonly IGlobalOptionService _globalOptions;
 
