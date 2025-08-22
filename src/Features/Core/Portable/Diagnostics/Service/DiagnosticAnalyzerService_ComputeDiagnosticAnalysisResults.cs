@@ -97,8 +97,8 @@ internal sealed partial class DiagnosticAnalyzerService
                     || compilationWithAnalyzers?.HostAnalyzers.Length > 0)
                 {
                     // calculate regular diagnostic analyzers diagnostics
-                    var resultMap = await this.AnalyzeProjectInProcessAsync(
-                        project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
+                    var resultMap = await this.AnalyzeInProcessAsync(
+                        documentAnalysisScope: null, project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
 
                     result = resultMap.AnalysisResult;
 

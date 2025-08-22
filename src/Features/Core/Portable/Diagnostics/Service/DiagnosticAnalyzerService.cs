@@ -187,6 +187,6 @@ internal sealed partial class DiagnosticAnalyzerService
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
             Project project, CompilationWithAnalyzersPair compilationWithAnalyzers, bool logPerformanceInfo, bool getTelemetryInfo, CancellationToken cancellationToken)
-            => service.AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+            => service.AnalyzeInProcessAsync(documentAnalysisScope: null, project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
     }
 }
