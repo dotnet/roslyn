@@ -183,7 +183,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d18.0",
       "insertionTitlePrefix": "[d18.0]",
       "insertionCreateDraftPR": false
     },
@@ -202,8 +202,8 @@
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[dNext]"
     }
   }
 }
