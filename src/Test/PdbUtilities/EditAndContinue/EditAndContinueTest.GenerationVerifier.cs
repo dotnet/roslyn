@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -13,6 +14,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -23,10 +25,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         internal sealed class GenerationVerifier(int ordinal, GenerationInfo generationInfo, ImmutableArray<MetadataReader> readers)
         {
+            private readonly Lazy<MetadataVisualizer> _lazyVisualizer = new(() => new MetadataVisualizer(readers, TextWriter.Null, MetadataVisualizerOptions.None));
             public readonly List<Exception> Exceptions = [];
 
             private MetadataReader MetadataReader
                 => generationInfo.MetadataReader;
+
+            private MetadataVisualizer Visualizer
+                => _lazyVisualizer.Value;
 
             private string GetAssertMessage(string message)
             {
@@ -63,6 +69,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             internal void VerifyPropertyDefNames(params string[] expected)
                 => Verify(() => AssertEntityNamesEqual("PropertyDefs", expected, MetadataReader.GetPropertyDefNames()));
+
+            internal void VerifyEventDefNames(params string[] expected)
+                => Verify(() => AssertEntityNamesEqual("EventDefs", expected, MetadataReader.GetEventDefNames()));
 
             private void AssertEntityNamesEqual(string entityKinds, string[] expected, StringHandle[] actual)
                 => AssertEx.Equal(expected, readers.GetStrings(actual), message: GetAssertMessage($"{entityKinds} don't match"), itemSeparator: ", ", itemInspector: s => $"\"{s}\"");
@@ -171,8 +180,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     AssertEx.Equal(
                         expected ?? [],
-                        MetadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
+                        MetadataReader.GetCustomAttributeRows(),
+                        itemInspector: AttributeRowToString);
                 });
+
+            internal void VerifyCustomAttributes(params string[] expected)
+                => Verify(() =>
+                {
+                    AssertEx.SequenceEqual(
+                        expected ?? [],
+                        MetadataReader.GetCustomAttributeRows()
+                            // CustomAttribute table entries might be zeroed out in the delta.
+                            .Where(row => !row.ParentToken.IsNil || !row.ConstructorToken.IsNil)
+                            .Select(row => $"[{Visualizer.GetQualifiedName(row.ConstructorToken)}] {InspectCustomAttributeTarget(row.ParentToken)}"));
+                });
+
+            private string InspectCustomAttributeTarget(EntityHandle handle)
+                => handle.Kind switch
+                {
+                    HandleKind.AssemblyDefinition => "<assembly>",
+                    HandleKind.ModuleDefinition => "<module>",
+                    _ => Visualizer.GetQualifiedName(handle)
+                };
 
             private IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetSynthesizedMembers()
                 => generationInfo.CompilationVerifier?.TestData.Module!.GetAllSynthesizedMembers() ?? generationInfo.Baseline.SynthesizedMembers;

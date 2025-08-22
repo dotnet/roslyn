@@ -138,9 +138,6 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public static string GetDeletedDefinitionName(string originalName)
-            => $"deleted_{originalName}";
-
         private static MetadataBuilder MakeTablesBuilder(EmitBaseline previousGeneration)
         {
             return new MetadataBuilder(
@@ -545,6 +542,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     var newMemberDefs = ArrayBuilder<ITypeDefinitionMember>.GetInstance();
 
+                    var deletedAttribute = deletedMembers.IsDefaultOrEmpty
+                        ? null
+                        : context.Module.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor);
+
                     ImmutableArray<byte>? lazyDeletedMethodIL = null;
                     ImmutableArray<byte>? lazyDeletedLambdaIL = null;
 
@@ -557,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                             lazyDeletedMethodIL ??= DeletedMethodBody.GetIL(context, rudeEdit: null, isLambdaOrLocalFunction: false);
 
-                            newMemberDefs.Add(new DeletedSourceMethodDefinition(deletedMethodDef, deletedMethodHandle, lazyDeletedMethodIL.Value, typesUsedByDeletedMembers));
+                            newMemberDefs.Add(new DeletedSourceMethodDefinition(deletedMethodDef, deletedMethodHandle, lazyDeletedMethodIL.Value, typesUsedByDeletedMembers, deletedAttribute));
 
                             addDeletedClosureMethods(deletedMethod, currentLambdas: [], []);
                         }
@@ -565,13 +566,13 @@ namespace Microsoft.CodeAnalysis.Emit
                         {
                             var deletedPropertyHandle = changes.DefinitionMap.GetPreviousPropertyHandle(deletedProperty);
                             var deletedPropertyDef = (IPropertyDefinition)deletedProperty.GetCciAdapter();
-                            newMemberDefs.Add(new DeletedSourcePropertyDefinition(deletedPropertyDef, deletedPropertyHandle, typesUsedByDeletedMembers));
+                            newMemberDefs.Add(new DeletedSourcePropertyDefinition(deletedPropertyDef, deletedPropertyHandle, typesUsedByDeletedMembers, deletedAttribute));
                         }
                         else if (deletedMember is IEventSymbolInternal deletedEvent)
                         {
                             var deletedEventHandle = changes.DefinitionMap.GetPreviousEventHandle(deletedEvent);
                             var deletedEventDef = (IEventDefinition)deletedEvent.GetCciAdapter();
-                            newMemberDefs.Add(new DeletedSourceEventDefinition(deletedEventDef, deletedEventHandle, typesUsedByDeletedMembers));
+                            newMemberDefs.Add(new DeletedSourceEventDefinition(deletedEventDef, deletedEventHandle, typesUsedByDeletedMembers, deletedAttribute));
                         }
                     }
 
@@ -604,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             {
                                 var deletedClosureMethodDef = (IMethodDefinition)deletedClosureMethod.GetCciAdapter();
                                 var deletedClosureMethodHandle = changes.DefinitionMap.GetPreviousMethodHandle(deletedClosureMethod);
-                                newMemberDefs.Add(new DeletedSourceMethodDefinition(deletedClosureMethodDef, deletedClosureMethodHandle, il, typesUsedByDeletedMembers));
+                                newMemberDefs.Add(new DeletedSourceMethodDefinition(deletedClosureMethodDef, deletedClosureMethodHandle, il, typesUsedByDeletedMembers, deletedAttribute: null));
                             }
                         }
                     }
