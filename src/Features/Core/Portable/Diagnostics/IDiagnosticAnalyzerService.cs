@@ -87,12 +87,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Given a list of errors ids (like CS1234), attempts to find an associated descriptor for each id.
-    /// </summary>
-    Task<ImmutableDictionary<string, DiagnosticDescriptor>> TryGetDiagnosticDescriptorsAsync(
-        Solution solution, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
-
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Solution solution, CancellationToken cancellationToken);
