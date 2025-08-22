@@ -7,6 +7,7 @@ Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_GetAwaiterMethod
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_GetResultMethod
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_IsCompletedProperty
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_IsDynamic
+Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_RuntimeAwaitMethod
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AddReferences(Microsoft.CodeAnalysis.MetadataReference[])
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AddReferences(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.MetadataReference})

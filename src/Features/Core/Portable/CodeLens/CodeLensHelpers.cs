@@ -16,8 +16,16 @@ internal static class CodeLensHelpers
         if (TryGetGuid("RoslynDocumentIdGuid", out var documentIdGuid) &&
             TryGetGuid("RoslynProjectIdGuid", out var projectIdGuid))
         {
+            var isSourceGenerated = false;
+
+            if (descriptorProperties.TryGetValue("RoslynDocumentIsSourceGenerated", out var isSourceGeneratedObj))
+            {
+                if (isSourceGeneratedObj is bool isSourceGeneratedBoolean)
+                    isSourceGenerated = isSourceGeneratedBoolean;
+            }
+
             var projectId = ProjectId.CreateFromSerialized(projectIdGuid);
-            return DocumentId.CreateFromSerialized(projectId, documentIdGuid);
+            return DocumentId.CreateFromSerialized(projectId, documentIdGuid, isSourceGenerated, debugName: null);
         }
 
         return null;

@@ -79,7 +79,7 @@ F(5)
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -172,7 +172,7 @@ F(4)
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -311,7 +311,7 @@ F(13)
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -452,7 +452,7 @@ F(c)
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -526,7 +526,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -599,7 +599,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -705,7 +705,7 @@ class Test
             //
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -794,7 +794,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -889,7 +889,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -976,7 +976,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1063,7 +1063,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1254,7 +1254,7 @@ public class Test
   IL_0110:  ret
 }", sequencePoints: "Test+<F>d__2.MoveNext");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (18,38): error CS9328: Method 'Test.F(int[])' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         H(array[1] += 2, array[3] += await G(), 4);
@@ -1467,7 +1467,7 @@ public class Test
   IL_00fa:  ret
 }", sequencePoints: "Test+<F>d__2.MoveNext");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (18,38): error CS9328: Method 'Test.F(int[])' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         H(array[1] += 2, array[3] += await G(), 4);
@@ -1555,7 +1555,7 @@ public class Test
 ";
             CompileAndVerify(source, options: TestOptions.DebugDll);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (18,45): error CS9328: Method 'Test.F(int[])' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         H(0, (1 == await G()) ? array[3] += await G() : 1, 4);
@@ -1680,7 +1680,7 @@ public class C
                  }, module.GetFieldNames("C.<F>d__3"));
              });
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (23,28): error CS9328: Method 'C.F(int[])' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         H(0, O(array[0] += await G()) ?? (array[1] += await G()), 4);
@@ -1785,7 +1785,7 @@ True
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1846,7 +1846,7 @@ True
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1908,7 +1908,7 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1984,7 +1984,7 @@ Not Valid!
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2060,7 +2060,7 @@ public class Test
 ";
             CompileAndVerify(source, options: TestOptions.DebugDll);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (23,28): error CS9328: Method 'Test.F(int[])' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         H(0, B(array[0] += await G()) || B(array[1] += await G()), 4);
@@ -2296,7 +2296,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2569,7 +2569,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2744,7 +2744,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2928,7 +2928,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (23,23): error CS9328: Method 'TestCase.Run<T>(T)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             arr[0] += await GetVal(4);
@@ -3127,7 +3127,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (22,23): error CS9328: Method 'TestCase.Run<T>(T)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             arr[1] += await (GetVal(arr[0]));
@@ -3341,7 +3341,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (22,23): error CS9328: Method 'TestCase.Run<T>(T)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             arr[1] += await (GetVal(arr[await GetVal(0)]));
@@ -3586,7 +3586,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3815,7 +3815,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (27,26): error CS9328: Method 'TestCase.Run<T>(T)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             arr[0, 0] += await GetVal(4);
@@ -4158,7 +4158,7 @@ class Driver
 }";
             CompileAndVerify(source, "");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (23,23): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //     public async Task Run()
@@ -4234,7 +4234,7 @@ class TestCase
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -4342,7 +4342,7 @@ exception thrown
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -4502,7 +4502,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -4598,7 +4598,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (12,19): error CS9328: Method 'Driver.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         arr[0] += await Task.Factory.StartNew(() => 42);
@@ -4678,7 +4678,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (12,13): error CS9328: Method 'Driver.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         arr[await Task.Factory.StartNew(() => 0)] += await Task.Factory.StartNew(() => 42);
@@ -4782,7 +4782,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (20,13): error CS9328: Method 'Driver.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         arr[await Task.Factory.StartNew(() => 0)].s1.x += await Task.Factory.StartNew(() => 42);
@@ -4907,7 +4907,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (20,64): error CS9328: Method 'Driver.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         arr[await Task.Factory.StartNew(() => 0)].s1.x += (arr[await Task.Factory.StartNew(() => 0)].s1.x += await Task.Factory.StartNew(() => 42));
@@ -5193,7 +5193,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5520,7 +5520,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5842,7 +5842,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput, references: new[] { CSharpRef });
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5894,7 +5894,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5992,7 +5992,7 @@ class Test
 42";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6072,7 +6072,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6138,7 +6138,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6241,7 +6241,7 @@ class Driver
 " : null;
             CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,17): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             Bar(__arglist(One(), await Two()));
@@ -6313,7 +6313,7 @@ class Driver
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (11,23): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //     public async Task Run()
@@ -6513,7 +6513,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6699,7 +6699,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (21,15): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             x[await GetVal(0)] += await GetVal(4);
@@ -6895,7 +6895,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (21,15): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             x[await GetVal(0)] += await GetVal(4);
@@ -7007,7 +7007,7 @@ class Test
 }";
             CompileAndVerify(source, "0", references: new[] { CSharpRef });
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (14,19): error CS9328: Method 'Test.Goo()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         var rez = await mc.Goo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return "Test"; }))());
@@ -7132,7 +7132,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (15,23): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //     public async Task Run()
@@ -7400,7 +7400,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -7523,7 +7523,7 @@ static class Driver
 }";
             CompileAndVerify(source, "42");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -7731,7 +7731,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (39,42): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             this.myClass.arr[0].Field += await GetVal(4);
@@ -7950,7 +7950,7 @@ struct S
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (11,34): error CS9328: Method 'S.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         Console.WriteLine(s.i += await GetInt());
@@ -8039,7 +8039,7 @@ class C
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8105,7 +8105,7 @@ class C
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8184,7 +8184,7 @@ struct S
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (11,34): error CS9328: Method 'S.M(S)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         Console.WriteLine(s.i += await GetInt());
@@ -8303,7 +8303,7 @@ class C
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (22,28): error CS9328: Method 'C.F2()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         F1(ref x[0], F0(), await Task.Factory.StartNew(() => 21));
@@ -8541,7 +8541,7 @@ class C
 ";
             CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (9,23): error CS9328: Method 's1.Goo1()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //     public async Task Goo1()
@@ -8695,7 +8695,7 @@ public class AsyncBug {
 }
 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8766,7 +8766,7 @@ namespace AsyncBug
             var expectedOutput = new bool[] { false, true, false, true, false }.Aggregate("", (str, next) => str += $"{next}{Environment.NewLine}");
             var v = CompileAndVerify(source, expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8834,7 +8834,7 @@ public class C
 
             var v = CompileAndVerify(source, "42");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8952,7 +8952,7 @@ class Foo
                 """;
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9133,7 +9133,7 @@ namespace System
 }
 ");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9198,7 +9198,7 @@ public class P
                 verify: Verification.Fails // localloc is not verifiable.
                 );
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9289,7 +9289,7 @@ public class P
                 verify: Verification.Fails // localloc is not verifiable.
                 );
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9430,7 +9430,7 @@ struct F
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9577,7 +9577,7 @@ class Box<T>
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9664,7 +9664,7 @@ namespace RoslynFailFastReproduction
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9855,7 +9855,7 @@ class B
   IL_00b7:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10128,7 +10128,7 @@ class A
   IL_00b4:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10385,7 +10385,7 @@ struct A
   IL_00c5:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10606,7 +10606,7 @@ class Program
   IL_00af:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10837,7 +10837,7 @@ struct C
   IL_00c8:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11068,7 +11068,7 @@ class B
   IL_00b7:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11284,7 +11284,7 @@ class A
   IL_00b2:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11531,7 +11531,7 @@ class A
   IL_00c9:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11796,7 +11796,7 @@ class A
   IL_00c9:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12084,7 +12084,7 @@ class B
   IL_00da:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12380,7 +12380,7 @@ class B
   IL_00da:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12542,7 +12542,7 @@ struct B
   IL_009e:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12600,7 +12600,7 @@ public class C
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12662,7 +12662,7 @@ public class Program
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12719,7 +12719,7 @@ public class C
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -59,13 +60,11 @@ internal sealed partial class DiagnosticAnalyzerService
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var project = document.Project;
-            var solutionState = project.Solution.SolutionState;
-            var unfilteredAnalyzers = await _stateManager
-                .GetOrCreateAnalyzersAsync(solutionState, project.State, cancellationToken)
+            var unfilteredAnalyzers = await StateManager
+                .GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken)
                 .ConfigureAwait(false);
             var analyzers = unfilteredAnalyzers
-                .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, document.Project, GlobalOptions));
-            var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
+                .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions));
 
             // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
             // We clear out range for such cases as we are computing full document diagnostics.
@@ -74,20 +73,30 @@ internal sealed partial class DiagnosticAnalyzerService
 
             // We log performance info when we are computing diagnostics for a span
             var logPerformanceInfo = range.HasValue;
-            var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-                document.Project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
             // If we are computing full document diagnostics, we will attempt to perform incremental
             // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
-            var incrementalAnalysis = !range.HasValue
-                && document is Document { SupportsSyntaxTree: true };
+            var incrementalAnalysis = range is null && document is Document { SupportsSyntaxTree: true };
 
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
-            await GetAsync(list).ConfigureAwait(false);
+            using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
 
-            return list.ToImmutableAndClear();
+            deprioritizationCandidates.AddRange(await this.AnalyzerService.GetDeprioritizationCandidatesAsync(
+                project, analyzers, cancellationToken).ConfigureAwait(false));
 
-            async Task GetAsync(ArrayBuilder<DiagnosticData> list)
+            var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = GetAllAnalyzers();
+            syntaxAnalyzers = FilterAnalyzers(syntaxAnalyzers, AnalysisKind.Syntax, range, deprioritizationCandidates);
+            semanticSpanAnalyzers = FilterAnalyzers(semanticSpanAnalyzers, AnalysisKind.Semantic, range, deprioritizationCandidates);
+            semanticDocumentAnalyzers = FilterAnalyzers(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, deprioritizationCandidates);
+
+            var allDiagnostics = await this.AnalyzerService.ComputeDiagnosticsAsync(
+                document, range, analyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
+                incrementalAnalysis, logPerformanceInfo,
+                cancellationToken).ConfigureAwait(false);
+            return allDiagnostics.WhereAsArray(ShouldInclude);
+
+            (ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
+             ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
+             ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers) GetAllAnalyzers()
             {
                 try
                 {
@@ -152,11 +161,10 @@ internal sealed partial class DiagnosticAnalyzerService
                         }
                     }
 
-                    await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers.ToImmutable(), AnalysisKind.Syntax, range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticSpanBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, range, list, incrementalAnalysis, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticDocumentBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-
-                    return;
+                    return (
+                        syntaxAnalyzers.ToImmutableAndClear(),
+                        semanticSpanBasedAnalyzers.ToImmutableAndClear(),
+                        semanticDocumentBasedAnalyzers.ToImmutableAndClear());
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -192,18 +200,14 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
             }
 
-            async Task ComputeDocumentDiagnosticsAsync(
+            ImmutableArray<DiagnosticAnalyzer> FilterAnalyzers(
                 ImmutableArray<DiagnosticAnalyzer> analyzers,
                 AnalysisKind kind,
                 TextSpan? span,
-                ArrayBuilder<DiagnosticData> builder,
-                bool incrementalAnalysis,
-                CancellationToken cancellationToken)
+                HashSet<DiagnosticAnalyzer> deprioritizationCandidates)
             {
-                Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
-                Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+                using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
 
-                using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
                 foreach (var analyzer in analyzers)
                 {
                     Debug.Assert(priorityProvider.MatchesPriority(analyzer));
@@ -211,57 +215,18 @@ internal sealed partial class DiagnosticAnalyzerService
                     // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                     // If so, we skip this analyzer from execution in the current priority bucket.
                     // We will subsequently execute this analyzer in the lower priority bucket.
-                    if (await TryDeprioritizeAnalyzerAsync(analyzer, kind, span).ConfigureAwait(false))
-                    {
+                    if (TryDeprioritizeAnalyzer(analyzer, kind, span, deprioritizationCandidates))
                         continue;
-                    }
 
                     filteredAnalyzers.Add(analyzer);
                 }
 
-                if (filteredAnalyzers.Count == 0)
-                    return;
-
-                analyzers = filteredAnalyzers.ToImmutable();
-
-                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
-
-                var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
-                var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
-                var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo);
-                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-
-                ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
-                if (incrementalAnalysis)
-                {
-                    using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Incremental");
-
-                    diagnosticsMap = await _incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(
-                        executor,
-                        analyzers,
-                        version,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.Document");
-
-                    diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
-                }
-
-                foreach (var analyzer in analyzers)
-                {
-                    var diagnostics = diagnosticsMap[analyzer];
-                    builder.AddRange(diagnostics.Where(ShouldInclude));
-                }
-
-                if (incrementalAnalysis)
-                    _incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+                return filteredAnalyzers.ToImmutableAndClear();
             }
 
-            async Task<bool> TryDeprioritizeAnalyzerAsync(
-                DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span)
+            bool TryDeprioritizeAnalyzer(
+                DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span,
+                HashSet<DiagnosticAnalyzer> deprioritizationCandidates)
             {
                 // PERF: In order to improve lightbulb performance, we perform de-prioritization optimization for certain analyzers
                 // that moves the analyzer to a lower priority bucket. However, to ensure that de-prioritization happens for very rare cases,
@@ -284,10 +249,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 // Condition 3.
                 // Check if this is a candidate analyzer that can be de-prioritized into a lower priority bucket based on registered actions.
-                if (!await IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer).ConfigureAwait(false))
-                {
+                if (!deprioritizationCandidates.Contains(analyzer))
                     return false;
-                }
 
                 // 'LightbulbSkipExecutingDeprioritizedAnalyzers' option determines if we want to execute this analyzer
                 // in low priority bucket or skip it completely. If the option is not set, track the de-prioritized
@@ -301,36 +264,68 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
             }
 
-            // Returns true if this is an analyzer that is a candidate to be de-prioritized to
-            // 'CodeActionRequestPriority.Low' priority for improvement in analyzer
-            // execution performance for priority buckets above 'Low' priority.
-            // Based on performance measurements, currently only analyzers which register SymbolStart/End actions
-            // or SemanticModel actions are considered candidates to be de-prioritized. However, these semantics
-            // could be changed in future based on performance measurements.
-            async Task<bool> IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(DiagnosticAnalyzer analyzer)
-            {
-                // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
-                // as these are computationally more expensive.
-                // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
-                if (compilationWithAnalyzers == null ||
-                    analyzer.IsWorkspaceDiagnosticAnalyzer() ||
-                    analyzer.IsCompilerAnalyzer())
-                {
-                    return false;
-                }
-
-                var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                if (telemetryInfo == null)
-                    return false;
-
-                return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
-            }
-
             bool ShouldInclude(DiagnosticData diagnostic)
             {
                 return diagnostic.DocumentId == document.Id &&
                     (range == null || range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)))
                     && (shouldIncludeDiagnostic == null || shouldIncludeDiagnostic(diagnostic.Id));
+            }
+        }
+
+        public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+            TextDocument document,
+            TextSpan? range,
+            ImmutableArray<DiagnosticAnalyzer> allAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers,
+            bool incrementalAnalysis,
+            bool logPerformanceInfo,
+            CancellationToken cancellationToken)
+        {
+            // We log performance info when we are computing diagnostics for a span
+            var project = document.Project;
+
+            var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(
+                project.Solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
+            var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                document.Project, allAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
+
+            await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers, AnalysisKind.Syntax, range, incrementalAnalysis: false).ConfigureAwait(false);
+            await ComputeDocumentDiagnosticsAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range, incrementalAnalysis).ConfigureAwait(false);
+            await ComputeDocumentDiagnosticsAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, incrementalAnalysis: false).ConfigureAwait(false);
+
+            return list.ToImmutableAndClear();
+
+            async Task ComputeDocumentDiagnosticsAsync(
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                AnalysisKind kind,
+                TextSpan? span,
+                bool incrementalAnalysis)
+            {
+                if (analyzers.Length == 0)
+                    return;
+
+                Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
+                Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+
+                var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
+                var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
+                var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo);
+                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+
+                var computeTask = incrementalAnalysis
+                    ? _incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(executor, analyzers, version, cancellationToken)
+                    : ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken);
+                var diagnosticsMap = await computeTask.ConfigureAwait(false);
+
+                if (incrementalAnalysis)
+                    _incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+
+                list.AddRange(diagnosticsMap.SelectMany(kvp => kvp.Value));
             }
         }
     }

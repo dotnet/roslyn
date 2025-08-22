@@ -61,7 +61,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
 
         diagnostics = analyzerResult.GetDocumentDiagnostics(project.DocumentIds.First(), AnalysisKind.Semantic);
         Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
-        Assert.Equal(isHostAnalyzer ? DiagnosticSeverity.Info : DiagnosticSeverity.Hidden, diagnostics[0].Severity);
+        Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
     }
 
     [Theory, CombinatorialData]
@@ -84,17 +84,9 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
         var project = workspace.CurrentSolution.Projects.First();
         var analyzerResult = await AnalyzeAsync(workspace, project.Id, analyzerType, isHostAnalyzer);
 
-        ImmutableArray<DiagnosticData> diagnostics;
-        if (isHostAnalyzer)
-        {
-            Assert.True(analyzerResult.GetAllDiagnostics().IsEmpty);
-        }
-        else
-        {
-            diagnostics = analyzerResult.GetDocumentDiagnostics(project.DocumentIds.First(), AnalysisKind.Semantic);
-            Assert.Equal(IDEDiagnosticIds.UseNullPropagationDiagnosticId, diagnostics[0].Id);
-            Assert.Equal(DiagnosticSeverity.Info, diagnostics[0].Severity);
-        }
+        var diagnostics = analyzerResult.GetDocumentDiagnostics(project.DocumentIds.First(), AnalysisKind.Semantic);
+        Assert.Equal(IDEDiagnosticIds.UseNullPropagationDiagnosticId, diagnostics[0].Id);
+        Assert.Equal(DiagnosticSeverity.Info, diagnostics[0].Severity);
 
         workspace.SetAnalyzerFallbackOptions(LanguageNames.VisualBasic, ("dotnet_style_null_propagation", "true:error"));
 
@@ -102,7 +94,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
 
         diagnostics = analyzerResult.GetDocumentDiagnostics(project.DocumentIds.First(), AnalysisKind.Semantic);
         Assert.Equal(IDEDiagnosticIds.UseNullPropagationDiagnosticId, diagnostics[0].Id);
-        Assert.Equal(isHostAnalyzer ? DiagnosticSeverity.Error : DiagnosticSeverity.Info, diagnostics[0].Severity);
+        Assert.Equal(DiagnosticSeverity.Info, diagnostics[0].Severity);
     }
 
     [Fact]

@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
         private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)0x2000;
-        private static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
 
         internal static string ExpectedOutput(string output, bool isRuntimeAsync = false)
         {
@@ -44,19 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
             return CreateCompilationWithMscorlib461(source, options: options, references: references);
-        }
-
-        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
-        {
-            parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
-            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
-            if (options == null)
-            {
-                options = CheckForTopLevelStatements(syntaxTrees);
-                options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
-            }
-
-            return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
