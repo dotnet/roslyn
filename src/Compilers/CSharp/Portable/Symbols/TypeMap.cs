@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        internal TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, bool propagateAttributes, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             if (oldTypeParameters.Length == 0)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var tp in oldTypeParameters)
             {
                 var newTp = synthesized ?
-                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
+                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal, propagateAttributes) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
                 result.Mapping.Add(tp, TypeWithAnnotations.Create(newTp));
                 newTypeParametersBuilder.Add(newTp);
@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeMap WithAlphaRename(NamedTypeSymbol oldOwner, NamedTypeSymbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             Debug.Assert(TypeSymbol.Equals(oldOwner.ConstructedFrom, oldOwner, TypeCompareKind.ConsiderEverything2));
-            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
+            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, propagateAttributes: false, out newTypeParameters);
         }
 
-        internal TypeMap WithAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        internal TypeMap WithAlphaRename(MethodSymbol oldOwner, Symbol newOwner, bool propagateAttributes, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
-            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
+            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, propagateAttributes: propagateAttributes, out newTypeParameters);
         }
 
         internal static ImmutableArray<TypeParameterSymbol> ConcatMethodTypeParameters(MethodSymbol oldOwner, MethodSymbol stopAt)
