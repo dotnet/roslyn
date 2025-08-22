@@ -50,7 +50,7 @@ internal sealed partial class SolutionCompilationState
             }
             else
             {
-                // Note: If we're in GeneratedDocumentCreationPolicy.CreateRequired it may be possible to skip going to OOP at all. If we know which generators are going to run
+                // TODO: If we're in GeneratedDocumentCreationPolicy.CreateOnlyRequired it may be possible to skip going to OOP at all. If we know which generators are going to run
                 // we can see upfront if they are present and skip them if so. This is left as a future optimiziation for now.
 
                 // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
@@ -430,22 +430,42 @@ internal sealed partial class SolutionCompilationState
 
             bool ShouldGeneratorRun(GeneratorFilterContext context)
             {
-                if (creationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
-                    return false;
+                // We should never try and run a generator driver if we're not expecting to do any work
+                Contract.ThrowIfTrue(creationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate);
 
+                // If we're in Create mode, we're always going to run all generators
                 if (creationPolicy is GeneratedDocumentCreationPolicy.Create)
                     return true;
 
-                // If this generator has never been executed before or there are no existing results available to return,
-                // we have it run the generator regardless of the specified creation policy to ensure correctness.
-                if (priorRunResult?.Results.Any(r => r.Generator == context.Generator && !r.GeneratedSources.IsDefault) == false)
-                {
+                // If we get here we expect to be in CreateOnlyRequired. Throw to ensure we catch if someone adds a new state
+                Contract.ThrowIfFalse(creationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired);
+                
+                // We want to only run required generators, but it's also possible that there are generators that 
+                // have never been run (for instance, an AddGenerator operation might have occurred between runs).
+                // Our model is that it's acceptable for documents to be slightly out of date, but it is
+                // fundamentally incorrect to have *no* documents for a generator that could be producing them. 
+
+                // If there was no prior run result, then we can't have any documents for this generator, so we
+                // need to re-run it.
+                if (priorRunResult is null)
                     return true;
-                }
 
-                Debug.Assert(creationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired);
+                // Next we need to check if this particular generator was run as part of the prior driver execution.
+                // Either we have no state for the generator, in which case it can't have run. If we do have state,
+                // the contract from the generator driver is that a generator that hasn't run yet produces a default
+                // ImmutableArray for GeneratedSources. Note that this is different from an empty array, which
+                // indicates that the generator ran, but didn't produce any documents:
 
-                // Otherwise only run it if it's a required generator
+                // - GeneratedSources == default ImmutableArray: the generator was not invoked during that run (must run).
+                // - GeneratedSources == non-default empty array: the generator ran but produced no documents (may skip).
+                // - GeneratedSources == non-default non-empty array: the generator ran and produced documents (may skip).
+
+                if (!priorRunResult.Results.Any(r => r.Generator == context.Generator && !r.GeneratedSources.IsDefault))
+                    return true;
+
+                // We have results for this generator, and we're in CreateOnlyRequired, so only run this generator if
+                // we consider it to be required.
+
                 // For now, we hard code the required generator list to Razor.
                 // In the future we might want to expand this to e.g. run any generators with open generated files
                 return context.Generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
