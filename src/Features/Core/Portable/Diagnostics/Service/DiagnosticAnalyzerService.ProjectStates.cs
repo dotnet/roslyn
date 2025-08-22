@@ -53,16 +53,12 @@ internal sealed partial class DiagnosticAnalyzerService
     private ProjectAnalyzerInfo CreateProjectAnalyzerInfo(Project project)
     {
         if (project.AnalyzerReferences.Count == 0)
-        {
             return ProjectAnalyzerInfo.Default;
-        }
 
         var solutionAnalyzers = project.Solution.SolutionState.Analyzers;
         var analyzersPerReference = solutionAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project.State);
         if (analyzersPerReference.Count == 0)
-        {
             return ProjectAnalyzerInfo.Default;
-        }
 
         var (newHostAnalyzers, newAllAnalyzers) = PartitionAnalyzers(
             [.. analyzersPerReference.Values], hostAnalyzerCollection: [], includeWorkspacePlaceholderAnalyzers: false);
