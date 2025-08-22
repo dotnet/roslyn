@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="vswhere" />
-    <PackageReference Include="RoslynTools.VSIXExpInstaller" />
     <ProjectReference Include="..\..\Deployment\RoslynDeployment.csproj"/>
   </ItemGroup>
 
@@ -29,7 +28,6 @@
       <_Files Include="$(MSBuildProjectDirectory)\tools\*.*" TargetDir="tools"/>
       <_Files Include="$(MSBuildProjectDirectory)\scripts\*.*" TargetDir=""/>
       <_Files Include="$(NuGetPackageRoot)vswhere\$(vswhereVersion)\tools\*.*" TargetDir="tools\vswhere"/>
-      <_Files Include="$(NuGetPackageRoot)roslyntools.vsixexpinstaller\$(RoslynToolsVSIXExpInstallerVersion)\tools\*.*" TargetDir="tools\vsixexpinstaller"/>
       <_Files Include="$(_DeploymentVsixPath)" TargetDir="vsix"/>
     </ItemGroup>
 
