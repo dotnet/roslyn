@@ -167,7 +167,7 @@ internal sealed partial class DiagnosticAnalyzerService
                     if (AnalysisScope.TextDocument is not Document)
                         return [];
 
-                    return await GetCompilerAnalyzerDiagnosticsInProcessAsync(analyzer, AnalysisScope.Span, cancellationToken).ConfigureAwait(false);
+                    return await GetCompilerAnalyzerDiagnosticsInProcessAsync(AnalysisScope.Span).ConfigureAwait(false);
                 }
 
                 if (_lazySyntaxDiagnostics == null)
@@ -203,7 +203,7 @@ internal sealed partial class DiagnosticAnalyzerService
 #endif
 
                     var adjustedSpan = await GetAdjustedSpanForCompilerAnalyzerAsync().ConfigureAwait(false);
-                    return await GetCompilerAnalyzerDiagnosticsInProcessAsync(analyzer, adjustedSpan, cancellationToken).ConfigureAwait(false);
+                    return await GetCompilerAnalyzerDiagnosticsInProcessAsync(adjustedSpan).ConfigureAwait(false);
                 }
 
                 if (_lazySemanticDiagnostics == null)
@@ -307,6 +307,25 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
 #endif
             }
+
+            async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsInProcessAsync(TextSpan? span)
+            {
+                RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
+                RoslynDebug.Assert(_compilationWithAnalyzers != null);
+                RoslynDebug.Assert(_compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer) || _compilationBasedHostAnalyzersInAnalysisScope.Contains(analyzer));
+                RoslynDebug.Assert(AnalysisScope.TextDocument is Document);
+
+                var analysisScope = _compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer)
+                    ? AnalysisScope.WithAnalyzers([analyzer], []).WithSpan(span)
+                    : AnalysisScope.WithAnalyzers([], [analyzer]).WithSpan(span);
+                var analysisResult = await GetAnalysisResultInProcessAsync(analysisScope, cancellationToken).ConfigureAwait(false);
+                if (!analysisResult.TryGetValue(analyzer, out var result))
+                {
+                    return [];
+                }
+
+                return result.GetDocumentDiagnostics(analysisScope.TextDocument.Id, analysisScope.Kind);
+            }
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultInProcessAsync(
@@ -325,25 +344,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 _onAnalysisException.Invoke();
                 throw;
             }
-        }
-
-        private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsInProcessAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
-        {
-            RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
-            RoslynDebug.Assert(_compilationWithAnalyzers != null);
-            RoslynDebug.Assert(_compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer) || _compilationBasedHostAnalyzersInAnalysisScope.Contains(analyzer));
-            RoslynDebug.Assert(AnalysisScope.TextDocument is Document);
-
-            var analysisScope = _compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer)
-                ? AnalysisScope.WithAnalyzers([analyzer], []).WithSpan(span)
-                : AnalysisScope.WithAnalyzers([], [analyzer]).WithSpan(span);
-            var analysisResult = await GetAnalysisResultInProcessAsync(analysisScope, cancellationToken).ConfigureAwait(false);
-            if (!analysisResult.TryGetValue(analyzer, out var result))
-            {
-                return [];
-            }
-
-            return result.GetDocumentDiagnostics(analysisScope.TextDocument.Id, analysisScope.Kind);
         }
 
         private static async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
