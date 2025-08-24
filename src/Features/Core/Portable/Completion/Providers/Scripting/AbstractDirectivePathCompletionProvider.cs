@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,17 +18,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
+internal abstract class AbstractDirectivePathCompletionProvider : LSPCompletionProvider
 {
     protected static bool IsDirectorySeparator(char ch)
          => ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
 
-    protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
+    protected abstract bool TryGetCompletionPrefix(SyntaxTree tree, int position, [NotNullWhen(true)] out string? literalValue, out TextSpan textSpan, CancellationToken cancellationToken);
 
     /// <summary>
     /// <code>r</code> for metadata reference directive, <code>load</code> for source file directive.
     /// </summary>
     protected abstract string DirectiveName { get; }
+
+    protected virtual bool RequireQuotes => true;
 
     public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
     {
@@ -38,21 +42,19 @@ internal abstract class AbstractDirectivePathCompletionProvider : CompletionProv
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!TryGetStringLiteralToken(tree, position, out var stringLiteral, cancellationToken))
+            if (!TryGetCompletionPrefix(tree, position, out var literalValue, out var textSpan, cancellationToken))
             {
                 return;
             }
 
-            var literalValue = stringLiteral.ToString();
-
             context.CompletionListSpan = GetTextChangeSpan(
-                quotedPath: literalValue,
-                quotedPathStart: stringLiteral.SpanStart,
+                path: literalValue,
+                pathStart: textSpan.Start,
                 position: position);
 
             var pathThroughLastSlash = GetPathThroughLastSlash(
-                quotedPath: literalValue,
-                quotedPathStart: stringLiteral.SpanStart,
+                possiblyQuotedPath: literalValue,
+                pathStart: textSpan.Start,
                 position: position);
 
             await ProvideCompletionsAsync(context, pathThroughLastSlash).ConfigureAwait(false);
@@ -63,72 +65,78 @@ internal abstract class AbstractDirectivePathCompletionProvider : CompletionProv
         }
     }
 
-    public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+    // TODO: CompletionUtilities.CommonTriggerCharacters from C# layer is not available here.
+    // But, these types appear to only be used in C# layer.
+    public sealed override ImmutableHashSet<char> TriggerCharacters { get; } = PathUtilities.IsUnixLikePlatform
+        ? ['.', '#', '>', ':', ' ', '/']
+        : ['.', '#', '>', ':', ' ', '/', '\\'];
+
+    public sealed override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
     {
-        var lineStart = text.Lines.GetLineFromPosition(caretPosition).Start;
+        var lineStart = text.Lines.GetLineFromPosition(insertedCharacterPosition).Start;
 
         // check if the line starts with {whitespace}#{whitespace}{DirectiveName}{whitespace}"
 
-        var poundIndex = text.IndexOfNonWhiteSpace(lineStart, caretPosition - lineStart);
+        var poundIndex = text.IndexOfNonWhiteSpace(lineStart, insertedCharacterPosition - lineStart);
         if (poundIndex == -1 || text[poundIndex] != '#')
         {
             return false;
         }
 
-        var directiveNameStartIndex = text.IndexOfNonWhiteSpace(poundIndex + 1, caretPosition - poundIndex - 1);
+        var directiveNameStartIndex = text.IndexOfNonWhiteSpace(poundIndex + 1, insertedCharacterPosition - poundIndex - 1);
         if (directiveNameStartIndex == -1 || !text.ContentEquals(directiveNameStartIndex, DirectiveName))
         {
             return false;
         }
 
-        var directiveNameEndIndex = directiveNameStartIndex + DirectiveName.Length;
-        var quoteIndex = text.IndexOfNonWhiteSpace(directiveNameEndIndex, caretPosition - directiveNameEndIndex);
-        if (quoteIndex == -1 || text[quoteIndex] != '"')
+        if (RequireQuotes)
         {
-            return false;
+            var directiveNameEndIndex = directiveNameStartIndex + DirectiveName.Length;
+            var quoteIndex = text.IndexOfNonWhiteSpace(directiveNameEndIndex, insertedCharacterPosition - directiveNameEndIndex);
+            if (quoteIndex == -1 || text[quoteIndex] != '"')
+            {
+                return false;
+            }
         }
 
         return true;
     }
 
-    private static string GetPathThroughLastSlash(string quotedPath, int quotedPathStart, int position)
+    private static string GetPathThroughLastSlash(string possiblyQuotedPath, int pathStart, int position)
     {
-        Contract.ThrowIfTrue(quotedPath[0] != '"');
-
-        const int QuoteLength = 1;
-
-        var positionInQuotedPath = position - quotedPathStart;
-        var path = quotedPath[QuoteLength..positionInQuotedPath].Trim();
+        var quoteLength = possiblyQuotedPath.StartsWith("\"") ? 1 : 0;
+        var positionInQuotedPath = position - pathStart;
+        var path = possiblyQuotedPath[quoteLength..positionInQuotedPath].Trim();
         var afterLastSlashIndex = AfterLastSlashIndex(path, path.Length);
 
         // We want the portion up to, and including the last slash if there is one.  That way if
         // the user pops up completion in the middle of a path (i.e. "C:\Win") then we'll
         // consider the path to be "C:\" and we will show appropriate completions.
-        return afterLastSlashIndex >= 0 ? path[..afterLastSlashIndex] : path;
+        return afterLastSlashIndex >= 0 ? path[..afterLastSlashIndex] : "";
     }
 
-    private static TextSpan GetTextChangeSpan(string quotedPath, int quotedPathStart, int position)
+    private static TextSpan GetTextChangeSpan(string path, int pathStart, int position)
     {
         // We want the text change to be from after the last slash to the end of the quoted
         // path. If there is no last slash, then we want it from right after the start quote
         // character.
-        var positionInQuotedPath = position - quotedPathStart;
+        var positionInQuotedPath = position - pathStart;
 
         // Where we want to start tracking is right after the slash (if we have one), or else
         // right after the string starts.
-        var afterLastSlashIndex = AfterLastSlashIndex(quotedPath, positionInQuotedPath);
-        var afterFirstQuote = 1;
+        var afterLastSlashIndex = AfterLastSlashIndex(path, positionInQuotedPath);
+        var afterFirstQuote = path.StartsWith("\"") ? 1 : 0;
 
         var startIndex = Math.Max(afterLastSlashIndex, afterFirstQuote);
-        var endIndex = quotedPath.Length;
+        var endIndex = path.Length;
 
         // If the string ends with a quote, the we do not want to consume that.
-        if (EndsWithQuote(quotedPath))
+        if (EndsWithQuote(path))
         {
             endIndex--;
         }
 
-        return TextSpan.FromBounds(startIndex + quotedPathStart, endIndex + quotedPathStart);
+        return TextSpan.FromBounds(startIndex + pathStart, endIndex + pathStart);
     }
 
     private static bool EndsWithQuote(string quotedPath)
