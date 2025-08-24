@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             CSharpCompilation compilation,
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
+            IEnumerable<ResourceEdit> resourceEdits,
             Func<ISymbol, bool> isAddedSymbol,
             Stream metadataStream,
             Stream ilStream,
@@ -36,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
             var runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
-            var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
+
+            var manifestResources = resourceEdits.SelectAsArray(e => e.Resource);
 
             if (!GetPredefinedHotReloadExceptionTypeConstructor(compilation, diagnostics, out var predefinedHotReloadExceptionConstructor))
             {
