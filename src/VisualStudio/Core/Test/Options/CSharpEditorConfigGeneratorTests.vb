@@ -220,8 +220,14 @@ csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
 # Wrapping preferences
+csharp_binary_expression_wrapping = do_not_wrap
+csharp_indent_wrapped_call_chains = false
+csharp_parameter_alignment = align_with_first
+csharp_parameter_first_placement = same_line
+csharp_parameter_wrapping = do_not_wrap
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
+csharp_wrap_call_chains = false
 
 #### Naming styles ####
 
@@ -482,8 +488,14 @@ csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
 # Wrapping preferences
+csharp_binary_expression_wrapping = do_not_wrap
+csharp_indent_wrapped_call_chains = false
+csharp_parameter_alignment = align_with_first
+csharp_parameter_first_placement = same_line
+csharp_parameter_wrapping = do_not_wrap
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
+csharp_wrap_call_chains = false
 
 #### Naming styles ####
 
