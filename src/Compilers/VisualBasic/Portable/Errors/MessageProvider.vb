@@ -481,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ERR_MethodImplAttributeAsyncCannotBeUsed As Integer
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed
             End Get
         End Property
 

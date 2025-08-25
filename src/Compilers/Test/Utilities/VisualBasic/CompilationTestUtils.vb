@@ -880,8 +880,29 @@ Friend Module CompilationUtils
     Private Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), expectedText As String, suppressInfos As Boolean)
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
+
             Dim messages = ParserTestUtilities.PooledStringBuilderPool.Allocate()
             With messages.Builder
+                .AppendLine()
+
+                ' Dump the expected and actual text including control characters.
+                .AppendLine("EXPECTED:")
+                For Each c In expectedText
+                    If Char.IsControl(c) Then
+                        .AppendFormat("\u{0:X4}", AscW(c))
+                    Else
+                        .Append(c)
+                    End If
+                Next
+                .AppendLine()
+                .AppendLine("ACTUAL:")
+                For Each c In actualText
+                    If Char.IsControl(c) Then
+                        .AppendFormat("\u{0:X4}", AscW(c))
+                    Else
+                        .Append(c)
+                    End If
+                Next
                 .AppendLine()
 
                 If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
@@ -898,6 +919,10 @@ Friend Module CompilationUtils
                     .AppendLine("MISSING ERROR MESSAGES:")
                     For Each l In expectedLines
                         If Not actualLines.Contains(l) Then
+                            ' Print all characters as integer to make it easier to see differences
+                            For Each c In l
+                                .AppendFormat("\u{0:X4}", AscW(c))
+                            Next
                             .AppendLine(l)
                             appendedLines += 1
                         End If
@@ -906,6 +931,9 @@ Friend Module CompilationUtils
                     .AppendLine("UNEXPECTED ERROR MESSAGES:")
                     For Each l In actualLines
                         If Not expectedLines.Contains(l) Then
+                            For Each c In l
+                                .AppendFormat("\u{0:X4}", AscW(c))
+                            Next
                             .AppendLine(l)
                             appendedLines += 1
                         End If
