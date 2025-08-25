@@ -1459,12 +1459,12 @@ End Class
                             g.VerifyFieldDefNames("Code")
                             g.VerifyMethodDefNames("add_E", "remove_E", "raise_E", ".ctor")
                             g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+                            g.VerifyEventDefNames("E")
 
-                            ' We should update the Event table entry to indicate that the event has been deleted:
-                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
                             g.VerifyEncLogDefinitions(
                             {
                                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                                 Row(1, TableIndex.Field, EditAndContinueOperation.Default),
                                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -2263,11 +2263,13 @@ End Module</file>
         <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
         Public Sub Property_TypeChange()
+            Dim common = "
+Imports System
+" & MetadataUpdateDeletedAttributeSource
+
             Using New EditAndContinueTest().
                 AddBaseline(
-                    source:="
-Imports System
-
+                    source:=common & "
 Class C
     Property P As Action(Of Integer)
         Get
@@ -2282,14 +2284,12 @@ End Class
 ",
                     validator:=
                         Sub(g)
-                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyTypeDefNames("<Module>", "MetadataUpdateDeletedAttribute", "C")
                             g.VerifyFieldDefNames()
-                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                            g.VerifyMethodDefNames(".ctor", ".ctor", "get_P", "set_P")
                         End Sub).
                 AddGeneration(' 1
-                    source:="
-Imports System
-
+                    source:=common & "
 Class C
     Property P As Action(Of Boolean)
         Get
@@ -2319,33 +2319,39 @@ End Class
                             ' old accessors are updated to throw, new accessors are added:
                             g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P", ".ctor")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+                            g.VerifyPropertyDefNames("P", "P")
+
+                            g.VerifyCustomAttributes(
+                                "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.P",
+                                "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.get_P",
+                                "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.set_P")
 
                             ' New property is added to the Property table associated with the new accessors.
                             ' Properties can be overloaded on name and signature, so we need to insert a new entry for the new signature.
-                            '
-                            ' We keep the existing entry as is, which is not ideal since reflection now returns both the old and the new properties rather than just the new one.
-                            ' Consider updating the existing Property table entry to change the property name to _deleted.
-                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
                             g.VerifyEncLogDefinitions(
                             {
                                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),         ' HotReloadException
-                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                                Row(1, TableIndex.Field, EditAndContinueOperation.Default),           ' HotReloadException.Code
-                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' Action<int> get_P                      
-                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' set_P(Action<int>)                     
-                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' Action<bool> get_P                     
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' set_P(Action<bool>)                    
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' HotReloadException..ctor
-                                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty), ' Action<bool> P                         
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                                 Row(2, TableIndex.Property, EditAndContinueOperation.Default),
-                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                                 Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<bool> P <-> Action<bool> get_P  
-                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<bool> P <-> set_P(Action<bool>) 
+                                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                             })
 
                             g.VerifyIL("
@@ -2355,7 +2361,7 @@ get_P, set_P
   .maxstack  8
   IL_0000:  ldstr      0x70000005
   IL_0005:  ldc.i4.s   -2
-  IL_0007:  newobj     0x06000006
+  IL_0007:  newobj     0x06000007
   IL_000c:  throw
 }
 get_P
@@ -2364,7 +2370,7 @@ get_P
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldc.i4.s   10
-  IL_0003:  call       0x0A000006
+  IL_0003:  call       0x0A000008
   IL_0008:  nop
   IL_0009:  ldnull
   IL_000a:  stloc.0
@@ -2378,7 +2384,7 @@ set_P
   .maxstack  8
   IL_0000:  nop
   IL_0001:  ldc.i4.s   20
-  IL_0003:  call       0x0A000006
+  IL_0003:  call       0x0A000008
   IL_0008:  nop
   IL_0009:  ret
 }
@@ -2388,7 +2394,7 @@ set_P
   .maxstack  8
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       0x0A000007
+  IL_0002:  call       0x0A000009
   IL_0007:  ldarg.0
   IL_0008:  ldarg.2
   IL_0009:  stfld      0x04000001
@@ -2396,9 +2402,7 @@ set_P
 }")
                         End Sub).
                 AddGeneration(' 2
-                    source:="
-Imports System
-
+                    source:=common & "
 Class C
     Property P As Action(Of Integer)
         Get
@@ -2428,20 +2432,33 @@ End Class
                             ' old accessors are updated to throw, new accessors are added:
                             g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+                            g.VerifyPropertyDefNames("P", "P")
+
+                            g.VerifyCustomAttributes(
+                                "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.P",
+                                "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.get_P",
+                                "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.set_P")
 
                             ' Changing the signature back updates the the original property and accessors.
                             ' No new property/method is added.
                             g.VerifyEncLogDefinitions(
                             {
                                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<bool> get_P
-                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<bool>)
-                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<int> get_P
-                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<int>)
-                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),  ' Action<int> P
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                                 Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<int> P <-> Action<int> get_P
-                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<int> P <-> set_P(Action<int>)
+                                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                             })
 
                             g.VerifyIL("
@@ -2451,7 +2468,7 @@ get_P
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldc.i4.s   100
-  IL_0003:  call       0x0A000008
+  IL_0003:  call       0x0A00000A
   IL_0008:  nop
   IL_0009:  ldnull
   IL_000a:  stloc.0
@@ -2465,7 +2482,7 @@ set_P
   .maxstack  8
   IL_0000:  nop
   IL_0001:  ldc.i4     0xc8
-  IL_0006:  call       0x0A000008
+  IL_0006:  call       0x0A00000A
   IL_000b:  nop
   IL_000c:  ret
 }
@@ -2475,7 +2492,7 @@ get_P, set_P
   .maxstack  8
   IL_0000:  ldstr      0x70000151
   IL_0005:  ldc.i4.s   -2
-  IL_0007:  newobj     0x06000006
+  IL_0007:  newobj     0x06000007
   IL_000c:  throw
 }
 ")
@@ -2528,6 +2545,7 @@ End Class
                             ' deleted getter is updated to throw:
                             g.VerifyMethodDefNames("get_P", "set_P", ".ctor")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+                            g.VerifyPropertyDefNames("P")
 
                             g.VerifyEncLogDefinitions(
                             {
@@ -2537,7 +2555,8 @@ End Class
                                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Property, EditAndContinueOperation.Default)
                             })
 
                             g.VerifyIL("
@@ -7427,11 +7446,13 @@ End Class
 
         <Fact>
         Public Sub Method_Delete()
+            Dim common = "
+Imports System.ComponentModel
+" & MetadataUpdateDeletedAttributeSource
+
             Using New EditAndContinueTest().
                 AddBaseline(
-                    source:="
-Imports System.ComponentModel
-
+                    source:=common & "
 Class C
     <Description(""C.M"")>
     Function M(c as C) As C
@@ -7440,9 +7461,7 @@ Class C
 End Class
 ").
                 AddGeneration(
-                    source:="
-Imports System.ComponentModel
-
+                    source:=common & "
 Class C
 End Class",
                     edits:={Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), newSymbolProvider:=Function(c) c.GetMember("C"))},
@@ -7451,22 +7470,27 @@ End Class",
                         v.VerifyTypeDefNames("HotReloadException")
                         v.VerifyMethodDefNames("M", ".ctor")
 
+                        v.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.M")
+
                         v.VerifyEncLogDefinitions(
                         {
-                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(1, TableIndex.Field, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         })
 
                         v.VerifyEncMapDefinitions(
                         {
-                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
                             Handle(1, TableIndex.Field),
-                            Handle(2, TableIndex.MethodDef),
-                            Handle(3, TableIndex.MethodDef)
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute)
                         })
                     End Sub).
                 Verify()

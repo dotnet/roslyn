@@ -2117,12 +2117,6 @@ namespace Microsoft.Cci
         {
             foreach (var parent in parentList)
             {
-                if (parent.IsEncDeleted)
-                {
-                    // Custom attributes are not needed for EnC definition deletes
-                    continue;
-                }
-
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
@@ -2652,6 +2646,12 @@ namespace Microsoft.Cci
 
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
+                // do not emit MethodSemantics entries for deleted properties - the existing ones do not need updating
+                if (propertyDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetPropertyDefIndex(propertyDef);
                 foreach (IMethodReference accessorMethod in propertyDef.GetAccessors(Context))
                 {
@@ -2678,6 +2678,12 @@ namespace Microsoft.Cci
 
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
+                // do not emit MethodSemantics entries for deleted events - the existing ones do not need updating
+                if (eventDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetEventDefinitionHandle(eventDef);
                 foreach (IMethodReference accessorMethod in eventDef.GetAccessors(Context))
                 {

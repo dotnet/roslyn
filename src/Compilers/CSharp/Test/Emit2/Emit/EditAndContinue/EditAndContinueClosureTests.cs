@@ -4965,6 +4965,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5071,6 +5072,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5218,6 +5220,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5582,6 +5585,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class B(Func<int> f);
@@ -5681,6 +5685,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     <N:0>
                     using System;
@@ -5808,6 +5813,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5945,6 +5951,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -6048,6 +6055,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C(int x)
@@ -6157,6 +6165,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C(int x)
@@ -6691,6 +6700,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -7022,6 +7032,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -7431,6 +7442,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -7631,6 +7643,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -7779,6 +7792,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
 
@@ -7973,6 +7987,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -8101,6 +8116,7 @@ class C
                             "C.<>c__DisplayClass1_1: {z, CS$<>8__locals1, <F>b__1}");
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -8532,6 +8548,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -8738,6 +8755,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -8907,6 +8925,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9115,6 +9134,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9364,6 +9384,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9584,6 +9605,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9720,6 +9742,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9947,6 +9970,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C

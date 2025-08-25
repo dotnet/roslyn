@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     internal sealed class DeletedSourceParameterDefinition : DeletedSourceDefinition<IParameterDefinition>, IParameterDefinition
     {
         public DeletedSourceParameterDefinition(IParameterDefinition oldParameter, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
-            : base(oldParameter, typesUsedByDeletedMembers)
+            : base(oldParameter, typesUsedByDeletedMembers, deletedAttribute: null)
         {
         }
 

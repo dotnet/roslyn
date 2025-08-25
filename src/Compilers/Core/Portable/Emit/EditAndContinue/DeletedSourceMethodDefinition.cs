@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.Cci;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
@@ -18,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         private readonly ImmutableArray<DeletedSourceParameterDefinition> _parameters;
         private readonly DeletedMethodBody _body;
 
-        public DeletedSourceMethodDefinition(IMethodDefinition oldMethod, MethodDefinitionHandle handle, ImmutableArray<byte> bodyIL, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
-            : base(oldMethod, typesUsedByDeletedMembers)
+        public DeletedSourceMethodDefinition(IMethodDefinition oldMethod, MethodDefinitionHandle handle, ImmutableArray<byte> bodyIL, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers, ICustomAttribute? deletedAttribute)
+            : base(oldMethod, typesUsedByDeletedMembers, deletedAttribute)
         {
             _handle = handle;
             _parameters = WrapParameters(oldMethod.Parameters);
