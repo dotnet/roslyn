@@ -113,9 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Infer return type. If `nullableState` is non-null, nullability is also inferred and `NullableWalker.Analyze`
         /// uses that state to set the inferred nullability of variables in the enclosing scope. `conversions` is
         /// only needed when nullability is inferred.
+        ///
+        /// If 'getterNullResilienceData' is non-null, it is propagated down to the child analysis pass,
+        /// so that it does not attempt to infer the field's nullable annotation, while a parent pass is also attempting to infer that.
         /// </summary>
         public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
         {
+            // Cannot pass 'getterNullResilienceData' without also passing 'nullableState'.
+            Debug.Assert(getterNullResilienceData is null || nullableState is not null);
+
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
                 useSiteInfo.AddDiagnostics(InferredReturnType.UseSiteDiagnostics);

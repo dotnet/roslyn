@@ -43,6 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Additional info for getter null resilience analysis.
+        /// When this value is passed down through 'Analyze()', it means we are in the process of inferring the nullable annotation of 'field'.
+        /// The 'assumedAnnotation' should be used as the field's nullable annotation for this analysis pass.
+        /// See https://github.com/dotnet/csharplang/blob/229406aa6dc51c1e37b98e90eb868d979ec6d195/proposals/csharp-14.0/field-keyword.md#nullability-of-the-backing-field
+        /// </summary>
+        /// <param name="assumedAnnotation">Indicates whether the *not-annotated* pass or the *annotated* pass is being performed.</param>
         internal readonly struct GetterNullResilienceData(SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)
         {
             public readonly SynthesizedBackingFieldSymbol field = field;
