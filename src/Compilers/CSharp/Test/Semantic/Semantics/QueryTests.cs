@@ -4739,5 +4739,52 @@ Console.WriteLine(string.Join(string.Empty, test));
                 //     select r.V.F++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "r.V.F").WithArguments("field", "V").WithLocation(6, 12));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+        public void PropertyAccess_Instance()
+        {
+            var code = """
+                using System.Linq;
+
+                var f = new F();
+                var r = from string s in f.M from string s2 in f.M2 select s.ToString();
+                foreach (var x in r)
+                {
+                    System.Console.Write(x.ToString());
+                }
+
+                public class F
+                {
+                    public object[] M => ["ran"];
+                    public object[] M2 => [""];
+                }
+                """;
+
+            var comp = CreateCompilation(code);
+            CompileAndVerify(code, expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+        public void PropertyAccess_Static()
+        {
+            var code = """
+                using System.Linq;
+
+                var r = from string s in F.M from string s2 in F.M2 select s.ToString();
+                foreach (var x in r)
+                {
+                    System.Console.Write(x.ToString());
+                }
+
+                public static class F
+                {
+                    public static object[] M => ["ran"];
+                    public static object[] M2 => [""];
+                }
+                """;
+
+            var comp = CreateCompilation(code);
+            CompileAndVerify(code, expectedOutput: "ran").VerifyDiagnostics();
+        }
     }
 }

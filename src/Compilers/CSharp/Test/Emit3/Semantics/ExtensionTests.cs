@@ -17616,8 +17616,8 @@ public class C
             Diagnostic(ErrorCode.ERR_BadDynamicQuery, "where i is not null").WithLocation(2, 9));
     }
 
-    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/78968 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
-    public void ResolveAll_Query_Cast()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+    public void ResolveAll_Query_Cast_StaticProperty()
     {
         var source = """
 using System.Linq;
@@ -17643,10 +17643,48 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Object[] E.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }",
+            model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.Object[] E.M2", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }",
+            model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+    public void ResolveAll_Query_Cast_InstanceProperty()
+    {
+        var source = """
+using System.Linq;
+
+var o = new object();
+var r = from string s in o.M from string s2 in o.M2 select s.ToString();
+foreach (var x in r)
+{
+    System.Console.Write(x.ToString());
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public object[] M => ["ran"];
+        public object[] M2 => [""];
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M");
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }",
+            model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M2");
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }",
+            model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
