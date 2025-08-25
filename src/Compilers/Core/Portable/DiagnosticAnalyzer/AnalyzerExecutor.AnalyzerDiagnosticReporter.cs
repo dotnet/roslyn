@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,54 +26,66 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 new ObjectPool<AnalyzerDiagnosticReporter>(() => new AnalyzerDiagnosticReporter(), 10);
 
             public static AnalyzerDiagnosticReporter GetInstance(
-                SourceOrAdditionalFile contextFile,
+                DiagnosticReporterKind kind,
+                SourceOrAdditionalFile? contextFile,
                 TextSpan? span,
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
-                bool isSyntaxDiagnostic,
                 Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
                 Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
                 Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
                 Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
+                ISymbol? contextSymbol,
+                ImmutableArray<SyntaxReference> cachedDeclaringReferences,
+                Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode>? getTopMostNodeForAnalysis,
                 CancellationToken cancellationToken)
             {
                 var item = s_objectPool.Allocate();
+                item._kind = kind;
                 item._contextFile = contextFile;
                 item.FilterSpanForLocalDiagnostics = span;
                 item._compilation = compilation;
                 item._analyzer = analyzer;
-                item._isSyntaxDiagnostic = isSyntaxDiagnostic;
                 item._addNonCategorizedDiagnostic = addNonCategorizedDiagnostic;
                 item._addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
                 item._addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
                 item._shouldSuppressGeneratedCodeDiagnostic = shouldSuppressGeneratedCodeDiagnostic;
+                item._contextSymbol = contextSymbol;
+                item._cachedDeclaringReferences = cachedDeclaringReferences;
+                item._getTopMostNodeForAnalysis = getTopMostNodeForAnalysis;
                 item._cancellationToken = cancellationToken;
                 return item;
             }
 
             public void Free()
             {
+                _kind = default;
                 _contextFile = null!;
                 FilterSpanForLocalDiagnostics = null;
                 _compilation = null!;
                 _analyzer = null!;
-                _isSyntaxDiagnostic = default;
                 _addNonCategorizedDiagnostic = null!;
                 _addCategorizedLocalDiagnostic = null!;
                 _addCategorizedNonLocalDiagnostic = null!;
                 _shouldSuppressGeneratedCodeDiagnostic = null!;
+                _cachedDeclaringReferences = default;
+                _contextSymbol = null;
+                _getTopMostNodeForAnalysis = null;
                 _cancellationToken = default;
                 s_objectPool.Free(this);
             }
 
+            private DiagnosticReporterKind _kind;
             private SourceOrAdditionalFile? _contextFile;
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
-            private bool _isSyntaxDiagnostic;
             private Action<Diagnostic, CancellationToken>? _addNonCategorizedDiagnostic;
             private Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? _addCategorizedLocalDiagnostic;
             private Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? _addCategorizedNonLocalDiagnostic;
             private Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
+            private ISymbol? _contextSymbol;
+            private ImmutableArray<SyntaxReference> _cachedDeclaringReferences;
+            private Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode>? _getTopMostNodeForAnalysis;
             private CancellationToken _cancellationToken;
 
             /// <summary>
@@ -106,13 +119,62 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
+                switch (_kind)
+                {
+                    case DiagnosticReporterKind.Compilation:
+                        AddCompilationDiagnostic(diagnostic);
+                        break;
+                    case DiagnosticReporterKind.Semantic:
+                    case DiagnosticReporterKind.Syntax:
+                        AddSyntaxOrSemanticDiagnostic(diagnostic);
+                        break;
+                    case DiagnosticReporterKind.Symbol:
+                        AddSymbolDiagnostic(diagnostic);
+                        break;
+                }
+            }
+
+            private void AddSymbolDiagnostic(Diagnostic diagnostic)
+            {
+                Debug.Assert(_addNonCategorizedDiagnostic == null);
+                Debug.Assert(_addCategorizedNonLocalDiagnostic != null);
+
+                if (diagnostic.Location.IsInSource)
+                {
+                    foreach (var syntaxRef in _cachedDeclaringReferences)
+                    {
+                        if (syntaxRef.SyntaxTree == diagnostic.Location.SourceTree)
+                        {
+                            var syntax = _getTopMostNodeForAnalysis!(_contextSymbol!, syntaxRef, _compilation!, _cancellationToken);
+                            if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
+                            {
+                                _addCategorizedLocalDiagnostic!(diagnostic, _analyzer!, false, _cancellationToken);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer!, _cancellationToken);
+            }
+
+            private void AddCompilationDiagnostic(Diagnostic diagnostic)
+            {
+                Debug.Assert(_addCategorizedNonLocalDiagnostic != null);
+
+                _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer!, _cancellationToken);
+            }
+
+            private void AddSyntaxOrSemanticDiagnostic(Diagnostic diagnostic)
+            {
                 Debug.Assert(_addNonCategorizedDiagnostic == null);
                 Debug.Assert(_addCategorizedNonLocalDiagnostic != null);
 
                 if (isLocalDiagnostic(diagnostic) &&
                     (!FilterSpanForLocalDiagnostics.HasValue || FilterSpanForLocalDiagnostics.Value.IntersectsWith(diagnostic.Location.SourceSpan)))
                 {
-                    _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _isSyntaxDiagnostic, _cancellationToken);
+                    var isSyntaxDiagnostic = _kind == DiagnosticReporterKind.Syntax;
+                    _addCategorizedLocalDiagnostic!(diagnostic, _analyzer, isSyntaxDiagnostic, _cancellationToken);
                 }
                 else
                 {
@@ -137,6 +199,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return false;
                 }
+            }
+
+            public enum DiagnosticReporterKind
+            {
+                Compilation,
+                Semantic,
+                Symbol,
+                Syntax,
             }
         }
     }
