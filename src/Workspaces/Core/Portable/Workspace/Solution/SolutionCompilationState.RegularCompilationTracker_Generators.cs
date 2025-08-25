@@ -439,7 +439,7 @@ internal sealed partial class SolutionCompilationState
 
                 // If we get here we expect to be in CreateOnlyRequired. Throw to ensure we catch if someone adds a new state
                 Contract.ThrowIfFalse(creationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired);
-                
+
                 // We want to only run required generators, but it's also possible that there are generators that 
                 // have never been run (for instance, an AddGenerator operation might have occurred between runs).
                 // Our model is that it's acceptable for documents to be slightly out of date, but it is
