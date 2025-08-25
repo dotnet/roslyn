@@ -8,20 +8,6 @@ compiled with runtime async or not.
 
 ## Supporting runtime apis
 
-We use the following runtime flag to drive whether feature can be used. This flag must be defined in the same assembly that defines `object`, and the assembly cannot reference any other assemblies. In terms of
-CoreFX, this means it must be defined in the `System.Runtime` reference assembly.
-
-TODO: Determine whether just the presence of this flag will cause the compiler to generate in runtime async mode.
-
-```cs
-namespace System.Runtime.CompilerServices;
-
-public static class RuntimeFeature
-{
-    public const string Async = nameof(Async);
-}
-```
-
 We use the following helper APIs to indicate suspension points to the runtime, in addition to the runtime async call syntax:
 
 ```cs
@@ -29,7 +15,7 @@ namespace System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices;
 
-    [System.Diagnostics.CodeAnalysis.ExperimentalAttribute("SYSLIB5007", UrlFormat = "https://aka.ms/dotnet-warnings/{0}")]
+[System.Diagnostics.CodeAnalysis.ExperimentalAttribute("SYSLIB5007", UrlFormat = "https://aka.ms/dotnet-warnings/{0}")]
 public static partial class AsyncHelpers
 {
     public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion { }
@@ -46,9 +32,11 @@ public static partial class AsyncHelpers
     public static T Await<T>(System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable<T> configuredAwaitable) { }
 }
 ```
+The presence of these also drive whether the feature can be used. These APIs must be defined in the same assembly that defines `object`, and the assembly cannot reference any other assemblies. In terms of
+CoreFX, this means it must be defined in the `System.Runtime` reference assembly.
 
-We presume the following `MethodImplOptions` bit is present. This is used to indicate to the JIT that it should generate an async state machine for the method. This bit is not allowed to be used manually on any method; it is added by the compiler
-to an `async` method.
+We presume the following `MethodImplOptions` bit is present when `AsyncHelpers` is defined. This is used to indicate to the JIT that it should generate an async state machine for the method. This bit is not allowed
+to be used manually on any method; it is added by the compiler to an `async` method.
 
 TODO: We may want to block directly calling `MethodImplOptions.Async` methods with non-`Task`/`ValueTask` return types.
 
@@ -76,8 +64,6 @@ public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribut
 As mentioned previously, we try to expose as little of this to initial binding as possible. The one major exception to this is our handling of the `MethodImplOption.Async`; we do not let this be applied to
 user code, and will issue an error if a user tries to do this by hand.
 
-TODO: We may need special handling for the implementation of the `AsyncHelpers.Await` methods in corelib to permit usage of `MethodImplOptions.Async` directly, as they will not be `async` as we think of it in C#.
-
 Compiler generated async state machines and runtime generated async share some of the same building blocks. Both need to have `await`s with in `catch` and `finally` blocks rewritten to pend the exceptions,
 perform the `await` outside of the `catch`/`finally` region, and then have the exceptions restored as necessary.
 
@@ -104,7 +90,7 @@ async Task M()
 ```
 
 ```cs
-[MethodImpl(MethodImplOptions.Async), Experimental]
+[MethodImpl(MethodImplOptions.Async)]
 Task M()
 {
   // ... see lowering strategy for each kind of await below ...
@@ -115,8 +101,6 @@ The same holds for methods that return `Task<T>`, `ValueTask`, and `ValueTask<T>
 
 `await`s within the body will either be transformed to Runtime-Async call format (as detailed in the runtime specification), or we will use one of the `AsyncHelpers` methods to do the `await`. Specifics
 for given scenarios are elaborated in more detail below.
-
-`Experimental` will be removed when the full feature is ready to ship, likely not before .NET 11.
 
 TODO: Async iterators (returning `IAsyncEnumerable<T>`)
 
