@@ -50,10 +50,7 @@ internal sealed partial class BraceCompletionSessionProvider(
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        // If we are running under a debugger, we want to disable the responsive completion feature.
-        // Debugging slows down VS a large amount, and it means that validating actual brace completion
-        // scenarios becomes very challenging.
-        var responsiveCompletion = !Debugger.IsAttached && textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
+        var responsiveCompletion = textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
         var cancellationToken = GetCancellationToken(responsiveCompletion);
         try
         {
@@ -96,6 +93,12 @@ internal sealed partial class BraceCompletionSessionProvider(
     private static CancellationToken GetCancellationToken(bool responsiveCompletion)
     {
         if (!responsiveCompletion)
+            return CancellationToken.None;
+
+        // If we are running under a debugger, we want to disable the responsive completion feature.
+        // Debugging slows down VS a large amount, and it means that validating actual brace completion
+        // scenarios becomes very challenging.
+        if (Debugger.IsAttached)
             return CancellationToken.None;
 
         // Brace completion is cancellable if the user has the 'responsive completion' option enabled. 200 ms was
