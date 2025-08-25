@@ -1880,14 +1880,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 implementingMethod,
                                 diagnostics,
                                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
-                                {
-                                    diagnostics.Add(
-                                        SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
-                                            ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
-                                            ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                        GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
-                                        new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
-                                },
+                                    {
+                                        diagnostics.Add(
+                                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
+                                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                                ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                            GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                            new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                                    },
                                 (implementingType, isExplicit),
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
