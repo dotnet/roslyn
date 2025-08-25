@@ -72,6 +72,11 @@
         <target state="translated">Значение типа "System.Threading.Lock" не поддерживается в SyncLock. Попробуйте вручную вызвать методы "Enter" и "Exit" в блоке Try/Finally.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">В одном каталоге ("{0}") не может находиться несколько файлов конфигурации анализатора.</target>

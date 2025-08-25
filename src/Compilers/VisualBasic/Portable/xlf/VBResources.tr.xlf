@@ -72,6 +72,11 @@
         <target state="translated">SyncLock'ta 'System.Threading.Lock' türünde bir değer desteklenmiyor. Bunun yerine Try/Finally bloğunda 'Enter' ve 'Exit' yöntemlerini el ile çağırmayı düşünün.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Birden çok çözümleyici yapılandırma dosyası aynı dizinde ('{0}') olamaz.</target>

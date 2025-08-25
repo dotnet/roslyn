@@ -9600,7 +9600,6 @@ class Test1
             );
         }
 
-
         [Fact]
         public void MethodImplOptionsAsyncIsBlocked()
         {
@@ -9627,6 +9626,12 @@ class Test1
                     {
                         throw null;
                     }
+
+                    [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                    public static void M4()
+                    {
+                        throw null;
+                    }
                 }
                 """;
 
@@ -9642,7 +9647,10 @@ class Test1
                 Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(18, 6),
                 // (19,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async Task M3()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M3").WithLocation(19, 30)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M3").WithLocation(19, 30),
+                // (24,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)").WithLocation(24, 6)
             ];
 
             // With runtime async enabled
