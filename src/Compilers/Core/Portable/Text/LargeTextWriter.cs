@@ -33,12 +33,6 @@ namespace Microsoft.CodeAnalysis.Text
             return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
         }
 
-        // https://github.com/dotnet/roslyn/issues/40830
-        public override Encoding Encoding
-        {
-            get { return _encoding!; }
-        }
-
         public bool CanFitInAllocatedBuffer(int chars)
         {
             return _buffer != null && chars <= (_buffer.Length - _currentUsed);
