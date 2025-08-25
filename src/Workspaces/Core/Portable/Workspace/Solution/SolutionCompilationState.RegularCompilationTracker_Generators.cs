@@ -468,7 +468,10 @@ internal sealed partial class SolutionCompilationState
 
                 // For now, we hard code the required generator list to Razor.
                 // In the future we might want to expand this to e.g. run any generators with open generated files
-                return context.Generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
+                //return context.Generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
+
+                // See if its razor running, or that we're calling into generators more that is causing the regressions
+                return false;
             }
         }
     }
