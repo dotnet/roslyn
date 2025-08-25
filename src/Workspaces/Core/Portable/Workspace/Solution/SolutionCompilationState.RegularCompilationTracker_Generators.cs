@@ -443,7 +443,7 @@ internal sealed partial class SolutionCompilationState
                 // We want to only run required generators, but it's also possible that there are generators that 
                 // have never been run (for instance, an AddGenerator operation might have occurred between runs).
                 // Our model is that it's acceptable for documents to be slightly out of date, but it is
-                // fundamentally incorrect to have *no* documents for a generator that could be producing them. 
+                // fundamentally incorrect to have *no* documents for a generator that could be producing them.
 
                 // If there was no prior run result, then we can't have any documents for this generator, so we
                 // need to re-run it.
