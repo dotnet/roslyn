@@ -69,6 +69,7 @@
   <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CommandLineCompilerReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
     <PropertyGroup>
       <_CommandLineCompilerReferenceOutputPath>@(CommandLineCompilerReference->'%(RootDir)%(Directory)*.*')</_CommandLineCompilerReferenceOutputPath>
+      <_LinkPrefix Condition="'$(TargetFramework)' != 'net472'">bincore\</_LinkPrefix>
     </PropertyGroup>
     <ItemGroup>
       <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
@@ -78,7 +79,7 @@
       <Output TaskParameter="Filtered" ItemName="_CommandLineCompilerReferenceDeduplicated" />
     </RemoveDuplicates>
     <ItemGroup>
-      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" Link="$(_LinkPrefix)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 </Project>

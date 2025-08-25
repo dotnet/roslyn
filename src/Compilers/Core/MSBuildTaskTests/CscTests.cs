@@ -565,6 +565,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 BuildEngine = engine,
                 Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                UseDotNetHost = true,
             };
 
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.exe", "test.cs");
@@ -578,7 +579,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 BuildEngine = engine,
                 Sources = MSBuildUtil.CreateTaskItems("test.cs", "blah.cs"),
-                TargetType = "library"
+                TargetType = "library",
+                UseDotNetHost = true,
             };
 
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
@@ -620,6 +622,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     Sources = MSBuildUtil.CreateTaskItems("test.cs"),
                     TargetType = "library",
                     References = [SimpleTaskItem.CreateReference(refText, alias: alias, embedInteropTypes)],
+                    UseDotNetHost = true,
                 };
 
                 TaskTestUtil.AssertCommandLine(csc, engine, [.. expectedArgs, "/out:test.dll", "/target:library", "test.cs"]);

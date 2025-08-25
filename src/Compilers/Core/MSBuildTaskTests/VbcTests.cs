@@ -536,6 +536,7 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             {
                 BuildEngine = engine,
                 Sources = MSBuildUtil.CreateTaskItems("test.vb"),
+                UseDotNetHost = true,
             };
 
             TaskTestUtil.AssertCommandLine(vbc, engine, "/optionstrict:custom", "/out:test.exe", "test.vb");
@@ -549,7 +550,8 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             {
                 BuildEngine = engine,
                 Sources = MSBuildUtil.CreateTaskItems("test.vb", "blah.vb"),
-                TargetType = "library"
+                TargetType = "library",
+                UseDotNetHost = true,
             };
 
             TaskTestUtil.AssertCommandLine(vbc, engine, "/optionstrict:custom", "/out:test.dll", "/target:library", "test.vb", "blah.vb");
