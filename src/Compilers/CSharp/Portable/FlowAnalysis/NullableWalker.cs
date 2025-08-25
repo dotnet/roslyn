@@ -8367,6 +8367,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (TMember)(object)definition.ConstructIncludingExtension(result.InferredTypeArguments);
         }
 
+        /// <remarks>
+        /// <para>This type assists with nullable reinference of generic types used in expressions.</para>
+        ///
+        /// <para>
+        /// "Type argument inference" is the step we do during initial binding,
+        /// when producing the bound tree used as input to nullable analysis, lowering, and a bunch of other steps.
+        /// This inference is flow-independent, so, an expression used at any point in a method,
+        /// would get the same type arguments for the calls in it, assuming the stuff the expression is using is still in scope.
+        /// </para>
+        ///
+        /// <para>
+        /// "Reinference" is done during nullable analysis, in order to enrich the results of
+        /// the initial type argument inference, based on the flow state of expressions at the particular point of usage.
+        /// </para>
+        ///
+        /// <para>What it comes down to is scenarios like the following:</para>
+        ///
+        /// <code>
+        /// var str = GetStringOrNull();
+        ///
+        /// var arr1 = ImmutableArray.Create(str);
+        /// arr1[0].ToString(); // warning: possible null dereference
+        ///
+        /// if (str == null)
+        ///     return;
+        ///
+        /// var arr2 = ImmutableArray.Create(str);
+        /// arr2[0].ToString(); // ok
+        /// </code>
+        ///
+        /// <para>
+        /// For both calls to ImmutableArray.Create, initial binding will do a flow-independent type argument inference,
+        /// and both will receive type argument `string?` (or maybe 'oblivious' string, I don't recall which.) TODO2 FIX
+        /// </para>
+        ///
+        /// <para>
+        /// During nullable analysis, we will do a reinference of the call. The first call will get type argument `string?`.
+        /// The second call will get type argument `string` (non-nullable), based on the flow state of `str` at that point.
+        /// That needs to propagate to the next points in the control flow and be surfaced in public API for the types of the expressions and so on.
+        /// </para>
+        ///
+        /// <para>
+        /// Reinference needs to be done on pretty much any expression which can represent a usage of either a generic method or a member of a generic type.
+        /// That ends up including calls (obviously) but also things like binary/unary operators, compound assignments, foreach statements, await-exprs, collection expression elements and so on.
+        /// </para>
+        /// </remarks>
         private sealed class MethodInferenceExtensions : MethodTypeInferrer.Extensions
         {
             private readonly NullableWalker _walker;
