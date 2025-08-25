@@ -4408,9 +4408,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Symbol? getTargetMember(TypeSymbol containingType, BoundObjectInitializerMember objectInitializer)
             {
-                var symbol = objectInitializer.MemberSymbol;
-                if (symbol == null)
-                    return null;
+                var symbol = objectInitializer.MemberSymbol!;
+                // if (symbol == null)
+                //     return null;
 
                 if (!symbol.GetIsNewExtensionMember())
                 {
