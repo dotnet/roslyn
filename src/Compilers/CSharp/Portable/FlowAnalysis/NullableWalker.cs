@@ -4421,7 +4421,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var extension = symbol.OriginalDefinition.ContainingType;
                 if (extension.Arity == 0)
                 {
-                    // reinference not needed for non-generic extension
                     return symbol;
                 }
 
