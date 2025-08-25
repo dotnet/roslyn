@@ -62,6 +62,7 @@ internal static class PRFinderCommand
             VerbosityOption,
             RepoPathOption,
             LabelsOption,
+            GitHubTokenOption,
         };
         prFinderCommand.Action = s_prFinderCommandHandler;
         return prFinderCommand;
