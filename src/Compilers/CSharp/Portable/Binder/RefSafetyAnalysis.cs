@@ -1121,6 +1121,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using var _ = new PlaceholderRegion(this, placeholders);
 
+            if (offset == 0)
+            {
+                Visit(methodInvocationInfo.Receiver);
+            }
+            else
+            {
+                Debug.Assert(offset == 1);
+                Debug.Assert(methodInvocationInfo.Receiver is null);
+                Visit(methodInvocationInfo.ArgsOpt[0]);
+            }
+
             CheckInvocationArgMixing(
                 syntax,
                 in methodInvocationInfo,
