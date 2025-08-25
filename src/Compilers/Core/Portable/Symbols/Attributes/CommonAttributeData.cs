@@ -425,6 +425,15 @@ namespace Microsoft.CodeAnalysis
                     messageProvider.ReportInvalidAttributeArgument(arguments.Diagnostics, arguments.AttributeSyntaxOpt, 0, attribute);
                     options = options & ~(MethodImplOptions)3;
                 }
+
+                // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
+                const MethodImplOptions MethodImplOptionsAsync = (MethodImplOptions)0x2000;
+                if ((options & MethodImplOptionsAsync) != 0)
+                {
+                    // C# only: error if [MethodImpl(MethodImplOptions.Async)] is used directly on a method
+                    arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MethodImplAttributeAsyncCannotBeUsed, arguments.AttributeSyntaxOpt.Location));
+                    options &= ~MethodImplOptionsAsync;
+                }
             }
             else
             {

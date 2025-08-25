@@ -9599,5 +9599,59 @@ class Test1
                 Diagnostic("SYSLIB5007", "Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(11, 7).WithWarningAsError(true)
             );
         }
+
+
+        [Fact]
+        public void MethodImplOptionsAsyncIsBlocked()
+        {
+            var code = """
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    [MethodImpl(MethodImplOptions.Async)]
+                    public static void M1()
+                    {
+                        throw null;
+                    }
+
+                    [MethodImpl(MethodImplOptions.Async)]
+                    public static Task M2()
+                    {
+                        throw null;
+                    }
+
+                    [MethodImpl(MethodImplOptions.Async)]
+                    public static async Task M3()
+                    {
+                        throw null;
+                    }
+                }
+                """;
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // (6,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(6, 6),
+                // (12,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(12, 6),
+                // (18,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(18, 6),
+                // (19,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task M3()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M3").WithLocation(19, 30)
+            ];
+
+            // With runtime async enabled
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            // With runtime async globally disabled
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
     }
 }
