@@ -465,10 +465,7 @@ internal sealed partial class SolutionCompilationState
 
                 // We have results for this generator, and we're in CreateOnlyRequired, so only run this generator if
                 // we consider it to be required.
-
-                // For now, we hard code the required generator list to Razor.
-                // In the future we might want to expand this to e.g. run any generators with open generated files
-                return context.Generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
+                return context.Generator.IsRequiredGenerator();
             }
         }
     }
