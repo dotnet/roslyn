@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET472
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -536,7 +535,7 @@ End Class
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
-                { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
+                { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location)! } });
 
             Assert.True(result.ExitCode != 0);
             Assert.Contains("/reportanalyzer", result.Output);
@@ -717,4 +716,3 @@ namespace Class____goo____Library1
         }
     }
 }
-#endif

@@ -20,12 +20,13 @@ public sealed class SdkManagedToolTests
         TestOutputHelper = testOutputHelper;
     }
 
-    [Fact]
-    public void PathToBuiltinTool()
+    [Theory, CombinatorialData]
+    public void PathToBuiltinTool(bool useDotNetHost)
     {
         var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
-        var task = new Csc();
-        Assert.Equal(Path.Combine(taskPath, "..", "bincore", "csc.dll"), task.PathToBuiltInTool);
+        var task = new Csc { UseDotNetHost = useDotNetHost };
+        var ext = useDotNetHost ? "dll" : "exe";
+        Assert.Equal(Path.Combine(taskPath, "..", "bincore", $"csc.{ext}"), task.PathToBuiltInTool);
     }
 
     [Fact]

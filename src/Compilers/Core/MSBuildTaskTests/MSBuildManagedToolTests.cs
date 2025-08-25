@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
 public sealed class MSBuildManagedToolTests
 {
-    [Fact]
-    public void PathToBuiltinTool()
+    [Theory, CombinatorialData]
+    public void PathToBuiltinTool(bool useDotNetHost)
     {
         var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
         var relativePath = RuntimeHostInfo.IsCoreClrRuntime
-            ? Path.Combine("bincore", "csc.dll")
+            ? Path.Combine("bincore", $"csc.{(useDotNetHost ? "dll" : "exe")}")
             : "csc.exe";
-        var task = new Csc();
+        var task = new Csc { UseDotNetHost = useDotNetHost };
         Assert.Equal(Path.Combine(taskPath, relativePath), task.PathToBuiltInTool);
     }
 

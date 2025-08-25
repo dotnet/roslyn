@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -16,6 +17,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     public abstract class ManagedToolTask : ToolTask
     {
+        internal readonly PropertyDictionary _store = new PropertyDictionary();
+
+        /// <summary>
+        /// If <see langword="true"/>, <c>dotnet exec compiler.dll</c> will be executed.
+        /// If <see langword="false"/> (the default), <c>compiler.exe</c> will be executed.
+        /// </summary>
+        public bool UseDotNetHost
+        {
+            set { _store[nameof(UseDotNetHost)] = value; }
+            get { return _store.GetOrDefault(nameof(UseDotNetHost), false); }
+        }
+
         /// <summary>
         /// A copy of this task, compiled for .NET Framework, is deployed into the .NET SDK. It is a bridge task
         /// that is loaded into .NET Framework MSBuild but launches the .NET Core compiler. This task necessarily
@@ -78,7 +91,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected sealed override string GenerateCommandLineCommands()
         {
             var commandLineArguments = GenerateToolArguments();
-            if (UsingBuiltinTool && IsBuiltinToolRunningOnCoreClr)
+            if (UsingBuiltinTool && IsBuiltinToolRunningOnCoreClr && UseDotNetHost)
             {
                 commandLineArguments = RuntimeHostInfo.GetDotNetExecCommandLine(PathToBuiltInTool, commandLineArguments);
             }
@@ -118,7 +131,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This could be the managed assembly itself (on desktop .NET on Windows),
         /// or a runtime such as dotnet.
         /// </summary>
-        protected sealed override string GenerateFullPathToTool() => (UsingBuiltinTool, IsBuiltinToolRunningOnCoreClr) switch
+        protected sealed override string GenerateFullPathToTool() => (UsingBuiltinTool, IsBuiltinToolRunningOnCoreClr && UseDotNetHost) switch
         {
             (true, true) => RuntimeHostInfo.GetDotNetPathOrDefault(),
             (true, false) => PathToBuiltInTool,
@@ -140,7 +153,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
         /// </remarks>
         protected sealed override string ToolName =>
-            IsBuiltinToolRunningOnCoreClr
+            IsBuiltinToolRunningOnCoreClr && UseDotNetHost
                 ? $"{ToolNameWithoutExtension}.dll"
                 : $"{ToolNameWithoutExtension}.exe";
 
@@ -205,6 +218,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return buildTaskDirectory;
+        }
+
+        protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
+        {
+            // Set DOTNET_ROOT.
+            if (RuntimeHostInfo.GetDotNetRoot() is { } dotNetRoot &&
+                EnvironmentVariables?.Any(static e => e.StartsWith($"{RuntimeHostInfo.DotNetRootEnvironmentName}=", StringComparison.OrdinalIgnoreCase)) != true)
+            {
+                EnvironmentVariables = [.. EnvironmentVariables ?? [], $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}"];
+            }
+
+            return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }
     }
 }
