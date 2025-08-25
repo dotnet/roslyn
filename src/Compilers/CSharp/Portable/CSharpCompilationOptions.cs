@@ -770,6 +770,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken);
         }
 
+        internal override ReportDiagnostic FilterAndGetReportDiagnostic(DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+        {
+            return CSharpDiagnosticFilter.FilterAndGetReportDiagnostic(
+                diagnosticDescriptor,
+                WarningLevel,
+                NullableContextOptions,
+                GeneralDiagnosticOption,
+                SpecificDiagnosticOptions,
+                SyntaxTreeOptionsProvider,
+                cancellationToken);
+        }
+
         protected override CompilationOptions CommonWithModuleName(string? moduleName)
         {
             return WithModuleName(moduleName);
