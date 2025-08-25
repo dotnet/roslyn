@@ -461,7 +461,14 @@ getOperation:
             }
 
             var model = compilation.GetSemanticModel(tree);
-            var annotationsByMethod = allAnnotations.GroupBy(annotation => annotation.Expression.Ancestors().OfType<BaseMethodDeclarationSyntax>().First()).ToArray();
+            var annotationsByMethod = allAnnotations.GroupBy(annotation =>
+            {
+                var containingMember = annotation.Expression.Ancestors().OfType<MemberDeclarationSyntax>().First();
+                if (containingMember is GlobalStatementSyntax)
+                    return containingMember.GetRootNode();
+
+                return containingMember;
+            }).ToArray();
             foreach (var annotations in annotationsByMethod)
             {
                 var methodSyntax = annotations.Key;
