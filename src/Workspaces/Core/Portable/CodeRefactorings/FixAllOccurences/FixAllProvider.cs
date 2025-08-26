@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class FixAllProvider : IFixAllProvider
+public abstract class FixAllProvider : IFixAllProvider
 {
     private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
         = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
@@ -27,7 +27,9 @@ internal abstract class FixAllProvider : IFixAllProvider
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
 
-    public virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
+    CodeActionCleanup IFixAllProvider.Cleanup => Cleanup;
+
+    private protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     /// <summary>
     /// Gets fix all occurrences fix for the given fixAllContext.
@@ -98,7 +100,7 @@ internal abstract class FixAllProvider : IFixAllProvider
         ImmutableArray<FixAllScope> supportedFixAllScopes,
         CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
-        public override CodeActionCleanup Cleanup { get; } = cleanup;
+        private protected override CodeActionCleanup Cleanup { get; } = cleanup;
 
         protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans)
             => fixAllAsync(context, document, fixAllSpans);

@@ -39,15 +39,4 @@ internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
     /// Note that the returned diagnostics may not be from the latest document snapshot.
     /// </remarks>
     ImmutableArray<DiagnosticData> GetLastComputedDocumentDiagnostics(DocumentId documentId);
-
-    /// <summary>
-    /// Returns analyzer diagnostics without any document location reported on the given <paramref name="projectId"/>>
-    /// from the last <see cref="RunAnalysisAsync(Project, CancellationToken)"/> invocation on the given project or
-    /// solution. The caller is expected to check <see cref="HasProjectBeenAnalyzed(ProjectId)"/> prior to calling this
-    /// method.
-    /// </summary>
-    /// <remarks>
-    /// Note that the returned diagnostics may not be from the latest project snapshot.
-    /// </remarks>
-    ImmutableArray<DiagnosticData> GetLastComputedProjectDiagnostics(ProjectId projectId);
 }

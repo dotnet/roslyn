@@ -29,8 +29,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
         /// <summary>
         /// Mapping of projects to the diagnostics for the projects that we've finished running "run code analysis" on.
-        /// Cached results can now be returned for these through <see cref="GetLastComputedDocumentDiagnostics"/>
-        /// and <see cref="GetLastComputedProjectDiagnostics"/>.
+        /// Cached results can now be returned for these through <see cref="GetLastComputedDocumentDiagnostics"/>.
         /// </summary>
         private readonly ConcurrentDictionary<ProjectId, ImmutableArray<DiagnosticData>> _analyzedProjectToDiagnostics = [];
 
@@ -123,26 +122,6 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             return diagnostics.WhereAsArray(static (d, documentId) =>
                 !d.IsSuppressed && d.DataLocation.DocumentId == documentId, documentId);
-        }
-
-        /// <summary>
-        /// Running code analysis on the project force computes and caches the diagnostics in <see
-        /// cref="_analyzedProjectToDiagnostics"/>. We return these cached project diagnostics here, i.e. diagnostics
-        /// with no location, by excluding all local and non-local document diagnostics.
-        /// </summary>
-        /// <remarks>
-        /// Only returns non-suppressed diagnostics.
-        /// </remarks>
-        public ImmutableArray<DiagnosticData> GetLastComputedProjectDiagnostics(ProjectId projectId)
-        {
-            if (_clearedProjectIds.Contains(projectId))
-                return [];
-
-            if (!_analyzedProjectToDiagnostics.TryGetValue(projectId, out var diagnostics))
-                return [];
-
-            return diagnostics.WhereAsArray(static (d, projectId) =>
-                !d.IsSuppressed && d.ProjectId == projectId && d.DataLocation.DocumentId == null, projectId);
         }
     }
 }

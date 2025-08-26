@@ -76,9 +76,6 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
             AddDocumentSources(sourceGeneratedDocuments);
 
-            // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
-            AddProjectSource();
-
             return;
 
             void AddDocumentSources(IEnumerable<TextDocument> documents)
@@ -94,14 +91,6 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
                         result.Add(documentDiagnosticSource);
                     }
                 }
-            }
-
-            void AddProjectSource()
-            {
-                var projectDiagnosticSource = fullSolutionAnalysisEnabled
-                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
-                    : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
-                result.Add(projectDiagnosticSource);
             }
 
             bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)

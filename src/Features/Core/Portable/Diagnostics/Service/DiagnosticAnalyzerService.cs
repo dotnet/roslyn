@@ -161,22 +161,6 @@ internal sealed partial class DiagnosticAnalyzerService
             cancellationToken);
     }
 
-    public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-        Project project, ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-        bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-    {
-        var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
-
-        return ProduceProjectDiagnosticsAsync(
-            project, analyzers, diagnosticIds,
-            documentIds: [],
-            includeLocalDocumentDiagnostics: false,
-            includeNonLocalDocumentDiagnostics: includeNonLocalDocumentDiagnostics,
-            includeProjectNonLocalResult: true,
-            cancellationToken);
-    }
-
     public TestAccessor GetTestAccessor()
         => new(this);
 
