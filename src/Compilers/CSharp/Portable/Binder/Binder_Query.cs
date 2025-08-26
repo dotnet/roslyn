@@ -986,12 +986,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
-            else if (!receiverIsCheckedForRValue)
+            else
             {
-                var checkedUltimateReceiver = CheckValue(ultimateReceiver, BindValueKind.RValue, diagnostics);
-                if (checkedUltimateReceiver != ultimateReceiver)
+                if (!receiverIsCheckedForRValue)
                 {
-                    receiver = updateUltimateReceiver(receiver, ultimateReceiver, checkedUltimateReceiver);
+                    var checkedUltimateReceiver = CheckValue(ultimateReceiver, BindValueKind.RValue, diagnostics);
+                    if (checkedUltimateReceiver != ultimateReceiver)
+                    {
+                        receiver = updateUltimateReceiver(receiver, ultimateReceiver, checkedUltimateReceiver);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(ultimateReceiver is not BoundQueryClause);
                 }
             }
 
