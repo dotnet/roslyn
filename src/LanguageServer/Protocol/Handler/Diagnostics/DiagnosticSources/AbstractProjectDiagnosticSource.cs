@@ -47,7 +47,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             // and do not need to be adjusted.
             var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = await service.GetProjectDiagnosticsForIdsAsync(
-                Project, diagnosticIds: null, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                Project, diagnosticIds: null, shouldIncludeAnalyzer, cancellationToken).ConfigureAwait(false);
 
             // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning
             // that it is suppressed and should be hidden from the task list by default.
