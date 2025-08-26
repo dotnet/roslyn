@@ -36,10 +36,15 @@ internal sealed partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
+            var canSkipRunningGenerators = creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate
+                                           || (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired
+                                               && !await HasRequiredGeneratorsAsync(compilationState, cancellationToken).ConfigureAwait(false));
+
+            if (canSkipRunningGenerators)
             {
-                // We're frozen.  So we do not want to go through the expensive cost of running generators.  Instead, we
-                // just whatever prior generated docs we have.
+                // We're either frozen, or we only want required generators and know that there aren't any to run, so we
+                // do not want to go through the expensive cost of running generators.  Instead, we just use whatever
+                // prior generated docs we have.
                 var generatedSyntaxTrees = await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
                     static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
 
@@ -50,9 +55,6 @@ internal sealed partial class SolutionCompilationState
             }
             else
             {
-                // TODO: If we're in GeneratedDocumentCreationPolicy.CreateOnlyRequired it may be possible to skip going to OOP at all. If we know which generators are going to run
-                // we can see upfront if they are present and skip them if so. This is left as a future optimiziation for now.
-
                 // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
                 // back over to us to ensure that both processes are in total agreement about the SG docs and their
                 // contents.
@@ -76,6 +78,12 @@ internal sealed partial class SolutionCompilationState
                     cancellationToken).ConfigureAwait(false);
                 return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
             }
+        }
+
+        private async Task<bool> HasRequiredGeneratorsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            var presence = await compilationState.GetProjectGeneratorPresenceAsync(ProjectState.Id, cancellationToken).ConfigureAwait(false);
+            return presence is SourceGeneratorPresence.ContainsRequiredSourceGenerators;
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(

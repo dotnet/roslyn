@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote;
 
 // Can use AnalyzerReference as a key here as we will will always get back the same instance back for the same checksum.
-using AnalyzerReferenceMap = ConditionalWeakTable<AnalyzerReference, StrongBox<bool>>;
+using AnalyzerReferenceMap = ConditionalWeakTable<AnalyzerReference, StrongBox<SourceGeneratorPresence>>;
 
 internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
     : BrokeredServiceBase(arguments), IRemoteSourceGenerationService
@@ -73,18 +73,18 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
 
     private static readonly Dictionary<string, (AnalyzerReferenceMap analyzerReferenceMap, AnalyzerReferenceMap.CreateValueCallback callback)> s_languageToAnalyzerReferenceMap = new()
     {
-        { LanguageNames.CSharp, (new(), static analyzerReference => HasSourceGenerators(analyzerReference, LanguageNames.CSharp)) },
-        { LanguageNames.VisualBasic, (new(), static analyzerReference => HasSourceGenerators(analyzerReference, LanguageNames.VisualBasic)) },
+        { LanguageNames.CSharp, (new(), static analyzerReference => GetSourceGeneratorPresence(analyzerReference, LanguageNames.CSharp)) },
+        { LanguageNames.VisualBasic, (new(), static analyzerReference => GetSourceGeneratorPresence(analyzerReference, LanguageNames.VisualBasic)) },
     };
 
-    private static StrongBox<bool> HasSourceGenerators(
+    private static StrongBox<SourceGeneratorPresence> GetSourceGeneratorPresence(
         AnalyzerReference analyzerReference, string language)
     {
         var generators = analyzerReference.GetGenerators(language);
-        return new(generators.Any());
+        return new(generators.GetSourceGeneratorPresence());
     }
 
-    public async ValueTask<bool> HasGeneratorsAsync(
+    public async ValueTask<SourceGeneratorPresence> GetSourceGeneratorPresenceAsync(
         Checksum solutionChecksum,
         ProjectId projectId,
         ImmutableArray<Checksum> analyzerReferenceChecksums,
@@ -92,7 +92,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         CancellationToken cancellationToken)
     {
         if (analyzerReferenceChecksums.Length == 0)
-            return false;
+            return SourceGeneratorPresence.NoSourceGenerators;
 
         // Do not use RunServiceAsync here.  We don't want to actually synchronize a solution instance on this remote
         // side to service this request.  Specifically, solution syncing is expensive, and will pull over a lot of data
@@ -124,14 +124,20 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             cancellationToken).ConfigureAwait(false);
 
         var (analyzerReferenceMap, callback) = s_languageToAnalyzerReferenceMap[language];
+        var hasGenerators = false;
         foreach (var analyzerReference in isolatedReferences)
         {
-            var hasGenerators = analyzerReferenceMap.GetValue(analyzerReference, callback);
-            if (hasGenerators.Value)
-                return true;
+            var generatorPresence = analyzerReferenceMap.GetValue(analyzerReference, callback).Value;
+
+            if (generatorPresence is SourceGeneratorPresence.ContainsRequiredSourceGenerators)
+                return SourceGeneratorPresence.ContainsRequiredSourceGenerators;
+
+            if (generatorPresence is SourceGeneratorPresence.OnlyOptionalSourceGenerators)
+                hasGenerators = true;
         }
 
-        return false;
+        return hasGenerators ? SourceGeneratorPresence.OnlyOptionalSourceGenerators
+                             : SourceGeneratorPresence.NoSourceGenerators;
     }
 
     public ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
