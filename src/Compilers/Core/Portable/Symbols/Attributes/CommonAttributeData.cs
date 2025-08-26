@@ -398,7 +398,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static void DecodeMethodImplAttribute<T, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
             ref DecodeWellKnownAttributeArguments<TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            ITypeSymbolInternal appliedToSymbol)
             where T : CommonMethodWellKnownAttributeData, new()
             where TAttributeSyntaxNode : SyntaxNode
             where TAttributeData : AttributeData
@@ -430,9 +431,14 @@ namespace Microsoft.CodeAnalysis
                 const MethodImplOptions MethodImplOptionsAsync = (MethodImplOptions)0x2000;
                 if ((options & MethodImplOptionsAsync) != 0)
                 {
-                    // C# only: error if [MethodImpl(MethodImplOptions.Async)] is used directly on a method
-                    arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MethodImplAttributeAsyncCannotBeUsed, arguments.AttributeSyntaxOpt.Location));
-                    options &= ~MethodImplOptionsAsync;
+                    // Error if [MethodImpl(MethodImplOptions.Async)] is used directly on a method
+                    // We give an exception to the AsyncHelpers special type, as it manually implements the pattern as part of the
+                    // runtime's async support
+                    if ((InternalSpecialType)appliedToSymbol.ExtendedSpecialType != InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)
+                    {
+                        arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MethodImplAttributeAsyncCannotBeUsed, arguments.AttributeSyntaxOpt.Location));
+                        options &= ~MethodImplOptionsAsync;
+                    }
                 }
             }
             else
