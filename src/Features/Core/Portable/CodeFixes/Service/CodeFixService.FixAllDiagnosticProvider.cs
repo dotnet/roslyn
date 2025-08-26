@@ -77,7 +77,7 @@ internal sealed partial class CodeFixService
             // Get all no-location diagnostics for the project, doesn't include document diagnostics.
             var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetProjectDiagnosticsForIdsAsync(
-                project, _diagnosticIds, shouldIncludeAnalyzer: null, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+                project, _diagnosticIds, shouldIncludeAnalyzer: null, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
             return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }

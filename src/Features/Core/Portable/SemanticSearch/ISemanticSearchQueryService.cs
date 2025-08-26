@@ -32,7 +32,6 @@ internal interface ISemanticSearchQueryService
     /// <param name="queryId">Id of a compiled query.</param>
     /// <param name="observer">Observer of the found symbols.</param>
     /// <param name="options">Options.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     Task<ExecuteQueryResult> ExecuteQueryAsync(
         Solution solution,
         CompiledQueryId queryId,
