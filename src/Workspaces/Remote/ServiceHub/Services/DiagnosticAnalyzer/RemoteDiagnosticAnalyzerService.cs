@@ -31,7 +31,6 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
         ImmutableArray<DocumentId> documentIds,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
-        bool includeProjectNonLocalResult,
         CancellationToken cancellationToken)
     {
         return RunWithSolutionAsync(
@@ -45,7 +44,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
                 return await service.ProduceProjectDiagnosticsAsync(
                     project, allProjectAnalyzers.FilterAnalyzers(analyzerIds), diagnosticIds, documentIds,
-                    includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, includeProjectNonLocalResult,
+                    includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics,
                     cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);

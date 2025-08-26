@@ -23,7 +23,6 @@ internal sealed partial class DiagnosticAnalyzerService
         ImmutableArray<DocumentId> documentIds,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
-        bool includeProjectNonLocalResult,
         CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
@@ -47,10 +46,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 if (includeNonLocalDocumentDiagnostics)
                     AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
             }
-
-            // include project diagnostics if there is no target document
-            if (includeProjectNonLocalResult)
-                AddIncludedDiagnostics(builder, analysisResult.GetOtherDiagnostics());
         }
 
         return builder.ToImmutableAndClear();

@@ -159,7 +159,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         ImmutableArray<DocumentId> documentIds,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
-        bool includeProjectNonLocalResult,
         CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
@@ -170,7 +169,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
                 project,
                 (service, solution, cancellationToken) => service.ProduceProjectDiagnosticsAsync(
                     solution, project.Id, analyzerIds, diagnosticIds, documentIds,
-                    includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, includeProjectNonLocalResult,
+                    includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics,
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             if (!result.HasValue)
@@ -184,7 +183,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             project, analyzers, diagnosticIds, documentIds,
             includeLocalDocumentDiagnostics,
             includeNonLocalDocumentDiagnostics,
-            includeProjectNonLocalResult,
             cancellationToken).ConfigureAwait(false);
     }
 

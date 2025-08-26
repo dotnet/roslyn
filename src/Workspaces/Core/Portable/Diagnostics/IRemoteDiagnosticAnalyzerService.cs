@@ -47,7 +47,6 @@ internal interface IRemoteDiagnosticAnalyzerService
         ImmutableArray<DocumentId> documentIds,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
-        bool includeProjectNonLocalResult,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);

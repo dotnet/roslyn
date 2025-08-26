@@ -650,7 +650,6 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         Assert.Empty(diagnosticMap.Syntax);
         Assert.Empty(diagnosticMap.NonLocal);
-        Assert.Empty(diagnosticMap.Other);
     }
 
     [Theory, CombinatorialData]

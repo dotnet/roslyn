@@ -38,19 +38,12 @@ internal readonly struct DiagnosticAnalysisResult
     /// </summary>
     private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
 
-    /// <summary>
-    /// Diagnostics that don't have document locations (but are still associated with this <see cref="ProjectId"/>).
-    /// </summary>
-    private readonly ImmutableArray<DiagnosticData> _others;
-
     private DiagnosticAnalysisResult(
         ProjectId projectId,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
-        ImmutableArray<DiagnosticData> others)
+        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals)
     {
-        Debug.Assert(!others.IsDefault);
         Debug.Assert(!syntaxLocals.Values.Any(item => item.IsDefault));
         Debug.Assert(!semanticLocals.Values.Any(item => item.IsDefault));
         Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
@@ -60,7 +53,6 @@ internal readonly struct DiagnosticAnalysisResult
         _syntaxLocals = syntaxLocals;
         _semanticLocals = semanticLocals;
         _nonLocals = nonLocals;
-        _others = others;
     }
 
     public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId)
@@ -69,16 +61,14 @@ internal readonly struct DiagnosticAnalysisResult
             projectId,
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            others: []);
+            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty);
     }
 
     public static DiagnosticAnalysisResult Create(
         Project project,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
-        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
-        ImmutableArray<DiagnosticData> others)
+        ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap)
     {
         VerifyDocumentMap(project, syntaxLocalMap);
         VerifyDocumentMap(project, semanticLocalMap);
@@ -88,8 +78,7 @@ internal readonly struct DiagnosticAnalysisResult
             project.Id,
             syntaxLocalMap,
             semanticLocalMap,
-            nonLocalMap,
-            others);
+            nonLocalMap);
     }
 
     public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
@@ -98,8 +87,7 @@ internal readonly struct DiagnosticAnalysisResult
             builder.Project,
             builder.SyntaxLocals,
             builder.SemanticLocals,
-            builder.NonLocals,
-            builder.Others);
+            builder.NonLocals);
     }
 
     private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? GetMap(AnalysisKind kind)
@@ -124,8 +112,6 @@ internal readonly struct DiagnosticAnalysisResult
         foreach (var (_, data) in _nonLocals)
             result.AddRange(data);
 
-        result.AddRange(_others);
-
         return result.ToImmutableAndClear();
     }
 
@@ -137,9 +123,6 @@ internal readonly struct DiagnosticAnalysisResult
         return map.TryGetValue(documentId, out var diagnostics) ? diagnostics : [];
     }
 
-    public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
-        => _others;
-
     /// <summary>
     /// Returns a new result instance with no diagnostics except syntax.
     /// </summary>
@@ -149,8 +132,7 @@ internal readonly struct DiagnosticAnalysisResult
            ProjectId,
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-           nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-           others: []);
+           nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty);
 
     [Conditional("DEBUG")]
     private static void VerifyDocumentMap(Project project, ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> map)
