@@ -41,14 +41,6 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
         => service.OnCapabilitiesChangedAsync(cancellationToken);
 
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => throw new NotImplementedException();
-
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
-
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
         => (await service.GetUpdatesAsync(runningProjects.SelectAsArray(static info => info.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
 
