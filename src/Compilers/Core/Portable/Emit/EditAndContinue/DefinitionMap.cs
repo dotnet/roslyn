@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The method may have been defined in any preceding generation but <paramref name="oldProperty"/> symbol must be mapped to
         /// the immediately preceding one.
         /// </remarks>
-        public MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldProperty, out IMethodSymbolInternal? peMethod)
+        private MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldProperty, out IMethodSymbolInternal? peMethod)
         {
             var oldMethodDef = (Cci.IMethodDefinition)oldProperty.GetCciAdapter();
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The property may have been defined in any preceding generation but <paramref name="oldProperty"/> symbol must be mapped to
         /// the immediately preceding one.
         /// </remarks>
-        public PropertyDefinitionHandle GetPreviousPropertyHandle(IPropertySymbolInternal oldProperty, out IPropertySymbolInternal? peProperty)
+        private PropertyDefinitionHandle GetPreviousPropertyHandle(IPropertySymbolInternal oldProperty, out IPropertySymbolInternal? peProperty)
         {
             var oldPropertyDef = (Cci.IPropertyDefinition)oldProperty.GetCciAdapter();
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The event may have been defined in any preceding generation but <paramref name="oldEvent"/> symbol must be mapped to
         /// the immediately preceding one.
         /// </remarks>
-        public EventDefinitionHandle GetPreviousEventHandle(IEventSymbolInternal oldEvent, out IEventSymbolInternal? peEvent)
+        private EventDefinitionHandle GetPreviousEventHandle(IEventSymbolInternal oldEvent, out IEventSymbolInternal? peEvent)
         {
             var oldEventDef = (Cci.IEventDefinition)oldEvent.GetCciAdapter();
 

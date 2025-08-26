@@ -11,7 +11,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Metadata.Tools;
@@ -185,14 +184,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             internal void VerifyCustomAttributes(params string[] expected)
+                => VerifyCustomAttributes(expected, includeNil: false);
+
+            internal void VerifyCustomAttributes(string[] expected, bool includeNil)
                 => Verify(() =>
                 {
                     AssertEx.SequenceEqual(
                         expected ?? [],
                         MetadataReader.GetCustomAttributeRows()
                             // CustomAttribute table entries might be zeroed out in the delta.
-                            .Where(row => !row.ParentToken.IsNil || !row.ConstructorToken.IsNil)
-                            .Select(row => $"[{Visualizer.GetQualifiedName(row.ConstructorToken)}] {InspectCustomAttributeTarget(row.ParentToken)}"));
+                            .Where(row => includeNil || !row.ParentToken.IsNil || !row.ConstructorToken.IsNil)
+                            .Select(row => row.ParentToken.IsNil && row.ConstructorToken.IsNil
+                                ? "<nil>"
+                                : $"[{Visualizer.GetQualifiedName(row.ConstructorToken)}] {InspectCustomAttributeTarget(row.ParentToken)}"));
                 });
 
             private string InspectCustomAttributeTarget(EntityHandle handle)

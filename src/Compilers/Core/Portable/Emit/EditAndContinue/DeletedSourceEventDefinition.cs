@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
 
-        public bool IsSpecialName => false;
+        public bool IsSpecialName => OldDefinition.IsSpecialName;
 
         public TypeMemberVisibility Visibility => OldDefinition.Visibility;
 

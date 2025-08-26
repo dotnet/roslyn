@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
 
-        public bool IsSpecialName => false;
+        public bool IsSpecialName => OldDefinition.IsSpecialName;
 
         public ImmutableArray<IParameterDefinition> Parameters => StaticCast<IParameterDefinition>.From(_parameters);
 

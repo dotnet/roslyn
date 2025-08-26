@@ -6200,6 +6200,113 @@ class C
         }
 
         [Fact]
+        public void Event_Delete_NoDeletedAttribute()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public event System.EventHandler E;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.add_E",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.E",
+                            "[System.Diagnostics.DebuggerBrowsableAttribute..ctor] C.E",
+                            "[System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor] <assembly>",
+                            "[System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor] <assembly>",
+                            "[System.Diagnostics.DebuggableAttribute..ctor] <assembly>",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.remove_E");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+                        g.VerifyTypeRefNames("Object", "EventHandler", "CompilerGeneratedAttribute", "Exception");
+
+                        g.VerifyCustomAttributes(
+                            [
+                                "<nil>",
+                                "<nil>",
+                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException"
+                            ],
+                            includeNil: true);
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Event)
+                        });
+
+                        g.VerifyIL("""
+                            add_E, remove_E
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       16 (0x10)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000B
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000002
+                              IL_000f:  ret
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
         public void Event_Rename()
         {
             using var _ = new EditAndContinueTest()

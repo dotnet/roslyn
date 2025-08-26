@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -573,6 +572,10 @@ namespace Microsoft.CodeAnalysis.Emit
                             var deletedEventHandle = changes.DefinitionMap.GetPreviousEventHandle(deletedEvent);
                             var deletedEventDef = (IEventDefinition)deletedEvent.GetCciAdapter();
                             newMemberDefs.Add(new DeletedSourceEventDefinition(deletedEventDef, deletedEventHandle, typesUsedByDeletedMembers, deletedAttribute));
+                        }
+                        else
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(deletedMember);
                         }
                     }
 
