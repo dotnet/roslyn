@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                             newMemberDefs.Add(new DeletedSourceMethodDefinition(deletedMethodDef, deletedMethodHandle, lazyDeletedMethodIL.Value, typesUsedByDeletedMembers, deletedAttribute));
 
-                            addDeletedClosureMethods(deletedMethod, currentLambdas: [], []);
+                            addDeletedClosureMethods(deletedMethod, currentLambdas: [], orderedLambdaRuntimeRudeEdits: []);
                         }
                         else if (deletedMember is IPropertySymbolInternal deletedProperty)
                         {

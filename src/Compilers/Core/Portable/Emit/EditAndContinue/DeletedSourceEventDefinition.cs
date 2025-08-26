@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             return WrapType(OldDefinition.GetType(context));
         }
 
-        // Accessors only needed to emit MethodSemantics, which we do not need for deleted properties
-        public IMethodReference Adder => throw new System.NotImplementedException();
-        public IMethodReference? Caller => throw new System.NotImplementedException();
-        public IMethodReference Remover => throw new System.NotImplementedException();
+        // Accessors only needed to emit MethodSemantics, which we do not need for deleted events
+        public IMethodReference Adder => throw ExceptionUtilities.Unreachable();
+        public IMethodReference? Caller => throw ExceptionUtilities.Unreachable();
+        public IMethodReference Remover => throw ExceptionUtilities.Unreachable();
 
         public IEnumerable<IMethodReference> GetAccessors(EmitContext context)
             => throw ExceptionUtilities.Unreachable();
