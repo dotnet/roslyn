@@ -812,6 +812,11 @@
         <target state="translated">Strom výrazů nesmí obsahovat výraz with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionBlockCollision">
+        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
+        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
         <target state="new">This member is not allowed in an extension block</target>
@@ -870,6 +875,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkce {0} není v jazyce C# 13.0 dostupná. Použijte prosím verzi jazyka {1} nebo vyšší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion14">
+        <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -2332,11 +2342,6 @@
         <target state="translated">Člen záznamu {0} musí vracet {1}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">Pokud existuje jednotka kompilace s příkazy nejvyšší úrovně, nedá se zadat /main.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">Musíte zadat aspoň jeden příkaz nejvyšší úrovně.</target>
@@ -2565,6 +2570,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="translated">{0} vyžaduje funkci kompilátoru {1}, což tato verze kompilátoru C# nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
+        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -3969,6 +3979,7 @@
                               each error
 -preferreduilang              Specify the preferred output language name.
 -nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -3987,7 +3998,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Možností kompilátoru Visual C#
 
                        - VÝSTUPNÍ SOUBORY -

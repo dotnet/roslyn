@@ -104,11 +104,8 @@ internal abstract class LanguageServerProjectLoader
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binLogPathProvider = binLogPathProvider;
-        var razorDesignTimePath = serverConfigurationFactory.ServerConfiguration?.RazorDesignTimePath;
 
-        AdditionalProperties = razorDesignTimePath is null
-            ? ImmutableDictionary<string, string>.Empty
-            : ImmutableDictionary<string, string>.Empty.Add("RazorDesignTimeTargets", razorDesignTimePath);
+        AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
         _projectsToReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
@@ -116,6 +113,28 @@ internal abstract class LanguageServerProjectLoader
             ProjectToLoad.Comparer,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+    }
+
+    private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
+    {
+        var properties = ImmutableDictionary<string, string>.Empty;
+
+        if (serverConfiguration is null)
+        {
+            return properties;
+        }
+
+        if (serverConfiguration.RazorDesignTimePath is { } razorDesignTimePath)
+        {
+            properties = properties.Add("RazorDesignTimeTargets", razorDesignTimePath);
+        }
+
+        if (serverConfiguration.CSharpDesignTimePath is { } csharpDesignTimePath)
+        {
+            properties = properties.Add("CSharpDesignTimeTargetsPath", csharpDesignTimePath);
+        }
+
+        return properties;
     }
 
     private sealed class ToastErrorReporter
@@ -133,7 +152,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectPathsToLoadOrReload, CancellationToken cancellationToken)
+    private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -145,15 +164,15 @@ internal abstract class LanguageServerProjectLoader
         try
         {
             var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
-                source: projectPathsToLoadOrReload,
-                produceItems: static async (projectToLoad, callback, args, cancellationToken) =>
+                source: projectsToLoadOrReload,
+                produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
                 {
                     var (@this, toastErrorReporter, buildHostProcessManager) = args;
                     var projectNeedsRestore = await @this.ReloadProjectAsync(
                         projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
-                        callback(projectToLoad.Path);
+                        produceItem(projectToLoad.Path);
                 },
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
@@ -165,7 +184,7 @@ internal abstract class LanguageServerProjectLoader
                 // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
                 //
                 // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, cancellationToken);
+                await ProjectDependencyHelper.SendProjectNeedsRestoreRequestAsync(projectsThatNeedRestore, cancellationToken);
             }
         }
         finally

@@ -37,7 +37,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -81,7 +81,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -138,7 +138,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -166,7 +166,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -192,7 +192,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -205,7 +205,7 @@ public sealed class ConvertToExtensionTests
                     [||]public static void M() { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -218,7 +218,7 @@ public sealed class ConvertToExtensionTests
                     [||]public static void M(this int i) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
             TestState =
             {
                 ExpectedDiagnostics =
@@ -239,7 +239,7 @@ public sealed class ConvertToExtensionTests
                     [||]public static void M(this int i) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
             TestState =
             {
                 ExpectedDiagnostics =
@@ -260,7 +260,7 @@ public sealed class ConvertToExtensionTests
                     [||]public void M(this int i) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
             TestState =
             {
                 ExpectedDiagnostics =
@@ -286,7 +286,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
             TestState =
             {
                 ExpectedDiagnostics =
@@ -322,7 +322,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -348,7 +348,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -374,7 +374,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -400,7 +400,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -415,7 +415,7 @@ public sealed class ConvertToExtensionTests
                     [||]public static void M<K,V>(this IList<V> list) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -439,7 +439,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -463,7 +463,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -487,7 +487,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -511,7 +511,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -543,7 +543,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -575,7 +575,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -613,7 +613,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -651,7 +651,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -683,7 +683,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -717,7 +717,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -755,7 +755,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -793,7 +793,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -827,7 +827,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -863,7 +863,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -900,7 +900,7 @@ public sealed class ConvertToExtensionTests
                     public static void N<X>(this IList<X> list) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -936,7 +936,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -973,7 +973,7 @@ public sealed class ConvertToExtensionTests
                     public static void N<T>([Y] this IList<T> list) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1003,7 +1003,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1034,7 +1034,7 @@ public sealed class ConvertToExtensionTests
                     public static void N<T>(this IList<T> list) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1064,7 +1064,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1095,7 +1095,7 @@ public sealed class ConvertToExtensionTests
                     public static void N<T>(this IList<T> list) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1125,7 +1125,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1156,7 +1156,7 @@ public sealed class ConvertToExtensionTests
                     public static void N<T>(this IList<T> list) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1186,7 +1186,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1217,7 +1217,7 @@ public sealed class ConvertToExtensionTests
                     public static void N(this int i) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1247,7 +1247,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1278,7 +1278,7 @@ public sealed class ConvertToExtensionTests
                     public static void N(this int j) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1308,7 +1308,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1339,7 +1339,7 @@ public sealed class ConvertToExtensionTests
                     public static void N(this (int k, int l) i) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1373,7 +1373,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1408,7 +1408,7 @@ public sealed class ConvertToExtensionTests
                     public static void N(this string i) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1442,7 +1442,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1477,7 +1477,7 @@ public sealed class ConvertToExtensionTests
                     public static void N(this object i) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1509,7 +1509,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1543,7 +1543,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1579,7 +1579,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1615,7 +1615,7 @@ public sealed class ConvertToExtensionTests
                     public static void O() { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1651,7 +1651,7 @@ public sealed class ConvertToExtensionTests
                     public static void O() { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1694,7 +1694,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1737,7 +1737,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1765,7 +1765,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1801,7 +1801,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1829,7 +1829,7 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact]
@@ -1855,6 +1855,6 @@ public sealed class ConvertToExtensionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 }

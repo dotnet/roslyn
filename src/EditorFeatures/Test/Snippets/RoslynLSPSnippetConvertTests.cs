@@ -411,7 +411,7 @@ public class RoslynLSPSnippetConvertTests
             {
                 var spans = kvp.Value;
                 var placeholderText = text.Substring(spans[0].Start, spans[0].Length);
-                var placeholders = spans.Select(span => span.Start).ToImmutableArray();
+                var placeholders = spans.SelectAsArray(span => span.Start);
                 arrayBuilder.Add(new SnippetPlaceholder(placeholderText, placeholders));
             }
         }

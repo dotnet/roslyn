@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
@@ -36,7 +37,6 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     where TSolution : TestHostSolution<TDocument>
 {
     public ExportProvider ExportProvider { get; }
-    public TestComposition? Composition { get; }
 
     public bool CanApplyChangeDocument { get; set; }
 
@@ -60,10 +60,26 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
         WorkspaceConfigurationOptions? configurationOptions = null)
-        : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
+        : this(
+              (composition ?? FeaturesTestCompositions.Features).ExportProviderFactory.CreateExportProvider(),
+              workspaceKind,
+              solutionTelemetryId,
+              disablePartialSolutions,
+              ignoreUnchangeableDocumentsWhenApplyingChanges,
+              configurationOptions)
     {
-        this.Composition = composition;
-        this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
+    }
+
+    internal TestWorkspace(
+        ExportProvider exportProvider,
+        string? workspaceKind = WorkspaceKind.Host,
+        Guid solutionTelemetryId = default,
+        bool disablePartialSolutions = true,
+        bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+        WorkspaceConfigurationOptions? configurationOptions = null)
+        : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Host)
+    {
+        this.ExportProvider = exportProvider;
 
         var partialSolutionsTestHook = Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>();
         partialSolutionsTestHook.IsPartialSolutionDisabled = disablePartialSolutions;
@@ -153,18 +169,6 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         SetAnalyzerFallbackOptions(configOptions);
 
         options.SetGlobalOptions(GlobalOptions);
-    }
-
-    private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
-    {
-        composition ??= FeaturesTestCompositions.Features;
-
-        if (hasWorkspaceConfigurationOptions)
-        {
-            composition = composition.AddParts(typeof(TestWorkspaceConfigurationService));
-        }
-
-        return composition.GetHostServices();
     }
 
     private protected abstract TDocument CreateDocument(
@@ -661,7 +665,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
                 var fromProject = projectNameToTestHostProject[fromName];
                 var toProject = projectNameToTestHostProject[toName];
 
-                var aliases = projectReference.Attributes(AliasAttributeName).Select(a => a.Value).ToImmutableArray();
+                var aliases = projectReference.Attributes(AliasAttributeName).SelectAsArray(a => a.Value);
 
                 OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default));
             }

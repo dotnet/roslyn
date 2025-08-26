@@ -29,9 +29,6 @@ internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionS
 
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public override bool IsLiveSource()
-        => true;
-
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         RequestContext context, CancellationToken cancellationToken)
     {

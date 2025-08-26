@@ -237,6 +237,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncStateMachineAttribute,
         System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
         System_Windows_Forms_Form,
         System_Windows_Forms_Application,
 
@@ -249,9 +251,6 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple,
 
         System_ValueTuple_T1,
-
-        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
-
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
@@ -336,6 +335,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_Unsafe,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute,
+        System_Runtime_CompilerServices_ExtensionMarkerAttribute,
 
         System_Linq_Expressions_BinaryExpression,
         System_Linq_Expressions_MethodCallExpression,
@@ -587,6 +587,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
             "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
+            "", // WellKnownType.ExtSentinel extension marker
+
             "System.Windows.Forms.Form",
             "System.Windows.Forms.Application",
 
@@ -595,10 +597,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.GCLatencyMode",
 
             "System.ValueTuple",
+
             "System.ValueTuple`1",
-
-            "", // WellKnownType.ExtSentinel extension marker
-
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
@@ -679,6 +679,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.Unsafe",
 
             "System.Runtime.CompilerServices.ParamCollectionAttribute",
+            "System.Runtime.CompilerServices.ExtensionMarkerAttribute",
 
             "System.Linq.Expressions.BinaryExpression",
             "System.Linq.Expressions.MethodCallExpression",
@@ -758,8 +759,9 @@ namespace Microsoft.CodeAnalysis
             // Some compile time asserts
             {
                 // We should not add new types to CSharp7 set
-                _ = new int[(int)WellKnownType.CSharp7Sentinel - 252];
-                _ = new int[252 - (int)WellKnownType.CSharp7Sentinel];
+                const int ExpectedCSharp7SentinelValue = 200 + (int)InternalSpecialType.NextAvailable + 1 /* Placeholder for ExtSentinel */;
+                _ = new int[(int)WellKnownType.CSharp7Sentinel - ExpectedCSharp7SentinelValue];
+                _ = new int[ExpectedCSharp7SentinelValue - (int)WellKnownType.CSharp7Sentinel];
 
                 // The WellKnownType.ExtSentinel value must be 255
                 _ = new int[(int)WellKnownType.ExtSentinel - 255];

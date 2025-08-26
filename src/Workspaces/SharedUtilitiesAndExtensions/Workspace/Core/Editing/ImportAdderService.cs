@@ -242,7 +242,9 @@ internal abstract class ImportAdderService : ILanguageService
             model,
             cancellationToken).ConfigureAwait(false);
 
-        var importsToAdd = importToSyntax.Where(kvp => safeImportsToAdd.Contains(kvp.Key)).Select(kvp => kvp.Value).ToImmutableArray();
+        var importsToAdd = importToSyntax.SelectAsArray(
+            predicate: kvp => safeImportsToAdd.Contains(kvp.Key),
+            selector: kvp => kvp.Value);
         if (importsToAdd.Length == 0)
             return document;
 

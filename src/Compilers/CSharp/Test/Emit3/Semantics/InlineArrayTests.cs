@@ -17048,7 +17048,7 @@ class Program
 
             var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "110" : null;
 
-            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
@@ -17098,7 +17098,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "b").WithArguments("System.Span<int>").WithLocation(21, 34)
             };
 
-            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);

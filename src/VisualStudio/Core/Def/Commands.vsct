@@ -478,7 +478,6 @@
       <Button guid="guidStackTraceExplorer" id="cmdIdShowStackTraceExplorer" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
         <Icon guid="ImageCatalogGuid" id="CallStackWindow" />
-        <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>IconAndText</CommandFlag>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>

@@ -5,15 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -23,67 +22,67 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 
-internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
+internal sealed class ProjectExternalErrorReporter(
+    ProjectId projectId,
+    Guid projectHierarchyGuid,
+    string errorCodePrefix,
+    string language,
+    VisualStudioWorkspaceImpl workspace) : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
 {
     internal static readonly ImmutableArray<string> CustomTags = [WellKnownDiagnosticTags.Telemetry];
     internal static readonly ImmutableArray<string> CompilerDiagnosticCustomTags = [WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry];
 
-    private readonly ProjectId _projectId;
+    private readonly ProjectId _projectId = projectId;
 
     /// <summary>
     /// Passed to the error reporting service to allow current project error list filters to work.
     /// </summary>
-    private readonly Guid _projectHierarchyGuid;
-    private readonly string _errorCodePrefix;
-    private readonly string _language;
+    private readonly Guid _projectHierarchyGuid = projectHierarchyGuid;
+    private readonly string _errorCodePrefix = errorCodePrefix;
+    private readonly string _language = language;
 
-    private readonly VisualStudioWorkspaceImpl _workspace;
-
-    private DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _workspace.ExternalErrorDiagnosticUpdateSource.AnalyzerInfoCache;
-
-    public ProjectExternalErrorReporter(ProjectId projectId, Guid projectHierarchyGuid, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
-    {
-        _projectId = projectId;
-        _projectHierarchyGuid = projectHierarchyGuid;
-        _errorCodePrefix = errorCodePrefix;
-        _language = language;
-        _workspace = workspace;
-    }
+    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
 
     private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
 
-    private bool CanHandle(string errorId)
+    private static ImmutableArray<ExternalError> GetExternalErrors(IVsEnumExternalErrors pErrors)
     {
-        // make sure we have error id, otherwise, we simple don't support
-        // this error
-        if (errorId == null)
+        using var _ = ArrayBuilder<ExternalError>.GetInstance(out var allErrors);
+
+        var errors = new ExternalError[1];
+        while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
         {
-            // record NFW to see who violates contract.
-            FatalError.ReportAndCatch(new Exception("errorId is null"));
-            return false;
+            var error = errors[0];
+            allErrors.Add(error);
         }
 
-        // we accept all compiler diagnostics
-        if (errorId.StartsWith(_errorCodePrefix))
-        {
-            return true;
-        }
-
-        return DiagnosticProvider.IsSupportedDiagnosticId(_projectId, errorId);
+        return allErrors.ToImmutableAndClear();
     }
 
     public int AddNewErrors(IVsEnumExternalErrors pErrors)
     {
+        var solution = _workspace.CurrentSolution;
+        var project = solution.GetProject(_projectId);
+        if (project != null)
+        {
+            AddNewErrors(project, GetExternalErrors(pErrors));
+        }
+
+        return VSConstants.S_OK;
+    }
+
+    private void AddNewErrors(Project project, ImmutableArray<ExternalError> allErrors)
+    {
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
 
-        var errors = new ExternalError[1];
-        var project = _workspace.CurrentSolution.GetRequiredProject(_projectId);
-        while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
+        var solution = project.Solution;
+        var errorIds = allErrors.Select(e => e.iErrorID).Distinct().Select(GetErrorId).ToImmutableArray();
+
+        foreach (var error in allErrors)
         {
-            var error = errors[0];
             if (error.bstrFileName != null)
             {
-                var diagnostic = TryCreateDocumentDiagnosticItem(error);
+                var diagnostic = TryCreateDocumentDiagnosticItem(project, error);
                 if (diagnostic != null)
                 {
                     allDiagnostics.Add(diagnostic);
@@ -92,22 +91,25 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             }
 
             allDiagnostics.Add(GetDiagnosticData(
+                project,
                 documentId: null,
-                _projectId,
-                _workspace,
                 GetErrorId(error),
                 error.bstrText,
                 GetDiagnosticSeverity(error),
                 _language,
-                new FileLinePositionSpan(project.FilePath ?? "", span: default),
-                AnalyzerInfoCache));
+                new FileLinePositionSpan(project.FilePath ?? "", span: default)));
         }
 
         DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, allDiagnostics.ToImmutableAndClear());
-        return VSConstants.S_OK;
     }
 
     public int ClearAllErrors()
+        => ClearErrorsWorker();
+
+    public int ClearErrors()
+        => ClearErrorsWorker();
+
+    private int ClearErrorsWorker()
     {
         DiagnosticProvider.ClearErrors(_projectId);
         return VSConstants.S_OK;
@@ -127,7 +129,9 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                          .FirstOrDefault();
     }
 
-    private DiagnosticData? TryCreateDocumentDiagnosticItem(ExternalError error)
+    private DiagnosticData? TryCreateDocumentDiagnosticItem(
+        Project project,
+        ExternalError error)
     {
         var documentId = TryGetDocumentId(error.bstrFileName);
         if (documentId == null)
@@ -168,17 +172,15 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         // save error line/column (surface buffer location) as mapped line/column so that we can display
         // right location on closed Venus file.
         return GetDiagnosticData(
+            project,
             documentId,
-            _projectId,
-            _workspace,
             GetErrorId(error),
             error.bstrText,
             GetDiagnosticSeverity(error),
             _language,
             new FileLinePositionSpan(error.bstrFileName,
                 new LinePosition(line, column),
-                new LinePosition(line, column)),
-                AnalyzerInfoCache);
+                new LinePosition(line, column)));
     }
 
     public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -188,14 +190,28 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     }
 
     // TODO: Use PreserveSig instead of throwing these exceptions for common cases.
-    public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
+    public void ReportError2(
+        string bstrErrorMessage,
+        string bstrErrorId,
+        [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
+        int iStartLine,
+        int iStartColumn,
+        int iEndLine,
+        int iEndColumn,
+        string bstrFileName)
     {
-        // first we check whether given error is something we can take care.
-        if (!CanHandle(bstrErrorId))
+
+        // make sure we have error id, otherwise, we simple don't support
+        // this error
+        if (bstrErrorId == null)
         {
-            // it is not, let project system take care.
-            throw new NotImplementedException();
+            // record NFW to see who violates contract.
+            FatalError.ReportAndCatch(new Exception("errorId is null"));
+            return;
         }
+
+        if (!bstrErrorId.StartsWith(_errorCodePrefix))
+            return;
 
         if ((iEndLine >= 0 && iEndColumn >= 0) &&
            ((iEndLine < iStartLine) ||
@@ -228,10 +244,14 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
         if (iEndColumn < 0)
             iEndColumn = iStartColumn;
 
+        var solution = _workspace.CurrentSolution;
+        var project = solution.GetProject(_projectId);
+        if (project is null)
+            return;
+
         var diagnostic = GetDiagnosticData(
+            project,
             documentId,
-            _projectId,
-            _workspace,
             bstrErrorId,
             bstrErrorMessage,
             severity,
@@ -239,86 +259,37 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
             new FileLinePositionSpan(
                 bstrFileName,
                 new LinePosition(iStartLine, iStartColumn),
-                new LinePosition(iEndLine, iEndColumn)),
-                AnalyzerInfoCache);
+                new LinePosition(iEndLine, iEndColumn)));
 
         DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, [diagnostic]);
     }
 
-    public int ClearErrors()
-    {
-        DiagnosticProvider.ClearErrors(_projectId);
-        return VSConstants.S_OK;
-    }
-
     private static DiagnosticData GetDiagnosticData(
+        Project project,
         DocumentId? documentId,
-        ProjectId projectId,
-        Workspace workspace,
         string errorId,
         string message,
         DiagnosticSeverity severity,
         string language,
-        FileLinePositionSpan unmappedSpan,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache)
+        FileLinePositionSpan unmappedSpan)
     {
-        string title, description, category;
-        string? helpLink;
-        DiagnosticSeverity defaultSeverity;
-        bool isEnabledByDefault;
-        ImmutableArray<string> customTags;
-
-        if (analyzerInfoCache != null && analyzerInfoCache.TryGetDescriptorForDiagnosticId(errorId, out var descriptor))
-        {
-            title = descriptor.Title.ToString(CultureInfo.CurrentUICulture);
-            description = descriptor.Description.ToString(CultureInfo.CurrentUICulture);
-            category = descriptor.Category;
-            defaultSeverity = descriptor.DefaultSeverity;
-            isEnabledByDefault = descriptor.IsEnabledByDefault;
-            customTags = descriptor.CustomTags.AsImmutableOrEmpty();
-            helpLink = descriptor.HelpLinkUri;
-        }
-        else
-        {
-            title = message;
-            description = message;
-            category = WellKnownDiagnosticTags.Build;
-            defaultSeverity = severity;
-            isEnabledByDefault = true;
-            customTags = IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags;
-            helpLink = null;
-        }
-
-        var diagnostic = new DiagnosticData(
+        return new DiagnosticData(
             id: errorId,
-            category: category,
+            category: WellKnownDiagnosticTags.Build,
             message: message,
-            title: title,
-            description: description,
+            title: message,
+            description: message,
             severity: severity,
-            defaultSeverity: defaultSeverity,
-            isEnabledByDefault: isEnabledByDefault,
-            warningLevel: (severity == DiagnosticSeverity.Error) ? 0 : 1,
-            customTags: customTags,
+            defaultSeverity: severity,
+            isEnabledByDefault: true,
+            warningLevel: severity == DiagnosticSeverity.Error ? 0 : 1,
+            customTags: IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags,
             properties: DiagnosticData.PropertiesForBuildDiagnostic,
-            projectId: projectId,
+            projectId: project.Id,
             location: new DiagnosticDataLocation(
                 unmappedSpan,
                 documentId),
-            language: language,
-            helpLink: helpLink);
-
-        if (workspace.CurrentSolution.GetDocument(documentId) is Document document &&
-            document.SupportsSyntaxTree)
-        {
-            var tree = document.GetRequiredSyntaxTreeSynchronously(CancellationToken.None);
-            var text = tree.GetText();
-            var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
-            var location = diagnostic.DataLocation.WithSpan(span, tree);
-            return diagnostic.WithLocations(location, additionalLocations: default);
-        }
-
-        return diagnostic;
+            language: language);
     }
 
     private static bool IsCompilerDiagnostic(string errorId)
@@ -337,7 +308,10 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
     }
 
     private string GetErrorId(ExternalError error)
-        => string.Format("{0}{1:0000}", _errorCodePrefix, error.iErrorID);
+        => GetErrorId(error.iErrorID);
+
+    private string GetErrorId(int errorId)
+        => string.Format("{0}{1:0000}", _errorCodePrefix, errorId);
 
     private static DiagnosticSeverity GetDiagnosticSeverity(ExternalError error)
         => error.fError != 0 ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;

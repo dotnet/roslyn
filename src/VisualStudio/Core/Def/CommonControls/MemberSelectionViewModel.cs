@@ -131,8 +131,7 @@ internal sealed class MemberSelectionViewModel : AbstractNotifyPropertyChanged
 
     public ImmutableArray<(ISymbol member, bool makeAbstract)> GetSelectedMembers()
         => Members.
-            Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
-            SelectAsArray(memberViewModel =>
+            SelectAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable, memberViewModel =>
                 (member: memberViewModel.Symbol,
                 makeAbstract: memberViewModel.IsMakeAbstractCheckable && memberViewModel.MakeAbstract));
 

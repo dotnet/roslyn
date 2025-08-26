@@ -417,7 +417,7 @@ internal static partial class ProtocolConversions
             }
 
             // Map all the text changes' spans for this document.
-            var mappedResults = await GetMappedSpanResultAsync(oldDocument, [.. textChanges.Select(tc => tc.Span)], cancellationToken).ConfigureAwait(false);
+            var mappedResults = await SpanMappingHelper.TryGetMappedSpanResultAsync(oldDocument, [.. textChanges.Select(tc => tc.Span)], cancellationToken).ConfigureAwait(false);
             if (mappedResults == null)
             {
                 // There's no span mapping available, just create text edits from the original text changes.
@@ -472,7 +472,9 @@ internal static partial class ProtocolConversions
     {
         Debug.Assert(document.FilePath != null);
 
-        var result = await GetMappedSpanResultAsync(document, [textSpan], cancellationToken).ConfigureAwait(false);
+        var result = document is Document d
+            ? await SpanMappingHelper.TryGetMappedSpanResultAsync(d, [textSpan], cancellationToken).ConfigureAwait(false)
+            : null;
         if (result == null)
             return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
@@ -1006,25 +1008,6 @@ internal static partial class ProtocolConversions
                 _ => text,
             };
         }
-    }
-
-    private static async Task<ImmutableArray<MappedSpanResult>?> GetMappedSpanResultAsync(TextDocument textDocument, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)
-    {
-        if (textDocument is not Document document)
-        {
-            return null;
-        }
-
-        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
-        if (spanMappingService == null)
-        {
-            return null;
-        }
-
-        var mappedSpanResult = await spanMappingService.MapSpansAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfFalse(textSpans.Length == mappedSpanResult.Length,
-            $"The number of input spans {textSpans.Length} should match the number of mapped spans returned {mappedSpanResult.Length}");
-        return mappedSpanResult;
     }
 
     private static LSP.Range MappedSpanResultToRange(MappedSpanResult mappedSpanResult)

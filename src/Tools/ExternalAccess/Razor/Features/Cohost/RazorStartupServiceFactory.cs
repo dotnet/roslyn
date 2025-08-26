@@ -22,24 +22,36 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorStartupServiceFactory(
     [Import(AllowDefault = true)] IUIContextActivationService? uIContextActivationService,
-    [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService) : ILspServiceFactory
+    [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService,
+    [Import(AllowDefault = true)] Lazy<AbstractRazorCohostLifecycleService>? razorCohostLifecycleService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new RazorStartupService(uIContextActivationService, cohostStartupService);
+        return new RazorStartupService(uIContextActivationService, cohostStartupService, razorCohostLifecycleService);
     }
 
     private class RazorStartupService(
         IUIContextActivationService? uIContextActivationService,
-        Lazy<ICohostStartupService>? cohostStartupService) : ILspService, IOnInitialized, IDisposable
+#pragma warning disable CS0618 // Type or member is obsolete
+        Lazy<ICohostStartupService>? cohostStartupService,
+#pragma warning restore CS0618 // Type or member is obsolete
+        Lazy<AbstractRazorCohostLifecycleService>? razorCohostLifecycleService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
-        private IDisposable? _activation;
+        private IDisposable? _cohostActivation;
+        private IDisposable? _razorFilePresentActivation;
 
         public void Dispose()
         {
-            _activation?.Dispose();
-            _activation = null;
+            if (razorCohostLifecycleService is { IsValueCreated: true, Value: var service })
+            {
+                service.Dispose();
+            }
+
+            _razorFilePresentActivation?.Dispose();
+            _razorFilePresentActivation = null;
+            _cohostActivation?.Dispose();
+            _cohostActivation = null;
             _disposalTokenSource.Cancel();
         }
 
@@ -51,26 +63,48 @@ internal sealed class RazorStartupServiceFactory(
                 return Task.CompletedTask;
             }
 
-            if (cohostStartupService is null)
+            if (cohostStartupService is null && razorCohostLifecycleService is null)
             {
                 return Task.CompletedTask;
             }
 
             if (uIContextActivationService is null)
             {
-                // Outside of VS, we want to initialize immediately.. I think?
+                PreinitializeRazor();
                 InitializeRazor();
             }
             else
             {
-                _activation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
+                // There are two initialization methods for Razor, which looks odd here, but are really controlled by UI contexts.
+                // This method fires for any Roslyn project, but not all Roslyn projects are Razor projects, so the first UI context
+                // triggers where there is a project with a Razor capability present in the solution, and the next is when a Razor file
+                // is opened in the editor. ie these two lines look the same, but really they do different levels of initialization.
+                _razorFilePresentActivation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCapabilityPresentUIContext, PreinitializeRazor);
+                _cohostActivation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
             }
 
             return Task.CompletedTask;
 
+            void PreinitializeRazor()
+            {
+                this.PreinitializeRazorAsync(_disposalTokenSource.Token).ReportNonFatalErrorAsync();
+            }
+
             void InitializeRazor()
             {
                 this.InitializeRazorAsync(clientCapabilities, context, _disposalTokenSource.Token).ReportNonFatalErrorAsync();
+            }
+        }
+
+        private async Task PreinitializeRazorAsync(CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested) return;
+
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
+            if (razorCohostLifecycleService is not null)
+            {
+                await razorCohostLifecycleService.Value.LspServerIntializedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -85,13 +119,18 @@ internal sealed class RazorStartupServiceFactory(
 
             using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
 
-            // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-            var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
-
             var requestContext = new RazorCohostRequestContext(context);
+
+            if (razorCohostLifecycleService is not null)
+            {
+                // If we have a cohost lifecycle service, fire post-initialization, which happens when the UIContext is activated.
+                await razorCohostLifecycleService.Value.RazorActivatedAsync(clientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+            }
 
             if (cohostStartupService is not null)
             {
+                // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
+                var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
                 await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
             }
         }

@@ -471,8 +471,7 @@ internal abstract partial class AbstractChangeNamespaceService<
         var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
         var refLocationsInSolution = refLocationsInOtherDocuments
-            .Where(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id))
-            .ToImmutableArray();
+            .WhereAsArray(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id));
 
         if (refLocationsInSolution.Length != refLocationsInOtherDocuments.Count)
         {

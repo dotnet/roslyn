@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -17,14 +17,14 @@ public sealed partial class LspTestWorkspace : TestWorkspace, ILspWorkspace
     private readonly bool _supportsLspMutation;
 
     internal LspTestWorkspace(
-        TestComposition? composition = null,
+        ExportProvider exportProvider,
         string? workspaceKind = WorkspaceKind.Host,
         Guid solutionTelemetryId = default,
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
         WorkspaceConfigurationOptions? configurationOptions = null,
         bool supportsLspMutation = false)
-        : base(composition,
+        : base(exportProvider,
                workspaceKind,
                solutionTelemetryId,
                disablePartialSolutions,

@@ -87,12 +87,13 @@ internal abstract class ExportProviderBuilder(
         // Assemble the parts into a valid graph.
         var config = CompositionConfiguration.Create(catalog);
 
-        // Verify we only have expected errors.
-
-        ThrowOnUnexpectedErrors(config, catalog);
-
-        // Try to cache the composition.
-        _ = WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken).ReportNonFatalErrorAsync();
+        // Check if we have errors, and report them accordingly.
+        if (!CheckForAndReportCompositionErrors(config, catalog))
+        {
+            // There weren't any errors in the composition, so let's cache it. If there were errors, those errors might have been temporary and we don't want
+            // to end up in a permanently broken case.
+            _ = WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken).ReportNonFatalErrorAsync();
+        }
 
         // Prepare an ExportProvider factory based on this graph.
         return config.CreateExportProviderFactory();
@@ -180,26 +181,37 @@ internal abstract class ExportProviderBuilder(
         }
     }
 
-    protected abstract bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions);
+    protected abstract bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts);
 
-    private void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
+    /// <returns>True if there was an unexpected composition error, false otherwise.</returns>
+    private bool CheckForAndReportCompositionErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
     {
+        var hasErrors = false;
+
+        foreach (var exception in catalog.DiscoveredParts.DiscoveryErrors)
+        {
+            hasErrors = true;
+            LogError($"Encountered exception in the MEF composition: {exception.Message}");
+        }
+
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
 
-        if (ContainsUnexpectedErrors(erroredParts, catalog.DiscoveredParts.DiscoveryErrors))
+        if (ContainsUnexpectedErrors(erroredParts))
         {
+            hasErrors = true;
+
             try
             {
-                catalog.DiscoveredParts.ThrowOnErrors();
                 configuration.ThrowOnErrors();
             }
             catch (CompositionFailedException ex)
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
-                throw;
+                LogError($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
             }
         }
+
+        return hasErrors;
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -131,4 +132,18 @@ internal static partial class ISolutionExtensions
             new SourceGeneratorExecutionVersionMap(projectIdToSourceGenerationVersion.ToImmutable()));
     }
 #endif
+
+    public static TextDocument? GetTextDocumentForLocation(this Solution solution, Location location)
+    {
+        switch (location.Kind)
+        {
+            case LocationKind.SourceFile:
+                return solution.GetDocument(location.SourceTree);
+            case LocationKind.ExternalFile:
+                var documentId = solution.GetDocumentIdsWithFilePath(location.GetLineSpan().Path).FirstOrDefault();
+                return solution.GetTextDocument(documentId);
+            default:
+                return null;
+        }
+    }
 }

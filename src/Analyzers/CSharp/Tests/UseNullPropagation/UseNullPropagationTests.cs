@@ -2377,7 +2377,7 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNullConditionalAssignment2()
@@ -2431,7 +2431,7 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNullAssignmentAfterOperation2()
@@ -2469,7 +2469,7 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNotNullAssignmentAfterOperation1()
@@ -2491,7 +2491,7 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNotNullAssignmentAfterOperation2()
@@ -2513,7 +2513,7 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNotNullAssignmentAfterOperation3()
@@ -2535,7 +2535,7 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNotNullAssignmentAfterOperation4()
@@ -2557,7 +2557,7 @@ public sealed partial class UseNullPropagationTests
                 }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNullAssignmentAfterOperation_TopLevel1()
@@ -2591,7 +2591,7 @@ public sealed partial class UseNullPropagationTests
             }
             """,
             OutputKind.ConsoleApplication,
-            LanguageVersionExtensions.CSharpNext);
+            LanguageVersion.CSharp14);
 
     [Fact]
     public Task TestNullAssignmentAfterOperation_TopLevel2()
@@ -2627,7 +2627,7 @@ public sealed partial class UseNullPropagationTests
             }
             """,
             OutputKind.ConsoleApplication,
-            LanguageVersionExtensions.CSharpNext);
+            LanguageVersion.CSharp14);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79338")]
     public Task TestNestedNullPropagation_DifferentForms()
@@ -2663,5 +2663,5 @@ public sealed partial class UseNullPropagationTests
                 void X(string s) { }
             }
             """,
-            languageVersion: LanguageVersionExtensions.CSharpNext);
+            languageVersion: LanguageVersion.CSharp14);
 }

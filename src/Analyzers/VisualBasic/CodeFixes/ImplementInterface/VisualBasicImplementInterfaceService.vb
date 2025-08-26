@@ -25,8 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
-
         Protected Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
         Protected Overrides Function ToDisplayString(disposeImplMethod As IMethodSymbol, format As SymbolDisplayFormat) As String

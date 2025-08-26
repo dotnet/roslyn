@@ -175,8 +175,8 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         Assert.Equal(WorkspaceKind.MetadataAsSource, lspWorkspace!.Kind);
 
         // Verify that the document is also not present in misc files.
-        var doc = testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.SingleOrDefault();
-        Assert.Null(doc);
+        var docs = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None);
+        Assert.Empty(docs);
     }
 
     private static async Task<(LSP.Location Position, string Text)> CreateAndGetMetadataDocument(TestLspServer testLspServer, LSP.Location requestLocation, bool useVirtualFiles)

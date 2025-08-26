@@ -37,8 +37,15 @@ internal sealed partial class SolutionState
 {
     public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
-    // the version of the workspace this solution is from
-    public int WorkspaceVersion { get; }
+    /// <summary>
+    /// The content version of the workspace this solution is from.  This monotonically increases in the
+    /// workspace whenever the content of its <see cref="SolutionState"/> snapshot changes.  Importantly,
+    /// this does not change when the SolutionState stays the same, but the workspace's <see cref="Solution.CompilationState"/>'s
+    /// <see cref="SourceGeneratorExecutionVersionMap"/> changes.  That ensures that requests from the host
+    /// to rerun source generators do not block subsequent requests to update the solution's content in
+    /// <see cref="Workspace.TryApplyChanges(Solution)"/>.
+    /// </summary>
+    public int ContentVersion { get; }
     public string? WorkspaceKind { get; }
     public SolutionServices Services { get; }
     public SolutionOptionSet Options { get; }
@@ -65,7 +72,7 @@ internal sealed partial class SolutionState
 
     private SolutionState(
         string? workspaceKind,
-        int workspaceVersion,
+        int solutionStateContentVersion,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         IReadOnlyList<ProjectId> projectIds,
@@ -78,7 +85,7 @@ internal sealed partial class SolutionState
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
     {
         WorkspaceKind = workspaceKind;
-        WorkspaceVersion = workspaceVersion;
+        ContentVersion = solutionStateContentVersion;
         SolutionAttributes = solutionAttributes;
         Services = services;
         ProjectIds = projectIds;
@@ -111,7 +118,7 @@ internal sealed partial class SolutionState
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(
             workspaceKind,
-            workspaceVersion: 0,
+            solutionStateContentVersion: 0,
             services,
             solutionAttributes,
             projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
@@ -208,7 +215,9 @@ internal sealed partial class SolutionState
 
         return new SolutionState(
             WorkspaceKind,
-            WorkspaceVersion,
+            // Note: we pass along this version for now.  The workspace will actually fork us once more
+            // when it determines the content version it is moving to.
+            ContentVersion,
             Services,
             solutionAttributes,
             projectIds,
@@ -226,13 +235,17 @@ internal sealed partial class SolutionState
     /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
     /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
     /// </summary>
-    public SolutionState WithNewWorkspace(
-        string? workspaceKind,
-        int workspaceVersion,
-        SolutionServices services)
+    public SolutionState WithNewWorkspaceFrom(Solution oldSolution)
     {
+        var workspaceKind = oldSolution.WorkspaceKind;
+        var services = oldSolution.Services;
+
+        var solutionStateContentVersion = oldSolution.SolutionState == this
+            ? oldSolution.SolutionStateContentVersion // If the solution state is the same, we can keep the same version.
+            : oldSolution.SolutionStateContentVersion + 1; // Otherwise, increment the version.
+
         if (workspaceKind == WorkspaceKind &&
-            workspaceVersion == WorkspaceVersion &&
+            solutionStateContentVersion == ContentVersion &&
             services == Services)
         {
             return this;
@@ -242,7 +255,7 @@ internal sealed partial class SolutionState
         // get locked-in by document states and project states when first constructed.
         return new SolutionState(
             workspaceKind,
-            workspaceVersion,
+            solutionStateContentVersion,
             services,
             SolutionAttributes,
             ProjectIds,

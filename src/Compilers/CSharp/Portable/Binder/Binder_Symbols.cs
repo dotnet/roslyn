@@ -1694,12 +1694,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal NamedTypeSymbol GetSpecialType(SpecialType typeId, BindingDiagnosticBag diagnostics, SyntaxNode node)
+        internal NamedTypeSymbol GetSpecialType(ExtendedSpecialType typeId, BindingDiagnosticBag diagnostics, SyntaxNode node)
         {
             return GetSpecialType(this.Compilation, typeId, node, diagnostics);
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, ExtendedSpecialType typeId, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
@@ -1707,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, BindingDiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, ExtendedSpecialType typeId, Location location, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");

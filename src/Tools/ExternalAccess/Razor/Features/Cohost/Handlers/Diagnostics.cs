@@ -25,8 +25,6 @@ internal static class Diagnostics
             document, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
         var project = document.Project;
-        // isLiveSource means build might override a diagnostics, but this method is only used by tooling, so builds aren't relevant
-        const bool IsLiveSource = false;
         // Potential duplicate is only set for workspace diagnostics
         const bool PotentialDuplicate = false;
 
@@ -34,7 +32,7 @@ internal static class Diagnostics
         foreach (var diagnostic in diagnostics)
         {
             if (!diagnostic.IsSuppressed)
-                result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, IsLiveSource, PotentialDuplicate, globalOptionsService));
+                result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, PotentialDuplicate, globalOptionsService));
         }
 
         return result.ToImmutableAndFree();

@@ -103,7 +103,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var cacheDirectory = Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, "cache");
 
-    using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
+    using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(AppContext.BaseDirectory, extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
 
     // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
     // 'automatic' for now.
@@ -240,6 +240,12 @@ static RootCommand CreateCommand()
         Required = false
     };
 
+    var csharpDesignTimePathOption = new Option<string?>("--csharpDesignTimePath")
+    {
+        Description = "Full path to the C# design time target path (optional).",
+        Required = false
+    };
+
     var serverPipeNameOption = new Option<string?>("--pipe")
     {
         Description = "The name of the pipe the server will connect to.",
@@ -266,6 +272,7 @@ static RootCommand CreateCommand()
         devKitDependencyPathOption,
         razorSourceGeneratorOption,
         razorDesignTimePathOption,
+        csharpDesignTimePathOption,
         extensionLogDirectoryOption,
         serverPipeNameOption,
         useStdIoOption
@@ -281,6 +288,7 @@ static RootCommand CreateCommand()
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
+        var csharpDesignTimePath = parseResult.GetValue(csharpDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
         var useStdIo = parseResult.GetValue(useStdIoOption);
@@ -294,6 +302,7 @@ static RootCommand CreateCommand()
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
             RazorDesignTimePath: razorDesignTimePath,
+            CSharpDesignTimePath: csharpDesignTimePath,
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,
             ExtensionLogDirectory: extensionLogDirectory);

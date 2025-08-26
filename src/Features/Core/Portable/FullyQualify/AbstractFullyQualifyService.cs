@@ -131,10 +131,9 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             var validSymbols = matchingTypes
                 .OfType<INamedTypeSymbol>()
-                .Where(s =>
+                .WhereAsArray(s =>
                     IsValidNamedTypeSearchResult(semanticModel, arity, inAttributeContext, looksGeneric, s) &&
-                    s.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation, editorBrowserInfo))
-                .ToImmutableArray();
+                    s.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation, editorBrowserInfo));
 
             // Check what the current node binds to.  If it binds to any symbols, but with
             // the wrong arity, then we don't want to suggest fully qualifying to the same

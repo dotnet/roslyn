@@ -50,8 +50,6 @@ public sealed class DiagnosticAnalyzerDriverTests
             SyntaxKind.CollectionExpression,
             SyntaxKind.ExpressionElement,
             SyntaxKind.SpreadElement,
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 Add to all-in-one
-            SyntaxKind.ExtensionBlockDeclaration,
         };
 
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
@@ -340,7 +338,7 @@ public sealed class DiagnosticAnalyzerDriverTests
         var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None));
 
         var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics([analyzer]);
-        AssertEx.Any(diagnostics, d => d.Id == DocumentAnalysisExecutor.AnalyzerExceptionDiagnosticId);
+        AssertEx.Any(diagnostics, d => d.Id == DiagnosticAnalyzerService.AnalyzerExceptionDiagnosticId);
     }
 
     private sealed class InvalidSpanAnalyzer : DiagnosticAnalyzer

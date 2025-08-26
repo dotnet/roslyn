@@ -94,6 +94,7 @@
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
+      "Microsoft.CodeAnalysis.SemanticSearch.Extensions": "vs-impl",
       "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl",
@@ -177,16 +178,16 @@
       "insertionTitlePrefix": "[d17.14]",
       "insertionCreateDraftPR": false
     },
-    "release/dev-next": {
+    "release/dev18.0": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
-      "insertionTitlePrefix": "[Validation]",
-      "insertionCreateDraftPR": true
+      "vsBranch": "rel/d18.0",
+      "insertionTitlePrefix": "[d18.0]",
+      "insertionCreateDraftPR": false
     },
-    "main": {
+    "community": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
@@ -195,7 +196,7 @@
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Validation]"
     },
-    "main-vs-deps": {
+    "main": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

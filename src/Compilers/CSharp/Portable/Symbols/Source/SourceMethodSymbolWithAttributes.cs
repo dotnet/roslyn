@@ -573,7 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.NullableContextAttribute |
-                ReservedAttributes.CaseSensitiveExtensionAttribute))
+                ReservedAttributes.CaseSensitiveExtensionAttribute |
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -650,6 +651,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         arguments.AttributeSyntaxOpt);
                 }
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RuntimeAsyncMethodGenerationAttribute))
+            {
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().RuntimeAsyncMethodGenerationSetting =
+                    attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean)
+                        ? ThreeState.True
+                        : ThreeState.False;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -659,6 +667,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal ThreeState IsRuntimeAsyncEnabledInMethod
+            => GetDecodedWellKnownAttributeData()?.RuntimeAsyncMethodGenerationSetting ?? ThreeState.Unknown;
 
         internal override ImmutableArray<string> NotNullMembers =>
             GetDecodedWellKnownAttributeData()?.NotNullMembers ?? ImmutableArray<string>.Empty;
@@ -795,7 +806,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.NativeIntegerAttribute |
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.MaybeNullAttribute))
@@ -1742,6 +1754,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Synthesized constructor of ComImport types is marked as Runtime implemented and InternalCall
                     result |= (System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall);
+                }
+
+                if (this.IsAsync && this.DeclaringCompilation.IsRuntimeAsyncEnabledIn(this))
+                {
+                    // https://github.com/dotnet/roslyn/issues/79792: Use real value from MethodImplAttributes when available
+                    // When a method is emitted using runtime async, we add MethodImplAttributes.Async to indicate to the 
+                    // runtime to generate the state machine
+                    result |= (System.Reflection.MethodImplAttributes)0x2000;
                 }
 
                 return result;

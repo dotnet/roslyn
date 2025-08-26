@@ -17,6 +17,7 @@ internal interface ICopilotSemanticSearchQueryService
     CompileQueryResult CompileQuery(
         SolutionServices services,
         string query,
+        string? targetLanguage,
         string referenceAssembliesDir,
         TraceSource traceSource,
         CancellationToken cancellationToken);
@@ -25,10 +26,15 @@ internal interface ICopilotSemanticSearchQueryService
         Solution solution,
         CompiledQueryId queryId,
         ICopilotSemanticSearchResultsObserver observer,
+        QueryExecutionOptions options,
         TraceSource traceSource,
         CancellationToken cancellationToken);
 
     void DiscardQuery(CompiledQueryId queryId);
+
+    internal readonly record struct QueryExecutionOptions(
+        int? ResultCountLimit,
+        bool KeepCompiledQuery);
 
     internal readonly record struct ExecuteQueryResult(
         string? ErrorMessage,

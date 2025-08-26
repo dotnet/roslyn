@@ -852,7 +852,7 @@ public sealed class CodeFixServiceTests
         GetDocumentAndExtensionManager(workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
         var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CancellationToken.None);
         Assert.Equal(2, txtDocumentCodeFixes.Length);
-        var txtDocumentCodeFixTitles = txtDocumentCodeFixes.Select(s => s.Fixes.Single().Action.Title).ToImmutableArray();
+        var txtDocumentCodeFixTitles = txtDocumentCodeFixes.SelectAsArray(s => s.Fixes.Single().Action.Title);
         Assert.Contains(fixer1.Title, txtDocumentCodeFixTitles);
         Assert.Contains(fixer2.Title, txtDocumentCodeFixTitles);
 

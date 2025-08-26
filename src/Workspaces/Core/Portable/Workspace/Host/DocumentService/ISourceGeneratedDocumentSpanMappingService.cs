@@ -11,9 +11,11 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal interface ISourceGeneratedDocumentSpanMappingService : IWorkspaceService
 {
-    Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
+    bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument);
 
-    Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
+    Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken);
+
+    Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
 }
 
 internal record struct MappedTextChange(string MappedFilePath, TextChange TextChange);

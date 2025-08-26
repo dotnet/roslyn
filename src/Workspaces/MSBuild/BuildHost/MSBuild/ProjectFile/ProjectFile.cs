@@ -159,25 +159,22 @@ internal abstract class ProjectFile : IProjectFile
 
         var targetFrameworkVersion = project.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
 
-        var docs = project.GetDocuments()
-            .Where(IsNotTemporaryGeneratedFile)
-            .Select(MakeDocumentFileInfo)
-            .ToImmutableArray();
+        var docs = project.GetDocuments().SelectAsArray(
+            predicate: IsNotTemporaryGeneratedFile,
+            selector: MakeDocumentFileInfo);
 
         var additionalDocs = project.GetAdditionalFiles()
-            .Select(MakeNonSourceFileDocumentFileInfo)
-            .ToImmutableArray();
+            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
 
         var analyzerConfigDocs = project.GetEditorConfigFiles()
-            .Select(MakeNonSourceFileDocumentFileInfo)
-            .ToImmutableArray();
+            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
 
         var packageReferences = project.GetPackageReferences();
 
         var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
         var contentFileInfo = GetContentFiles(project);
 
-        var fileGlobs = _loadedProject?.GetAllGlobs().Select(GetFileGlobs).ToImmutableArray() ?? [];
+        var fileGlobs = _loadedProject?.GetAllGlobs().SelectAsArray(GetFileGlobs) ?? [];
 
         return new ProjectFileInfo()
         {
@@ -223,8 +220,7 @@ internal abstract class ProjectFile : IProjectFile
     private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
     {
         var commandLineArgs = GetCompilerCommandLineArgs(project)
-            .Select(item => item.ItemSpec)
-            .ToImmutableArray();
+            .SelectAsArray(item => item.ItemSpec);
 
         if (commandLineArgs.Length == 0)
         {

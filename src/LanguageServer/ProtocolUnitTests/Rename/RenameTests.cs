@@ -4,16 +4,19 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -22,6 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename;
 
 public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(TestSourceGeneratedDocumentSpanMappingService));
+
     [Theory, CombinatorialData]
     public async Task TestRenameAsync(bool mutatingLspWorkspace)
     {
@@ -269,6 +274,9 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
         AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        Assert.True(service.DidMapSpans);
     }
 
     [Theory, CombinatorialData]
@@ -316,6 +324,51 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
         AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        Assert.True(service.DidMapSpans);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestRename_OriginateInSourceGeneratedFile_Local(bool mutatingLspWorkspace)
+    {
+        var generatedMarkup = """
+            class B
+            {
+                void M()
+                {
+                    var {|caret:|}{|renamed:a|} = new A();
+                    {|renamed:a|}.M();
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            public class A
+            {
+                public void M()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
+
+        TestFileMarkupParser.GetSpans(generatedMarkup, out var generatedCode, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+        var generatedSourceText = SourceText.From(generatedCode);
+
+        var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", generatedCode));
+        var workspace = testLspServer.TestWorkspace;
+        var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
+        workspace.TryApplyChanges(project.Solution);
+        var generatedDocument = (await project.GetSourceGeneratedDocumentsAsync()).First();
+
+        var renameLocation = await ProtocolConversions.TextSpanToLocationAsync(generatedDocument, spans["caret"].First(), isStale: false, CancellationToken.None);
+        var renameValue = "RENAME";
+        var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
+
+        var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+        AssertJsonEquals(expectedGeneratedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+
+        var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
+        Assert.True(service.DidMapSpans);
     }
 
     private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)

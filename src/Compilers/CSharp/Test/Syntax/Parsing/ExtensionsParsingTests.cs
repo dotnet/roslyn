@@ -131,7 +131,7 @@ class C
     extension<T>(object o) where T : struct { }
 }
 """,
-            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -759,7 +759,7 @@ class extension
     extension(Type constructorParameter) { }
 }
 """,
-        useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -799,7 +799,7 @@ class extension
     @extension(Type constructorParameter) { }
 }
 """,
-        useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -4432,7 +4432,7 @@ class C
         EOF();
 
         // Note: break from C# 13
-        UsingTree(src, useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview,
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
             // (3,15): error CS9500: Extension declarations may not have a name.
             //     extension M() { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(3, 15),
@@ -4477,7 +4477,7 @@ class C
     @extension M() { }
 }
 """,
-            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -4562,7 +4562,7 @@ class C
         EOF();
 
         // Note: break from C# 13
-        UsingTree(src, useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview,
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
             // (3,15): error CS9500: Extension declarations may not have a name.
             //     extension M(Type x) { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(3, 15));
@@ -4605,7 +4605,7 @@ class C
     @extension M(Type x) { }
 }
 """,
-            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {

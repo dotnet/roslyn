@@ -102,6 +102,11 @@ internal sealed class DiagnosticData(
             WarningLevel, CustomTags, Properties, ProjectId, location, additionalLocations,
             Language, Title, Description, HelpLink, IsSuppressed);
 
+    public DiagnosticData WithCustomTags(ImmutableArray<string> customTags)
+        => new(Id, Category, Message, Severity, DefaultSeverity, IsEnabledByDefault,
+            WarningLevel, customTags, Properties, ProjectId, DataLocation, AdditionalLocations,
+            Language, Title, Description, HelpLink, IsSuppressed);
+
     public DocumentId? DocumentId => DataLocation.DocumentId;
 
     public override bool Equals(object? obj)

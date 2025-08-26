@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Composition;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,6 +15,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -23,6 +26,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Extensibility.VSSdkCompatibility;
 using Microsoft.VisualStudio.Imaging;
@@ -59,10 +63,14 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     VisualStudioWorkspace workspace,
     IStreamingFindUsagesPresenter resultsPresenter,
     ITextUndoHistoryRegistry undoHistoryRegistry,
-    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : IDisposable
+    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider,
+    IPreviewFactoryService previewFactory) : IDisposable
 {
     private const int ToolBarHeight = 26;
     private const int ToolBarButtonSize = 20;
+
+    private static readonly Guid s_logOutputPainGuid = new("{4C4F1810-C865-493E-98A7-8E1120A9FDE4}");
+    private const string LogOutputPaneName = "Semantic Search Log";
 
     private static readonly Lazy<ControlTemplate> s_buttonTemplate = new(CreateButtonTemplate);
 
@@ -79,6 +87,9 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     // access interlocked:
     private volatile CancellationTokenSource? _pendingExecutionCancellationSource;
 
+    // Create on UI thread only, access on any thread:
+    private AsyncBatchingWorkQueue<string>? _lazyLogQueue;
+
     // Access on UI thread only:
     private Button? _executeButton;
     private Button? _cancelButton;
@@ -86,6 +97,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     private ITextBuffer? _textBuffer;
 
     private IRemoteUserControl? _lazyContent;
+    private IVsOutputWindowPane? _lazyLogOutputPane;
 
     public void Dispose()
     {
@@ -188,7 +200,8 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
         await TaskScheduler.Default;
 
-        await _semanticSearchWorkspace.Value.OpenQueryDocumentAsync(_textBuffer, cancellationToken).ConfigureAwait(false);
+        // TODO: add UI that allows to set target language (e.g. we can have two workspaces, one for for C# and one for VB, or just a combo box with C#/VB choice)
+        await _semanticSearchWorkspace.Value.OpenQueryDocumentAsync(_textBuffer, targetLanguage: null, cancellationToken).ConfigureAwait(false);
 
         return toolWindowGrid;
     }
@@ -386,6 +399,22 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
         UpdateUIState();
 
+        _lazyLogQueue ??= new(
+            delay: TimeSpan.Zero,
+            async (messages, cancellationToken) =>
+            {
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                var pane = GetOrCreateLogOutputPane();
+
+                foreach (var message in messages)
+                {
+                    pane.OutputStringThreadSafe(message + Environment.NewLine);
+                }
+            },
+            _asyncListener,
+            cancellationToken: CancellationToken.None);
+
         var (presenterContext, presenterCancellationToken) = resultsPresenter.StartSearch(ServicesVSResources.Semantic_search_results, StreamingFindUsagesPresenterOptions.Default);
         presenterCancellationToken.Register(() => cancellationSource?.Cancel());
 
@@ -401,8 +430,57 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
             try
             {
-                var executor = new SemanticSearchQueryExecutor(presenterContext, globalOptions);
-                await executor.ExecuteAsync(query: null, queryDocument, workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var executor = new SemanticSearchQueryExecutor(presenterContext, message => _lazyLogQueue.AddWork(message), globalOptions);
+                var oldSolution = workspace.CurrentSolution;
+                var (newSolution, fileUpdates) = await executor.ExecuteAsync(query: null, queryDocument, oldSolution, cancellationToken).ConfigureAwait(false);
+
+                var success = true;
+                if (newSolution != oldSolution)
+                {
+                    var changedSolution = newSolution;
+
+                    var previewDialogService = workspace.Services.GetService<IPreviewDialogService>();
+                    if (previewDialogService != null &&
+                        previewFactory.GetSolutionPreviews(oldSolution, newSolution, cancellationToken)?.ChangeSummary is { } changeSummary)
+                    {
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                        changedSolution = previewDialogService.PreviewChanges(
+                            EditorFeaturesResources.Preview_Changes,
+                            "vs.codefix.previewchanges",
+                            "Updates",
+                            EditorFeaturesResources.Changes,
+                            Glyph.OpenFolder,
+                            changeSummary.NewSolution,
+                            changeSummary.OldSolution,
+                            showCheckBoxes: false);
+
+                        // TODO: report error
+                        success = changedSolution != null && workspace.TryApplyChanges(changedSolution);
+                    }
+                    else
+                    {
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                        success = workspace.TryApplyChanges(changedSolution);
+                    }
+                }
+
+                if (success)
+                {
+                    // TODO: parallelize, exceptions
+                    foreach (var (filePath, newContent) in fileUpdates)
+                    {
+                        if (newContent == null)
+                        {
+                            File.Delete(filePath);
+                        }
+                        else
+                        {
+                            File.WriteAllText(filePath, newContent, Encoding.UTF8);
+                        }
+                    }
+                }
             }
             finally
             {
@@ -444,6 +522,26 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
             return true;
         });
+
+    private IVsOutputWindowPane GetOrCreateLogOutputPane()
+    {
+        if (_lazyLogOutputPane != null)
+            return _lazyLogOutputPane;
+
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var outputWindow = ServiceProvider.GlobalProvider.GetServiceOnMainThread<SVsOutputWindow, IVsOutputWindow>();
+
+        // Try to get the pane, create if it doesn't exist
+        var guid = s_logOutputPainGuid;
+        if (outputWindow.GetPane(ref guid, out _lazyLogOutputPane) != VSConstants.S_OK || _lazyLogOutputPane == null)
+        {
+            outputWindow.CreatePane(ref guid, LogOutputPaneName, fInitVisible: 1, fClearWithSolution: 1);
+            outputWindow.GetPane(ref guid, out _lazyLogOutputPane);
+        }
+
+        return _lazyLogOutputPane;
+    }
 
     private sealed class CommandFilter : IOleCommandTarget
     {

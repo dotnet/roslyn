@@ -31,6 +31,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     }
 
     public static async Task<ExportProvider> CreateExportProviderAsync(
+        string baseDirectory,
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader,
         string? devKitDependencyPath,
@@ -38,8 +39,6 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        var baseDirectory = AppContext.BaseDirectory;
-
         // Load any Roslyn assemblies from the extension directory
         using var _ = ArrayBuilder<string>.GetInstance(out var assemblyPathsBuilder);
 
@@ -90,13 +89,13 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         return base.CreateExportProviderAsync(cancellationToken);
     }
 
-    protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions)
+    protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var expectedErrorPartsSet = new HashSet<string>(["CSharpMapCodeService", "PythiaSignatureHelpProvider", "CopilotSemanticSearchQueryExecutor"]);
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
-        return hasUnexpectedErroredParts || !partDiscoveryExceptions.IsEmpty;
+        return hasUnexpectedErroredParts;
     }
 
     protected override Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, CancellationToken cancellationToken)

@@ -9,7 +9,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO.Hashing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,43 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public MethodSymbol? LazyExtensionMarker = ErrorMethodSymbol.UnknownMethod;
             public ParameterSymbol? LazyExtensionParameter;
             public ImmutableDictionary<MethodSymbol, MethodSymbol>? LazyImplementationMap;
-        }
-
-        internal override string ExtensionName
-        {
-            get
-            {
-                if (!IsExtension)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                MergedNamespaceOrTypeDeclaration declaration;
-                if (ContainingType is not null)
-                {
-                    declaration = ((SourceNamedTypeSymbol)this.ContainingType).declaration;
-                }
-                else
-                {
-                    declaration = ((SourceNamespaceSymbol)this.ContainingSymbol).MergedDeclaration;
-                }
-
-                int index = 0;
-                foreach (Declaration child in declaration.Children)
-                {
-                    if (child == this.declaration)
-                    {
-                        return GeneratedNames.MakeExtensionName(index);
-                    }
-
-                    if (child.Kind == DeclarationKind.Extension)
-                    {
-                        index++;
-                    }
-                }
-
-                throw ExceptionUtilities.Unreachable();
-            }
+            public string? LazyExtensionGroupingName;
+            public string? LazyExtensionMarkerName;
         }
 
         /// <summary>
@@ -529,8 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendNamedType(NamedTypeSymbol namedType, StringBuilder builder)
             {
-                Debug.Assert(namedType.CustomModifierCount() == 0);
-
                 if (namedType.SpecialType == SpecialType.System_Void)
                 {
                     builder.Append("void");
@@ -828,9 +793,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (CSharpAttributeData attribute in attributes)
                 {
-                    var stringBuilder = PooledStringBuilder.GetInstance();
-                    appendAttribute(attribute, stringBuilder.Builder);
-                    attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    if (!attribute.IsConditionallyOmitted)
+                    {
+                        var stringBuilder = PooledStringBuilder.GetInstance();
+                        appendAttribute(attribute, stringBuilder.Builder);
+                        attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    }
                 }
 
                 attributesBuilder.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
@@ -1092,13 +1060,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyExtensionInfo.LazyImplementationMap.GetValueOrDefault(method);
         }
 
-        protected sealed override MethodSymbol? CreateSynthesizedExtensionMarker()
-        {
-            return TryGetOrCreateExtensionMarker();
-        }
-
         [MemberNotNull(nameof(_lazyExtensionInfo))]
-        private MethodSymbol? TryGetOrCreateExtensionMarker()
+        internal MethodSymbol? TryGetOrCreateExtensionMarker()
         {
             Debug.Assert(IsExtension);
 
@@ -1130,6 +1093,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new SynthesizedExtensionMarker(this, parameterList);
             }
+        }
+
+        internal override string ExtensionGroupingName
+        {
+            get
+            {
+                Debug.Assert(IsExtension);
+                if (_lazyExtensionInfo is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                }
+
+                if (_lazyExtensionInfo.LazyExtensionGroupingName is null)
+                {
+                    _lazyExtensionInfo.LazyExtensionGroupingName = WellKnownMemberNames.ExtensionGroupingTypePrefix + RawNameToHashString(ComputeExtensionGroupingRawName());
+                }
+
+                return _lazyExtensionInfo.LazyExtensionGroupingName;
+            }
+        }
+
+        internal override string ExtensionMarkerName
+        {
+            get
+            {
+                Debug.Assert(IsExtension);
+                if (_lazyExtensionInfo is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                }
+
+                if (_lazyExtensionInfo.LazyExtensionMarkerName is null)
+                {
+                    _lazyExtensionInfo.LazyExtensionMarkerName = WellKnownMemberNames.ExtensionMarkerTypePrefix + RawNameToHashString(ComputeExtensionMarkerRawName());
+                }
+
+                return _lazyExtensionInfo.LazyExtensionMarkerName;
+            }
+        }
+
+        private static string RawNameToHashString(string rawName)
+        {
+            Span<byte> hash = stackalloc byte[16];
+
+            ReadOnlySpan<char> charSpan = rawName.AsSpan();
+
+            // Ensure everything is always little endian, so we get the same results across all platforms.
+            // This will be entirely elided by the jit on a little endian machine.
+            if (!BitConverter.IsLittleEndian)
+            {
+                Span<short> shortSpan = stackalloc short[charSpan.Length];
+
+                MemoryMarshal.Cast<char, short>(charSpan).CopyTo(shortSpan);
+                Text.SourceText.ReverseEndianness(shortSpan);
+
+                int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(shortSpan), hash);
+                Debug.Assert(bytesWritten == hash.Length);
+            }
+            else
+            {
+                int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(charSpan), hash);
+                Debug.Assert(bytesWritten == hash.Length);
+            }
+
+            return CodeAnalysis.CodeGen.PrivateImplementationDetails.HashToHex(hash);
         }
 
         internal static Symbol? GetCompatibleSubstitutedMember(CSharpCompilation compilation, Symbol extensionMember, TypeSymbol receiverType)

@@ -2305,14 +2305,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void DeclareVariables(OneOrMany<LocalSymbol> locals)
-        {
-            foreach (var symbol in locals)
-            {
-                DeclareVariable(symbol);
-            }
-        }
-
         private void DeclareVariable(LocalSymbol symbol)
         {
             var initiallyAssigned =
