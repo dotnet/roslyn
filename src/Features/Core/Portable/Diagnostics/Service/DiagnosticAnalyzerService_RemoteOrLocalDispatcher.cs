@@ -118,38 +118,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             return analyzers.FilterAnalyzers(result.Value);
         }
 
-        using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var builder);
-
-        var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
-        var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-            project, analyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-
-        foreach (var analyzer in analyzers)
-        {
-            if (await IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer).ConfigureAwait(false))
-                builder.Add(analyzer);
-        }
-
-        return builder.ToImmutableAndClear();
-
-        async Task<bool> IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(DiagnosticAnalyzer analyzer)
-        {
-            // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
-            // as these are computationally more expensive.
-            // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
-            if (compilationWithAnalyzers == null ||
-                analyzer.IsWorkspaceDiagnosticAnalyzer() ||
-                analyzer.IsCompilerAnalyzer())
-            {
-                return false;
-            }
-
-            var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-            if (telemetryInfo == null)
-                return false;
-
-            return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
-        }
+        return await GetDeprioritizationCandidatesInProcessAsync(project, analyzers, cancellationToken).ConfigureAwait(false);
     }
 
     internal async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(

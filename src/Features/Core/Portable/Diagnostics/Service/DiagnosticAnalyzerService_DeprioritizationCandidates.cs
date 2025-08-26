@@ -1,0 +1,73 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal sealed partial class DiagnosticAnalyzerService
+{
+    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_analyzerToIsDeprioritizationCandidateMap = new();
+
+    private async Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesInProcessAsync(
+        Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var builder);
+
+        HostAnalyzerInfo? hostAnalyzerInfo = null;
+        CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
+
+        foreach (var analyzer in analyzers)
+        {
+            if (!s_analyzerToIsDeprioritizationCandidateMap.TryGetValue(analyzer, out var boxedBool))
+            {
+                if (hostAnalyzerInfo is null)
+                {
+                    hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
+                    compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                        project, analyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                }
+
+                boxedBool = new(await IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer).ConfigureAwait(false));
+#if NET
+                s_analyzerToIsDeprioritizationCandidateMap.TryAdd(analyzer, boxedBool);
+#else
+                lock (s_analyzerToIsDeprioritizationCandidateMap)
+                {
+                    if (!s_analyzerToIsDeprioritizationCandidateMap.TryGetValue(analyzer, out var existing))
+                        s_analyzerToIsDeprioritizationCandidateMap.Add(analyzer, boxedBool);
+                }
+#endif
+            }
+
+            if (boxedBool.Value)
+                builder.Add(analyzer);
+        }
+
+        return builder.ToImmutableAndClear();
+
+        async Task<bool> IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(DiagnosticAnalyzer analyzer)
+        {
+            // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
+            // as these are computationally more expensive.
+            // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
+            if (compilationWithAnalyzers == null ||
+                analyzer.IsWorkspaceDiagnosticAnalyzer() ||
+                analyzer.IsCompilerAnalyzer())
+            {
+                return false;
+            }
+
+            var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+            if (telemetryInfo == null)
+                return false;
+
+            return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
+        }
+    }
+}
