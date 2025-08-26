@@ -30723,5 +30723,156 @@ public class AAttribute : System.Attribute { }
             Assert.True(implementation.TypeParameters.Single().HasUnmanagedTypeConstraint);
         }
     }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_14(bool useCompilationReference)
+    {
+        // attribute on extension indexer
+        var libSrc = """
+public static class E
+{
+    extension(int i1)
+    {
+        [A]
+        public this[int i2] => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            Assert.Equal("AAttribute", extensionIndexer.GetAttributes().Single().ToString());
+            var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
+            Assert.Empty(extensionGetter.GetAttributes());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Empty(implementation.GetAttributes());
+        }
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_15(bool useCompilationReference)
+    {
+        // attribute on parameters for extension indexer
+        var libSrc = """
+public static class E
+{
+    extension([A] int i1)
+    {
+        public this[[B] int i2] => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+public class BAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.ExtensionParameter.GetAttributes().Single().ToString());
+
+            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            Assert.Empty(extensionIndexer.GetAttributes());
+            Assert.Equal("BAttribute", extensionIndexer.Parameters.Single().GetAttributes().Single().ToString());
+
+            var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
+            Assert.Equal("BAttribute", extensionGetter.Parameters.Single().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.Parameters.First().GetAttributes().Single().ToString());
+            Assert.Equal("BAttribute", implementation.Parameters.Last().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_16(bool useCompilationReference)
+    {
+        // attribute on type parameters for extension indexer
+        var libSrc = """
+public static class E
+{
+    extension<[A] T>(T t)
+    {
+        public this[int i] => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.TypeParameters.Single().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.TypeParameters.Single().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_17(bool useCompilationReference)
+    {
+        // attribute on accessor for extension indexer
+        var libSrc = """
+public static class E
+{
+    extension(int i1)
+    {
+        public this[int i2]
+        {
+            [A]
+            get => 0;
+        }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+
+            var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
+            Assert.Equal("AAttribute", extensionGetter.GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetAttributes().Single().ToString());
+        }
+    }
 }
 
