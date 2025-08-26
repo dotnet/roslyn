@@ -140,6 +140,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
 
             case LocationKind.MetadataFile:
             case LocationKind.XmlFile:
+            case LocationKind.None:
                 // ignore
                 return;
 
