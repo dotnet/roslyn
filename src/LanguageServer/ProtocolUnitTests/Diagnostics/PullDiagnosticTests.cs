@@ -998,10 +998,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         AssertEx.Empty(results[1].Diagnostics);
-        AssertEx.Empty(results[2].Diagnostics);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
@@ -1017,12 +1016,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         // this should be considered a build-error, since it was produced by the last code-analysis run.
         Assert.Contains(VSDiagnosticTags.BuildError, results[0].Diagnostics!.Single().Tags!);
         AssertEx.Empty(results[1].Diagnostics);
-        AssertEx.Empty(results[2].Diagnostics);
 
         // Now fix the compiler error, but don't re-execute code analysis.
         // Verify that we still get the workspace diagnostics from the prior snapshot on which code analysis was executed.
@@ -1057,12 +1055,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         // this should *not* be considered a build-error, since it was produced by the live workspace results.
         Assert.DoesNotContain(VSDiagnosticTags.BuildError, results[0].Diagnostics!.Single().Tags!);
         AssertEx.Empty(results[1].Diagnostics);
-        AssertEx.Empty(results[2].Diagnostics);
 
         // Now fix the compiler error, but don't rerun code analysis.
         // Verify that we get up-to-date workspace diagnostics, i.e. no compiler errors, from the current snapshot because FSA is enabled.
@@ -1411,7 +1408,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, results[0].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[1].Diagnostics);
+        Assert.Single(results);
     }
 
     [Theory, CombinatorialData]
@@ -1475,11 +1472,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // project.
         results = results.Sort((x, y) => x.Uri.ToString().CompareTo(y.Uri.ToString()));
 
-        Assert.Equal(3, results.Length);
-        // Since we sorted above by URI the first result is the project.
-        AssertEx.Empty(results[0].Diagnostics);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[1].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1492,10 +1487,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         AssertEx.Empty(results[1].Diagnostics);
-        AssertEx.Empty(results[2].Diagnostics);
 
         testLspServer.TestWorkspace.OnDocumentRemoved(testLspServer.TestWorkspace.Documents.First().Id);
 
@@ -1518,10 +1512,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         AssertEx.Empty(results[1].Diagnostics);
-        AssertEx.Empty(results[2].Diagnostics);
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
@@ -1539,10 +1532,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         AssertEx.Empty(results[1].Diagnostics);
-        AssertEx.Empty(results[2].Diagnostics);
 
         await InsertInClosedDocumentAsync(testLspServer, testLspServer.TestWorkspace.Documents.First().Id, "}");
 
@@ -1564,12 +1556,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics!.Single().Range.Start);
 
         AssertEx.Empty(results[1].Diagnostics);
-        AssertEx.Empty(results[2].Diagnostics);
 
         await InsertInClosedDocumentAsync(testLspServer, testLspServer.TestWorkspace.Documents.First().Id, " ", position: 0);
 
@@ -1665,9 +1656,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.NotNull(results);
-        Assert.Equal(4, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
-        Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
+        Assert.Equal("CS1001", results[1].Diagnostics!.Single().Code);
 
         // Insert B into B.cs via the workspace.
         var caretLocation = testLspServer.GetLocations("caret").First().Range;
@@ -1746,16 +1736,13 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we have diagnostics in A.cs, B.cs, and C.cs initially.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.NotNull(results);
-        Assert.Equal(6, results.Length);
+        Assert.Equal(3, results.Length);
         // Type C does not exist.
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[1].Diagnostics);
         // Type C does not exist.
-        Assert.Equal("CS0246", results[2].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[3].Diagnostics);
+        Assert.Equal("CS0246", results[1].Diagnostics!.Single().Code);
         // Syntax error missing identifier.
-        Assert.Equal("CS1001", results[4].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[5].Diagnostics);
+        Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
 
         // Insert C into C.cs via the workspace.
         var caretLocation = testLspServer.GetLocations("caret").First().Range;
@@ -1821,11 +1808,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.NotNull(results);
-        Assert.Equal(4, results.Length);
+        Assert.Equal(2, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[1].Diagnostics);
-        Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[3].Diagnostics);
+        Assert.Equal("CS1001", results[1].Diagnostics!.Single().Code);
 
         // Insert B into B.cs via the workspace.
         var caretLocation = testLspServer.GetLocations("caret").First().Range;
@@ -1889,10 +1874,10 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.NotNull(results);
-        Assert.Equal(4, results.Length);
+        Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal("CS0168", results[2].Diagnostics!.Single().Code);
-        Assert.Equal(LSP.DiagnosticSeverity.Warning, results[2].Diagnostics!.Single().Severity);
+        Assert.Equal("CS0168", results[1].Diagnostics!.Single().Code);
+        Assert.Equal(LSP.DiagnosticSeverity.Warning, results[1].Diagnostics!.Single().Severity);
 
         // Change and reload the project via the workspace.
         var projectInfo = testLspServer.TestWorkspace.Projects.Where(p => p.AssemblyName == "CSProj2").Single().ToProjectInfo();
@@ -1952,9 +1937,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.NotNull(results);
-        Assert.Equal(4, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
-        Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
+        Assert.Equal("CS1001", results[1].Diagnostics!.Single().Code);
 
         // Reload the project via the workspace.
         var projectInfo = testLspServer.TestWorkspace.Projects.Where(p => p.AssemblyName == "CSProj2").Single().ToProjectInfo();
@@ -2008,7 +1992,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.NotNull(results);
-        Assert.Equal(6, results.Length);
+        Assert.Equal(3, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
 
         // Reload the project via the workspace.
@@ -2211,9 +2195,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(2, results.Length);
+        Assert.Equal(1, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[1].Diagnostics);
 
         var options = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         options.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.OpenFiles);
@@ -2221,21 +2204,18 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
-        Assert.Equal(2, results.Length);
+        Assert.Equal(1, results.Length);
 
         Assert.Null(results[0].ResultId);
-        Assert.Null(results[1].ResultId);
 
         // VS represents removal with null diagnostics, VS code represents with an empty diagnostics array.
         if (useVSDiagnostics)
         {
             Assert.Null(results[0].Diagnostics);
-            Assert.Null(results[1].Diagnostics);
         }
         else
         {
             AssertEx.Empty(results[0].Diagnostics);
-            AssertEx.Empty(results[1].Diagnostics);
         }
     }
 
@@ -2256,9 +2236,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
-        Assert.Equal(2, results.Length);
+        Assert.Equal(1, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
-        AssertEx.Empty(results[1].Diagnostics);
     }
 
     internal static async Task InsertInClosedDocumentAsync(TestLspServer testLspServer, DocumentId documentId, string textToInsert, int? position = null)
