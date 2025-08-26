@@ -59,7 +59,6 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     /// </summary>
     /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
     /// <param name="capabilities">Array of capabilities retrieved from the runtime to dictate supported rude edits.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
     {
         var newSessionId = await _encService.StartDebuggingSessionAsync(
@@ -82,7 +81,6 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     /// </summary>
     /// <param name="solution">Solution snapshot.</param>
     /// <param name="commitUpdates">commits changes if true, discards if false</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>
     /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
     /// </returns>

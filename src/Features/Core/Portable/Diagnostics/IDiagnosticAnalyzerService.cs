@@ -49,7 +49,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// analyzers either at compilation end callback OR in a different file from which the callback was made. Entire
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
@@ -61,7 +60,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
     /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
         Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, CancellationToken cancellationToken);
 
