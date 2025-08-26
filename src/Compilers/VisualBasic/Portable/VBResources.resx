@@ -5738,5 +5738,6 @@
   </data>
   <data name="ERR_MethodImplAttributeAsyncCannotBeUsed" xml:space="preserve">
     <value>'MethodImplAttribute.Async' cannot be manually applied to methods.</value>
+    <remarks>'MethodImplAttribute.Async' is not localizable.</remarks>
   </data>
 </root>
