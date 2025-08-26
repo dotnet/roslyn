@@ -11,6 +11,7 @@ using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -220,15 +221,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return buildTaskDirectory;
         }
 
-        protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
+        protected sealed override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            var logger = CreateServerLogger();
+
             // Set DOTNET_ROOT.
             if (RuntimeHostInfo.GetDotNetRoot() is { } dotNetRoot &&
                 EnvironmentVariables?.Any(static e => e.StartsWith($"{RuntimeHostInfo.DotNetRootEnvironmentName}=", StringComparison.OrdinalIgnoreCase)) != true)
             {
+                (logger as ICompilerServerLogger)?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables = [.. EnvironmentVariables ?? [], $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}"];
             }
 
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+        }
+
+        protected virtual object? CreateServerLogger()
+        {
+            return null;
+        }
+
+        protected virtual int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, object? logger)
+        {
             return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }
     }
