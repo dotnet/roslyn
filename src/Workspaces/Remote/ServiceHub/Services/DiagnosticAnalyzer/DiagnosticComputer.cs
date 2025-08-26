@@ -230,8 +230,7 @@ internal sealed class DiagnosticComputer
                 new DiagnosticMap(
                     analyzerResults.SyntaxLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
                     analyzerResults.SemanticLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
-                    analyzerResults.NonLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
-                    analyzerResults.Others)));
+                    analyzerResults.NonLocals.SelectAsArray(entry => (entry.Key, entry.Value)))));
         }
 
         return diagnostics.MoveToImmutable();

@@ -24,12 +24,9 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals = null;
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazyNonLocals = null;
 
-    private List<DiagnosticData>? _lazyOthers = null;
-
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
-    public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? [] : [.. _lazyOthers];
 
     public void AddExternalSyntaxDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
@@ -68,18 +65,9 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                             // non local diagnostics to a file
                             AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
                         }
-                        else
-                        {
-                            // non local diagnostics without location
-                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
-                        }
 
                         break;
                     }
-
-                case LocationKind.None:
-                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
-                    break;
 
                 case LocationKind.SourceFile:
                 case LocationKind.MetadataFile:
@@ -100,12 +88,6 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
 
         map ??= [];
         map.GetOrAdd(document.Id, static _ => []).Add(DiagnosticData.Create(diagnostic, document));
-    }
-
-    private void AddOtherDiagnostic(DiagnosticData data)
-    {
-        _lazyOthers ??= [];
-        _lazyOthers.Add(data);
     }
 
     public void AddSyntaxDiagnostics(SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
@@ -138,15 +120,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                 {
                     AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
                 }
-                else
-                {
-                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
-                }
 
-                break;
-
-            case LocationKind.None:
-                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 break;
 
             case LocationKind.SourceFile:
@@ -160,11 +134,6 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                 {
                     // non local diagnostics to a file
                     AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredDocument(diagnosticTree), diagnostic);
-                }
-                else
-                {
-                    // non local diagnostics without location
-                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 }
 
                 break;

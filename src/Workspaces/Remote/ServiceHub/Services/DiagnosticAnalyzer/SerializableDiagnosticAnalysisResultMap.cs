@@ -20,11 +20,9 @@ internal readonly struct DiagnosticAnalysisResults(
 internal readonly struct DiagnosticMap(
     ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> syntax,
     ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> semantic,
-    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> nonLocal,
-    ImmutableArray<DiagnosticData> other)
+    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> nonLocal)
 {
     public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> Syntax = syntax;
     public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> Semantic = semantic;
     public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> NonLocal = nonLocal;
-    public readonly ImmutableArray<DiagnosticData> Other = other;
 }
