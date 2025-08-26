@@ -66,7 +66,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
             workspace.CurrentSolution.Projects.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
-            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+            includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
 
