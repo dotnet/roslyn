@@ -73,7 +73,6 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         internal readonly CodeActionPriority? priority;
         internal readonly bool retainNonFixableDiagnostics;
         internal readonly bool includeDiagnosticsOutsideSelection;
-        internal readonly bool includeNonLocalDocumentDiagnostics;
         internal readonly string title;
         internal readonly bool treatPositionIndicatorsAsCode;
 
@@ -90,7 +89,6 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             string title = null,
             TestHost testHost = TestHost.OutOfProcess,
             string workspaceKind = null,
-            bool includeNonLocalDocumentDiagnostics = false,
             bool treatPositionIndicatorsAsCode = false)
         {
             this.parseOptions = parseOptions;
@@ -105,41 +103,37 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             this.title = title;
             this.testHost = testHost;
             this.workspaceKind = workspaceKind;
-            this.includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
             this.treatPositionIndicatorsAsCode = treatPositionIndicatorsAsCode;
         }
 
         public static readonly TestParameters Default = new(parseOptions: null);
 
         public TestParameters WithParseOptions(ParseOptions parseOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithCompilationOptions(CompilationOptions compilationOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         internal TestParameters WithOptions(OptionsCollectionAlias options)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         internal TestParameters WithGlobalOptions(OptionsCollectionAlias globalOptions)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithFixProviderData(object fixProviderData)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithIndex(int index)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithIncludeDiagnosticsOutsideSelection(bool includeDiagnosticsOutsideSelection)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
 
         public TestParameters WithWorkspaceKind(string workspaceKind)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
-        public TestParameters WithIncludeNonLocalDocumentDiagnostics(bool includeNonLocalDocumentDiagnostics)
-            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
+            => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, treatPositionIndicatorsAsCode);
     }
 
 #pragma warning disable IDE0052 // Remove unread private members (unused when CODE_STYLE is set)
