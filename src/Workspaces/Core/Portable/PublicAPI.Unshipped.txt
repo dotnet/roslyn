@@ -1,17 +1,4 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CancellationToken.get -> System.Threading.CancellationToken
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CodeActionEquivalenceKey.get -> string
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CodeRefactoringProvider.get -> Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Document.get -> Microsoft.CodeAnalysis.Document
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.GetFixAllSpansAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Document, Microsoft.CodeAnalysis.Optional<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>>>>
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Progress.get -> System.IProgress<Microsoft.CodeAnalysis.CodeAnalysisProgress>
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Project.get -> Microsoft.CodeAnalysis.Project
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Scope.get -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Solution.get -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.FixAllProvider() -> void
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.OperatorKind.AdditionAssignment = 27 -> Microsoft.CodeAnalysis.Editing.OperatorKind
 Microsoft.CodeAnalysis.Editing.OperatorKind.BitwiseAndAssignment = 33 -> Microsoft.CodeAnalysis.Editing.OperatorKind
@@ -44,10 +31,7 @@ Microsoft.CodeAnalysis.WorkspaceEventRegistration.Dispose() -> void
 override Microsoft.CodeAnalysis.WorkspaceEventOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.WorkspaceEventOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.WorkspaceEventOptions.ToString() -> string
-static Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext, Microsoft.CodeAnalysis.Document, Microsoft.CodeAnalysis.Optional<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
-static Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext, Microsoft.CodeAnalysis.Document, Microsoft.CodeAnalysis.Optional<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
 static Microsoft.CodeAnalysis.WorkspaceEventOptions.operator !=(Microsoft.CodeAnalysis.WorkspaceEventOptions left, Microsoft.CodeAnalysis.WorkspaceEventOptions right) -> bool
 static Microsoft.CodeAnalysis.WorkspaceEventOptions.operator ==(Microsoft.CodeAnalysis.WorkspaceEventOptions left, Microsoft.CodeAnalysis.WorkspaceEventOptions right) -> bool
 static readonly Microsoft.CodeAnalysis.WorkspaceEventOptions.DefaultOptions -> Microsoft.CodeAnalysis.WorkspaceEventOptions
 static readonly Microsoft.CodeAnalysis.WorkspaceEventOptions.RequiresMainThreadOptions -> Microsoft.CodeAnalysis.WorkspaceEventOptions
-virtual Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>

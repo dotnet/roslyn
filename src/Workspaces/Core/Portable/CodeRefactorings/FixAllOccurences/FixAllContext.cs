@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-public sealed class FixAllContext : IFixAllContext
+internal sealed class FixAllContext : IFixAllContext
 {
     internal FixAllState State { get; }
 
