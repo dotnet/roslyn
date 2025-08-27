@@ -47,13 +47,14 @@ internal static class MiscellaneousFileUtilities
 
         if (parseOptions != null &&
             compilationOptions != null &&
+            fileExtension != "" &&
             fileExtension == languageInformation.ScriptExtension)
         {
             parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
             compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
         }
 
-        if (parseOptions != null && fileExtension != languageInformation.ScriptExtension)
+        if (parseOptions != null && fileExtension != "" && fileExtension != languageInformation.ScriptExtension)
         {
             // Any non-script misc file should not complain about usage of '#:' ignored directives.
             parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
