@@ -88,7 +88,7 @@ public abstract class IntegrationTestBase : TestBase
             additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
     }
 
-    protected ProcessResult RunMsbuild(
+    protected ProcessResult? RunMsbuild(
         string arguments,
         TempDirectory currentDirectory,
         IEnumerable<KeyValuePair<string, string>> filesInDirectory,
@@ -102,6 +102,13 @@ public abstract class IntegrationTestBase : TestBase
                 currentDirectory,
                 filesInDirectory,
                 additionalEnvironmentVars);
+        }
+
+        if (ExecutionConditionUtil.IsDesktop)
+        {
+            _output.WriteLine("Skipping because Framework MSBuild is missing, this is a desktop test, " +
+                "and we cannot use the desktop Csc/Vbc task from 'dotnet msbuild', i.e., Core MSBuild.");
+            return null;
         }
 
         return RunCommandLineCompiler(
@@ -133,6 +140,9 @@ public abstract class IntegrationTestBase : TestBase
                     </Project>
                     """ },
             });
+
+        if (result == null) return;
+
         _output.WriteLine(result.Output);
 
         Assert.Equal(0, result.ExitCode);
@@ -166,6 +176,9 @@ public abstract class IntegrationTestBase : TestBase
                     </Project>
                     """ },
             });
+
+        if (result == null) return;
+
         _output.WriteLine(result.Output);
 
         Assert.Equal(0, result.ExitCode);
