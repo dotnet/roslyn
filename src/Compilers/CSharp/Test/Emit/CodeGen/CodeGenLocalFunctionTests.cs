@@ -6164,12 +6164,6 @@ static class Program
             var param = localFunction.Parameters[0];
             Assert.True(param.IsMetadataIn);
             Assert.False(param.IsMetadataOut);
-
-            // Test a scenario where the baseParameterAttributes has a different RefKind than the synthesized parameter.
-            // We expect the RefKind of the base parameter to be ignored here.
-            var synthesizedParam = SynthesizedParameterSymbol.Create(localFunction, param.TypeWithAnnotations, ordinal: 0, RefKind.Out, param.Name, baseParameterForAttributes: (SourceComplexParameterSymbolBase)param);
-            Assert.False(synthesizedParam.IsMetadataIn);
-            Assert.True(synthesizedParam.IsMetadataOut);
         }
 
         [Fact]

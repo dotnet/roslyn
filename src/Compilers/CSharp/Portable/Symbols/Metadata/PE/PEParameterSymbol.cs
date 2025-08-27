@@ -569,6 +569,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override ConstantValue DefaultValueFromAttributes => ConstantValue.NotAvailable;
+
         private ConstantValue? GetDefaultDecimalOrDateTimeValue()
         {
             Debug.Assert(!_handle.IsNil);

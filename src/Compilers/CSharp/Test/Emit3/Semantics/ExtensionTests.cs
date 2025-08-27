@@ -33845,6 +33845,12 @@ public static class E1
         var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
         CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
 
+        source = """
+E1.M(42, 43);
+""";
+        var comp3 = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp3, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
+
         static void verify(ModuleSymbol m)
         {
             var implementations = m.ContainingAssembly.GetTypeByMetadataName("E1").GetMembers().OfType<MethodSymbol>().ToArray();
@@ -44226,6 +44232,7 @@ static class E
         var src = """
 42.M();
 42.M2();
+E.M(42);
 
 static class E
 {
@@ -44236,7 +44243,7 @@ static class E
     }
 
     [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
+    public static void M2(this int i) { System.Console.Write("ran "); }
 }
 """;
         var comp = CreateCompilation(src);
@@ -44248,6 +44255,7 @@ static class E
 
 42.M();
 42.M2();
+E.M(42);
 
 static class E
 {
@@ -44258,12 +44266,12 @@ static class E
     }
 
     [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
+    public static void M2(this int i) { System.Console.Write("ran "); }
 }
 """;
         comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: "ran ran ran");
     }
 
     [Fact]
