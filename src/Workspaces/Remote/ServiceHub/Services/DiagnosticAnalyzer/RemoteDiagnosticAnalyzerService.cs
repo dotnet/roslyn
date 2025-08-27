@@ -223,7 +223,8 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             solutionChecksum,
             async solution =>
             {
-                var document = solution.GetRequiredTextDocument(documentId);
+                var document = await solution.GetRequiredTextDocumentAsync(
+                    documentId, cancellationToken).ConfigureAwait(false);
                 var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
                 var allProjectAnalyzers = service.GetProjectAnalyzers(document.Project);
