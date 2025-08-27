@@ -30624,8 +30624,6 @@ public static class E
         public void M() { }
     }
 }
-
-public class AAttribute : System.Attribute { }
 """;
 
         var libComp = CreateCompilation(libSrc);

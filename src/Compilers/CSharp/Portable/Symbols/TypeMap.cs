@@ -116,8 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap result = new TypeMap(this.Mapping);
             ArrayBuilder<TypeParameterSymbol> newTypeParametersBuilder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
 
-            // The case where it is "synthesized" is when we're creating type parameters for a synthesized (generic)
-            // class or method for a lambda appearing in a generic method.
+            // The case where it is "synthesized" is when we're creating type parameters for:
+            // - a synthesized (generic) class or method for a lambda appearing in a generic method
+            // - the implementation method of an extension member
             bool synthesized = !ReferenceEquals(oldTypeParameters[0].ContainingSymbol.OriginalDefinition, newOwner.OriginalDefinition);
 
             int ordinal = 0;
