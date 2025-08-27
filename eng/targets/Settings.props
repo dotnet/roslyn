@@ -11,6 +11,9 @@
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
+    <!-- Disable the EOL check to ensure no warnings in the insertion runs -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
     <NoWarn>$(NoWarn);NU1507;NU1510</NoWarn>
 
