@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if DEBUG
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,11 +31,6 @@ internal static class ServiceHubDebuggingService
     {
         if (System.Diagnostics.Debugger.IsAttached && Environment.GetEnvironmentVariable("ATTACH_TO_ROSLYN_SERVICEHUB") == "1")
         {
-            // Locate the DTE for the debugger host process (devenv.exe) that launched us.
-            var debuggerHostDte = GetDebuggerHostDte();
-            if (debuggerHostDte == null)
-                return;
-
             var hostProcess = Process.GetCurrentProcess();
             var serviceHubProcess = Process
                 .GetProcessesByName("ServiceHub.RoslynCodeAnalysisService")
@@ -46,17 +39,17 @@ internal static class ServiceHubDebuggingService
             // We do not really expect to the service to be running at this point but are prepared to handle it.
             if (serviceHubProcess != null)
             {
-                AttachServiceHubToDebugger(debuggerHostDte, serviceHubProcess);
+                AttachServiceHubToDebugger(serviceHubProcess);
             }
             else
             {
-                ListenForProcessStart(debuggerHostDte, hostProcess);
+                ListenForProcessStart(hostProcess);
             }
         }
 
         return;
 
-        static void ListenForProcessStart(DTE debuggerHostDte, Process hostProcess)
+        static void ListenForProcessStart(Process hostProcess)
         {
             var query = "SELECT * FROM __InstanceCreationEvent WITHIN 1 WHERE TargetInstance ISA 'Win32_Process'";
             var watcher = new ManagementEventWatcher(new WqlEventQuery(query));
@@ -71,7 +64,7 @@ internal static class ServiceHubDebuggingService
                 if (!IsChildProcess(serviceHubProcess, hostProcess))
                     return;
 
-                AttachServiceHubToDebugger(debuggerHostDte, serviceHubProcess);
+                AttachServiceHubToDebugger(serviceHubProcess);
 
                 watcher.Stop();
                 watcher.Dispose();
@@ -80,12 +73,21 @@ internal static class ServiceHubDebuggingService
             watcher.Start();
         }
 
-        static void AttachServiceHubToDebugger(DTE debuggerHostDte, Process serviceHubProcess)
+        static void AttachServiceHubToDebugger(Process serviceHubProcess)
         {
-            var localProcess = debuggerHostDte.Debugger
-                .LocalProcesses.OfType<EnvDTE80.Process2>()
-                .FirstOrDefault(p => p.ProcessID == serviceHubProcess.Id);
-            localProcess?.Attach2("Managed (.NET Core, .NET 5+)");
+            // Since this can be called after a delay, check that the debugger is still attached.
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                // Locate the DTE for the debugger host process (devenv.exe) that launched us.
+                var debuggerHostDte = GetDebuggerHostDte();
+                if (debuggerHostDte == null)
+                    return;
+
+                var localProcess = debuggerHostDte.Debugger
+                    .LocalProcesses.OfType<EnvDTE80.Process2>()
+                    .FirstOrDefault(p => p.ProcessID == serviceHubProcess.Id);
+                localProcess?.Attach2("Managed (.NET Core, .NET 5+)");
+            }
         }
     }
 
@@ -116,28 +118,26 @@ internal static class ServiceHubDebuggingService
                 monikers[0] = null;
                 var hresult = enumMoniker.Next(1, monikers, default);
 
-                if (hresult == VSConstants.S_FALSE || monikers is not [{ } moniker])
-                {
-                    // There's nothing further to enumerate, so fail
+                if (hresult == VSConstants.S_FALSE)
                     return null;
-                }
-                else
-                {
-                    Marshal.ThrowExceptionForHR(hresult);
-                }
+
+                Marshal.ThrowExceptionForHR(hresult);
+
+                if (monikers is not [{ } moniker])
+                    continue;
 
                 moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
                 // FullDisplayName will look something like: <ProgID>:<ProcessId>
+                if (!fullDisplayName.StartsWith("!VisualStudio.DTE", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 var displayNameParts = fullDisplayName.Split(':');
                 if (!int.TryParse(displayNameParts.Last(), out var displayNameProcessId))
                     continue;
 
-                if (displayNameParts[0].StartsWith("!VisualStudio.DTE", StringComparison.OrdinalIgnoreCase) &&
-                    displayNameProcessId == process.Id)
-                {
+                if (displayNameProcessId == process.Id)
                     runningObjectTable.GetObject(moniker, out dte);
-                }
             }
             while (dte == null);
 
@@ -291,5 +291,3 @@ internal static class ServiceHubDebuggingService
 
     }
 }
-
-#endif

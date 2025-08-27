@@ -113,9 +113,8 @@ internal sealed class RoslynPackage : AbstractPackage
             _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
             TrackBulkFileOperations(globalNotificationService);
 
-#if DEBUG
+            // This is a debugging aid to help attach the VS debugger to the Roslyn ServiceHub process.
             ServiceHubDebuggingService.TryAttachToServiceHub();
-#endif
 
             return Task.CompletedTask;
         }
