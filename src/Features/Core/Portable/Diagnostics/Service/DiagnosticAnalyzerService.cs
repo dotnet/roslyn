@@ -157,7 +157,7 @@ internal sealed partial class DiagnosticAnalyzerService
             includeLocalDocumentDiagnostics,
             includeNonLocalDocumentDiagnostics: true,
             // return diagnostics specific to one project or document
-            includeProjectNonLocalResult: documentId == null,
+            includeProjectNonLocalResult: false,
             cancellationToken);
     }
 
