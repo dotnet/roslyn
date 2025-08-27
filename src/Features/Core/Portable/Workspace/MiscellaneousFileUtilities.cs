@@ -101,9 +101,13 @@ internal static class MiscellaneousFileUtilities
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static CompilationOptions GetCompilationOptionsWithScriptReferenceResolvers(SolutionServices services, CompilationOptions compilationOptions, string filePath)
     {
-        var metadataService = services.GetRequiredService<IMetadataService>();
-
         var baseDirectory = PathUtilities.GetDirectoryName(filePath);
+
+        // VS Code sometimes sends very strange filepaths, eg for the left hand side of a diff view.
+        if (string.IsNullOrEmpty(baseDirectory))
+            return compilationOptions;
+
+        var metadataService = services.GetRequiredService<IMetadataService>();
 
         // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
         // - Need to have a way to specify these somewhere in VS options.
