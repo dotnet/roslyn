@@ -1,7 +1,7 @@
 {
   "sdk": {
     "version": "9.0.105",
-    "allowPrerelease": false,
+    "allowPrerelease": true,
     "rollForward": "Major"
   },
   "tools": {
