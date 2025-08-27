@@ -1743,7 +1743,6 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal($"// razorCallCount: 1", (await doc2.GetTextAsync()).ToString());
     }
 
-
     private static async Task<Solution> VerifyIncrementalUpdatesAsync(
         TestWorkspace localWorkspace,
         Workspace remoteWorkspace,
