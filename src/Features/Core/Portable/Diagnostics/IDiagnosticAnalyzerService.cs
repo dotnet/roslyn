@@ -22,9 +22,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </remarks>
     void RequestDiagnosticRefresh();
 
-    /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.ForceAnalyzeProjectAsync"/>
-    Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
-
     /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
     Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
         Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken);

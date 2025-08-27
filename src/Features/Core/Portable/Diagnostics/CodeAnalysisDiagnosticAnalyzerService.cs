@@ -88,12 +88,17 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-            // Execute force analysis for the project.
-            var diagnostics = await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            // Compute all the diagnostics for all the documents in the project.
+            var documentDiagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+                project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+
+            // Then all the non-document diagnostics for that project as well.
+            var projectDiagnostics = await _diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
+                project, diagnosticIds: null, shouldIncludeAnalyzer: null, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.
-            _analyzedProjectToDiagnostics[project.Id] = diagnostics;
+            _analyzedProjectToDiagnostics[project.Id] = [.. documentDiagnostics, .. projectDiagnostics];
 
             // Remove from the cleared list now that we've run a more recent "run code analysis" on this project.
             _clearedProjectIds.Remove(project.Id);
