@@ -123,21 +123,22 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             () => assetProvider.GetAssetsArrayAsync<AnalyzerReference>(projectId, checksumCollection, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
+        // if we don't have any analyzer references then we don't have any generators
+        if (isolatedReferences.IsEmpty)
+            return SourceGeneratorPresence.NoSourceGenerators;
+
+        // see if any of the references have a required generator
         var (analyzerReferenceMap, callback) = s_languageToAnalyzerReferenceMap[language];
-        var hasGenerators = false;
         foreach (var analyzerReference in isolatedReferences)
         {
             var generatorPresence = analyzerReferenceMap.GetValue(analyzerReference, callback).Value;
 
             if (generatorPresence is SourceGeneratorPresence.ContainsRequiredSourceGenerators)
                 return SourceGeneratorPresence.ContainsRequiredSourceGenerators;
-
-            if (generatorPresence is SourceGeneratorPresence.OnlyOptionalSourceGenerators)
-                hasGenerators = true;
         }
 
-        return hasGenerators ? SourceGeneratorPresence.OnlyOptionalSourceGenerators
-                             : SourceGeneratorPresence.NoSourceGenerators;
+        // no required generators, all are optional
+        return SourceGeneratorPresence.OnlyOptionalSourceGenerators;
     }
 
     public ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(

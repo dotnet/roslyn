@@ -25,6 +25,7 @@ internal static class SourceGeneratorExtensions
         // In the future we might want to expand this to e.g. run any generators with open generated files
         return generator.GetGeneratorType().FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
     }
+
     /// <summary>
     /// Determines the presence and type of source generators in the specified collection.
     /// </summary>
@@ -37,7 +38,7 @@ internal static class SourceGeneratorExtensions
 
         var hasRequiredGenerators = generators.Any(g => g.IsRequiredGenerator());
         return hasRequiredGenerators
-               ? SourceGeneratorPresence.ContainsRequiredSourceGenerators
-               : SourceGeneratorPresence.OnlyOptionalSourceGenerators;
+            ? SourceGeneratorPresence.ContainsRequiredSourceGenerators
+            : SourceGeneratorPresence.OnlyOptionalSourceGenerators;
     }
 }

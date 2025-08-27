@@ -36,10 +36,7 @@ internal sealed partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            var canSkipRunningGenerators = creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate
-                                           || (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired
-                                               && !await HasRequiredGeneratorsAsync(compilationState, cancellationToken).ConfigureAwait(false));
-
+            var canSkipRunningGenerators = await CanSkipRunningGeneratorsAsync(creationPolicy, compilationState, cancellationToken).ConfigureAwait(false);
             if (canSkipRunningGenerators)
             {
                 // We're either frozen, or we only want required generators and know that there aren't any to run, so we
@@ -77,6 +74,23 @@ internal sealed partial class SolutionCompilationState
                     creationPolicy.GeneratedDocumentCreationPolicy,
                     cancellationToken).ConfigureAwait(false);
                 return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
+            }
+
+            async ValueTask<bool> CanSkipRunningGeneratorsAsync(CreationPolicy creationPolicy, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            {
+                // if we don't want to create generated documents, we can skip
+                if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
+                    return true;
+
+                // if we only want required documents, we can skip if we don't have any required generators
+                if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.CreateOnlyRequired)
+                {
+                    var hasRequiredGenerators = await HasRequiredGeneratorsAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                    return !hasRequiredGenerators;
+                }
+
+                // we need to run generators
+                return false;
             }
         }
 
