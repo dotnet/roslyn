@@ -34,10 +34,12 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// All diagnostics returned should be up-to-date with respect to the given solution snapshot.
     /// Use <see cref="GetProjectDiagnosticsForIdsAsync"/> if you want to fetch only project diagnostics
     /// not associated ith a particular document.  Note that this operation can be quite expensive as it
-    /// will execute all the analyers fully on this project, including through compilation-end analyzers.
+    /// will execute all the analyzers fully on this project, including through compilation-end analyzers.
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
-    /// <param name="documentId">Optional document to scope the returned diagnostics.</param>
+    /// <param name="documentId">Optional document to scope the returned diagnostics.  If <see langword="null"/> then
+    /// diagnostics will returned for all <see cref="Project.Documents"/> and all <see cref="Project.AdditionalDocuments"/>
+    /// in <paramref name="project"/>.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
     /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
     /// <param name="includeLocalDocumentDiagnostics">
