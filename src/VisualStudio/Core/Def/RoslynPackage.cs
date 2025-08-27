@@ -33,9 +33,7 @@ using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
@@ -114,6 +112,10 @@ internal sealed class RoslynPackage : AbstractPackage
 
             _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
             TrackBulkFileOperations(globalNotificationService);
+
+#if DEBUG
+            ServiceHubDebuggingService.TryAttachToServiceHub();
+#endif
 
             return Task.CompletedTask;
         }
