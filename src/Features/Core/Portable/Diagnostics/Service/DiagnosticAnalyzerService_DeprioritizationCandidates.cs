@@ -12,6 +12,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
+    /// <summary>
+    /// A cache from DiagnosticAnalyzer to whether or not it is a candidate for deprioritization when lightbulbs
+    /// compute diagnostics for a particular priority class.  Note: as this caches data, it may technically be
+    /// inaccurate as things change in the system.  For example, this is based on the registered actions made
+    /// by an analyzer.  Hypothetically, such an analyzer might register different actions based on on things
+    /// like appearing in a different language's compilation, or a compilation with different references, etc.
+    /// We accept that this cache may be inaccurate in such scenarios as they are likely rare, and this only
+    /// serves as a simple heuristic to order analyzer execution.  If wrong, it's not a major deal.
+    /// </summary>
     private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_analyzerToIsDeprioritizationCandidateMap = new();
 
     private async Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesInProcessAsync(
