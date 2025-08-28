@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -68,14 +69,35 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
+    private static readonly ConditionalWeakTable<Project, StrongBox<ImmutableArray<DiagnosticAnalyzer>>> s_projectToAnalyzers = new();
+
     /// <summary>
     /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
     /// </summary>
-    internal ImmutableArray<DiagnosticAnalyzer> GetProjectAnalyzers(Project project)
+    public ImmutableArray<DiagnosticAnalyzer> GetProjectAnalyzers(Project project)
     {
-        var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
-        var projectAnalyzerInfo = GetOrCreateProjectAnalyzerInfo(project);
-        return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
+        if (!s_projectToAnalyzers.TryGetValue(project, out var lazyAnalyzers))
+        {
+            lazyAnalyzers = new(ComputeProjectAnalyzers());
+#if NET
+            s_projectToAnalyzers.TryAdd(project, lazyAnalyzers);
+#else
+            lock (s_projectToAnalyzers)
+            {
+                if (!s_projectToAnalyzers.TryGetValue(project, out var existing))
+                    s_projectToAnalyzers.Add(project, lazyAnalyzers);
+            }
+#endif
+        }
+
+        return lazyAnalyzers.Value;
+
+        ImmutableArray<DiagnosticAnalyzer> ComputeProjectAnalyzers()
+        {
+            var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
+            var projectAnalyzerInfo = GetOrCreateProjectAnalyzerInfo(project);
+            return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
+        }
     }
 
     private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project)
