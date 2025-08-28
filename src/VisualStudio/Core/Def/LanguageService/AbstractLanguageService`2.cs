@@ -103,8 +103,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter)));
 
-        var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
-
         // The lifetime of CommandFilter is married to the view
         wpfTextView.GetOrCreateAutoClosingProperty(v =>
             new StandaloneCommandFilter(
