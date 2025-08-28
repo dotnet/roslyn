@@ -60,6 +60,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestMiscDocument_WithOtherScheme(bool mutatingLspWorkspace)
     {
+
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
