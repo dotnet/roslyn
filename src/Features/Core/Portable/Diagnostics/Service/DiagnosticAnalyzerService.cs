@@ -119,35 +119,34 @@ internal sealed partial class DiagnosticAnalyzerService
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
-    private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(
-        Project project,
-        ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-    {
-        var analyzersForProject = GetProjectAnalyzers(project);
-        var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
-
-        return analyzers;
-
-        bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
+    public Func<DiagnosticAnalyzer, bool> GetDefaultAnalyzerFilter(Project project, ImmutableHashSet<string>? diagnosticIds)
+        => analyzer =>
         {
             if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this._globalOptions))
-                return false;
-
-            if (shouldIncludeAnalyzer != null && !shouldIncludeAnalyzer(analyzer))
                 return false;
 
             if (diagnosticIds != null && _analyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
                 return false;
 
             return true;
-        }
+        };
+
+    private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(
+        Project project,
+        Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer)
+    {
+        var analyzersForProject = GetProjectAnalyzers(project);
+        return analyzersForProject.WhereAsArray(shouldIncludeAnalyzer);
     }
 
     public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        Project project,
+        DocumentId? documentId,
+        Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer,
+        ImmutableHashSet<string>? diagnosticIds,
+        bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
-        var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
+        var analyzers = GetDiagnosticAnalyzers(project, shouldIncludeAnalyzer);
 
         return ProduceProjectDiagnosticsAsync(
             project, analyzers, diagnosticIds,
@@ -163,11 +162,11 @@ internal sealed partial class DiagnosticAnalyzerService
 
     public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
         Project project,
+        Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer,
         ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
         CancellationToken cancellationToken)
     {
-        var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
+        var analyzers = GetDiagnosticAnalyzers(project, shouldIncludeAnalyzer);
 
         return ProduceProjectDiagnosticsAsync(
             project, analyzers, diagnosticIds,

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -21,6 +22,20 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// This implementation must be safe to call on any thread.
     /// </remarks>
     void RequestDiagnosticRefresh();
+
+    /// <summary>
+    /// The default analyzer filter that will be used in functions like <see cref="GetDiagnosticsForIdsAsync"/> if
+    /// no filter is provided.  The default filter has the following rules:
+    /// <list type="number">
+    /// <item>The standard compiler analyzer will not be run if the compiler diagnostic scope is <see cref="CompilerDiagnosticsScope.None"/>.</item>
+    /// <item>A regular analyzer will not be run if <see cref="ProjectState.RunAnalyzers"/> is false.</item>
+    /// <item>A regular analyzer will not be run if if the background analysis scope is <see cref="BackgroundAnalysisScope.None"/>.</item>
+    /// <item>If a set of diagnostic ids are provided, the analyzer will not be run unless it declares at least one
+    /// descriptor in that set.</item>
+    /// <item>Otherwise, the analyzer will be run</item>
+    /// </list>
+    /// </summary>
+    Func<DiagnosticAnalyzer, bool> GetDefaultAnalyzerFilter(Project project, ImmutableHashSet<string>? diagnosticIds);
 
     /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
     Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
@@ -36,7 +51,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="documentId">Optional document to scope the returned diagnostics.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
+    /// <param name="shouldIncludeAnalyzer">Callback to filter out analyzers to execute for computing diagnostics.</param>
     /// <param name="includeLocalDocumentDiagnostics">
     /// Indicates if local document diagnostics must be returned.
     /// Local diagnostics are the ones that are reported by analyzers on the same file for which the callback was received
@@ -48,7 +63,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </remarks>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
+        Project project, DocumentId? documentId, Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer, ImmutableHashSet<string>? diagnosticIds, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -58,9 +73,9 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
+    /// <param name="shouldIncludeAnalyzer">Callback to filter out analyzers to execute for computing diagnostics.</param>
     Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-        Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, CancellationToken cancellationToken);
+        Project project, Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer, ImmutableHashSet<string>? diagnosticIds, CancellationToken cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given span for the document
