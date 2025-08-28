@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -126,6 +127,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
                 {
                     return true;
                 }
+
                 if (analyzer.IsBuiltInAnalyzer())
                 {
                     // always return true for builtin analyzer. we can't use
@@ -139,16 +141,19 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
                     // analyzer.
                     return true;
                 }
+
                 if (analyzer is DiagnosticSuppressor)
                 {
                     // Always execute diagnostic suppressors.
                     return true;
                 }
+
                 if (project.CompilationOptions is null)
                 {
                     // Skip compilation options based checks for non-C#/VB projects.
                     return true;
                 }
+
                 // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
                 var descriptors = _infoCache.GetDiagnosticDescriptors(analyzer);
                 var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
@@ -156,13 +161,14 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
                 {
                     var severity = d.GetEffectiveSeverity(
                         arg.CompilationOptions,
-                        arg.isHostAnalyzer
-                            ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback
-                            : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback,
+                        arg.analyzerConfigOptions?.ConfigOptionsWithFallback,
+                        //arg.isHostAnalyzer
+                        //    ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback
+                        //    : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback,
                         arg.analyzerConfigOptions?.TreeOptions);
                     return severity != ReportDiagnostic.Hidden;
                 },
-                (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
+                (project.CompilationOptions, /*isHostAnalyzer, */analyzerConfigOptions));
             }
         }
 

@@ -34,9 +34,12 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             : null;
     public string ToDisplayString() => Project.Name;
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    private sealed class FullSolutionAnalysisDiagnosticSource(
+        Project project, Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer)
         : AbstractProjectDiagnosticSource(project)
     {
+        private readonly Func<DiagnosticAnalyzer, bool> _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
+
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
@@ -46,8 +49,10 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
             var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            var defaultFilter = service.GetDefaultAnalyzerFilter(Project, diagnosticIds: null);
             var diagnostics = await service.GetProjectDiagnosticsForIdsAsync(
-                Project, diagnosticIds: null, shouldIncludeAnalyzer, cancellationToken).ConfigureAwait(false);
+                Project, analyzer => shouldIncludeAnalyzer(analyzer) && defaultFilter(analyzer),
+                diagnosticIds: null, cancellationToken).ConfigureAwait(false);
 
             // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning
             // that it is suppressed and should be hidden from the task list by default.
