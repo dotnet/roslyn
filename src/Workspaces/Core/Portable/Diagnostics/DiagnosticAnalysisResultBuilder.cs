@@ -41,9 +41,6 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
         if (diagnostics.Length == 0)
             return;
 
-        // this is for diagnostic producer that doesnt use compiler based DiagnosticAnalyzer such as TypeScript.
-        Contract.ThrowIfTrue(Project.SupportsCompilation);
-
         AddExternalDiagnostics(ref _lazySemanticLocals, documentId, diagnostics);
     }
 
