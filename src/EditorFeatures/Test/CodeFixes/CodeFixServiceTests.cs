@@ -1060,7 +1060,7 @@ public sealed class CodeFixServiceTests
 
         await analyzerService.GetDiagnosticsForIdsAsync(
             sourceDocument.Project, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
-            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            includeLocalDocumentDiagnostics: true, CancellationToken.None);
         // await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
         var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();

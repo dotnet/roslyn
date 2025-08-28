@@ -143,7 +143,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest(
         AddAnalyzerToWorkspace(workspace, analyzer);
 
         var document = GetDocumentAndSelectSpan(workspace, out var span);
-        var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+        var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
         AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
         return allDiagnostics;
     }
@@ -156,7 +156,7 @@ public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest(
 
         GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
-        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace);
         var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
         var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
         AssertNoAnalyzerExceptionDiagnostics(diagnostics);

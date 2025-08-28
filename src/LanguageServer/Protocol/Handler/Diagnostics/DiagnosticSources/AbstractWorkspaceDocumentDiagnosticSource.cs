@@ -73,7 +73,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
                             var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
                             var allDiagnostics = await service.GetDiagnosticsForIdsAsync(
                                 Document.Project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer,
-                                includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                                includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                             // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
                             // code has always worked, but it isn't clear if that is correct.
