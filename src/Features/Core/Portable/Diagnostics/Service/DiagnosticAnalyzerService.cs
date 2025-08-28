@@ -147,12 +147,7 @@ internal sealed partial class DiagnosticAnalyzerService
     }
 
     public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project,
-        DocumentId? documentId,
-        ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-        bool includeLocalDocumentDiagnostics,
-        CancellationToken cancellationToken)
+        Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
         var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
 
