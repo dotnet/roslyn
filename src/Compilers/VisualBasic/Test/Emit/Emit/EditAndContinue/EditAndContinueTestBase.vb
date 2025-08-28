@@ -23,6 +23,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueTestBase
         Inherits BasicTestBase
 
+        Public Shared ReadOnly MetadataUpdateDeletedAttributeSource As String = "
+            Namespace System.Runtime.CompilerServices
+                <AttributeUsage(AttributeTargets.All, AllowMultiple:=False, Inherited:=False)>
+                Public Class MetadataUpdateDeletedAttribute
+                    Inherits Attribute
+                End Class
+            End Namespace
+        "
+
         ' PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
         Friend Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
 
