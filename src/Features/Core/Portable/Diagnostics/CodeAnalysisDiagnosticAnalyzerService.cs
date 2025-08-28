@@ -97,14 +97,17 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
             // We are being asked to explicitly analyze this project.  As such we do *not* want to use the
             // default rules determining which analyzers to run.  For example, even if compiler diagnostics
             // are set to 'none' for live diagnostics, we still want to run them here.
+            //
+            // As such, we are very intentionally not calling into _diagnosticAnalyzerService.GetDefaultAnalyzerFilter
+            // here.  We want to control the rules entirely when this is called.
 
             // Compute all the diagnostics for all the documents in the project.
             var documentDiagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                project, documentId: null, FilterAnalyzer, diagnosticIds: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                project, documentId: null, diagnosticIds: null, FilterAnalyzer, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
             // Then all the non-document diagnostics for that project as well.
             var projectDiagnostics = await _diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
-                project, FilterAnalyzer, diagnosticIds: null, cancellationToken).ConfigureAwait(false);
+                project, diagnosticIds: null, FilterAnalyzer, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.

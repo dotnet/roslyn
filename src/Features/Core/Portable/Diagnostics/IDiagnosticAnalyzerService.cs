@@ -35,7 +35,10 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <item>Otherwise, the analyzer will be run</item>
     /// </list>
     /// </summary>
-    Func<DiagnosticAnalyzer, bool> GetDefaultAnalyzerFilter(Project project, ImmutableHashSet<string>? diagnosticIds);
+    /// <param name="additionalFilter">An additional filter that can accept or reject analyzers that the default
+    /// rules have accepted.</param>
+    Func<DiagnosticAnalyzer, bool> GetDefaultAnalyzerFilter(
+        Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? additionalFilter = null);
 
     /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
     Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
@@ -51,7 +54,10 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="documentId">Optional document to scope the returned diagnostics.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Callback to filter out analyzers to execute for computing diagnostics.</param>
+    /// <param name="shouldIncludeAnalyzer">Optional callback to filter out analyzers to execute for computing diagnostics.
+    /// If not present, <see cref="GetDefaultAnalyzerFilter"/> will be used.  If present, no default behavior
+    /// is used, and the callback is defered to entirely.  To augment the existing default rules call
+    /// <see cref="GetDefaultAnalyzerFilter"/> explicitly, and pass the result of that into this method.</param>
     /// <param name="includeLocalDocumentDiagnostics">
     /// Indicates if local document diagnostics must be returned.
     /// Local diagnostics are the ones that are reported by analyzers on the same file for which the callback was received
@@ -63,7 +69,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </remarks>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, DocumentId? documentId, Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer, ImmutableHashSet<string>? diagnosticIds, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
+        Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -73,9 +79,12 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Callback to filter out analyzers to execute for computing diagnostics.</param>
+    /// <param name="shouldIncludeAnalyzer">Optional callback to filter out analyzers to execute for computing diagnostics.
+    /// If not present, <see cref="GetDefaultAnalyzerFilter"/> will be used.  If present, no default behavior
+    /// is used, and the callback is defered to entirely.  To augment the existing default rules call
+    /// <see cref="GetDefaultAnalyzerFilter"/> explicitly, and pass the result of that into this method.</param>
     Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-        Project project, Func<DiagnosticAnalyzer, bool> shouldIncludeAnalyzer, ImmutableHashSet<string>? diagnosticIds, CancellationToken cancellationToken);
+        Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, CancellationToken cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given span for the document
