@@ -15,7 +15,7 @@ public sealed class MSBuildManagedToolTests
     {
         var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
         var relativePath = RuntimeHostInfo.IsCoreClrRuntime
-            ? Path.Combine("bincore", $"csc{PlatformInformation.Exe}")
+            ? Path.Combine("bincore", $"csc{PlatformInformation.ExeExtension}")
             : "csc.exe";
         var task = new Csc();
         Assert.Equal(Path.Combine(taskPath, relativePath), task.PathToBuiltInTool);

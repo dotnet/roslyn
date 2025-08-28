@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected sealed override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, object? logger)
         {
-            Debug.Assert(logger != null);
+            Debug.Assert(logger is ICompilerServerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, (ICompilerServerLogger)logger);
         }
 

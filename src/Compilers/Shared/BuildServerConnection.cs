@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName)
         {
-            var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.Exe}");
+            var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
             return (processFilePath, commandLineArgs);
         }

@@ -485,13 +485,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.Exe}"), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.Exe}"), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
         }
 
         [Fact]

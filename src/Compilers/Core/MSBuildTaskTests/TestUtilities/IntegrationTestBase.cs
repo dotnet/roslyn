@@ -159,7 +159,7 @@ public abstract class IntegrationTestBase : TestBase
             _tempDirectory,
             new Dictionary<string, string>
             {
-                { "File.cs", """
+                { "File.vb", """
                     Public Module Program
                         Public Sub Main()
                             System.Console.WriteLine("Hello from file")

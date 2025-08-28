@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// It returns the name of the managed assembly, which might not be the path returned by
         /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
         /// </remarks>
-        protected sealed override string ToolName => $"{ToolNameWithoutExtension}{PlatformInformation.Exe}";
+        protected sealed override string ToolName => $"{ToolNameWithoutExtension}{PlatformInformation.ExeExtension}";
 
         /// <summary>
         /// This generates the command line arguments passed to the tool.
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             var logger = CreateServerLogger();
 
-            // Set DOTNET_ROOT.
+            // Set DOTNET_ROOT so that the apphost executables launch properly.
             if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
                 (logger as ICompilerServerLogger)?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
