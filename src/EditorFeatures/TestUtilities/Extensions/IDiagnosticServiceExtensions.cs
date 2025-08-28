@@ -16,6 +16,8 @@ internal static class IDiagnosticServiceExtensions
     {
         var documentDiagnostics = await service.GetDiagnosticsForIdsAsync(project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
         var projectDiagnostics = await service.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds: null, shouldIncludeAnalyzer: null, cancellationToken).ConfigureAwait(false);
-        return [.. documentDiagnostics, .. projectDiagnostics];
+        ImmutableArray<DiagnosticData> diagnostics = [.. documentDiagnostics, .. projectDiagnostics];
+
+        return diagnostics.WhereAsArray(d => d.Severity != DiagnosticSeverity.Hidden);
     }
 }
