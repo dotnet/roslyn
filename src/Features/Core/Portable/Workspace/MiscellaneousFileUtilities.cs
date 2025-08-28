@@ -24,7 +24,8 @@ internal static class MiscellaneousFileUtilities
         SolutionServices services,
         ImmutableArray<MetadataReference> metadataReferences)
     {
-        var (fileName, fileExtension) = GetFileNameAndExtention(filePath);
+        var fileExtension = PathUtilities.GetExtension(filePath);
+        var fileName = PathUtilities.GetFileName(filePath);
 
         var languageName = languageInformation.LanguageName;
         var languageServices = services.GetLanguageServices(languageName);
@@ -97,32 +98,13 @@ internal static class MiscellaneousFileUtilities
         return projectInfo;
     }
 
-    private static (string fileName, string fileExtension) GetFileNameAndExtention(string filePath)
-    {
-        // In VS Code we sometimes get odd uris with query string components as the file path. We need to maintain that file path,
-        // but for the purposes of looking up file extensions and names we get better results by stripping that off.
-        if (filePath.IndexOf(":/") > 0 &&
-            filePath.IndexOf('?') is int realPathEnd and > 0)
-        {
-            filePath = filePath[..realPathEnd];
-        }
-
-        var fileExtension = PathUtilities.GetExtension(filePath);
-        var fileName = PathUtilities.GetFileName(filePath);
-
-        return (fileName, fileExtension);
-    }
-
     // Do not inline this to avoid loading Microsoft.CodeAnalysis.Scripting unless a script file is opened in the workspace.
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static CompilationOptions GetCompilationOptionsWithScriptReferenceResolvers(SolutionServices services, CompilationOptions compilationOptions, string filePath)
     {
-        var baseDirectory = PathUtilities.GetDirectoryName(filePath);
-
-        if (string.IsNullOrEmpty(baseDirectory))
-            return compilationOptions;
-
         var metadataService = services.GetRequiredService<IMetadataService>();
+
+        var baseDirectory = PathUtilities.GetDirectoryName(filePath);
 
         // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
         // - Need to have a way to specify these somewhere in VS options.
