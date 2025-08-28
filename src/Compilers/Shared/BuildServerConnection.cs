@@ -432,15 +432,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName)
         {
-            var processFilePath = Path.Combine(clientDir, "VBCSCompiler.exe");
+            var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.Exe}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
-            if (!File.Exists(processFilePath))
-            {
-                // This is a .NET Core deployment
-                commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
-                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault();
-            }
-
             return (processFilePath, commandLineArgs);
         }
 
@@ -463,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
             string? previousDotNetRoot = Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName);
-            if (string.IsNullOrEmpty(previousDotNetRoot) && RuntimeHostInfo.GetDotNetRoot() is { } dotNetRoot)
+            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
                 logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 Environment.SetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);

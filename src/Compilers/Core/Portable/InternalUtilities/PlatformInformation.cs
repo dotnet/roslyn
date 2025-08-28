@@ -57,5 +57,7 @@ namespace Roslyn.Utilities
                 }
             }
         }
+
+        public static string Exe => IsWindows ? ".exe" : string.Empty;
     }
 }

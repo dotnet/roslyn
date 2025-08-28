@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -19,16 +17,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     public abstract class ManagedToolTask : ToolTask
     {
         internal readonly PropertyDictionary _store = new PropertyDictionary();
-
-        /// <summary>
-        /// If <see langword="true"/>, <c>dotnet exec compiler.dll</c> will be executed.
-        /// If <see langword="false"/> (the default), <c>compiler.exe</c> will be executed.
-        /// </summary>
-        public bool UseDotNetHost
-        {
-            set { _store[nameof(UseDotNetHost)] = value; }
-            get { return _store.GetOrDefault(nameof(UseDotNetHost), false); }
-        }
 
         /// <summary>
         /// A copy of this task, compiled for .NET Framework, is deployed into the .NET SDK. It is a bridge task
@@ -91,13 +79,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected sealed override string GenerateCommandLineCommands()
         {
-            var commandLineArguments = GenerateToolArguments();
-            if (UsingBuiltinTool && IsBuiltinToolRunningOnCoreClr && UseDotNetHost)
-            {
-                commandLineArguments = RuntimeHostInfo.GetDotNetExecCommandLine(PathToBuiltInTool, commandLineArguments);
-            }
-
-            return commandLineArguments;
+            return GenerateToolArguments();
         }
 
         /// <summary>
@@ -132,12 +114,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This could be the managed assembly itself (on desktop .NET on Windows),
         /// or a runtime such as dotnet.
         /// </summary>
-        protected sealed override string GenerateFullPathToTool() => (UsingBuiltinTool, IsBuiltinToolRunningOnCoreClr && UseDotNetHost) switch
-        {
-            (true, true) => RuntimeHostInfo.GetDotNetPathOrDefault(),
-            (true, false) => PathToBuiltInTool,
-            (false, _) => Path.Combine(ToolPath ?? "", ToolExe)
-        };
+        protected sealed override string GenerateFullPathToTool() => UsingBuiltinTool
+            ? PathToBuiltInTool
+            : Path.Combine(ToolPath ?? "", ToolExe);
 
         protected abstract string ToolNameWithoutExtension { get; }
 
@@ -153,10 +132,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// It returns the name of the managed assembly, which might not be the path returned by
         /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
         /// </remarks>
-        protected sealed override string ToolName =>
-            IsBuiltinToolRunningOnCoreClr && UseDotNetHost
-                ? $"{ToolNameWithoutExtension}.dll"
-                : $"{ToolNameWithoutExtension}.exe";
+        protected sealed override string ToolName => $"{ToolNameWithoutExtension}{PlatformInformation.Exe}";
 
         /// <summary>
         /// This generates the command line arguments passed to the tool.
@@ -226,8 +202,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var logger = CreateServerLogger();
 
             // Set DOTNET_ROOT.
-            if (RuntimeHostInfo.GetDotNetRoot() is { } dotNetRoot &&
-                EnvironmentVariables?.Any(static e => e.StartsWith($"{RuntimeHostInfo.DotNetRootEnvironmentName}=", StringComparison.OrdinalIgnoreCase)) != true)
+            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
                 (logger as ICompilerServerLogger)?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables = [.. EnvironmentVariables ?? [], $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}"];
