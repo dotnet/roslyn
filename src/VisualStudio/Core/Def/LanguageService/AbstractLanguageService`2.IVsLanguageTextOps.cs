@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -56,7 +57,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
         var text = documentSyntax.Text;
         var root = documentSyntax.Root;
-        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: true);
+        var editorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
+        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: true);
 
         var ts = selections.Single();
         var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;

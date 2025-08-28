@@ -53,7 +53,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     // exception assistant.
     internal object? ComAggregate { get; private set; }
 
-    internal readonly EditorOptionsService EditorOptionsService;
     internal readonly VisualStudioWorkspaceImpl Workspace;
     internal readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
 
@@ -68,7 +67,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         Debug.Assert(!this.Package.JoinableTaskFactory.Context.IsOnMainThread, "Language service should be instantiated on background thread");
 
-        this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
         this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
         this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
         this._languageDebugInfo = CreateLanguageDebugInfo();
