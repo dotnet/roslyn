@@ -36,7 +36,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 {
     internal TPackage Package { get; }
 
-    private readonly VsLanguageDebugInfo _languageDebugInfo;
+    private readonly Lazy<VsLanguageDebugInfo> _languageDebugInfo;
 
     // DevDiv 753309:
     // We've redefined some VS interfaces that had incorrect PIAs. When 
@@ -68,7 +68,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         this.Workspace = this.Package.ComponentModel.DefaultExportProvider.GetExport<VisualStudioWorkspaceImpl>();
 
-        this._languageDebugInfo = CreateLanguageDebugInfo();
+        this._languageDebugInfo = new Lazy<VsLanguageDebugInfo>(CreateLanguageDebugInfo);
     }
 
     private IThreadingContext ThreadingContext => this.Package.ComponentModel.GetService<IThreadingContext>();
