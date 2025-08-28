@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -224,12 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
 
-            if (containerOpt is not NamedTypeSymbol namedContainer)
-            {
-                ambiguityWinner = null;
-                return ImmutableArray<Symbol>.Empty;
-            }
-
             int arity = 0;
             TypeArgumentListSyntax? typeArgumentListSyntax = null;
             CrefParameterListSyntax? parameters = null;
@@ -256,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeArgumentListSyntax? extensionTypeArguments = syntax.TypeArgumentList;
             int extensionArity = extensionTypeArguments?.Arguments.Count ?? 0;
-            ImmutableArray<Symbol> sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(namedContainer, memberName, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
+            ImmutableArray<Symbol> sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(containerOpt, memberName, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
 
             if (sortedSymbols.IsDefaultOrEmpty)
             {
@@ -268,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return ProcessCrefMemberLookupResults(sortedSymbols, arity, syntax, typeArgumentListSyntax, parameters, out ambiguityWinner, diagnostics);
 
-            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamedTypeSymbol container, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
+            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamespaceOrTypeSymbol? containerOpt, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
             {
                 Debug.Assert(name is not null);
 
@@ -295,9 +290,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
 
-                foreach (var nested in container.GetTypeMembers())
+                IEnumerable<NamedTypeSymbol> candidateTypes = containerOpt switch
                 {
-                    if (!nested.IsExtension || nested.Arity != extensionArity || nested.ExtensionParameter is null)
+                    null => enumerateCandidateTypes(containerOpt, syntax, diagnostics),
+                    NamedTypeSymbol container => container.GetTypeMembers(""),
+                    _ => []
+                };
+
+                foreach (var nested in candidateTypes)
+                {
+                    if (!nested.IsExtension
+                        || nested.Arity != extensionArity
+                        || nested.ExtensionParameter is null
+                        || nested is not { ContainingType: { ContainingType: null } }) // only consider extension blocks in top-level types
                     {
                         continue;
                     }
@@ -364,6 +369,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return sortedSymbolsBuilder.ToImmutableAndFree();
+            }
+
+            IEnumerable<NamedTypeSymbol> enumerateCandidateTypes(NamespaceOrTypeSymbol? container, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                LookupResult result = LookupResult.GetInstance();
+                this.LookupSymbolsOrMembersInternal(
+                    result,
+                    container,
+                    name: "",
+                    arity: 0,
+                    basesBeingResolved: null,
+                    options: LookupOptions.AllNamedTypesOnArityZero | LookupOptions.NamespacesOrTypesOnly,
+                    diagnose: false,
+                    useSiteInfo: ref useSiteInfo);
+
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (result.IsMultiViable)
+                {
+                    foreach (var symbol in result.Symbols)
+                    {
+                        if (symbol is NamedTypeSymbol namedType)
+                        {
+                            yield return namedType;
+                        }
+                    }
+                }
+
+                result.Free();
             }
         }
 
