@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -92,7 +93,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                             showProgress: false);
 
                         var cancellationToken = waitContext.UserCancellationToken;
-                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                        var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+                        var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
                         if (textBuffer == null)
                             return default;
 
@@ -135,7 +138,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     if (_proximityExpressionsService == null)
                         return null;
 
-                    var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                    var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+                    var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
                     if (textBuffer == null)
                         return null;
 
@@ -264,7 +269,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             if (_breakpointService == null)
                 return VSConstants.E_FAIL;
 
-            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+            var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
             if (textBuffer != null)
             {
                 var snapshot = textBuffer.CurrentSnapshot;

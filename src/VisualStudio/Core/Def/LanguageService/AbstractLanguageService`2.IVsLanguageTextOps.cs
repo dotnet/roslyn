@@ -8,12 +8,12 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -42,7 +42,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
     private int FormatWorker(IVsTextLayer textLayer, TextSpan[] selections, CancellationToken cancellationToken)
     {
-        var textBuffer = this.EditorAdaptersFactoryService.GetDataBuffer((IVsTextBuffer)textLayer);
+        var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+        var textBuffer = editorAdaptersFactoryService.GetDataBuffer((IVsTextBuffer)textLayer);
         if (textBuffer == null)
         {
             return VSConstants.E_UNEXPECTED;

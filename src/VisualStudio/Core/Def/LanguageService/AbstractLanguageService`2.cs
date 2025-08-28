@@ -54,7 +54,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     internal object? ComAggregate { get; private set; }
 
     internal readonly Lazy<VisualStudioWorkspaceImpl> Workspace;
-    internal readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
 
     protected abstract string ContentTypeName { get; }
     protected abstract string LanguageName { get; }
@@ -68,7 +67,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         Debug.Assert(!this.Package.JoinableTaskFactory.Context.IsOnMainThread, "Language service should be instantiated on background thread");
 
         this.Workspace = this.Package.ComponentModel.DefaultExportProvider.GetExport<VisualStudioWorkspaceImpl>();
-        this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
         this._languageDebugInfo = CreateLanguageDebugInfo();
     }
 
@@ -96,7 +95,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     {
         Contract.ThrowIfNull(textView);
 
-        var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
+        var editorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+        var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
         Contract.ThrowIfNull(wpfTextView, "Could not get IWpfTextView for IVsTextView");
 
         Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter)));
