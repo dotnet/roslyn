@@ -581,6 +581,10 @@ internal static partial class Extensions
                 analyzerMap[analyzerId] = analyzer;
         }
 
-        return [.. analyzerMap.Values];
+        var result = new FixedSizeArrayBuilder<DiagnosticAnalyzer>(analyzerMap.Count);
+        foreach (var (_, analyzer) in analyzerMap)
+            result.Add(analyzer);
+
+        return result.MoveToImmutable();
     }
 }
