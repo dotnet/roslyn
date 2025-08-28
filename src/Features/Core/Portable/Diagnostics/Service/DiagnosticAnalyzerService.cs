@@ -126,10 +126,10 @@ internal sealed partial class DiagnosticAnalyzerService
             if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this._globalOptions))
                 return false;
 
-            if (diagnosticIds != null && _analyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
+            if (additionalFilter != null && !additionalFilter(analyzer))
                 return false;
 
-            if (additionalFilter != null && !additionalFilter(analyzer))
+            if (diagnosticIds != null && _analyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
                 return false;
 
             return true;
