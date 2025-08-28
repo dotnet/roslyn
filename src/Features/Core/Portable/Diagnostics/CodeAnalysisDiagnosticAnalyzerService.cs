@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -17,14 +18,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 [ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspaceServiceFactory
+internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
+    DiagnosticAnalyzerInfoCache.SharedGlobalCache infoCache) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new CodeAnalysisDiagnosticAnalyzerService(workspaceServices.Workspace);
+        => new CodeAnalysisDiagnosticAnalyzerService(infoCache.AnalyzerInfoCache, workspaceServices.Workspace);
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly DiagnosticAnalyzerInfoCache _infoCache;
         private readonly Workspace _workspace;
 
         /// <summary>
@@ -44,9 +47,11 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
         public CodeAnalysisDiagnosticAnalyzerService(
+            DiagnosticAnalyzerInfoCache infoCache,
             Workspace workspace)
         {
             _workspace = workspace;
+            _infoCache = infoCache;
             _diagnosticAnalyzerService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
             _ = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
@@ -145,9 +150,19 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
                     return true;
                 }
                 // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
-                var descriptors = infoCache.GetDiagnosticDescriptors(analyzer);
+                var descriptors = _infoCache.GetDiagnosticDescriptors(analyzer);
                 var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
-                return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
+                return descriptors.Any(static (d, arg) =>
+                {
+                    var severity = d.GetEffectiveSeverity(
+                        arg.CompilationOptions,
+                        arg.isHostAnalyzer
+                            ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback
+                            : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback,
+                        arg.analyzerConfigOptions?.TreeOptions);
+                    return severity != ReportDiagnostic.Hidden;
+                },
+                (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
             }
         }
 
