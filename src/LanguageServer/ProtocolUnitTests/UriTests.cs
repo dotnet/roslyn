@@ -60,7 +60,6 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestMiscDocument_WithOtherScheme(bool mutatingLspWorkspace)
     {
-
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
@@ -81,6 +80,34 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         Assert.True(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
         Assert.Equal(looseFileUri, document.GetURI());
         Assert.Equal(looseFileUri.UriString, document.FilePath);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestMiscDocument_WithOtherSchemeAndQueryString(bool mutatingLspWorkspace)
+    {
+        // Create a server that supports LSP misc files and verify no misc files present.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Open an empty loose file that hasn't been saved with a name.
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"git:/c:/Users/dawengie/source/repos/razor01/Pages/File.cs?%7B%22path%22:%22c:%5C%5CUsers%5C%5Cdawengie%5C%5Csource%5C%5Crepos%5C%5Crazor01%5C%5CPages%5C%5CIndex.cshtml%22,%22ref%22:%22~%22%7D");
+        await testLspServer.OpenDocumentAsync(looseFileUri, """
+            class A
+            {
+                void M()
+                {
+                }
+            }
+            """, languageId: "csharp").ConfigureAwait(false);
+
+        // Verify file is added to the misc file workspace.
+        var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
+        Assert.NotNull(document);
+        Assert.True(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
+        Assert.Equal(looseFileUri, document.GetURI());
+        Assert.Equal(looseFileUri.UriString, document.FilePath);
+
+        // Without special handling the name would be blank due to FileUtilities.GetFileName not handling this uri format.
+        Assert.Equal("File.cs", document.Name);
     }
 
     [Theory, CombinatorialData]

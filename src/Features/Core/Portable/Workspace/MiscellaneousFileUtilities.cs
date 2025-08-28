@@ -24,8 +24,7 @@ internal static class MiscellaneousFileUtilities
         SolutionServices services,
         ImmutableArray<MetadataReference> metadataReferences)
     {
-        var fileExtension = PathUtilities.GetExtension(filePath);
-        var fileName = PathUtilities.GetFileName(filePath);
+        var (fileName, fileExtension) = GetFileNameAndExtention(filePath);
 
         var languageName = languageInformation.LanguageName;
         var languageServices = services.GetLanguageServices(languageName);
@@ -47,14 +46,14 @@ internal static class MiscellaneousFileUtilities
 
         if (parseOptions != null &&
             compilationOptions != null &&
-            fileExtension != "" &&
+            languageInformation.ScriptExtension != "" &&
             fileExtension == languageInformation.ScriptExtension)
         {
             parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
             compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
         }
 
-        if (parseOptions != null && fileExtension != "" && fileExtension != languageInformation.ScriptExtension)
+        if (parseOptions != null && languageInformation.ScriptExtension != "" && fileExtension != languageInformation.ScriptExtension)
         {
             // Any non-script misc file should not complain about usage of '#:' ignored directives.
             parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
@@ -98,13 +97,28 @@ internal static class MiscellaneousFileUtilities
         return projectInfo;
     }
 
+    private static (string fileName, string fileExtension) GetFileNameAndExtention(string filePath)
+    {
+        // In VS Code we sometimes get odd uris with query string components as the file path. We need to maintain that file path,
+        // but for the purposes of looking up file extensions and names we get better results by stripping that off.
+        if (filePath.IndexOf(":/") > 0 &&
+            filePath.IndexOf('?') is int realPathEnd and > 0)
+        {
+            filePath = filePath[..realPathEnd];
+        }
+
+        var fileExtension = PathUtilities.GetExtension(filePath);
+        var fileName = PathUtilities.GetFileName(filePath);
+
+        return (fileName, fileExtension);
+    }
+
     // Do not inline this to avoid loading Microsoft.CodeAnalysis.Scripting unless a script file is opened in the workspace.
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static CompilationOptions GetCompilationOptionsWithScriptReferenceResolvers(SolutionServices services, CompilationOptions compilationOptions, string filePath)
     {
         var baseDirectory = PathUtilities.GetDirectoryName(filePath);
 
-        // VS Code sometimes sends very strange filepaths, eg for the left hand side of a diff view.
         if (string.IsNullOrEmpty(baseDirectory))
             return compilationOptions;
 
