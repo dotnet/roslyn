@@ -67,7 +67,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         // Since we know we are on the UI thread, lets get the base indentation now, so that there is less
         // cleanup work to do later in Venus.
-        var ruleFactory = Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+        var ruleFactory = Workspace.Value.Services.GetService<IHostDependentFormattingRuleFactoryService>();
 
         // use formatting that return text changes rather than tree rewrite which is more expensive
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();

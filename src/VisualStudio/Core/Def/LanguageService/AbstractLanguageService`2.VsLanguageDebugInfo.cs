@@ -195,7 +195,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     var cancellationToken = waitContext.UserCancellationToken;
                     if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
                     {
-                        var solution = _languageService.Workspace.CurrentSolution;
+                        var solution = _languageService.Workspace.Value.CurrentSolution;
 
                         if (_breakpointService != null)
                         {
@@ -220,7 +220,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                 // and using the blocked thread whenever possible.
 
                 var document = breakpoint.Document;
-                var filePath = _languageService.Workspace.GetFilePath(document.Id);
+                var filePath = _languageService.Workspace.Value.GetFilePath(document.Id);
 
                 // We're (unfortunately) blocking the UI thread here.  So avoid async io as we actually
                 // awant the IO to complete as quickly as possible, on this thread if necessary.

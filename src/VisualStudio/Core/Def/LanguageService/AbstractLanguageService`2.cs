@@ -53,7 +53,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     // exception assistant.
     internal object? ComAggregate { get; private set; }
 
-    internal readonly VisualStudioWorkspaceImpl Workspace;
+    internal readonly Lazy<VisualStudioWorkspaceImpl> Workspace;
     internal readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
 
     protected abstract string ContentTypeName { get; }
@@ -67,7 +67,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         Debug.Assert(!this.Package.JoinableTaskFactory.Context.IsOnMainThread, "Language service should be instantiated on background thread");
 
-        this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
+        this.Workspace = this.Package.ComponentModel.DefaultExportProvider.GetExport<VisualStudioWorkspaceImpl>();
         this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
         this._languageDebugInfo = CreateLanguageDebugInfo();
     }
@@ -82,7 +82,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         // Start off a background task to prime some components we'll need for editing.
         Task.Run(() =>
         {
-            var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
+            var formatter = this.Workspace.Value.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
             formatter?.GetDefaultFormattingRules();
         }, cancellationToken).Forget();
 
@@ -173,7 +173,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
     private VsLanguageDebugInfo CreateLanguageDebugInfo()
     {
-        var languageServices = this.Workspace.Services.GetLanguageServices(RoslynLanguageName);
+        var languageServices = this.Workspace.Value.Services.GetLanguageServices(RoslynLanguageName);
 
         return new VsLanguageDebugInfo(
             this.DebuggerLanguageId,
@@ -189,7 +189,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         return new ContainedLanguage(
             bufferCoordinator,
             this.Package.ComponentModel,
-            this.Workspace,
+            this.Workspace.Value,
             project.Id,
             project,
             this.LanguageServiceId);
