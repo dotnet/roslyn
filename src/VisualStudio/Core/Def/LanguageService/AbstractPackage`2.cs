@@ -69,9 +69,25 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             await TaskScheduler.Default;
 
             var languageService = CreateLanguageService();
-            await languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
+            languageService.Setup(cancellationToken);
 
-            return languageService.ComAggregate!;
+            // DevDiv 753309:
+            // We've redefined some VS interfaces that had incorrect PIAs. When 
+            // we interop with native parts of VS, they always QI, so everything
+            // works. However, Razor is now managed, but assumes that the C#
+            // language service is native. When setting breakpoints, they
+            // get the language service from its GUID and cast it to IVsLanguageDebugInfo.
+            // This would QI the native lang service. Since we're managed and
+            // we've redefined IVsLanguageDebugInfo, the cast
+            // fails. To work around this, we put the LS inside a ComAggregate object,
+            // which always force a QueryInterface and allow their cast to succeed.
+            // 
+            // This also fixes 752331, which is a similar problem with the 
+            // exception assistant.
+
+            // Creating the com aggregate has to happen on the UI thread.
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return Interop.ComAggregate.CreateAggregatedObject(languageService);
         });
 
         // Misc workspace has to be up and running by the time our package is usable so that it can track running
@@ -132,7 +148,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
     protected abstract TLanguageService CreateLanguageService();
 
-    // When registering a language service, we need to take its ComAggregate wrapper.
     protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
         => AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 

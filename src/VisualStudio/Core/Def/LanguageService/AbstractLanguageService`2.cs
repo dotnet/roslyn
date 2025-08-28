@@ -38,21 +38,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
     private readonly Lazy<VsLanguageDebugInfo> _languageDebugInfo;
 
-    // DevDiv 753309:
-    // We've redefined some VS interfaces that had incorrect PIAs. When 
-    // we interop with native parts of VS, they always QI, so everything
-    // works. However, Razor is now managed, but assumes that the C#
-    // language service is native. When setting breakpoints, they
-    // get the language service from its GUID and cast it to IVsLanguageDebugInfo.
-    // This would QI the native lang service. Since we're managed and
-    // we've redefined IVsLanguageDebugInfo, the cast
-    // fails. To work around this, we put the LS inside a ComAggregate object,
-    // which always force a QueryInterface and allow their cast to succeed.
-    // 
-    // This also fixes 752331, which is a similar problem with the 
-    // exception assistant.
-    internal object? ComAggregate { get; private set; }
-
     internal readonly Lazy<VisualStudioWorkspaceImpl> Workspace;
 
     protected abstract string ContentTypeName { get; }
@@ -76,7 +61,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     public override IServiceProvider SystemServiceProvider
         => Package;
 
-    public async Task SetupAsync(CancellationToken cancellationToken)
+    public void Setup(CancellationToken cancellationToken)
     {
         // Start off a background task to prime some components we'll need for editing.
         Task.Run(() =>
@@ -84,11 +69,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             var formatter = this.Workspace.Value.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
             formatter?.GetDefaultFormattingRules();
         }, cancellationToken).Forget();
-
-        await this.Package.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        // Creating the com aggregate has to happen on the UI thread.
-        this.ComAggregate = Interop.ComAggregate.CreateAggregatedObject(this);
     }
 
     protected virtual void SetupNewTextView(IVsTextView textView)
