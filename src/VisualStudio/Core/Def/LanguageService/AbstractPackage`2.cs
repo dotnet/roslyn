@@ -24,8 +24,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     where TPackage : AbstractPackage<TPackage, TLanguageService>
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {
-    private TLanguageService? _languageService;
-
     private PackageInstallerService? _packageInstallerService;
     private VisualStudioSymbolSearchService? _symbolSearchService;
     private IVsShell? _shell;
@@ -70,12 +68,10 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             // Ensure we're on the BG when creating the language service.
             await TaskScheduler.Default;
 
-            // Create the language service, tell it to set itself up, then store it in a field
-            // so we can notify it that it's time to clean up.
-            _languageService = CreateLanguageService();
-            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
+            var languageService = CreateLanguageService();
+            await languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
 
-            return _languageService.ComAggregate!;
+            return languageService.ComAggregate!;
         });
 
         // Misc workspace has to be up and running by the time our package is usable so that it can track running
@@ -149,13 +145,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             if (_shell != null && !_shell.IsInCommandLineMode())
             {
                 UnregisterObjectBrowserLibraryManager();
-            }
-
-            // If we've created the language service then tell it it's time to clean itself up now.
-            if (_languageService != null)
-            {
-                _languageService.TearDown();
-                _languageService = null;
             }
         }
 

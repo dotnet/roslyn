@@ -53,22 +53,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     // exception assistant.
     internal object? ComAggregate { get; private set; }
 
-    // Note: The lifetime for state in this class is carefully managed.  For every bit of state
-    // we set up, there is a corresponding tear down phase which deconstructs the state in the
-    // reverse order it was created in.
     internal readonly EditorOptionsService EditorOptionsService;
     internal readonly VisualStudioWorkspaceImpl Workspace;
     internal readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
-
-    /// <summary>
-    /// Whether or not we have been set up. This is set once everything is wired up and cleared once tear down has begun.
-    /// </summary>
-    /// <remarks>
-    /// We don't set this until we've completed setup. If something goes sideways during it, we will never register
-    /// with the shell and thus have a floating thing around that can't be safely shut down either. We're in a bad
-    /// state but trying to proceed will only make things worse.
-    /// </remarks>
-    private bool _isSetUp;
 
     protected abstract string ContentTypeName { get; }
     protected abstract string LanguageName { get; }
@@ -92,16 +79,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     public override IServiceProvider SystemServiceProvider
         => Package;
 
-    /// <summary>
-    /// Setup and TearDown go in reverse order.
-    /// </summary>
     public async Task SetupAsync(CancellationToken cancellationToken)
     {
-        // First, acquire any services we need throughout our lifetime.
-        // This method should only contain calls to acquire services off of the component model
-        // or service providers.  Anything else which is more complicated should go in Initialize
-        // instead.
-
         // Start off a background task to prime some components we'll need for editing.
         Task.Run(() =>
         {
@@ -113,27 +92,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         // Creating the com aggregate has to happen on the UI thread.
         this.ComAggregate = Interop.ComAggregate.CreateAggregatedObject(this);
-
-        _isSetUp = true;
-    }
-
-    internal void TearDown()
-    {
-        if (!_isSetUp)
-        {
-            throw new InvalidOperationException();
-        }
-
-        _isSetUp = false;
-        GC.SuppressFinalize(this);
-    }
-
-    ~AbstractLanguageService()
-    {
-        if (!Environment.HasShutdownStarted && _isSetUp)
-        {
-            throw new InvalidOperationException("TearDown not called!");
-        }
     }
 
     protected virtual void SetupNewTextView(IVsTextView textView)
