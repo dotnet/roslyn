@@ -84,9 +84,14 @@ static class MemoryMarshal
 }
 ```
 
+### `Enumerable.Reverse`
+
 When using C# 14 or newer and targeting a .NET older than `net10.0`
 or .NET Framework with `System.Memory` reference,
-there is a breaking change with `Enumerable.Reverse` and arrays:
+there is a breaking change with `Enumerable.Reverse` and arrays.
+
+> [!CAUTION]
+> This only impacts customers using C# 14 and targeting .NET earlier than `net10.0`, which is an unsupported configuration. 
 
 ```cs
 int[] x = new[] { 1, 2, 3 };

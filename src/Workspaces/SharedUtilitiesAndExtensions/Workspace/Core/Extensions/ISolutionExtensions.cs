@@ -104,7 +104,18 @@ internal static partial class ISolutionExtensions
         => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException();
 
     public static TextDocument GetRequiredTextDocument(this Solution solution, DocumentId documentId)
-        => solution.GetTextDocument(documentId) ?? throw CreateDocumentNotFoundException();
+    {
+        var document = solution.GetTextDocument(documentId);
+        if (document != null)
+            return document;
+
+#if WORKSPACE
+        if (documentId.IsSourceGenerated)
+            throw new InvalidOperationException($"Use {nameof(GetRequiredTextDocumentAsync)} to get the {nameof(TextDocument)} for a `.{nameof(DocumentId.IsSourceGenerated)}=true` {nameof(DocumentId)}");
+#endif
+
+        throw CreateDocumentNotFoundException();
+    }
 
     private static Exception CreateDocumentNotFoundException()
         => new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);

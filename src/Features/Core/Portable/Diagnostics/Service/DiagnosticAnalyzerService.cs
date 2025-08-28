@@ -151,7 +151,8 @@ internal sealed partial class DiagnosticAnalyzerService
         DocumentId? documentId,
         ImmutableHashSet<string>? diagnosticIds,
         Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-        bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        bool includeLocalDocumentDiagnostics,
+        CancellationToken cancellationToken)
     {
         var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
 
