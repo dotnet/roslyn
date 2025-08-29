@@ -593,6 +593,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(4, 39));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class DemoCscBreaks
+                {
+                    public List<string> WillBreak => MethodReturningLambda(() => field ?? new List<string>());
+
+                    private T MethodReturningLambda<T>(Func<T> thisGet) => thisGet();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void LocalFunction_01()
         {
