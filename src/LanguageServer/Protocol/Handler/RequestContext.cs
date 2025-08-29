@@ -42,7 +42,7 @@ internal readonly struct RequestContext
     /// It contains text that is consistent with all prior LSP text sync notifications, but LSP text sync requests
     /// which are ordered after this one in the queue are not reflected here.
     /// </remarks>
-    private readonly ImmutableDictionary<DocumentUri, (SourceText Text, string LanguageId)> _trackedDocuments;
+    private readonly ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments;
 
     private readonly ILspServices _lspServices;
 
@@ -171,7 +171,7 @@ internal readonly struct RequestContext
         WellKnownLspServerKinds serverKind,
         TextDocument? document,
         IDocumentChangeTracker documentChangeTracker,
-        ImmutableDictionary<DocumentUri, (SourceText Text, string LanguageId)> trackedDocuments,
+        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
@@ -299,20 +299,20 @@ internal readonly struct RequestContext
     /// Allows a mutating request to open a document and start it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public ValueTask StartTrackingAsync(DocumentUri uri, SourceText initialText, string languageId, CancellationToken cancellationToken)
-        => _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, cancellationToken);
+    public ValueTask StartTrackingAsync(DocumentUri uri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken)
+        => _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, lspVersion, cancellationToken);
 
     /// <summary>
     /// Allows a mutating request to update the contents of a tracked document.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public void UpdateTrackedDocument(DocumentUri uri, SourceText changedText)
-        => _documentChangeTracker.UpdateTrackedDocument(uri, changedText);
+    public void UpdateTrackedDocument(DocumentUri uri, SourceText changedText, int lspVersion)
+        => _documentChangeTracker.UpdateTrackedDocument(uri, changedText, lspVersion);
 
-    public SourceText GetTrackedDocumentSourceText(DocumentUri documentUri)
+    public TrackedDocumentInfo GetTrackedDocumentInfo(DocumentUri documentUri)
     {
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"Attempted to get text for {documentUri} which is not open.");
-        return _trackedDocuments[documentUri].Text;
+        return _trackedDocuments[documentUri];
     }
 
     /// <summary>
