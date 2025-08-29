@@ -3269,4 +3269,88 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 }
             }
             """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80082")]
+    [InlineData("int?")]
+    [InlineData("int*")]
+    [InlineData("int[]")]
+    [InlineData("int")]
+    [InlineData("A::B")]
+    [InlineData("List<A>")]
+    [InlineData("List<int>")]
+    [InlineData("A.List<A>")]
+    [InlineData("A.List<int>")]
+    [InlineData("global::A.List<A>")]
+    [InlineData("global::A.List<int>")]
+    [InlineData("(A, B)")]
+    public Task TestCollectionExpressionCast_NotEmpty_ShouldRemove(string type)
+        => TestInRegularAndScriptAsync($$"""
+            class C
+            {
+                public void M()
+                {
+                    var v = ({{type}})$$([a, b, c]);
+                }
+            }
+            """,
+            $$"""
+            class C
+            {
+                public void M()
+                {
+                    var v = ({{type}})[a, b, c];
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80082")]
+    [InlineData("int?")]
+    [InlineData("int*")]
+    [InlineData("int[]")]
+    [InlineData("int")]
+    [InlineData("A::B")]
+    [InlineData("List<A>")]
+    [InlineData("List<int>")]
+    [InlineData("A.List<A>")]
+    [InlineData("A.List<int>")]
+    [InlineData("global::A.List<A>")]
+    [InlineData("global::A.List<int>")]
+    [InlineData("(A, B)")]
+    [InlineData("A")]
+    [InlineData("A.B")]
+    [InlineData("global::A.B")]
+    public Task TestCollectionExpressionCast_Empty_ShouldRemove(string type)
+        => TestInRegularAndScriptAsync($$"""
+            class C
+            {
+                public void M()
+                {
+                    var v = ({{type}})$$([]);
+                }
+            }
+            """,
+            $$"""
+            class C
+            {
+                public void M()
+                {
+                    var v = ({{type}})[];
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80082")]
+    [InlineData("A")]
+    [InlineData("A.B")]
+    [InlineData("global::A.B")]
+    public Task TestCollectionExpressionCast_NotEmpty_ShouldNotRemove(string type)
+        => TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                public void M()
+                {
+                    var v = ({{type}})$$([a, b, c]);
+                }
+            }
+            """);
 }
