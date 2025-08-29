@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         where THoistedSymbolType : Symbol
     {
         private readonly BoundExpression _replacement;
-        public readonly ImmutableArray<THoistedSymbolType> HoistedFields;
+        public readonly ImmutableArray<THoistedSymbolType> HoistedSymbols;
 
-        public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<THoistedSymbolType> hoistedFields, bool isReusable)
+        public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<THoistedSymbolType> hoistedSymbols, bool isReusable)
             : base(isReusable)
         {
             _replacement = replacement;
-            this.HoistedFields = hoistedFields;
+            this.HoistedSymbols = hoistedSymbols;
         }
 
         public override BoundExpression Replacement<TArg>(SyntaxNode node, Func<NamedTypeSymbol, TArg, BoundExpression> makeFrame, TArg arg)

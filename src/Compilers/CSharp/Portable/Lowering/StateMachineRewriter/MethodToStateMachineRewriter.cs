@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    foreach (var field in ((CapturedToExpressionSymbolReplacement<StateMachineFieldSymbol>)proxy).HoistedFields)
+                    foreach (var field in ((CapturedToExpressionSymbolReplacement<StateMachineFieldSymbol>)proxy).HoistedSymbols)
                     {
                         AddVariableCleanup(variableCleanup, field);
 
@@ -652,14 +652,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftLocal,
                 visitedRight,
                 proxies,
-                doHoist,
+                createHoistedSymbol,
                 createHoistedAccess,
-                this);
+                this,
+                isRuntimeAsync: false);
 
-            static StateMachineFieldSymbol doHoist(TypeSymbol type, MethodToStateMachineRewriter @this, LocalSymbol assignedLocal)
+            static StateMachineFieldSymbol createHoistedSymbol(TypeSymbol type, MethodToStateMachineRewriter @this, LocalSymbol assignedLocal)
             {
                 StateMachineFieldSymbol hoistedSymbol;
 
+                // https://github.com/dotnet/roslyn/issues/79793 - consider whether runtime async will need some of this work for enc
                 if (@this.F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
                 {
                     const SynthesizedLocalKind kind = SynthesizedLocalKind.AwaitByRefSpill;
