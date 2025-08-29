@@ -8585,6 +8585,55 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_ExtensionMethod()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Reflection;
+
+                object.M();
+
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            var lam = (params int[] xs) => xs.Length;
+                            Console.WriteLine(lam(4, 5, 6));
+                            Console.WriteLine(string.Join("\n", typeof(E)
+                              .GetNestedType("<>c", BindingFlags.NonPublic)
+                              .GetMethod("<M>b__1_0", BindingFlags.Instance | BindingFlags.NonPublic)
+                              .GetParameters()
+                              .Single()
+                              .CustomAttributes
+                              .Select(a => a.AttributeType)));
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.ParamArrayAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("E.<>c.<M>b__1_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Int32[] xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.True(parameter.IsParamsArray);
+                Assert.False(parameter.IsParamsCollection);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
         public void ParamsArray_Attribute_Missing()
         {
             var source = """
@@ -8596,6 +8645,29 @@ class Program
                 // (1,12): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
                 // var lam = (params int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_Missing_ExtensionMethod()
+        {
+            var source = """
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            var lam = (params int[] xs) => xs.Length;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //             var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(7, 24));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
@@ -8629,6 +8701,56 @@ class Program
             static void validate(ModuleSymbol module)
             {
                 var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<<Main>$>b__0_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Collections.Generic.IList<System.Int32> xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.False(parameter.IsParamsArray);
+                Assert.True(parameter.IsParamsCollection);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_ExtensionMethod()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Reflection;
+
+                object.M();
+
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            var lam = (params IList<int> xs) => xs.Count;
+                            Console.WriteLine(lam(4, 5, 6));
+                            Console.WriteLine(string.Join("\n", typeof(E)
+                              .GetNestedType("<>c", BindingFlags.NonPublic)
+                              .GetMethod("<M>b__1_0", BindingFlags.Instance | BindingFlags.NonPublic)
+                              .GetParameters()
+                              .Single()
+                              .CustomAttributes
+                              .Select(a => a.AttributeType)));
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.Runtime.CompilerServices.ParamCollectionAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("E.<>c.<M>b__1_0");
                 var parameter = lambda.GetParameters().Single();
                 AssertEx.Equal("params System.Collections.Generic.IList<System.Int32> xs", parameter.ToTestDisplayString());
                 Assert.True(parameter.IsParams);
