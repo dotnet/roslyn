@@ -26,7 +26,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private ReadOnly _exportProvider As Composition.ExportProvider
         Private ReadOnly _fileChangeEx As New MockVsFileChangeEx
 
-        Public MockMonitorSelection As IVsMonitorSelection
         Public MockRunningDocumentTable As New MockVsRunningDocumentTable
 
         <ImportingConstructor>
@@ -47,9 +46,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
                 Case GetType(SComponentModel)
                     Return GetComponentModelMock()
-
-                Case GetType(SVsShellMonitorSelection)
-                    Return MockMonitorSelection
 
                 Case GetType(SVsXMLMemberIndexService)
                     Return New MockXmlMemberIndexService
