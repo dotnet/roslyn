@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly Func<DiagnosticAnalyzer, bool> s_IsCompilerAnalyzerFunc = IsCompilerAnalyzer;
         private static readonly Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> s_getTopmostNodeForAnalysis = GetTopmostNodeForAnalysis;
 
+        // separate pool for diagnostic analyzers as these collections commonly exceed ArrayBuilder's size threshold
+        private static readonly ObjectPool<ImmutableArray<DiagnosticAnalyzer>.Builder> s_diagnosticAnalyzerPool = new ObjectPool<ImmutableArray<DiagnosticAnalyzer>.Builder>(() => ImmutableArray.CreateBuilder<DiagnosticAnalyzer>());
+
         private readonly Func<SyntaxTree, CancellationToken, bool> _isGeneratedCode;
 
         /// <summary>
@@ -1823,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var success = true;
-            var completedAnalyzers = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
+            var completedAnalyzers = s_diagnosticAnalyzerPool.Allocate();
             var processedAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
             try
             {
@@ -1876,7 +1879,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 processedAnalyzers.Free();
-                completedAnalyzers.Free();
+
+                completedAnalyzers.Clear();
+                s_diagnosticAnalyzerPool.Free(completedAnalyzers);
             }
         }
 
