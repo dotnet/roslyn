@@ -22,18 +22,13 @@ internal sealed class DocumentAnalysisScope
         TextDocument document,
         TextSpan? span,
         ImmutableArray<DiagnosticAnalyzer> analyzers,
-        // ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         AnalysisKind kind)
     {
         Debug.Assert(kind is AnalysisKind.Syntax or AnalysisKind.Semantic);
         Debug.Assert(!analyzers.IsDefaultOrEmpty);
-        //Debug.Assert(!hostAnalyzers.IsDefault);
-//        Debug.Assert(!projectAnalyzers.IsEmpty || !hostAnalyzers.IsEmpty);
 
         TextDocument = document;
         Span = span;
-        //ProjectAnalyzers = projectAnalyzers;
-        //HostAnalyzers = hostAnalyzers;
         Analyzers = analyzers;
         Kind = kind;
 
@@ -43,8 +38,6 @@ internal sealed class DocumentAnalysisScope
     public TextDocument TextDocument { get; }
     public TextSpan? Span { get; }
     public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
-    //public ImmutableArray<DiagnosticAnalyzer> ProjectAnalyzers { get; }
-    // public ImmutableArray<DiagnosticAnalyzer> HostAnalyzers { get; }
     public AnalysisKind Kind { get; }
 
     /// <summary>
