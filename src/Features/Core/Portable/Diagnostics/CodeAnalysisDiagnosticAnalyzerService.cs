@@ -83,6 +83,9 @@ internal static class CodeAnalysisDiagnosticAnalyzerServiceHelpers
         var filter = GetDiagnosticAnalyzerFilter(project, infoCache);
 
         // Compute all the diagnostics for all the documents in the project.
+        //
+        // Note: in this case we want diagnostics for source generated documents as well.  So ensure those are 
+        // generated and included in the results.
         var sourceGeneratorDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
