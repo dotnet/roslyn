@@ -654,7 +654,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 proxies,
                 doHoist,
                 createHoistedAccess,
-                this);
+                this,
+                isRuntimeAsync: false);
 
             static StateMachineFieldSymbol doHoist(TypeSymbol type, MethodToStateMachineRewriter @this, LocalSymbol assignedLocal)
             {

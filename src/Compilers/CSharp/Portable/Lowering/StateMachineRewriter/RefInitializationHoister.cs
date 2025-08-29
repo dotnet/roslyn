@@ -15,9 +15,9 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
     where THoistedSymbolType : Symbol
     where THoistedAccess : BoundExpression
 {
-    private readonly SyntheticBoundNodeFactory F = f;
-    private readonly MethodSymbol OriginalMethod = originalMethod;
-    private readonly TypeMap TypeMap = typeMap;
+    private readonly SyntheticBoundNodeFactory _factory = f;
+    private readonly MethodSymbol _originalMethod = originalMethod;
+    private readonly TypeMap _typeMap = typeMap;
 
     internal BoundExpression? HoistRefInitialization<TArg>(
         LocalSymbol local,
@@ -25,7 +25,8 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
         Dictionary<Symbol, CapturedSymbolReplacement> proxies,
         Func<TypeSymbol, TArg, LocalSymbol, THoistedSymbolType> createHoistedSymbol,
         Func<THoistedSymbolType, TArg, THoistedAccess> createHoistedAccess,
-        TArg arg)
+        TArg arg,
+        bool isRuntimeAsync)
     {
         Debug.Assert(
             local switch
@@ -38,28 +39,28 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                      (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
         Debug.Assert(local.GetDeclaratorSyntax() != null);
 #pragma warning disable format
-            Debug.Assert(local.SynthesizedKind switch
-                         {
-                             SynthesizedLocalKind.Spill => this.OriginalMethod.IsAsync,
-                             SynthesizedLocalKind.ForEachArray => this.OriginalMethod.IsAsync || this.OriginalMethod.IsIterator,
-                             _ => false
-                         });
+        Debug.Assert(local.SynthesizedKind switch
+                     {
+                         SynthesizedLocalKind.Spill => this._originalMethod.IsAsync,
+                         SynthesizedLocalKind.ForEachArray => this._originalMethod.IsAsync || this._originalMethod.IsIterator,
+                         _ => false
+                     });
 #pragma warning restore format
 
         var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
         bool needsSacrificialEvaluation = false;
         var hoistedSymbols = ArrayBuilder<THoistedSymbolType>.GetInstance();
 
-        var replacement = HoistExpression(visitedRight, local, local.RefKind, sideEffects, hoistedSymbols, ref needsSacrificialEvaluation, createHoistedSymbol, createHoistedAccess, arg);
+        var replacement = HoistExpression(visitedRight, local, local.RefKind, sideEffects, hoistedSymbols, ref needsSacrificialEvaluation, createHoistedSymbol, createHoistedAccess, arg, isRuntimeAsync, isFieldAccessOfStruct: false);
 
         proxies.Add(local, new CapturedToExpressionSymbolReplacement<THoistedSymbolType>(replacement, hoistedSymbols.ToImmutableAndFree(), isReusable: true));
 
         if (needsSacrificialEvaluation)
         {
-            var type = TypeMap.SubstituteType(local.Type).Type;
-            var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
+            var type = _typeMap.SubstituteType(local.Type).Type;
+            var sacrificialTemp = _factory.SynthesizedLocal(type, refKind: RefKind.Ref);
             Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
-            return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
+            return _factory.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), _factory.AssignmentExpression(_factory.Local(sacrificialTemp), replacement, isRef: true));
         }
 
         if (sideEffects.Count == 0)
@@ -70,7 +71,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
 
         var last = sideEffects.Last();
         sideEffects.RemoveLast();
-        return F.Sequence(ImmutableArray<LocalSymbol>.Empty, sideEffects.ToImmutableAndFree(), last);
+        return _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, sideEffects.ToImmutableAndFree(), last);
     }
 
     private BoundExpression HoistExpression<TArg>(
@@ -82,7 +83,9 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
         ref bool needsSacrificialEvaluation,
         Func<TypeSymbol, TArg, LocalSymbol, THoistedSymbolType> hoister,
         Func<THoistedSymbolType, TArg, THoistedAccess> createHoistedAccess,
-        TArg arg)
+        TArg arg,
+        bool isRuntimeAsync,
+        bool isFieldAccessOfStruct)
     {
         switch (expr.Kind)
         {
@@ -98,7 +101,9 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                         ref needsSacrificialEvaluation,
                         hoister,
                         createHoistedAccess,
-                        arg);
+                        arg,
+                        isRuntimeAsync,
+                        isFieldAccessOfStruct: false);
 
                     var indices = ArrayBuilder<BoundExpression>.GetInstance();
                     foreach (var index in array.Indices)
@@ -112,7 +117,9 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                             ref needsSacrificialEvaluation,
                             hoister,
                             createHoistedAccess,
-                            arg));
+                            arg,
+                            isRuntimeAsync,
+                            isFieldAccessOfStruct: false));
                     }
 
                     needsSacrificialEvaluation = true; // need to force array index out of bounds exceptions
@@ -146,13 +153,15 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                         ref needsSacrificialEvaluation,
                         hoister,
                         createHoistedAccess,
-                        arg);
+                        arg,
+                        isRuntimeAsync,
+                        isFieldAccessOfStruct: isFieldOfStruct);
                     if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
                     {
                         needsSacrificialEvaluation = true; // need the null check in field receiver
                     }
 
-                    return F.Field(receiver, field.FieldSymbol);
+                    return _factory.Field(receiver, field.FieldSymbol);
                 }
 
             case BoundKind.ThisReference:
@@ -172,7 +181,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                 {
                     Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.Out);
                     Debug.Assert(call.Method.RefKind != RefKind.None);
-                    F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
+                    _factory.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _factory.Syntax.Location, call.Method);
                 }
                 // method call is not referentially transparent, we can only spill the result value.
                 refKind = RefKind.None;
@@ -190,7 +199,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                 {
                     Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.In);
                     Debug.Assert(conditional.IsRef);
-                    F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
+                    _factory.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, _factory.Syntax.Location);
                 }
                 // conditional expr is not referentially transparent, we can only spill the result value.
                 refKind = RefKind.None;
@@ -204,7 +213,19 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
 
                 if (refKind != RefKind.None)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+                    if (isRuntimeAsync)
+                    {
+                        // This is an access to a field of a struct, or parameter or local of a type parameter, both of which happen by reference.
+                        // The receiver should be a non-ref local or parameter.
+                        // This is safe to hoist into a proxy as the original local will be accessed directly.
+                        Debug.Assert(isFieldAccessOfStruct || expr.Type!.IsTypeParameter());
+                        Debug.Assert(expr is BoundLocal { LocalSymbol.RefKind: RefKind.None }
+                                    or BoundParameter { ParameterSymbol.RefKind: RefKind.None });
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+                    }
                 }
 
                 Debug.Assert(expr.Type is not null);
@@ -212,7 +233,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                 hoistedSymbols.Add(hoistedSymbol);
 
                 var replacement = createHoistedAccess(hoistedSymbol, arg);
-                sideEffects.Add(F.AssignmentExpression(replacement, expr));
+                sideEffects.Add(_factory.AssignmentExpression(replacement, expr));
                 return replacement;
         }
     }
