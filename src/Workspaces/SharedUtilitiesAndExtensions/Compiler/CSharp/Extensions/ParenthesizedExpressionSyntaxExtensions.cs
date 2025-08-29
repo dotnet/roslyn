@@ -127,8 +127,28 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         }
 
         // ([...]) -> [...]
-        if (expression.IsKind(SyntaxKind.CollectionExpression))
+        if (expression is CollectionExpressionSyntax collectionExpression)
+        {
+            // For back compat, the language disallows a few forms of casting an collection expression.
+            // For example: `(A)[1, 2, 3]`.  This is because this form already has an interpretation as 
+            // indexing into a parenthesized expression.  Check for these cases and only allow if it is
+            // totally safe.  For example `(List<int>)[1, 2, 3]` is still safe as that was not a legal
+            // expression in the past.
+            //
+            // Note: because `(T)[]` is never legal (an empty indexer is not legal), that form is always
+            // considered a collection expression, regardless of what T is.
+            if (parentExpression is CastExpressionSyntax { Type: var castType } &&
+                collectionExpression.Elements.Count > 0)
+            {
+                if (castType is QualifiedNameSyntax { Right: var right })
+                    castType = right;
+
+                if (castType is IdentifierNameSyntax)
+                    return false;
+            }
+
             return true;
+        }
 
         // int Prop => (x); -> int Prop => x;
         if (nodeParent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
