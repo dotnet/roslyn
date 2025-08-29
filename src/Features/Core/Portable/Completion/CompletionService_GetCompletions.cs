@@ -33,7 +33,6 @@ public abstract partial class CompletionService
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
     /// <param name="options">Optional options that override the default options.</param>
-    /// <param name="cancellationToken"></param>
     public Task<CompletionList> GetCompletionsAsync(
         Document document,
         int caretPosition,
@@ -58,7 +57,6 @@ public abstract partial class CompletionService
     /// <param name="options">The CompletionOptions that override the default options.</param>
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
-    /// <param name="cancellationToken"></param>
     internal virtual async Task<CompletionList> GetCompletionsAsync(
          Document document,
          int caretPosition,

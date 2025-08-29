@@ -563,10 +563,7 @@ namespace Microsoft.Cci
             }
             else
             {
-                if (!typeMember.IsEncDeleted)
-                {
-                    this.Visit(typeMember.GetAttributes(Context));
-                }
+                this.Visit(typeMember.GetAttributes(Context));
 
                 typeMember.Dispatch(this);
             }

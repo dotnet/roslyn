@@ -17,6 +17,15 @@ internal sealed partial class SolutionCompilationState
         Create,
 
         /// <summary>
+        /// Source generators that are considered required should be run and produce results. Previously
+        /// computed results should be reused for other generators.
+        /// </summary>
+        /// <remarks>
+        /// Today the only required generator is Razor.
+        /// </remarks>
+        CreateOnlyRequired,
+
+        /// <summary>
         /// Source generators should not run.  Whatever results were previously computed should be reused.
         /// </summary>
         DoNotCreate,

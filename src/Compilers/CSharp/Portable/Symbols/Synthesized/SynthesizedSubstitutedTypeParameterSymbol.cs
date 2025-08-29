@@ -16,13 +16,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedSubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbol
     {
-        public SynthesizedSubstitutedTypeParameterSymbol(Symbol owner, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
+        /// <summary>
+        /// Indicates whether the synthesized type parameter should keep the original attributes by default
+        /// (ie. when the attribute definition doesn't have CompilerLoweringPreserveAttribute)
+        /// </summary>
+        private readonly bool _propagateAttributes;
+
+        public SynthesizedSubstitutedTypeParameterSymbol(Symbol owner, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal, bool propagateAttributes)
             : base(owner, map, substitutedFrom, ordinal)
         {
             Debug.Assert(this.TypeParameterKind == (ContainingSymbol is MethodSymbol ? TypeParameterKind.Method :
                                                    (ContainingSymbol is NamedTypeSymbol ? TypeParameterKind.Type :
                                                    TypeParameterKind.Cref)),
                          $"Container is {ContainingSymbol?.Kind}, TypeParameterKind is {this.TypeParameterKind}");
+
+            _propagateAttributes = propagateAttributes;
         }
 
         public override bool IsImplicitlyDeclared
@@ -38,12 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _underlyingTypeParameter.OriginalDefinition is SourceMethodTypeParameterSymbol definition &&
                 ContainingSymbol.ContainingModule == definition.ContainingModule)
             {
-                foreach (CSharpAttributeData attr in definition.GetAttributes())
+                if (!_propagateAttributes)
                 {
-                    if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true })
+                    foreach (CSharpAttributeData attr in definition.GetAttributes())
                     {
-                        AddSynthesizedAttribute(ref attributes, attr);
+                        if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true })
+                        {
+                            AddSynthesizedAttribute(ref attributes, attr);
+                        }
                     }
+                }
+                else
+                {
+                    Debug.Assert(false);
                 }
             }
 
@@ -57,6 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
+            if (_propagateAttributes)
+            {
+                return _underlyingTypeParameter.GetAttributes();
+            }
+
             if (ContainingSymbol is SynthesizedMethodBaseSymbol { InheritsBaseMethodAttributes: true })
             {
                 return _underlyingTypeParameter.GetAttributes();

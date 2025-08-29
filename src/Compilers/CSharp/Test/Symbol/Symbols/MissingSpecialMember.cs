@@ -660,6 +660,7 @@ namespace System
                     case WellKnownType.System_Runtime_InteropServices_CollectionsMarshal:
                     case WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_HotReloadException:
+                    case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -1081,6 +1082,7 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor_ref_T:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
                     case WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32:
+                    case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor:
                         // Not always available.
                         continue;
                 }

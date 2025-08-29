@@ -4050,6 +4050,13 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                       // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
 
+                // MetadataUpdateDeletedAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute - WellKnownType.ExtSentinel),            // DeclaringTypeId
+                 0,                                                                                                                          // Arity
+                    0,                                                                                                                       // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                       // Return Type
+
                 // System_Collections_ICollection__Count
                 (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
                 (byte)WellKnownType.System_Collections_ICollection,                                                         // DeclaringTypeId
@@ -5706,6 +5713,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_IndexOutOfRangeException__ctor
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
+                ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute
                 "Count",                                    // System_Collections_ICollection__Count,
                 "IsSynchronized",                           // System_Collections_ICollection__IsSynchronized,
                 "SyncRoot",                                 // System_Collections_ICollection__SyncRoot,
@@ -5868,6 +5876,7 @@ namespace Microsoft.CodeAnalysis
                 case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                 case WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor:
                 case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
+                case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor:
                     return true;
 
                 default:

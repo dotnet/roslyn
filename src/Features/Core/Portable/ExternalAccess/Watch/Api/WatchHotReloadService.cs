@@ -162,7 +162,6 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     /// Starts the watcher.
     /// </summary>
     /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
     {
         var newSessionId = await _encService.StartDebuggingSessionAsync(
@@ -197,7 +196,6 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     /// </summary>
     /// <param name="solution">Solution snapshot.</param>
     /// <param name="runningProjects">Identifies projects that launched a process.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>
     /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
     /// May include both updates and Rude Edits for different projects.

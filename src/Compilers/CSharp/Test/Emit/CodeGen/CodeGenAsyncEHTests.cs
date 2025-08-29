@@ -144,7 +144,7 @@ class Test
             var expected = @"";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics(
                 // (3,1): hidden CS8019: Unnecessary using directive.
@@ -579,7 +579,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -628,7 +628,7 @@ namespace ConsoleApplication1
 ";
             CompileAndVerify(source, expectedOutput: "3");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("3", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -677,7 +677,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
@@ -731,7 +731,7 @@ exception
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -894,7 +894,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -1000,7 +1000,7 @@ class Test
 
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1359,7 +1359,7 @@ class Test
   IL_01cc:  ret
 }", sequencePoints: "Test+<G>d__1.MoveNext");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1479,7 +1479,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -1765,7 +1765,7 @@ class Test
                 }
                 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2043,7 +2043,7 @@ class Test
                 }
                 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2296,7 +2296,7 @@ class Test
                 }
                 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2377,7 +2377,7 @@ class Test
             var expected = "4";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2504,7 +2504,7 @@ class Test
             var expected = @"15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -2592,7 +2592,7 @@ class Test
 15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -2684,7 +2684,7 @@ class Test
 15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -2847,7 +2847,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
@@ -2964,7 +2964,7 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3044,7 +3044,7 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3129,7 +3129,7 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3194,7 +3194,7 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3374,7 +3374,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3466,7 +3466,7 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3561,7 +3561,7 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3608,7 +3608,7 @@ class Driver
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
@@ -3686,7 +3686,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3797,7 +3797,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3895,7 +3895,7 @@ class Driver
                     [M2]: Return value missing on the stack. { Offset = 0x3f }
                     """;
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
             verifier.VerifyDiagnostics();
         }
@@ -3979,7 +3979,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput,
                 targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var ilVerifyMessage = (await1, await2) switch
             {
                 (true, true) => """
@@ -4064,7 +4064,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x1d }"
@@ -4779,7 +4779,7 @@ class Driver
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.DebugExe), expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 

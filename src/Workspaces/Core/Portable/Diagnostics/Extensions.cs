@@ -534,22 +534,21 @@ internal static partial class Extensions
         return await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
+    public static ImmutableArray<DiagnosticData> ConvertToLocalDiagnostics(ImmutableArray<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
     {
+        using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
         foreach (var diagnostic in diagnostics)
         {
             if (!IsReportedInDocument(diagnostic, targetTextDocument))
-            {
                 continue;
-            }
 
             if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
-            {
                 continue;
-            }
 
-            yield return DiagnosticData.Create(diagnostic, targetTextDocument);
+            result.Add(DiagnosticData.Create(diagnostic, targetTextDocument));
         }
+
+        return result.ToImmutableAndClear();
     }
 
     public static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetTextDocument)
@@ -567,5 +566,25 @@ internal static partial class Extensions
         }
 
         return false;
+    }
+
+    public static ImmutableArray<DiagnosticAnalyzer> FilterAnalyzers(
+        this ImmutableArray<DiagnosticAnalyzer> analyzers,
+        ImmutableHashSet<string> analyzerIds)
+    {
+        using var _ = PooledDictionary<string, DiagnosticAnalyzer>.GetInstance(out var analyzerMap);
+        foreach (var analyzer in analyzers)
+        {
+            // In the case of multiple analyzers with the same ID, we keep the last one.
+            var analyzerId = analyzer.GetAnalyzerId();
+            if (analyzerIds.Contains(analyzerId))
+                analyzerMap[analyzerId] = analyzer;
+        }
+
+        var result = new FixedSizeArrayBuilder<DiagnosticAnalyzer>(analyzerMap.Count);
+        foreach (var (_, analyzer) in analyzerMap)
+            result.Add(analyzer);
+
+        return result.MoveToImmutable();
     }
 }

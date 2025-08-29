@@ -17616,8 +17616,8 @@ public class C
             Diagnostic(ErrorCode.ERR_BadDynamicQuery, "where i is not null").WithLocation(2, 9));
     }
 
-    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/78968 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
-    public void ResolveAll_Query_Cast()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+    public void ResolveAll_Query_Cast_StaticProperty()
     {
         var source = """
 using System.Linq;
@@ -17643,10 +17643,48 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Object[] E.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }",
+            model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.Object[] E.M2", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }",
+            model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+    public void ResolveAll_Query_Cast_InstanceProperty()
+    {
+        var source = """
+using System.Linq;
+
+var o = new object();
+var r = from string s in o.M from string s2 in o.M2 select s.ToString();
+foreach (var x in r)
+{
+    System.Console.Write(x.ToString());
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public object[] M => ["ran"];
+        public object[] M2 => [""];
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M");
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }",
+            model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M2");
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }",
+            model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -25539,19 +25577,20 @@ static class E
     }
 }
 """;
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
-        try
-        {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
+        src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
 
-        Debug.Assert(false);
+static class E
+{
+    public static void Deconstruct(this System.Span<int> s, out int i, out int j) { i = 42; j = 43; }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
@@ -25579,7 +25618,6 @@ namespace System
     }
 }
 """;
-#if RELEASE
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
@@ -25588,22 +25626,6 @@ namespace System
             // (8,22): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
             //     extension(System.Span<int> s)
             Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(8, 22));
-#endif
-
-#if DEBUG
-        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
-        try
-        {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            comp.VerifyEmitDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-
-        Debug.Assert(false);
-#endif
     }
 
     [Fact]
@@ -33844,6 +33866,12 @@ public static class E1
         var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
         var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
         CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
+
+        source = """
+E1.M(42, 43);
+""";
+        var comp3 = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp3, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
         {
@@ -44220,12 +44248,15 @@ static class E
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, @"[System.Runtime.CompilerServices.CallerMemberName] string name = """"").WithLocation(5, 15));
     }
 
-    [Fact]
-    public void ConditionalAttribute_01()
+    [Theory, CombinatorialData]
+    public void ConditionalAttribute_01(bool withDebug)
     {
-        var src = """
+        var src = $$"""
+{{(withDebug ? "#define DEBUG" : "")}}
+
 42.M();
 42.M2();
+E.M(42);
 
 static class E
 {
@@ -44236,34 +44267,12 @@ static class E
     }
 
     [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
+    public static void M2(this int i) { System.Console.Write("ran "); }
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "");
-
-        src = """
-#define DEBUG
-
-42.M();
-42.M2();
-
-static class E
-{
-    extension(int i)
-    {
-        [System.Diagnostics.Conditional("DEBUG")]
-        public void M() { System.Console.Write("ran "); }
-    }
-
-    [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
-}
-""";
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: withDebug ? "ran ran ran" : "");
     }
 
     [Fact]
