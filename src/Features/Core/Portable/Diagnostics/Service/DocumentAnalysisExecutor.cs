@@ -67,7 +67,7 @@ internal sealed partial class DiagnosticAnalyzerService
         public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsInProcessAsync(
             DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(AnalysisScope.Analyzers.Contains(analyzer));// || AnalysisScope.HostAnalyzers.Contains(analyzer));
+            Contract.ThrowIfFalse(AnalysisScope.Analyzers.Contains(analyzer));
 
             var textDocument = AnalysisScope.TextDocument;
             var span = AnalysisScope.Span;
@@ -137,7 +137,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
 #if DEBUG
             var diags = await diagnostics.ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
-            var compilation = _compilationWithAnalyzers.Compilation; //.comp;//. _compilationBasedAnalyzersInAnalysisScope.Contains(analyzer) ? _compilationWithAnalyzers.Com.ProjectCompilation : _compilationWithAnalyzers.HostCompilation;
+            var compilation = _compilationWithAnalyzers.Compilation;
             RoslynDebug.AssertNotNull(compilation);
             Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, compilation).Count());
             Debug.Assert(diagnostics.Length == Extensions.ConvertToLocalDiagnostics(diags, textDocument, span).Count());
