@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsMetadataOut => RefKind == RefKind.Out;
 
-        internal override ConstantValue DefaultValueFromAttributes => ConstantValue.NotAvailable;
+        internal override ConstantValue? DefaultValueFromAttributes => null;
 
         public static ParameterSymbol Create(
             Symbol? container,
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _defaultValue;
 
-        internal override ConstantValue DefaultValueFromAttributes => _baseParameterForAttributes?.DefaultValueFromAttributes ?? ConstantValue.NotAvailable;
+        internal override ConstantValue? DefaultValueFromAttributes => _baseParameterForAttributes?.DefaultValueFromAttributes ?? ConstantValue.NotAvailable;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {

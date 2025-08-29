@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue? DefaultValueFromAttributes
         {
-            get { return ConstantValue.NotAvailable; }
+            get { return null; }
         }
 
         internal sealed override bool IsMetadataOptional

@@ -257,9 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns the default value from attributes on the parameter,
         /// for symbols from source or derived from source symbols.
-        /// Returns <see cref="ConstantValue.NotAvailable"/> when not applicable.
+        /// Returns null when not applicable.
         /// </summary>
-        internal abstract ConstantValue DefaultValueFromAttributes { get; }
+        internal abstract ConstantValue? DefaultValueFromAttributes { get; }
 
         /// <summary>
         /// Gets the kind of this symbol.

@@ -476,7 +476,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
-            internal override ConstantValue DefaultValueFromAttributes => ConstantValue.NotAvailable;
+#nullable enable
+            internal override ConstantValue? DefaultValueFromAttributes => null;
+#nullable disable
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

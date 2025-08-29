@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.ExplicitDefaultConstantValue; }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue? DefaultValueFromAttributes
         {
             get { return _underlyingParameter.DefaultValueFromAttributes; }
         }

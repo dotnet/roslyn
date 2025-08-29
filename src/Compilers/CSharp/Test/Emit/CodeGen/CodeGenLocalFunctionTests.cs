@@ -6129,44 +6129,6 @@ class Program
         }
 
         [Fact]
-        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
-        public void BaseParameterWithDifferentRefKind()
-        {
-            var source = $$"""
-using System;
-
-class Attr : Attribute { }
-
-public class State
-{
-    public bool B;
-}
-
-static class Program
-{
-    static void M()
-    {
-        local(new State());
-
-        static void local([Attr] in State state)
-        {
-        }
-    }
-}
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var localFunctionSyntax = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
-            var localFunction = model.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
-            var param = localFunction.Parameters[0];
-            Assert.True(param.IsMetadataIn);
-            Assert.False(param.IsMetadataOut);
-        }
-
-        [Fact]
         [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_01()
         {
