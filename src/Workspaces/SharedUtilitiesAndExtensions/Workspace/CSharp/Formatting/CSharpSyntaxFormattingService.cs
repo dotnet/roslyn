@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -43,7 +44,7 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
         CancellationToken cancellationToken)
     {
         // first, find the token user just typed.
-        var token = documentSyntax.Root.FindToken(Math.Max(0, caretPosition - 1), findInsideTrivia: true);
+        var token = documentSyntax.Root.FindTokenOnLeftOfPosition(Math.Max(0, caretPosition - 1), includeDirectives: true, includeDocumentationComments: true);
         if (token.IsMissing ||
             !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
             token.Kind() is SyntaxKind.EndOfFileToken or SyntaxKind.None ||
@@ -76,7 +77,7 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
         CancellationToken cancellationToken)
     {
         var root = document.Root;
-        var token = root.FindToken(Math.Max(0, caretPosition - 1), findInsideTrivia: true);
+        var token = root.FindTokenOnLeftOfPosition(Math.Max(0, caretPosition - 1), includeDirectives: true, includeDocumentationComments: true);
         var formattingRules = GetFormattingRules(document, caretPosition, token);
 
         // Do not attempt to format on open/close brace if autoformat on close brace feature is off, instead just smart

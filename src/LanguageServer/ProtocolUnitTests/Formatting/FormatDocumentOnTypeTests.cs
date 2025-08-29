@@ -100,6 +100,93 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
             """);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestFormatDocumentOnType_NewLine2(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M() {{|type:|}}
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, "\n", locationTyped, """
+            class A
+            {
+                void M()
+                {
+                    
+                }
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8429")]
+    public async Task TestFormatDocumentOnType_NewLineBeforeMultilineComment(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M()
+                {
+                }
+                {|type:|}
+            /*
+                private void Do() { }
+            */
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, "\n", locationTyped, """
+            class A
+            {
+                void M()
+                {
+                }
+                
+            /*
+                private void Do() { }
+            */
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8429")]
+    public async Task TestFormatDocumentOnType_NewLineBeforeMultilineComment2(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M()
+                {
+                }
+            {|type:|}
+            /*
+                private void Do() { }
+            */
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, "\n", locationTyped, """
+            class A
+            {
+                void M()
+                {
+                }
+            
+            /*
+                private void Do() { }
+            */
+            }
+            """);
+    }
+
     private static async Task AssertFormatDocumentOnTypeAsync(
         TestLspServer testLspServer,
         string characterTyped,
