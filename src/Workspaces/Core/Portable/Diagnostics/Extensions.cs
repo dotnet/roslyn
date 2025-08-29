@@ -347,7 +347,6 @@ internal static partial class Extensions
         }
 
         Debug.Assert(documentAnalysisScope.Analyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.Analyzers));
-        //Debug.Assert(documentAnalysisScope.HostAnalyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.HostAnalyzers));
 
         switch (documentAnalysisScope.Kind)
         {
