@@ -67,7 +67,7 @@ internal static class CodeAnalysisDiagnosticAnalyzerServiceHelpers
                     arg.analyzerConfigOptions?.TreeOptions);
                 return severity != ReportDiagnostic.Hidden;
             },
-            (project.CompilationOptions, /*isHostAnalyzer, */analyzerConfigOptions));
+            (project.CompilationOptions, analyzerConfigOptions));
         };
     }
 
