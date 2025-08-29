@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -92,7 +93,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                             showProgress: false);
 
                         var cancellationToken = waitContext.UserCancellationToken;
-                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                        var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+                        var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
                         if (textBuffer == null)
                             return default;
 
@@ -135,7 +138,9 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     if (_proximityExpressionsService == null)
                         return null;
 
-                    var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                    var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+                    var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
                     if (textBuffer == null)
                         return null;
 
@@ -195,7 +200,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     var cancellationToken = waitContext.UserCancellationToken;
                     if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
                     {
-                        var solution = _languageService.Workspace.CurrentSolution;
+                        var solution = _languageService.Workspace.Value.CurrentSolution;
 
                         if (_breakpointService != null)
                         {
@@ -220,7 +225,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                 // and using the blocked thread whenever possible.
 
                 var document = breakpoint.Document;
-                var filePath = _languageService.Workspace.GetFilePath(document.Id);
+                var filePath = _languageService.Workspace.Value.GetFilePath(document.Id);
 
                 // We're (unfortunately) blocking the UI thread here.  So avoid async io as we actually
                 // awant the IO to complete as quickly as possible, on this thread if necessary.
@@ -264,7 +269,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             if (_breakpointService == null)
                 return VSConstants.E_FAIL;
 
-            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+            var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(pBuffer);
             if (textBuffer != null)
             {
                 var snapshot = textBuffer.CurrentSnapshot;
