@@ -167,7 +167,7 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
                 RoslynDebug.Assert(_compilationWithAnalyzers != null);
-                RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));// || _compilationBasedHostAnalyzersInAnalysisScope.Contains(analyzer));
+                RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
                 RoslynDebug.Assert(AnalysisScope.TextDocument is Document);
 
                 var analysisScope = _compilationBasedAnalyzersInAnalysisScope.Contains(analyzer)
@@ -191,7 +191,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 //     for rest of the analyzers. This is needed to ensure faster refresh for compiler diagnostics while typing.
 
                 RoslynDebug.Assert(_compilationWithAnalyzers != null);
-                RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));// || _compilationBasedHostAnalyzersInAnalysisScope.Contains(analyzer));
+                RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
 
                 if (isCompilerAnalyzer)
                 {
@@ -205,7 +205,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 {
                     using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSyntaxDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
 
-                    var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);//, _compilationBasedHostAnalyzersInAnalysisScope);
+                    var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
                     var syntaxDiagnostics = await GetAnalysisResultInProcessAsync(analysisScope).ConfigureAwait(false);
                     Interlocked.CompareExchange(ref _lazySyntaxDiagnostics, syntaxDiagnostics, null);
                 }
@@ -241,7 +241,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 {
                     using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSemanticDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
 
-                    var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);// _compilationBasedHostAnalyzersInAnalysisScope);
+                    var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
                     var semanticDiagnostics = await GetAnalysisResultInProcessAsync(analysisScope).ConfigureAwait(false);
                     Interlocked.CompareExchange(ref _lazySemanticDiagnostics, semanticDiagnostics, null);
                 }
