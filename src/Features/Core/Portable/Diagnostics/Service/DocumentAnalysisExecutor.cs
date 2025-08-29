@@ -54,11 +54,6 @@ internal sealed partial class DiagnosticAnalyzerService
             _compilationBasedAnalyzersInAnalysisScope = compilationBasedProjectAnalyzers != null
                 ? analysisScope.Analyzers.WhereAsArray(compilationBasedProjectAnalyzers.Contains)
                 : [];
-
-            //var compilationBasedHostAnalyzers = compilationWithAnalyzers?.HostAnalyzers.ToImmutableHashSet();
-            //_compilationBasedHostAnalyzersInAnalysisScope = compilationBasedHostAnalyzers != null
-            //    ? analysisScope.HostAnalyzers.WhereAsArray(compilationBasedHostAnalyzers.Contains)
-            //    : [];
         }
 
         public DocumentAnalysisScope AnalysisScope { get; }
