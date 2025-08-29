@@ -64,9 +64,6 @@ internal static class CodeAnalysisDiagnosticAnalyzerServiceHelpers
                 var severity = d.GetEffectiveSeverity(
                     arg.CompilationOptions,
                     arg.analyzerConfigOptions?.ConfigOptionsWithFallback,
-                    //arg.isHostAnalyzer
-                    //    ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback
-                    //    : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback,
                     arg.analyzerConfigOptions?.TreeOptions);
                 return severity != ReportDiagnostic.Hidden;
             },
