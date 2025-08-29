@@ -234,7 +234,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
         var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(
             project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);
 
-        return result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];// (isHostAnalyzer ? analyzerDriver.HostAnalyzers : analyzerDriver.ProjectAnalyzers)[0]];
+        return result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
     }
 
     private static TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
