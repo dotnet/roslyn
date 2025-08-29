@@ -25,7 +25,7 @@ internal sealed class NonLocalDocumentDiagnosticSource(
         var filter = service.GetDefaultAnalyzerFilter(Document.Project, diagnosticIds: null, shouldIncludeAnalyzer);
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
-            Document.Project, Document.Id, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            Document.Project, [Document.Id], diagnosticIds: null, filter, includeLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
         // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning
         // that it is suppressed and should be hidden from the task list by default.

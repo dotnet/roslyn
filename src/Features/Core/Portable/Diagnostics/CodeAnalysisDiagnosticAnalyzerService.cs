@@ -86,8 +86,11 @@ internal static class CodeAnalysisDiagnosticAnalyzerServiceHelpers
         var filter = GetDiagnosticAnalyzerFilter(project, infoCache);
 
         // Compute all the diagnostics for all the documents in the project.
+        var sourceGeneratorDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+
         var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-            project, documentId: null, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+            project, [.. project.DocumentIds, .. project.AdditionalDocumentIds, .. sourceGeneratorDocuments.Select(d => d.Id)],
+            diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
         // Then all the non-document diagnostics for that project as well.
         var projectDiagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
