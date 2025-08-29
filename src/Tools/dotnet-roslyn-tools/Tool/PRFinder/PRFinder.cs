@@ -100,6 +100,8 @@ internal class PRFinder
             return 1;
         }
 
+        builder ??= new();
+
         IRepositoryHost host = isGitHub
             ? new Hosts.GitHub(repoUrl, connections, logger)
             : new Hosts.Azure(repoUrl);
@@ -189,12 +191,13 @@ internal class PRFinder
             RecordLine(prLink, logger, builder);
         }
 
+        logger.LogInformation("{Builder}", builder);
+
         return 0;
     }
 
     private static void RecordLine(string line, ILogger logger, StringBuilder? builder)
     {
-        logger.LogInformation("{Line}", line);
         builder?.AppendLine(line);
     }
 

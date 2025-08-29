@@ -1,113 +1,134 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Run `pr-finder`",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-            "args": [
-              "pr-finder",
-              "-s",
-              "d7261529b43f4581fb47e8f4d3d9197095d44508",
-              "-e",
-              "main",
-              "--path",
-              "src/dotnet-roslyn-tools",
-              "-v",
-              "diag"
-            ],
-            "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Run `pr-finder` on Razor",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-            "args": [
-              "pr-finder",
-              "-s",
-              "e15fe5b8b38c1b1e1adb9c8a4d76567aa1c397db",
-              "-e",
-              "main",
-              "--format",
-              "changelog",
-              "-v",
-              "diag"
-            ],
-            "cwd": "${workspaceFolder}/../../../razor",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Run `vsbranchinfo`",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-            "args": [
-              "vsbranchinfo",
-              "--branch",
-              "rel/d17.11",
-              "-v",
-              "diag"
-            ],
-            "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Run `create-release-tags -p roslyn`",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-            "args": [
-              "create-release-tags",
-              "-p",
-              "roslyn"
-            ],
-            "cwd": "${workspaceFolder}/../../../roslyn",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Run `create-release-tags -p razor`",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-            "args": [
-              "create-release-tags",
-              "-p",
-              "razor"
-            ],
-            "cwd": "${workspaceFolder}/../../../razor",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Run `authenticate --clear`",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
-            "args": [
-              "authenticate",
-              "--clear"
-            ],
-            "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run `pr-finder`",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": [
+        "pr-finder",
+        "-s",
+        "d7261529b43f4581fb47e8f4d3d9197095d44508",
+        "-e",
+        "main",
+        "--path",
+        "src/dotnet-roslyn-tools",
+        "-v",
+        "diag"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run `pr-finder` on Roslyn",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": [
+        "pr-finder",
+        "-s",
+        "b0b21b619712d4095afe5ab267efaf77a1e47bb0",
+        "-e",
+        "8e3d84569a17786744edc314614a99800ec3fd1f",
+        "--label",
+        "vscode",
+        "-v",
+        "diag"
+      ],
+      "cwd": "${workspaceFolder}/../../../roslyn",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run `pr-finder` on Razor",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": [
+        "pr-finder",
+        "-s",
+        "e15fe5b8b38c1b1e1adb9c8a4d76567aa1c397db",
+        "-e",
+        "main",
+        "--format",
+        "changelog",
+        "-v",
+        "diag"
+      ],
+      "cwd": "${workspaceFolder}/../../../razor",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run `vsbranchinfo`",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": [
+        "vsbranchinfo",
+        "--branch",
+        "rel/d17.11",
+        "-v",
+        "diag"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run `create-release-tags -p roslyn`",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": [
+        "create-release-tags",
+        "-p",
+        "roslyn"
+      ],
+      "cwd": "${workspaceFolder}/../../../roslyn",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run `create-release-tags -p razor`",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": [
+        "create-release-tags",
+        "-p",
+        "razor"
+      ],
+      "cwd": "${workspaceFolder}/../../../razor",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Run `authenticate --clear`",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+      "args": [
+        "authenticate",
+        "--clear"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach"
+    }
+  ]
 }

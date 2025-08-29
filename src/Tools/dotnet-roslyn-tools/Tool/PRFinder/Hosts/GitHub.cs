@@ -47,16 +47,25 @@ internal partial class GitHub : IRepositoryHost
             return true;
         }
 
-        // Exclude arcade dependency updates
-        if (commit.Author.Name == "dotnet-maestro[bot]")
+        // Exclude commits from bots
+        if (commit.Author.Name is "dotnet-maestro[bot]"
+            or "dotnet-policy-service[bot]"
+            or "dotnet-bot")
         {
             mergePRFound = true;
             return true;
         }
 
-        // Exclude merge commits from auto code-flow PRs (e.g. merges/main-to-main-vs-deps)
+        // Exclude merge commits which begin with `[Automated] `
+        if (IsAutomatedCommit().Match(commit.MessageShort).Success)
+        {
+            mergePRFound = true;
+            return true;
+        }
+
+        // Exclude merge commits from code-flow PRs (e.g. merges/main-to-main-vs-deps)
         if (IsGitHubReleaseFlowCommit().Match(commit.MessageShort).Success ||
-            IsGitHubActionCodeFlowCommit().Match(commit.MessageShort).Success)
+            IsManualCodeFlowCommit().Match(commit.MessageShort).Success)
         {
             mergePRFound = true;
             return true;
@@ -194,8 +203,10 @@ internal partial class GitHub : IRepositoryHost
 
     [GeneratedRegex(@"^Merge pull request #\d+ from dotnet/merges/")]
     private static partial Regex IsGitHubReleaseFlowCommit();
-    [GeneratedRegex(@"^\[automated\] Merge branch '.*' => '.*' \(#\d+\)")]
-    private static partial Regex IsGitHubActionCodeFlowCommit();
+    [GeneratedRegex(@"^\[automated\] ")]
+    private static partial Regex IsAutomatedCommit();
+    [GeneratedRegex(@"^(Merge main \(#(\d+)\)$|(Merge [^\s]*|Merge branch .*|Merge remote-tracking branch .*) (into|to) .*)")]
+    private static partial Regex IsManualCodeFlowCommit();
     [GeneratedRegex(@"^Merge pull request #(\d+) from")]
     private static partial Regex IsGitHubMergePRCommit();
     [GeneratedRegex(@"^(.*) \(#(\d+)\)(?:\n|$)")]
