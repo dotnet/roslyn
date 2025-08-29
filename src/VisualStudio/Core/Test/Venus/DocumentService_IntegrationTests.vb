@@ -240,7 +240,7 @@ class { }
 
                 ' confirm that IDE doesn't report the diagnostics
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    document.Project, documentId:=document.Id, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
+                    document.Project, ImmutableArray.Create(document.Id), diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.False(diagnostics.Any())
             End Using

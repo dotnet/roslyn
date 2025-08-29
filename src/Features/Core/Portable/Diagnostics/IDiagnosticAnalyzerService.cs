@@ -37,7 +37,8 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// will execute all the analyers fully on this project, including through compilation-end analyzers.
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
-    /// <param name="documentId">Optional document to scope the returned diagnostics.</param>
+    /// <param name="documentIds">Optional documents to scope the returned diagnostics.  If <see langword="default"/>,
+    /// then diagnostics will be returned for <see cref="Project.DocumentIds"/> and <see cref="Project.AdditionalDocumentIds"/>.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
     /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
     /// <param name="includeLocalDocumentDiagnostics">
@@ -51,7 +52,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </remarks>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
+        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
