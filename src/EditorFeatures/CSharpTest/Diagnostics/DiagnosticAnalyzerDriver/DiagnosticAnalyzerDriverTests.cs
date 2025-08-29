@@ -61,7 +61,7 @@ public sealed class DiagnosticAnalyzerDriverTests
         workspace.TryApplyChanges(newSolution);
 
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-        AccessSupportedDiagnostics(analyzer);
+        AccessSupportedDiagnostics(newSolution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>(), analyzer);
         await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, new TextSpan(0, document.GetTextAsync().Result.Length));
         analyzer.VerifyAllAnalyzerMembersWereCalled();
         analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
@@ -133,20 +133,22 @@ public sealed class DiagnosticAnalyzerDriverTests
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
     public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_1()
     {
+        using var workspace = EditorTestWorkspace.Create("");
         var analyzer = new ThrowingDiagnosticAnalyzer<SyntaxKind>();
         analyzer.ThrowOn(typeof(DiagnosticAnalyzer).GetProperties().Single().Name);
-        AccessSupportedDiagnostics(analyzer);
+        AccessSupportedDiagnostics(workspace.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>(), analyzer);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
     public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_2()
     {
+        using var workspace = EditorTestWorkspace.Create("");
         var analyzer = new ThrowingDoNotCatchDiagnosticAnalyzer<SyntaxKind>();
         analyzer.ThrowOn(typeof(DiagnosticAnalyzer).GetProperties().Single().Name);
         var exceptions = new List<Exception>();
         try
         {
-            AccessSupportedDiagnostics(analyzer);
+            AccessSupportedDiagnostics(workspace.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>(), analyzer);
         }
         catch (Exception e)
         {
@@ -176,10 +178,10 @@ public sealed class DiagnosticAnalyzerDriverTests
         analyzer.VerifyAnalyzerOptions();
     }
 
-    private static void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
+    private static void AccessSupportedDiagnostics(IDiagnosticAnalyzerInfoCache infoCache, DiagnosticAnalyzer analyzer)
     {
         var diagnosticService = new HostDiagnosticAnalyzers([new AnalyzerImageReference([analyzer])]);
-        diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
+        diagnosticService.GetDiagnosticDescriptorsPerReference(infoCache);
     }
 
     private sealed class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct

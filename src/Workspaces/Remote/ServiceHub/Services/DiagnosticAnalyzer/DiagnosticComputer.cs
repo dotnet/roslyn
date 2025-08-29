@@ -57,7 +57,6 @@ internal sealed class DiagnosticComputer
     private readonly TextSpan? _span;
     private readonly AnalysisKind? _analysisKind;
     private readonly IPerformanceTrackerService? _performanceTracker;
-    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
     private readonly HostWorkspaceServices _hostWorkspaceServices;
 
     private DiagnosticComputer(
@@ -66,7 +65,6 @@ internal sealed class DiagnosticComputer
         Checksum solutionChecksum,
         TextSpan? span,
         AnalysisKind? analysisKind,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache,
         HostWorkspaceServices hostWorkspaceServices)
     {
         _document = document;
@@ -74,7 +72,6 @@ internal sealed class DiagnosticComputer
         _solutionChecksum = solutionChecksum;
         _span = span;
         _analysisKind = analysisKind;
-        _analyzerInfoCache = analyzerInfoCache;
         _hostWorkspaceServices = hostWorkspaceServices;
         _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
     }
@@ -87,7 +84,6 @@ internal sealed class DiagnosticComputer
         ImmutableArray<string> projectAnalyzerIds,
         ImmutableArray<string> hostAnalyzerIds,
         AnalysisKind? analysisKind,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache,
         HostWorkspaceServices hostWorkspaceServices,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
@@ -115,7 +111,7 @@ internal sealed class DiagnosticComputer
 
         // We execute explicit, user-invoked diagnostics requests with higher priority compared to implicit requests
         // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
-        var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+        var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, span, analysisKind, hostWorkspaceServices);
         return diagnosticsComputer.GetDiagnosticsAsync(
             projectAnalyzerIds, hostAnalyzerIds, logPerformanceInfo, getTelemetryInfo, cancellationToken);
     }
@@ -158,8 +154,9 @@ internal sealed class DiagnosticComputer
             }
         }
 
+        var infoCache = _project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>();
         var skippedAnalyzersInfo = _project.Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(
-            _project.State, _analyzerInfoCache);
+            _project.State, infoCache);
 
         return await AnalyzeAsync(compilationWithAnalyzers, projectAnalyzerToIdMap, hostAnalyzerToIdMap, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
             logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
@@ -181,7 +178,7 @@ internal sealed class DiagnosticComputer
             : null;
 
         var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
-            documentAnalysisScope, _project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
+            documentAnalysisScope, _project, cancellationToken).ConfigureAwait(false);
 
         if (logPerformanceInfo && _performanceTracker != null)
         {
@@ -195,7 +192,8 @@ internal sealed class DiagnosticComputer
                 if (documentAnalysisScope == null)
                     unitCount += _project.DocumentIds.Count;
 
-                var performanceInfo = analysisResult?.MergedAnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache) ?? [];
+                var infoCache = _project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>();
+                var performanceInfo = analysisResult?.MergedAnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(infoCache) ?? [];
                 _performanceTracker.AddSnapshot(performanceInfo, unitCount, forSpanAnalysis: _span.HasValue);
             }
         }

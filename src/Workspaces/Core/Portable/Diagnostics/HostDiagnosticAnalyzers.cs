@@ -75,14 +75,14 @@ internal sealed class HostDiagnosticAnalyzers
     public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> GetOrCreateHostDiagnosticAnalyzersPerReference(string language)
         => _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache)
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(IDiagnosticAnalyzerInfoCache infoCache)
     {
         return ConvertReferenceIdentityToName(
             CreateDiagnosticDescriptorsPerReference(infoCache, _lazyHostDiagnosticAnalyzersPerReferenceMap.Value),
             _hostAnalyzerReferencesMap);
     }
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache, Project project)
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(IDiagnosticAnalyzerInfoCache infoCache, Project project)
     {
         var descriptorPerReference = CreateDiagnosticDescriptorsPerReference(infoCache, CreateDiagnosticAnalyzersPerReference(project));
         var map = _hostAnalyzerReferencesMap.AddRange(CreateProjectAnalyzerReferencesMap(project.AnalyzerReferences));
@@ -157,7 +157,7 @@ internal sealed class HostDiagnosticAnalyzers
         => CreateAnalyzerReferencesMap(projectAnalyzerReferences.Where(reference => !_hostAnalyzerReferencesMap.ContainsKey(reference.Id)));
 
     private static ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
-        DiagnosticAnalyzerInfoCache infoCache,
+        IDiagnosticAnalyzerInfoCache infoCache,
         ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
     {
         var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticDescriptor>>();
@@ -296,7 +296,7 @@ internal sealed class HostDiagnosticAnalyzers
         return current;
     }
 
-    public SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(ProjectState project, DiagnosticAnalyzerInfoCache infoCache)
+    public SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(ProjectState project, IDiagnosticAnalyzerInfoCache infoCache)
     {
         var box = _skippedHostAnalyzers.GetOrCreateValue(project.AnalyzerReferences);
 

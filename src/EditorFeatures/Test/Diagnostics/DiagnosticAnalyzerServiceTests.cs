@@ -635,7 +635,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [], analyzerIdsToRequestDiagnostics,
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            AnalysisKind.Semantic, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
         Assert.False(analyzer2.ReceivedSymbolCallback);
@@ -671,7 +671,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            AnalysisKind.Semantic, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
@@ -707,7 +707,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            AnalysisKind.Semantic, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
@@ -742,7 +742,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            AnalysisKind.Semantic, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
@@ -796,7 +796,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+            AnalysisKind.Semantic, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
@@ -862,7 +862,7 @@ public sealed class DiagnosticAnalyzerServiceTests
             var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
             _ = await DiagnosticComputer.GetDiagnosticsAsync(
                 documentToAnalyze, project, Checksum.Null, filterSpan, analyzerIdsToRequestDiagnostics, hostAnalyzerIds: [],
-                analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+                analysisKind, workspace.Services,
                 logPerformanceInfo: false, getTelemetryInfo: false,
                 CancellationToken.None);
             Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
@@ -908,7 +908,6 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var project = workspace.CurrentSolution.Projects.Single();
         var document = project.Documents.Single();
-        var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
         var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
         var analyzerIds = ImmutableArray.Create(analyzer.GetAnalyzerId());
@@ -918,7 +917,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         try
         {
             _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-                projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
+                projectAnalyzerIds: [], analyzerIds, kind, workspace.Services,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
             throw ExceptionUtilities.Unreachable();
@@ -931,7 +930,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
         var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-            projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
+            projectAnalyzerIds: [], analyzerIds, kind, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
         var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
         var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();

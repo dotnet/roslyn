@@ -24,13 +24,11 @@ internal sealed record class BuildOnlyDiagnosticIdsResult([property: JsonPropert
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class BuildOnlyDiagnosticIdsHandler(
-    DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
     [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> compilerBuildOnlyDiagnosticsProviders)
-                : ILspServiceRequestHandler<BuildOnlyDiagnosticIdsResult>
+    : ILspServiceRequestHandler<BuildOnlyDiagnosticIdsResult>
 {
     public const string BuildOnlyDiagnosticIdsMethodName = "workspace/buildOnlyDiagnosticIds";
 
-    private readonly DiagnosticAnalyzerInfoCache.SharedGlobalCache _globalCache = globalCache;
     private readonly ImmutableDictionary<string, string[]> _compilerBuildOnlyDiagnosticIds = compilerBuildOnlyDiagnosticsProviders
         .ToImmutableDictionary(lazy => lazy.Metadata.LanguageName, lazy => lazy.Metadata.BuildOnlyDiagnostics);
 
@@ -39,10 +37,11 @@ internal sealed class BuildOnlyDiagnosticIdsHandler(
 
     public Task<BuildOnlyDiagnosticIdsResult> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = context.Solution;
+        Contract.ThrowIfNull(solution);
 
         using var _1 = ArrayBuilder<string>.GetInstance(out var builder);
-        foreach (var languageName in context.Solution.Projects.Select(p => p.Language).Distinct())
+        foreach (var languageName in solution.Projects.Select(p => p.Language).Distinct())
         {
             if (_compilerBuildOnlyDiagnosticIds.TryGetValue(languageName, out var compilerBuildOnlyDiagnosticIds))
             {
@@ -52,9 +51,10 @@ internal sealed class BuildOnlyDiagnosticIdsHandler(
 
         using var _2 = PooledHashSet<(object Reference, string Language)>.GetInstance(out var seenAnalyzerReferencesByLanguage);
 
-        foreach (var project in context.Solution.Projects)
+        var analyzerInfoCache = solution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>();
+        foreach (var project in solution.Projects)
         {
-            var analyzersPerReferenceMap = context.Solution.SolutionState.Analyzers.CreateDiagnosticAnalyzersPerReference(project);
+            var analyzersPerReferenceMap = solution.SolutionState.Analyzers.CreateDiagnosticAnalyzersPerReference(project);
             foreach (var (analyzerReference, analyzers) in analyzersPerReferenceMap)
             {
                 if (!seenAnalyzerReferencesByLanguage.Add((analyzerReference, project.Language)))
@@ -66,7 +66,7 @@ internal sealed class BuildOnlyDiagnosticIdsHandler(
                     if (analyzer.IsCompilerAnalyzer())
                         continue;
 
-                    foreach (var buildOnlyDescriptor in _globalCache.AnalyzerInfoCache.GetCompilationEndDiagnosticDescriptors(analyzer))
+                    foreach (var buildOnlyDescriptor in analyzerInfoCache.GetCompilationEndDiagnosticDescriptors(analyzer))
                     {
                         builder.Add(buildOnlyDescriptor.Id);
                     }

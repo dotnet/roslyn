@@ -26,7 +26,7 @@ Public Class DiagnosticAnalyzerDriverTests
             workspace.TryApplyChanges(newSolution)
 
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-            AccessSupportedDiagnostics(analyzer)
+            AccessSupportedDiagnostics(workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerInfoCache), analyzer)
             Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, New TextSpan(0, document.GetTextAsync().Result.Length))
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
@@ -89,14 +89,16 @@ End Class
 
     <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")>
     Public Sub DiagnosticServiceIsSafeAgainstAnalyzerExceptions()
-        Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()
-        analyzer.ThrowOn(GetType(DiagnosticAnalyzer).GetProperties().Single().Name)
-        AccessSupportedDiagnostics(analyzer)
+        Using workspace = EditorTestWorkspace.CreateVisualBasic("")
+            Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()
+            analyzer.ThrowOn(GetType(DiagnosticAnalyzer).GetProperties().Single().Name)
+            AccessSupportedDiagnostics(workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerInfoCache), analyzer)
+        End Using
     End Sub
 
-    Private Shared Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
+    Private Shared Sub AccessSupportedDiagnostics(infoCache As IDiagnosticAnalyzerInfoCache, analyzer As DiagnosticAnalyzer)
         Dim diagnosticService = New HostDiagnosticAnalyzers({New AnalyzerImageReference(ImmutableArray.Create(analyzer))})
-        diagnosticService.GetDiagnosticDescriptorsPerReference(New DiagnosticAnalyzerInfoCache())
+        diagnosticService.GetDiagnosticDescriptorsPerReference(infoCache)
     End Sub
 
     <Fact>

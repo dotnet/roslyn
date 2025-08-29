@@ -87,11 +87,11 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(IDiagnosticAnalyzerInfoCache)"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Solution solution, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(IDiagnosticAnalyzerInfoCache, Project)"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Project project, CancellationToken cancellationToken);
 }

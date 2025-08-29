@@ -328,12 +328,11 @@ internal static partial class Extensions
         this CompilationWithAnalyzersPair compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache,
         CancellationToken cancellationToken)
     {
         var result = await GetAnalysisResultAsync(compilationWithAnalyzers, documentAnalysisScope, cancellationToken).ConfigureAwait(false);
         var additionalDiagnostics = await compilationWithAnalyzers.GetPragmaSuppressionAnalyzerDiagnosticsAsync(
-            documentAnalysisScope, project, analyzerInfoCache, cancellationToken).ConfigureAwait(false);
+            documentAnalysisScope, project, cancellationToken).ConfigureAwait(false);
         return (result, additionalDiagnostics);
     }
 
@@ -376,7 +375,6 @@ internal static partial class Extensions
         this CompilationWithAnalyzersPair compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache,
         CancellationToken cancellationToken)
     {
         var hostAnalyzers = documentAnalysisScope?.HostAnalyzers ?? compilationWithAnalyzers.HostAnalyzers;
@@ -393,12 +391,13 @@ internal static partial class Extensions
 
             using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
             await AnalyzeDocumentAsync(
-                compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                compilationWithAnalyzers.HostCompilationWithAnalyzers, suppressionAnalyzer,
                 document, documentAnalysisScope.Span, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
             return diagnosticsBuilder.ToImmutableAndClear();
         }
         else
         {
+            var analyzerInfoCache = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>();
             if (compilationWithAnalyzers.ConcurrentAnalysis)
             {
                 return await ProducerConsumer<Diagnostic>.RunParallelAsync(
@@ -407,7 +406,7 @@ internal static partial class Extensions
                     {
                         var (hostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer) = args;
                         await AnalyzeDocumentAsync(
-                            hostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                            hostCompilationWithAnalyzers, suppressionAnalyzer,
                             document, span: null, callback, cancellationToken).ConfigureAwait(false);
                     },
                     args: (compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),
@@ -419,7 +418,7 @@ internal static partial class Extensions
                 await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
                 {
                     await AnalyzeDocumentAsync(
-                        compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                        compilationWithAnalyzers.HostCompilationWithAnalyzers, suppressionAnalyzer,
                         document, span: null, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -429,7 +428,6 @@ internal static partial class Extensions
 
         static async Task AnalyzeDocumentAsync(
             CompilationWithAnalyzers hostCompilationWithAnalyzers,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
             IPragmaSuppressionsAnalyzer suppressionAnalyzer,
             Document document,
             TextSpan? span,
@@ -437,8 +435,9 @@ internal static partial class Extensions
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var infoCache = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>();
             await suppressionAnalyzer.AnalyzeAsync(
-                semanticModel, span, hostCompilationWithAnalyzers, analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+                semanticModel, span, hostCompilationWithAnalyzers, infoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
         }
     }
 
