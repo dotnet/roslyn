@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalMethod.GetAttributes();
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
         {
             return _originalMethod.GetReturnTypeAttributes();
         }
