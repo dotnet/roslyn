@@ -21,19 +21,20 @@ internal sealed class DocumentAnalysisScope
     public DocumentAnalysisScope(
         TextDocument document,
         TextSpan? span,
-        ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
-        ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        // ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         AnalysisKind kind)
     {
         Debug.Assert(kind is AnalysisKind.Syntax or AnalysisKind.Semantic);
-        Debug.Assert(!projectAnalyzers.IsDefault);
-        Debug.Assert(!hostAnalyzers.IsDefault);
-        Debug.Assert(!projectAnalyzers.IsEmpty || !hostAnalyzers.IsEmpty);
+        Debug.Assert(!analyzers.IsDefaultOrEmpty);
+        //Debug.Assert(!hostAnalyzers.IsDefault);
+//        Debug.Assert(!projectAnalyzers.IsEmpty || !hostAnalyzers.IsEmpty);
 
         TextDocument = document;
         Span = span;
-        ProjectAnalyzers = projectAnalyzers;
-        HostAnalyzers = hostAnalyzers;
+        //ProjectAnalyzers = projectAnalyzers;
+        //HostAnalyzers = hostAnalyzers;
+        Analyzers = analyzers;
         Kind = kind;
 
         _lazyAdditionalFile = new Lazy<AdditionalText>(ComputeAdditionalFile);
@@ -41,8 +42,9 @@ internal sealed class DocumentAnalysisScope
 
     public TextDocument TextDocument { get; }
     public TextSpan? Span { get; }
-    public ImmutableArray<DiagnosticAnalyzer> ProjectAnalyzers { get; }
-    public ImmutableArray<DiagnosticAnalyzer> HostAnalyzers { get; }
+    public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
+    //public ImmutableArray<DiagnosticAnalyzer> ProjectAnalyzers { get; }
+    // public ImmutableArray<DiagnosticAnalyzer> HostAnalyzers { get; }
     public AnalysisKind Kind { get; }
 
     /// <summary>
@@ -60,8 +62,8 @@ internal sealed class DocumentAnalysisScope
     }
 
     public DocumentAnalysisScope WithSpan(TextSpan? span)
-        => new(TextDocument, span, ProjectAnalyzers, HostAnalyzers, Kind);
+        => new(TextDocument, span, Analyzers, Kind);
 
-    public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
-        => new(TextDocument, Span, projectAnalyzers, hostAnalyzers, Kind);
+    public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)//, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
+        => new(TextDocument, Span, analyzers, Kind);
 }

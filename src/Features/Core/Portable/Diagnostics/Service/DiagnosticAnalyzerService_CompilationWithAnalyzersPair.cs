@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
-    /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzersPair"/>s
+    /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzers"/>s
     /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
     /// cref="DiagnosticAnalyzer"/>s passed along with the project.
     /// <para/>
@@ -33,14 +33,14 @@ internal sealed partial class DiagnosticAnalyzerService
         ProjectState,
         SmallDictionary<
             (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers),
-            AsyncLazy<CompilationWithAnalyzersPair?>>> s_projectToCompilationWithAnalyzers = new();
+            AsyncLazy<CompilationWithAnalyzers?>>> s_projectToCompilationWithAnalyzers = new();
 
     /// <summary>
     /// Protection around the SmallDictionary in <see cref="s_projectToCompilationWithAnalyzers"/>.
     /// </summary>
     private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
-    private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
+    private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
         Project project,
         ImmutableArray<DiagnosticAnalyzer> analyzers,
         HostAnalyzerInfo hostAnalyzerInfo,
@@ -57,7 +57,7 @@ internal sealed partial class DiagnosticAnalyzerService
         var map = s_projectToCompilationWithAnalyzers.GetValue(
             project.State, static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
 
-        AsyncLazy<CompilationWithAnalyzersPair?>? lazy;
+        AsyncLazy<CompilationWithAnalyzers?>? lazy;
         using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             var checksumAndAnalyzers = (checksum, analyzers);
@@ -75,7 +75,7 @@ internal sealed partial class DiagnosticAnalyzerService
         // <summary>
         // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
         // </summary>
-        static async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(
+        static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             (Project project,
              ImmutableArray<DiagnosticAnalyzer> analyzers,
              HostAnalyzerInfo hostAnalyzerInfo,
@@ -117,9 +117,8 @@ internal sealed partial class DiagnosticAnalyzerService
             };
 
             // Create driver that holds onto compilation and associated analyzers
-            return new(
-                CreateCompilationWithAnalyzers(compilation, filteredProjectAnalyzers, project.State.ProjectAnalyzerOptions, exceptionFilter),
-                CreateCompilationWithAnalyzers(compilation, filteredHostAnalyzers, project.HostAnalyzerOptions, exceptionFilter));
+            return CreateCompilationWithAnalyzers(
+                compilation, filteredHostAnalyzers.Concat(filteredProjectAnalyzers), project.State.ProjectAnalyzerOptions, exceptionFilter);
         }
 
         static CompilationWithAnalyzers? CreateCompilationWithAnalyzers(

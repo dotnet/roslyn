@@ -104,12 +104,12 @@ internal static partial class Extensions
     }
 
     public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(
-        this AnalysisResultPair analysisResult,
+        this AnalysisResult analysisResult,
         ImmutableArray<Diagnostic> additionalPragmaSuppressionDiagnostics,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
-        ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
-        ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        //ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
         CancellationToken cancellationToken)
     {
@@ -128,7 +128,7 @@ internal static partial class Extensions
         }
 
         var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
-        foreach (var analyzer in projectAnalyzers.ConcatFast(hostAnalyzers))
+        foreach (var analyzer in analyzers)
         {
             if (builder.ContainsKey(analyzer))
             {
@@ -161,13 +161,13 @@ internal static partial class Extensions
                     case AnalysisKind.Syntax:
                         if (treeToAnalyze != null)
                         {
-                            if (analysisResult.MergedSyntaxDiagnostics.TryGetValue(treeToAnalyze, out diagnosticsByAnalyzerMap))
+                            if (analysisResult.SyntaxDiagnostics.TryGetValue(treeToAnalyze, out diagnosticsByAnalyzerMap))
                             {
                                 AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                                     treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter);
                             }
                         }
-                        else if (analysisResult.MergedAdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
+                        else if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
                             AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                                 tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter);
@@ -176,7 +176,7 @@ internal static partial class Extensions
                         break;
 
                     case AnalysisKind.Semantic:
-                        if (analysisResult.MergedSemanticDiagnostics.TryGetValue(treeToAnalyze!, out diagnosticsByAnalyzerMap))
+                        if (analysisResult.SemanticDiagnostics.TryGetValue(treeToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
                             AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                                 treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Semantic, diagnosticIdsToFilter);
@@ -190,19 +190,19 @@ internal static partial class Extensions
             }
             else
             {
-                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSyntaxDiagnostics)
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
                 {
                     AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                         tree, additionalDocumentId: null, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter);
                 }
 
-                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSemanticDiagnostics)
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SemanticDiagnostics)
                 {
                     AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                         tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter);
                 }
 
-                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.MergedAdditionalFileDiagnostics)
+                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.AdditionalFileDiagnostics)
                 {
                     var additionalDocumentId = project.GetDocumentForFile(file);
                     var kind = additionalDocumentId != null ? AnalysisKind.Syntax : AnalysisKind.NonLocal;
@@ -210,7 +210,7 @@ internal static partial class Extensions
                         tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter);
                 }
 
-                AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.MergedCompilationDiagnostics, ref result,
+                AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.CompilationDiagnostics, ref result,
                     tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter);
             }
 
@@ -324,8 +324,8 @@ internal static partial class Extensions
             filterSpan.HasValue && !filterSpan.Value.IntersectsWith(diagnostic.Location.SourceSpan));
     }
 
-    public static async Task<(AnalysisResultPair? analysisResult, ImmutableArray<Diagnostic> additionalDiagnostics)> GetAnalysisResultAsync(
-        this CompilationWithAnalyzersPair compilationWithAnalyzers,
+    public static async Task<(AnalysisResult analysisResult, ImmutableArray<Diagnostic> additionalDiagnostics)> GetAnalysisResultAsync(
+        this CompilationWithAnalyzers compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
@@ -337,8 +337,8 @@ internal static partial class Extensions
         return (result, additionalDiagnostics);
     }
 
-    private static async Task<AnalysisResultPair?> GetAnalysisResultAsync(
-        CompilationWithAnalyzersPair compilationWithAnalyzers,
+    private static async Task<AnalysisResult> GetAnalysisResultAsync(
+        CompilationWithAnalyzers compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         CancellationToken cancellationToken)
     {
@@ -347,8 +347,8 @@ internal static partial class Extensions
             return await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        Debug.Assert(documentAnalysisScope.ProjectAnalyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.ProjectAnalyzers));
-        Debug.Assert(documentAnalysisScope.HostAnalyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.HostAnalyzers));
+        Debug.Assert(documentAnalysisScope.Analyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.Analyzers));
+        //Debug.Assert(documentAnalysisScope.HostAnalyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.HostAnalyzers));
 
         switch (documentAnalysisScope.Kind)
         {
@@ -356,16 +356,16 @@ internal static partial class Extensions
                 if (documentAnalysisScope.TextDocument is Document document)
                 {
                     var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Span, documentAnalysisScope.ProjectAnalyzers, documentAnalysisScope.HostAnalyzers, cancellationToken).ConfigureAwait(false);
+                    return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Span, documentAnalysisScope.ProjectAnalyzers, documentAnalysisScope.HostAnalyzers, cancellationToken).ConfigureAwait(false);
+                    return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
                 }
 
             case AnalysisKind.Semantic:
                 var model = await ((Document)documentAnalysisScope.TextDocument).GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                return await compilationWithAnalyzers.GetAnalysisResultAsync(model, documentAnalysisScope.Span, documentAnalysisScope.ProjectAnalyzers, documentAnalysisScope.HostAnalyzers, cancellationToken).ConfigureAwait(false);
+                return await compilationWithAnalyzers.GetAnalysisResultAsync(model, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(documentAnalysisScope.Kind);
@@ -373,18 +373,18 @@ internal static partial class Extensions
     }
 
     private static async Task<ImmutableArray<Diagnostic>> GetPragmaSuppressionAnalyzerDiagnosticsAsync(
-        this CompilationWithAnalyzersPair compilationWithAnalyzers,
+        this CompilationWithAnalyzers compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
         CancellationToken cancellationToken)
     {
-        var hostAnalyzers = documentAnalysisScope?.HostAnalyzers ?? compilationWithAnalyzers.HostAnalyzers;
+        var hostAnalyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
         var suppressionAnalyzer = hostAnalyzers.OfType<IPragmaSuppressionsAnalyzer>().FirstOrDefault();
         if (suppressionAnalyzer == null)
             return [];
 
-        RoslynDebug.AssertNotNull(compilationWithAnalyzers.HostCompilationWithAnalyzers);
+        // RoslynDebug.AssertNotNull(compilationWithAnalyzers.HostCompilationWithAnalyzers);
 
         if (documentAnalysisScope != null)
         {
@@ -393,24 +393,24 @@ internal static partial class Extensions
 
             using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
             await AnalyzeDocumentAsync(
-                compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
                 document, documentAnalysisScope.Span, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
             return diagnosticsBuilder.ToImmutableAndClear();
         }
         else
         {
-            if (compilationWithAnalyzers.ConcurrentAnalysis)
+            if (compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis)
             {
                 return await ProducerConsumer<Diagnostic>.RunParallelAsync(
                     source: project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken),
                     produceItems: static async (document, callback, args, cancellationToken) =>
                     {
-                        var (hostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer) = args;
+                        var (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer) = args;
                         await AnalyzeDocumentAsync(
-                            hostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                            compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
                             document, span: null, callback, cancellationToken).ConfigureAwait(false);
                     },
-                    args: (compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),
+                    args: (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),
                     cancellationToken).ConfigureAwait(false);
             }
             else
@@ -419,7 +419,7 @@ internal static partial class Extensions
                 await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
                 {
                     await AnalyzeDocumentAsync(
-                        compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                        compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
                         document, span: null, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
                 }
 

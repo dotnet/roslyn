@@ -22,7 +22,7 @@ internal sealed partial class DiagnosticAnalyzerService
     private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcessAsync(
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
-        CompilationWithAnalyzersPair compilationWithAnalyzers,
+        CompilationWithAnalyzers compilationWithAnalyzers,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -45,8 +45,8 @@ internal sealed partial class DiagnosticAnalyzerService
                     cancellationToken).CompletesAsyncOperation(asyncToken);
             }
 
-            var projectAnalyzers = documentAnalysisScope?.ProjectAnalyzers ?? compilationWithAnalyzers.ProjectAnalyzers;
-            var hostAnalyzers = documentAnalysisScope?.HostAnalyzers ?? compilationWithAnalyzers.HostAnalyzers;
+            var analyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
+            //var hostAnalyzers = documentAnalysisScope?.HostAnalyzers ?? compilationWithAnalyzers.HostAnalyzers;
             var skippedAnalyzersInfo = project.Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(project.State, _analyzerInfoCache);
 
             // get compiler result builder map
@@ -55,7 +55,7 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 var map = await analysisResult.ToResultBuilderMapAsync(
                     additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project,
-                    projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false);
+                    analyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false);
                 builderMap = builderMap.AddRange(map);
             }
 
@@ -63,13 +63,13 @@ internal sealed partial class DiagnosticAnalyzerService
             var telemetry = ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty;
             if (getTelemetryInfo && analysisResult is not null)
             {
-                telemetry = analysisResult.MergedAnalyzerTelemetryInfo;
+                telemetry = analysisResult.AnalyzerTelemetryInfo;
             }
 
             return DiagnosticAnalysisResultMap.Create(result, telemetry);
         }
 
-        void ReportAnalyzerPerformance(AnalysisResultPair? analysisResult)
+        void ReportAnalyzerPerformance(AnalysisResult analysisResult)
         {
             try
             {
@@ -80,7 +80,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 ImmutableArray<AnalyzerPerformanceInfo> performanceInfo = [];
                 if (analysisResult is not null)
                 {
-                    performanceInfo = performanceInfo.AddRange(analysisResult.MergedAnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache));
+                    performanceInfo = performanceInfo.AddRange(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache));
                 }
 
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, cancellationToken))
