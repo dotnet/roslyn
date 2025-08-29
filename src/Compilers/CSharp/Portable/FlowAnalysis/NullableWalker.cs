@@ -8399,7 +8399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// <para>
         /// For both calls to ImmutableArray.Create, initial binding will do a flow-independent type argument inference,
-        /// and both will receive type argument `string?` (or maybe 'oblivious' string, I don't recall which.) TODO2 FIX
+        /// and both will receive type argument `string` (oblivious).
         /// </para>
         ///
         /// <para>
