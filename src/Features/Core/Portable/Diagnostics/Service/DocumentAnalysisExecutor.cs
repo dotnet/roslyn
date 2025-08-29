@@ -33,7 +33,6 @@ internal sealed partial class DiagnosticAnalyzerService
         private readonly Action? _onAnalysisException;
 
         private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedAnalyzersInAnalysisScope;
-        // private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedHostAnalyzersInAnalysisScope;
 
         private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? _lazySyntaxDiagnostics;
         private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? _lazySemanticDiagnostics;
