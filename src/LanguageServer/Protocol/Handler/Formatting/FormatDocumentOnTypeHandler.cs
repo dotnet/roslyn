@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -52,6 +53,16 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
 
         var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
         var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+        // The formatting service expects that the position is inside the token span associated with the typed character, but
+        // in VSCode this is not always the case - the position the client gives us is not necessarily the position of the typed character.
+        // For example typing '\n', the client may automatically insert indentation (to get '\n    ') and we get passed position at the end.
+        // When the formatter calls root.FindToken, it may return an entirely different token
+        // Here we do our best to adjust the position back to the typed char location.
+        // we get the on type formatting request.  Instead we need to find the closest position of the character in the document.
+        // var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        // var adjustedToken = root.FindTokenOnLeftOfPosition(position);
+        // var adjustedPosition = adjustedToken.Span.End;
 
         if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
         {
