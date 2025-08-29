@@ -5,6 +5,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -27577,6 +27578,77 @@ public class Program
                 //         x += 1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+        public void RemoveWorseMembers_01()
+        {
+            // by-value vs. in extension parameter, static operator
+            var src = """
+_ = new S() + new S();
+
+struct S { }
+
+static class E1
+{
+    extension(S)
+    {
+        public static S operator +(S s1, S s2) => throw null;
+    }
+}
+
+static class E2
+{
+    extension(in S s)
+    {
+        public static S operator +(S s1, S s2) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (1,5): error CS0034: Operator '+' is ambiguous on operands of type 'S' and 'S'
+                // _ = new S() + new S();
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new S() + new S()").WithArguments("+", "S", "S").WithLocation(1, 5));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var binary = GetSyntax<BinaryExpressionSyntax>(tree, "new S() + new S()");
+            Assert.Null(model.GetSymbolInfo(binary).Symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+        public void RemoveWorseMembers_02()
+        {
+            // by-value vs. in parameter, static operator
+            var src = """
+_ = new S() + new S();
+
+struct S { }
+
+static class E1
+{
+    extension(S)
+    {
+        public static S operator +(S s1, S s2) => throw null;
+    }
+}
+
+static class E2
+{
+    extension(S)
+    {
+        public static S operator +(in S s1, S s2) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var binary = GetSyntax<BinaryExpressionSyntax>(tree, "new S() + new S()");
+            AssertEx.Equal("S E1.<G>$3B24C9A1A6673CA92CA71905DDEE0A6C.op_Addition(S s1, S s2)", model.GetSymbolInfo(binary).Symbol.ToTestDisplayString());
         }
     }
 }
