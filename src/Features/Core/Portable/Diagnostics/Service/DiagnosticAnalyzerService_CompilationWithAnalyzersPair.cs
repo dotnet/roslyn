@@ -35,7 +35,7 @@ internal sealed partial class DiagnosticAnalyzerService
             (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers),
             AsyncLazy<CompilationWithAnalyzers?>>> s_projectToCompilationWithAnalyzers = new();
 
-    /// <summary>
+    /// <summary> 
     /// Protection around the SmallDictionary in <see cref="s_projectToCompilationWithAnalyzers"/>.
     /// </summary>
     private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
