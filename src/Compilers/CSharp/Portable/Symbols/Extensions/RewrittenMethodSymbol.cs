@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -85,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return _originalMethod.GetAttributes();
+        }
+
+        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            return _originalMethod.GetReturnTypeAttributes();
         }
 
         internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
