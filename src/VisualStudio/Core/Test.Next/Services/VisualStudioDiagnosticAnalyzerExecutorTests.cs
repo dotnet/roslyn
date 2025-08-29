@@ -230,9 +230,6 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
         var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
             [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
             project.AnalyzerOptions);
-        //var analyzerDriver = isHostAnalyzer
-        //    ? new CompilationWithAnalyzersPair(projectCompilationWithAnalyzers: null, compilationWithAnalyzers)
-        //    : new CompilationWithAnalyzersPair(compilationWithAnalyzers, hostCompilationWithAnalyzers: null);
 
         var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(
             project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);
