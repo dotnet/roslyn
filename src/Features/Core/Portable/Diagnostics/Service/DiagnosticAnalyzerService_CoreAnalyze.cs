@@ -46,7 +46,6 @@ internal sealed partial class DiagnosticAnalyzerService
             }
 
             var analyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
-            //var hostAnalyzers = documentAnalysisScope?.HostAnalyzers ?? compilationWithAnalyzers.HostAnalyzers;
             var skippedAnalyzersInfo = project.Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(project.State, _analyzerInfoCache);
 
             // get compiler result builder map
