@@ -227,7 +227,7 @@ public class FileTransformGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var pipeline = context.AdditionalTextsProvider
+        IncrementalValuesProvider<(string name, string code)> pipeline = context.AdditionalTextsProvider
             .Where(static (text) => text.Path.EndsWith(".xml"))
             .Select(static (text, cancellationToken) =>
             {
@@ -251,7 +251,7 @@ Items need to be included in your csproj files by using the `AdditionalFiles` It
 <ItemGroup>
     <AdditionalFiles Include="file1.xml" />
     <AdditionalFiles Include="file2.xml" />
-<ItemGroup>
+</ItemGroup>
 ```
 
 ### Augment user code
