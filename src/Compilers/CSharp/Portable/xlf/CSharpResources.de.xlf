@@ -1527,6 +1527,11 @@
         <target state="translated">Keine Überladung für "{0}" stimmt mit dem Funktionszeiger "{1}" überein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
         <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>

@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         SpecialType SpecialType { get; }
 
+        ExtendedSpecialType ExtendedSpecialType { get; }
+
         /// <summary>
         /// True if this type is known to be a reference type. It is never the case that
         /// <see cref="IsReferenceType"/> and <see cref="IsValueType"/> both return true. However, for an unconstrained type
