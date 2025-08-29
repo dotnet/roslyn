@@ -137,17 +137,13 @@ internal static class ParenthesizedExpressionSyntaxExtensions
             //
             // Note: because `(T)[]` is never legal (an empty indexer is not legal), that form is always
             // considered a collection expression, regardless of what T is.
-            if (parentExpression is CastExpressionSyntax { Type: var castType } &&
-                collectionExpression.Elements.Count > 0)
+            if (collectionExpression.Elements.Count == 0)
+                return true;
+
+            return parentExpression is not CastExpressionSyntax
             {
-                if (castType is QualifiedNameSyntax { Right: var right })
-                    castType = right;
-
-                if (castType is IdentifierNameSyntax)
-                    return false;
-            }
-
-            return true;
+                Type: IdentifierNameSyntax or QualifiedNameSyntax { Right: IdentifierNameSyntax }
+            };
         }
 
         // int Prop => (x); -> int Prop => x;
