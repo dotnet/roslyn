@@ -2638,7 +2638,6 @@ class Program
             }
         }
 
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
         public void ParamsArray_Attribute_ExtensionMethod()
         {
