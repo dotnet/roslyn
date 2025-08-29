@@ -25,6 +25,62 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new CodeAnalysisDiagnosticAnalyzerService(infoCache.AnalyzerInfoCache, workspaceServices.Workspace);
 
+    public static Func<DiagnosticAnalyzer, bool> GetDiagnosticAnalyzerFilter(
+        Project project, DiagnosticAnalyzerInfoCache infoCache)
+    {
+        return analyzer =>
+        {
+            if (analyzer == FileContentLoadAnalyzer.Instance ||
+                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
+                analyzer.IsCompilerAnalyzer())
+            {
+                return true;
+            }
+
+            if (analyzer.IsBuiltInAnalyzer())
+            {
+                // always return true for builtin analyzer. we can't use
+                // descriptor check since many builtin analyzer always return 
+                // hidden descriptor regardless what descriptor it actually
+                // return on runtime. they do this so that they can control
+                // severity through option page rather than rule set editor.
+                // this is special behavior only ide analyzer can do. we hope
+                // once we support editorconfig fully, third party can use this
+                // ability as well and we can remove this kind special treatment on builtin
+                // analyzer.
+                return true;
+            }
+
+            if (analyzer is DiagnosticSuppressor)
+            {
+                // Always execute diagnostic suppressors.
+                return true;
+            }
+
+            if (project.CompilationOptions is null)
+            {
+                // Skip compilation options based checks for non-C#/VB projects.
+                return true;
+            }
+
+            // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
+            var descriptors = infoCache.GetDiagnosticDescriptors(analyzer);
+            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+            return descriptors.Any(static (d, arg) =>
+            {
+                var severity = d.GetEffectiveSeverity(
+                    arg.CompilationOptions,
+                    arg.analyzerConfigOptions?.ConfigOptionsWithFallback,
+                    //arg.isHostAnalyzer
+                    //    ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback
+                    //    : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback,
+                    arg.analyzerConfigOptions?.TreeOptions);
+                return severity != ReportDiagnostic.Hidden;
+            },
+            (project.CompilationOptions, /*isHostAnalyzer, */analyzerConfigOptions));
+        };
+    }
+
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
@@ -102,12 +158,13 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
             // here.  We want to control the rules entirely when this is called.
 
             // Compute all the diagnostics for all the documents in the project.
+            var filter = GetDiagnosticAnalyzerFilter(project, _infoCache);
             var documentDiagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                project, documentId: null, diagnosticIds: null, FilterAnalyzer, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                project, documentId: null, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
             // Then all the non-document diagnostics for that project as well.
             var projectDiagnostics = await _diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
-                project, diagnosticIds: null, FilterAnalyzer, cancellationToken).ConfigureAwait(false);
+                project, diagnosticIds: null, filter, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.
@@ -121,58 +178,6 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
             // TODO: Below call will eventually be replaced with a special workspace refresh request that skips pulling
             // document diagnostics and also does not add any delay for pulling workspace diagnostics.
             _diagnosticAnalyzerService.RequestDiagnosticRefresh();
-
-            bool FilterAnalyzer(DiagnosticAnalyzer analyzer)
-            {
-                if (analyzer == FileContentLoadAnalyzer.Instance ||
-                    analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
-                    analyzer.IsCompilerAnalyzer())
-                {
-                    return true;
-                }
-
-                if (analyzer.IsBuiltInAnalyzer())
-                {
-                    // always return true for builtin analyzer. we can't use
-                    // descriptor check since many builtin analyzer always return 
-                    // hidden descriptor regardless what descriptor it actually
-                    // return on runtime. they do this so that they can control
-                    // severity through option page rather than rule set editor.
-                    // this is special behavior only ide analyzer can do. we hope
-                    // once we support editorconfig fully, third party can use this
-                    // ability as well and we can remove this kind special treatment on builtin
-                    // analyzer.
-                    return true;
-                }
-
-                if (analyzer is DiagnosticSuppressor)
-                {
-                    // Always execute diagnostic suppressors.
-                    return true;
-                }
-
-                if (project.CompilationOptions is null)
-                {
-                    // Skip compilation options based checks for non-C#/VB projects.
-                    return true;
-                }
-
-                // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
-                var descriptors = _infoCache.GetDiagnosticDescriptors(analyzer);
-                var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
-                return descriptors.Any(static (d, arg) =>
-                {
-                    var severity = d.GetEffectiveSeverity(
-                        arg.CompilationOptions,
-                        arg.analyzerConfigOptions?.ConfigOptionsWithFallback,
-                        //arg.isHostAnalyzer
-                        //    ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback
-                        //    : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback,
-                        arg.analyzerConfigOptions?.TreeOptions);
-                    return severity != ReportDiagnostic.Hidden;
-                },
-                (project.CompilationOptions, /*isHostAnalyzer, */analyzerConfigOptions));
-            }
         }
 
         /// <summary>

@@ -14,8 +14,9 @@ internal static class IDiagnosticServiceExtensions
     public static async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(
         this IDiagnosticAnalyzerService service, Project project, CancellationToken cancellationToken)
     {
-        var documentDiagnostics = await service.GetDiagnosticsForIdsAsync(project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
-        var projectDiagnostics = await service.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds: null, shouldIncludeAnalyzer: null, cancellationToken).ConfigureAwait(false);
+        var filter = CodeAnalysisDiagnosticAnalyzerServiceFactory.GetDiagnosticAnalyzerFilter(project, new());
+        var documentDiagnostics = await service.GetDiagnosticsForIdsAsync(project, documentId: null, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+        var projectDiagnostics = await service.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds: null, filter, cancellationToken).ConfigureAwait(false);
         ImmutableArray<DiagnosticData> diagnostics = [.. documentDiagnostics, .. projectDiagnostics];
 
         return diagnostics.WhereAsArray(d => d.Severity != DiagnosticSeverity.Hidden);
