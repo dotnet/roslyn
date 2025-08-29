@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -512,6 +513,41 @@ internal sealed class DiagnosticComputer
             CompilationWithAnalyzers = compilationWithAnalyzers;
             AnalyzerToIdMap = analyzerToIdMap;
             //HostAnalyzerToIdMap = hostAnalyzerToIdMap;
+        }
+    }
+
+    private sealed class CombinedAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    {
+        private readonly AnalyzerOptions _analyzerOptions;
+        private readonly AnalyzerOptions _hostAnalyzerOptions;
+
+        public CombinedAnalyzerConfigOptionsProvider(AnalyzerOptions analyzerOptions, AnalyzerOptions hostAnalyzerOptions)
+        {
+            _analyzerOptions = analyzerOptions;
+            _hostAnalyzerOptions = hostAnalyzerOptions;
+        }
+
+        public override AnalyzerConfigOptions GlobalOptions
+            => new CombinedAnalyzerConfigOptions(
+                _analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions,
+                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions);
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
+            => new CombinedAnalyzerConfigOptions(
+                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree),
+                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree));
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+            => new CombinedAnalyzerConfigOptions(
+                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile),
+                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile));
+
+        private sealed class CombinedAnalyzerConfigOptions(
+            AnalyzerConfigOptions globalOptions1,
+            AnalyzerConfigOptions globalOptions2) : AnalyzerConfigOptions
+        {
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+                => globalOptions1.TryGetValue(key, out value) || globalOptions2.TryGetValue(key, out value);
         }
     }
 }
