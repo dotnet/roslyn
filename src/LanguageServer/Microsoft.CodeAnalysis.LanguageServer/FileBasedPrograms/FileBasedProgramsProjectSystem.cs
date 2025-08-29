@@ -119,8 +119,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _logger, cancellationToken);
         if (content is not var (virtualProjectContent, diagnostics))
         {
-            // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available
-            _logger.LogInformation($"Failed to obtain virtual project for '{documentPath}' using dotnet run-api. Falling back to directly creating the virtual project.");
+            _logger.LogError($"Failed to obtain virtual project for '{documentPath}' using dotnet run-api. Falling back to directly creating the virtual project.");
             virtualProjectContent = VirtualProjectXmlProvider.MakeVirtualProjectContent_DirectFallback(documentPath);
             diagnostics = [];
         }
@@ -150,7 +149,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             ProjectFactory: isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
             IsMiscellaneousFile: !isFileBasedProgram,
             Preferred: buildHostKind,
-            Actual: buildHostKind);
+            Actual: buildHostKind,
+            HasLoadErrors: content is null);
     }
 
     protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
