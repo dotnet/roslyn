@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool InheritsBaseMethodAttributes => false;
 
-        protected virtual bool InheritsParams => false;
+        protected abstract bool InheritsParams { get; }
 
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
