@@ -109,7 +109,6 @@ internal static partial class Extensions
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         ImmutableArray<DiagnosticAnalyzer> analyzers,
-        //ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
         CancellationToken cancellationToken)
     {
