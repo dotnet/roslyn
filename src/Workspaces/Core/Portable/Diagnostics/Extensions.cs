@@ -382,8 +382,6 @@ internal static partial class Extensions
         if (suppressionAnalyzer == null)
             return [];
 
-        // RoslynDebug.AssertNotNull(compilationWithAnalyzers.HostCompilationWithAnalyzers);
-
         if (documentAnalysisScope != null)
         {
             if (documentAnalysisScope.TextDocument is not Document document)
