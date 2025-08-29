@@ -16,16 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-[ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
-    DiagnosticAnalyzerInfoCache.SharedGlobalCache infoCache) : IWorkspaceServiceFactory
+internal static class CodeAnalysisDiagnosticAnalyzerServiceHelpers
 {
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new CodeAnalysisDiagnosticAnalyzerService(infoCache.AnalyzerInfoCache, workspaceServices.Workspace);
-
-    public static Func<DiagnosticAnalyzer, bool> GetDiagnosticAnalyzerFilter(
+    private static Func<DiagnosticAnalyzer, bool> GetDiagnosticAnalyzerFilter(
         Project project, DiagnosticAnalyzerInfoCache infoCache)
     {
         return analyzer =>
@@ -80,6 +73,38 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
             (project.CompilationOptions, /*isHostAnalyzer, */analyzerConfigOptions));
         };
     }
+
+    public static async Task<ImmutableArray<DiagnosticData>> ForceCodeAnalysisDiagnosticsAsync(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, Project project, DiagnosticAnalyzerInfoCache infoCache, CancellationToken cancellationToken)
+    {
+        // We are being asked to explicitly analyze this project.  As such we do *not* want to use the
+        // default rules determining which analyzers to run.  For example, even if compiler diagnostics
+        // are set to 'none' for live diagnostics, we still want to run them here.
+        //
+        // As such, we are very intentionally not calling into _diagnosticAnalyzerService.GetDefaultAnalyzerFilter
+        // here.  We want to control the rules entirely when this is called.
+        var filter = GetDiagnosticAnalyzerFilter(project, infoCache);
+
+        // Compute all the diagnostics for all the documents in the project.
+        var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+            project, documentId: null, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+
+        // Then all the non-document diagnostics for that project as well.
+        var projectDiagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
+            project, diagnosticIds: null, filter, cancellationToken).ConfigureAwait(false);
+
+        return [.. documentDiagnostics, .. projectDiagnostics];
+    }
+}
+
+[ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
+    DiagnosticAnalyzerInfoCache.SharedGlobalCache infoCache) : IWorkspaceServiceFactory
+{
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new CodeAnalysisDiagnosticAnalyzerService(infoCache.AnalyzerInfoCache, workspaceServices.Workspace);
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
@@ -150,25 +175,12 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
 
             Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-            // We are being asked to explicitly analyze this project.  As such we do *not* want to use the
-            // default rules determining which analyzers to run.  For example, even if compiler diagnostics
-            // are set to 'none' for live diagnostics, we still want to run them here.
-            //
-            // As such, we are very intentionally not calling into _diagnosticAnalyzerService.GetDefaultAnalyzerFilter
-            // here.  We want to control the rules entirely when this is called.
-
-            // Compute all the diagnostics for all the documents in the project.
-            var filter = GetDiagnosticAnalyzerFilter(project, _infoCache);
-            var documentDiagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                project, documentId: null, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
-
-            // Then all the non-document diagnostics for that project as well.
-            var projectDiagnostics = await _diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
-                project, diagnosticIds: null, filter, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await CodeAnalysisDiagnosticAnalyzerServiceHelpers.ForceCodeAnalysisDiagnosticsAsync(
+                _diagnosticAnalyzerService, project, _infoCache, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.
-            _analyzedProjectToDiagnostics[project.Id] = [.. documentDiagnostics, .. projectDiagnostics];
+            _analyzedProjectToDiagnostics[project.Id] = diagnostics;
 
             // Remove from the cleared list now that we've run a more recent "run code analysis" on this project.
             _clearedProjectIds.Remove(project.Id);
