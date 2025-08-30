@@ -86,7 +86,6 @@ internal sealed class DiagnosticComputer
         Checksum solutionChecksum,
         TextSpan? span,
         ImmutableArray<string> analyzerIds,
-        //ImmutableArray<string> hostAnalyzerIds,
         AnalysisKind? analysisKind,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
         HostWorkspaceServices hostWorkspaceServices,
@@ -123,7 +122,6 @@ internal sealed class DiagnosticComputer
 
     private async Task<DiagnosticAnalysisResults> GetDiagnosticsAsync(
         ImmutableArray<string> analyzerIds,
-        // ImmutableArray<string> hostAnalyzerIds,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
