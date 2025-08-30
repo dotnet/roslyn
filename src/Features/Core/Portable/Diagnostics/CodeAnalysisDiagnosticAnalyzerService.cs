@@ -6,25 +6,113 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
+internal static class CodeAnalysisDiagnosticAnalyzerServiceHelpers
+{
+    private static Func<DiagnosticAnalyzer, bool> GetDiagnosticAnalyzerFilter(
+        Project project, DiagnosticAnalyzerInfoCache infoCache)
+    {
+        return analyzer =>
+        {
+            if (analyzer == FileContentLoadAnalyzer.Instance ||
+                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
+                analyzer.IsCompilerAnalyzer())
+            {
+                return true;
+            }
+
+            if (analyzer.IsBuiltInAnalyzer())
+            {
+                // always return true for builtin analyzer. we can't use
+                // descriptor check since many builtin analyzer always return 
+                // hidden descriptor regardless what descriptor it actually
+                // return on runtime. they do this so that they can control
+                // severity through option page rather than rule set editor.
+                // this is special behavior only ide analyzer can do. we hope
+                // once we support editorconfig fully, third party can use this
+                // ability as well and we can remove this kind special treatment on builtin
+                // analyzer.
+                return true;
+            }
+
+            if (analyzer is DiagnosticSuppressor)
+            {
+                // Always execute diagnostic suppressors.
+                return true;
+            }
+
+            if (project.CompilationOptions is null)
+            {
+                // Skip compilation options based checks for non-C#/VB projects.
+                return true;
+            }
+
+            // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
+            var descriptors = infoCache.GetDiagnosticDescriptors(analyzer);
+            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+            return descriptors.Any(static (d, arg) =>
+            {
+                var severity = d.GetEffectiveSeverity(
+                    arg.CompilationOptions,
+                    arg.analyzerConfigOptions?.ConfigOptionsWithFallback,
+                    arg.analyzerConfigOptions?.TreeOptions);
+                return severity != ReportDiagnostic.Hidden;
+            },
+            (project.CompilationOptions, analyzerConfigOptions));
+        };
+    }
+
+    public static async Task<ImmutableArray<DiagnosticData>> ForceCodeAnalysisDiagnosticsAsync(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, Project project, DiagnosticAnalyzerInfoCache infoCache, CancellationToken cancellationToken)
+    {
+        // We are being asked to explicitly analyze this project.  As such we do *not* want to use the
+        // default rules determining which analyzers to run.  For example, even if compiler diagnostics
+        // are set to 'none' for live diagnostics, we still want to run them here.
+        //
+        // As such, we are very intentionally not calling into _diagnosticAnalyzerService.GetDefaultAnalyzerFilter
+        // here.  We want to control the rules entirely when this is called.
+        var filter = GetDiagnosticAnalyzerFilter(project, infoCache);
+
+        // Compute all the diagnostics for all the documents in the project.
+        //
+        // Note: in this case we want diagnostics for source generated documents as well.  So ensure those are 
+        // generated and included in the results.
+        var sourceGeneratorDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+
+        var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+            project, [.. project.DocumentIds, .. project.AdditionalDocumentIds, .. sourceGeneratorDocuments.Select(d => d.Id)],
+            diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+
+        // Then all the non-document diagnostics for that project as well.
+        var projectDiagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
+            project, diagnosticIds: null, filter, cancellationToken).ConfigureAwait(false);
+
+        return [.. documentDiagnostics, .. projectDiagnostics];
+    }
+}
+
 [ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspaceServiceFactory
+internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory(
+    DiagnosticAnalyzerInfoCache.SharedGlobalCache infoCache) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new CodeAnalysisDiagnosticAnalyzerService(workspaceServices.Workspace);
+        => new CodeAnalysisDiagnosticAnalyzerService(infoCache.AnalyzerInfoCache, workspaceServices.Workspace);
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly DiagnosticAnalyzerInfoCache _infoCache;
         private readonly Workspace _workspace;
 
         /// <summary>
@@ -44,9 +132,11 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
         public CodeAnalysisDiagnosticAnalyzerService(
+            DiagnosticAnalyzerInfoCache infoCache,
             Workspace workspace)
         {
             _workspace = workspace;
+            _infoCache = infoCache;
             _diagnosticAnalyzerService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
             _ = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
@@ -88,8 +178,8 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-            // Execute force analysis for the project.
-            var diagnostics = await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await CodeAnalysisDiagnosticAnalyzerServiceHelpers.ForceCodeAnalysisDiagnosticsAsync(
+                _diagnosticAnalyzerService, project, _infoCache, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.

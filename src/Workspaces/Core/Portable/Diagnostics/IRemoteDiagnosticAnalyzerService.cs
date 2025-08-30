@@ -15,11 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal interface IRemoteDiagnosticAnalyzerService
 {
     /// <summary>
-    /// Force analyzes the given project by running all applicable analyzers on the project.
-    /// </summary>
-    ValueTask<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
-
-    /// <summary>
     /// Returns the analyzers that are candidates to be de-prioritized to
     /// <see cref="CodeActionRequestPriority.Low"/> priority for improvement in analyzer
     /// execution performance for priority buckets above 'Low' priority.

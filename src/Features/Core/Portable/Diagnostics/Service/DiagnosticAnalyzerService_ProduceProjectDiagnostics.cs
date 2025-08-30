@@ -70,24 +70,6 @@ internal sealed partial class DiagnosticAnalyzerService
         async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetOrComputeDiagnosticAnalysisResultsAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            // If there was a 'ForceAnalyzeProjectAsync' run for this project, we can piggy back off of the
-            // prior computed/cached results as they will be a superset of the results we want.
-            //
-            // Note: the caller will loop over *its* analyzers, grabbing from the full set of data we've cached for
-            // this project, and filtering down further.  So it's ok to return this potentially larger set.
-            //
-            // Note: While ForceAnalyzeProjectAsync should always run with a larger set of analyzers than us
-            // (since it runs all analyzers), we still run a paranoia check that the analyzers we care about are
-            // a subset of that call so that we don't accidentally reuse results that would not correspond to
-            // what we are computing ourselves.
-            if (s_projectToForceAnalysisData.TryGetValue(project.State, out var box) &&
-                analyzers.IsSubsetOf(box.Value.analyzers))
-            {
-                var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
-                if (box.Value.checksum == checksum)
-                    return box.Value.diagnosticAnalysisResults;
-            }
-
             // Otherwise, just compute for the analyzers we care about.
             var compilation = await GetOrCreateCompilationWithAnalyzersAsync(
                 project, analyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
