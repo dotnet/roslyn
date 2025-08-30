@@ -10,17 +10,45 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal interface IDiagnosticAnalyzerInfoCache : IWorkspaceService
+{
+    /// <summary>
+    /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>
+    /// that are compilation end descriptors.
+    /// </summary>
+    ImmutableArray<DiagnosticDescriptor> GetCompilationEndDiagnosticDescriptors(DiagnosticAnalyzer analyzer);
+
+    /// <summary>
+    /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
+    /// </summary>
+    ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer);
+
+    /// <summary>
+    /// Returns <see cref="DiagnosticSuppressor.SupportedSuppressions"/> of given <paramref name="suppressor"/>.
+    /// </summary>
+    ImmutableArray<SuppressionDescriptor> GetDiagnosticSuppressions(DiagnosticSuppressor suppressor);
+
+    /// <summary>
+    /// Determine whether collection of telemetry is allowed for given <paramref name="analyzer"/>.
+    /// </summary>
+    bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer);
+}
 
 /// <summary>
 /// Provides and caches information about diagnostic analyzers such as <see cref="AnalyzerReference"/>, 
 /// <see cref="DiagnosticAnalyzer"/> instance, <see cref="DiagnosticDescriptor"/>s.
 /// Thread-safe.
 /// </summary>
-internal sealed partial class DiagnosticAnalyzerInfoCache
+[ExportWorkspaceService(typeof(IDiagnosticAnalyzerInfoCache)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class DefaultDiagnosticAnalyzerInfoCache() : IDiagnosticAnalyzerInfoCache
 {
     /// <summary>
     /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 
@@ -32,7 +60,7 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
     /// The purpose of this map is to avoid multiple calls to <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> that might return different values
     /// (they should not but we need a guarantee to function correctly).
     /// </remarks>
-    private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
+    private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo = new();
 
     /// <summary>
     /// Supported suppressions of each <see cref="DiagnosticSuppressor"/>. 
@@ -44,13 +72,13 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
     /// The purpose of this map is to avoid multiple calls to <see cref="DiagnosticSuppressor.SupportedSuppressions"/> that might return different values
     /// (they should not but we need a guarantee to function correctly).
     /// </remarks>
-    private readonly ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo> _suppressionsInfo;
+    private readonly ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo> _suppressionsInfo = new();
 
     /// <summary>
     /// Lazily populated map from diagnostic IDs to diagnostic descriptor.
     /// If same diagnostic ID is reported by multiple descriptors, a null value is stored in the map for that ID.
     /// </summary>
-    private readonly ConcurrentDictionary<string, DiagnosticDescriptor?> _idToDescriptorsMap;
+    private readonly ConcurrentDictionary<string, DiagnosticDescriptor?> _idToDescriptorsMap = [];
 
     private sealed class DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
     {
@@ -64,34 +92,9 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
         public readonly ImmutableArray<SuppressionDescriptor> SupportedSuppressions = supportedSuppressions;
     }
 
-    [Export, Shared]
-    internal sealed class SharedGlobalCache
-    {
-        public readonly DiagnosticAnalyzerInfoCache AnalyzerInfoCache = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SharedGlobalCache()
-        {
-        }
-    }
-
-    internal DiagnosticAnalyzerInfoCache()
-    {
-        _descriptorsInfo = new();
-        _suppressionsInfo = new();
-        _idToDescriptorsMap = [];
-    }
-
-    /// <summary>
-    /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
-    /// </summary>
     public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         => GetOrCreateDescriptorsInfo(analyzer).SupportedDescriptors;
 
-    /// <summary>
-    /// Returns <see cref="DiagnosticSuppressor.SupportedSuppressions"/> of given <paramref name="suppressor"/>.
-    /// </summary>
     public ImmutableArray<SuppressionDescriptor> GetDiagnosticSuppressions(DiagnosticSuppressor suppressor)
         => GetOrCreateSuppressionsInfo(suppressor).SupportedSuppressions;
 
@@ -107,10 +110,6 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
             : descriptorInfo.SupportedDescriptors.WhereAsArray(d => !d.IsCompilationEnd());
     }
 
-    /// <summary>
-    /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>
-    /// that are compilation end descriptors.
-    /// </summary>
     public ImmutableArray<DiagnosticDescriptor> GetCompilationEndDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
     {
         var descriptorInfo = GetOrCreateDescriptorsInfo(analyzer);
@@ -126,9 +125,6 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
     public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
         => GetOrCreateDescriptorsInfo(analyzer).HasCompilationEndDescriptor;
 
-    /// <summary>
-    /// Determine whether collection of telemetry is allowed for given <paramref name="analyzer"/>.
-    /// </summary>
     public bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer)
         => GetOrCreateDescriptorsInfo(analyzer).TelemetryAllowed;
 

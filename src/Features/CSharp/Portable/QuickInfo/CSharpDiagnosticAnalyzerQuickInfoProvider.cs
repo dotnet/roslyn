@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache) : CommonQuickInfoProvider
+internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider() : CommonQuickInfoProvider
 {
-    private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = globalCache.AnalyzerInfoCache;
-
     protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
         QuickInfoContext context,
         SyntaxToken token)
@@ -47,7 +45,7 @@ internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyz
         return Task.FromResult<QuickInfoItem?>(null);
     }
 
-    private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
+    private static QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
     {
         var errorCodeNode = token.Parent switch
         {
@@ -86,7 +84,7 @@ internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyz
         return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeNode.Span);
     }
 
-    private async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
+    private static async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
         Document document,
         SyntaxToken token,
         CancellationToken cancellationToken)
@@ -128,11 +126,14 @@ internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyz
         return null;
     }
 
-    private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
-        string errorCode, TextSpan location)
+    private static QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(
+        Document document, string errorCode, TextSpan location)
     {
-        var hostAnalyzers = document.Project.Solution.SolutionState.Analyzers;
-        var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, document.Project).Values;
+        var project = document.Project;
+        var solution = document.Project.Solution;
+        var hostAnalyzers = solution.SolutionState.Analyzers;
+        var analyzerInfoCache = solution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>();
+        var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(analyzerInfoCache, project).Values;
         var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
         var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);
         if (diagnosticDescriptor != null)

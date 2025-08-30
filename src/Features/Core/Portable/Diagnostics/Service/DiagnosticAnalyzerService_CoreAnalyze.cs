@@ -34,7 +34,7 @@ internal sealed partial class DiagnosticAnalyzerService
         async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync()
         {
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
-                documentAnalysisScope, project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
+                documentAnalysisScope, project, cancellationToken).ConfigureAwait(false);
 
             if (logPerformanceInfo)
             {

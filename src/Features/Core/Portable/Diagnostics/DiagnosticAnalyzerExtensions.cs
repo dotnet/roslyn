@@ -42,7 +42,7 @@ internal static class DiagnosticAnalyzerExtensions
         }
     }
 
-    public static ImmutableArray<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
+    public static ImmutableArray<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, IDiagnosticAnalyzerInfoCache analyzerInfo)
         => analysisResult.SelectAsArray(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
 
     public static Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(

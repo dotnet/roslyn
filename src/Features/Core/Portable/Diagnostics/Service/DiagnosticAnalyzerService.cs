@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed class DiagnosticAnalyzerServiceFactory(
     IGlobalOptionService globalOptions,
     IDiagnosticsRefresher diagnosticsRefresher,
-    DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
     [Import(AllowDefault = true)] IAsynchronousOperationListenerProvider? listenerProvider) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -33,7 +32,7 @@ internal sealed class DiagnosticAnalyzerServiceFactory(
         return new DiagnosticAnalyzerService(
             globalOptions,
             diagnosticsRefresher,
-            globalCache,
+            workspaceServices.GetRequiredService<IDiagnosticAnalyzerInfoCache>(),
             listenerProvider,
             workspaceServices.Workspace);
     }
@@ -57,7 +56,7 @@ internal sealed partial class DiagnosticAnalyzerService
     private readonly IGlobalOptionService _globalOptions;
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
-    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+    private readonly IDiagnosticAnalyzerInfoCache _analyzerInfoCache;
     private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
     private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
@@ -76,11 +75,11 @@ internal sealed partial class DiagnosticAnalyzerService
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
         IDiagnosticsRefresher diagnosticsRefresher,
-        DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
+        IDiagnosticAnalyzerInfoCache analyzerInfoCache,
         IAsynchronousOperationListenerProvider? listenerProvider,
         Workspace workspace)
     {
-        _analyzerInfoCache = globalCache.AnalyzerInfoCache;
+        _analyzerInfoCache = analyzerInfoCache;
         _listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         _globalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;

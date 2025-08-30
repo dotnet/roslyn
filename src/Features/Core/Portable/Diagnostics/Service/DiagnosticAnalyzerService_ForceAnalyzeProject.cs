@@ -79,8 +79,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
             var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
                 static (analyzer, arg) => IsCandidateForFullSolutionAnalysis(
-                    arg.self._analyzerInfoCache, analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
-                (self: this, project, hostAnalyzerInfo));
+                    analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
+                (project, hostAnalyzerInfo));
 
             var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
                 project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
@@ -91,7 +91,7 @@ internal sealed partial class DiagnosticAnalyzerService
         }
 
         static bool IsCandidateForFullSolutionAnalysis(
-            DiagnosticAnalyzerInfoCache infoCache, DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
+            DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
         {
             // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance ||
@@ -128,6 +128,7 @@ internal sealed partial class DiagnosticAnalyzerService
             }
 
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
+            var infoCache = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerInfoCache>();
             var descriptors = infoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 

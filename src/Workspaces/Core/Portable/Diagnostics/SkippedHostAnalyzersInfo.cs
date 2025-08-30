@@ -48,7 +48,7 @@ internal readonly struct SkippedHostAnalyzersInfo
         HostDiagnosticAnalyzers hostAnalyzers,
         IReadOnlyList<AnalyzerReference> projectAnalyzerReferences,
         string language,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache)
+        IDiagnosticAnalyzerInfoCache analyzerInfoCache)
     {
         using var _1 = PooledHashSet<object>.GetInstance(out var projectAnalyzerIds);
         using var _2 = PooledHashSet<string>.GetInstance(out var projectAnalyzerDiagnosticIds);
@@ -120,7 +120,7 @@ internal readonly struct SkippedHostAnalyzersInfo
             DiagnosticAnalyzer hostAnalyzer,
             HashSet<string> projectAnalyzerDiagnosticIds,
             HashSet<string> projectSuppressedDiagnosticIds,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            IDiagnosticAnalyzerInfoCache analyzerInfoCache,
             out ImmutableArray<string> skippedDiagnosticIdsForAnalyzer)
         {
             // Include only those host (VSIX) analyzers that report at least one unique diagnostic ID
