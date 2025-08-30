@@ -67,13 +67,14 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             {
                 return s_projectToDiagnostics.GetValue(
                     Document.Project,
-                    _ => AsyncLazy.Create(
+                    project => AsyncLazy.Create(
                         async cancellationToken =>
                         {
                             var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                            var filter = service.GetDefaultAnalyzerFilter(
+                                project, diagnosticIds: null, shouldIncludeAnalyzer);
                             var allDiagnostics = await service.GetDiagnosticsForIdsAsync(
-                                Document.Project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer,
-                                includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                                project, documentIds: default, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                             // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
                             // code has always worked, but it isn't clear if that is correct.

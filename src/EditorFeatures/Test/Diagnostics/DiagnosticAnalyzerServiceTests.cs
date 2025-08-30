@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
@@ -65,7 +66,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
-            workspace.CurrentSolution.Projects.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
+            workspace.CurrentSolution.Projects.Single(), documentIds: default, diagnosticIds: null, shouldIncludeAnalyzer: null,
             includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }

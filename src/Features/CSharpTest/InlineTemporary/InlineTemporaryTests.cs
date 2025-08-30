@@ -5235,4 +5235,37 @@ System.Diagnostics.Debug.Assert(x == true); }
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80081")]
+    public Task InlineCollectionIntoCast()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Command: List<int>;
+
+            var commands = new[] {1,2,3,4,5,6,7,8 }
+                .Chunk(3)
+                .Select(chunk => {
+                    Command [||]command = [..chunk];
+                    return command;
+                 })
+                 .ToList();
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            
+            class Command: List<int>;
+            
+            var commands = new[] {1,2,3,4,5,6,7,8 }
+                .Chunk(3)
+                .Select(chunk => {
+                    return (Command)([..chunk]);
+                 })
+                 .ToList();
+            """, new(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)));
 }

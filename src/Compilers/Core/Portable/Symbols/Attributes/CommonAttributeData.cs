@@ -398,7 +398,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static void DecodeMethodImplAttribute<T, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
             ref DecodeWellKnownAttributeArguments<TAttributeSyntaxNode, TAttributeData, TAttributeLocation> arguments,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            ITypeSymbolInternal appliedToSymbol)
             where T : CommonMethodWellKnownAttributeData, new()
             where TAttributeSyntaxNode : SyntaxNode
             where TAttributeData : AttributeData
@@ -424,6 +425,20 @@ namespace Microsoft.CodeAnalysis
                 {
                     messageProvider.ReportInvalidAttributeArgument(arguments.Diagnostics, arguments.AttributeSyntaxOpt, 0, attribute);
                     options = options & ~(MethodImplOptions)3;
+                }
+
+                // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
+                const MethodImplOptions MethodImplOptionsAsync = (MethodImplOptions)0x2000;
+                if ((options & MethodImplOptionsAsync) != 0)
+                {
+                    // Error if [MethodImpl(MethodImplOptions.Async)] is used directly on a method
+                    // We give an exception to the AsyncHelpers special type, as it manually implements the pattern as part of the
+                    // runtime's async support
+                    if ((InternalSpecialType)appliedToSymbol.ExtendedSpecialType != InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)
+                    {
+                        arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MethodImplAttributeAsyncCannotBeUsed, arguments.AttributeSyntaxOpt.Location));
+                        options &= ~MethodImplOptionsAsync;
+                    }
                 }
             }
             else

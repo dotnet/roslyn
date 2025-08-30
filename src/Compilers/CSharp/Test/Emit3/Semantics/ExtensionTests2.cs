@@ -30616,7 +30616,7 @@ public class C { }
     public void PropagateAttributes_13(bool useCompilationReference)
     {
         // unmanaged constraint on extension type parameter
-        var libSrc = $$"""
+        var libSrc = """
 public static class E
 {
     extension<T>(int i) where T : unmanaged
@@ -30659,10 +30659,10 @@ public static class E
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static 
+            .method public hidebysig specialname static
                 void '<Extension>$' (
                     int32 i
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -30674,8 +30674,8 @@ public static class E
             } // end of method '<M>$A888E0AEEFB4AB1872CCB8E7D5472CC8'::'<Extension>$'
         } // end of class <M>$A888E0AEEFB4AB1872CCB8E7D5472CC8
         // Methods
-        .method public hidebysig 
-            instance void M () cil managed 
+        .method public hidebysig
+            instance void M () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 41 38 38 38 45 30 41 45 45
@@ -30690,10 +30690,10 @@ public static class E
         } // end of method '<G>$8A1E908054B5C3DCE56554F1F294FA98'::M
     } // end of class <G>$8A1E908054B5C3DCE56554F1F294FA98
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         void M<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T> (
             int32 i
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -30871,6 +30871,289 @@ public class AAttribute : System.Attribute { }
             Assert.False(implementation.IsExtensionMethod);
             Assert.Equal("AAttribute", implementation.GetAttributes().Single().ToString());
         }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_18(bool useCompilationReference)
+    {
+        // return attribute on property
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        public int P
+        {
+            [return: A]
+            get => 0;
+        }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        CompileAndVerify(libComp).VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206d
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
+        // Methods
+        .method public hidebysig specialname
+            instance int32 get_P () cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            .param [0]
+                .custom instance void AAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Method begins at RVA 0x206a
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        // Properties
+        .property instance int32 P()
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            .get instance int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+        }
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static
+        int32 get_P (
+            int32 i
+        ) cil managed
+    {
+        .param [0]
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x2067
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    } // end of method E::get_P
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionProperty = extension.GetMember<PropertySymbol>("P");
+            Assert.Empty(extensionProperty.GetAttributes());
+            var extensionGetter = extensionProperty.GetMethod;
+            Assert.Equal("AAttribute", extensionGetter.GetReturnTypeAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_P");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetReturnTypeAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_19(bool useCompilationReference)
+    {
+        // return attribute on method
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        [return: A]
+        public void M() { }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionMethod = extension.GetMember<MethodSymbol>("M");
+            Assert.Equal("AAttribute", extensionMethod.GetReturnTypeAttributes().Single().ToString());
+
+            var implementation = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M");
+            Assert.True(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetReturnTypeAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_20(bool withPreserve)
+    {
+        // attributes on local function in extension
+        var src = $$"""
+public static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            local(0);
+
+            [return: A]
+            [B]
+            void local([C] int i2) { }
+        }
+    }
+}
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class AAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class BAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class CAttribute : System.Attribute { }
+""";
+
+        var verifier = CompileAndVerify([src, CompilerLoweringPreserveAttributeDefinition]).VerifyDiagnostics();
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$531E7AC45D443AE2243E7FFAB9455D60'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i1
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$531E7AC45D443AE2243E7FFAB9455D60'::'<Extension>$'
+        } // end of class <M>$531E7AC45D443AE2243E7FFAB9455D60
+        // Methods
+        .method public hidebysig 
+            instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 35 33 31 45 37 41 43 34 35
+                44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
+                39 34 35 35 44 36 30 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void M (
+            int32 i1
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: call void E::'<M>g__local|1_0'(int32)
+        IL_0006: ret
+    } // end of method E::M
+    .method assembly hidebysig static 
+        void '<M>g__local|1_0' (
+            int32 i2
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void BAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [0]
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .param [1]
+            .custom instance void CAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::'<M>g__local|1_0'
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 }
 

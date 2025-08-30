@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
@@ -45,7 +44,7 @@ internal sealed partial class CodeFixService
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetDiagnosticsForIdsAsync(
-                document.Project, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
+                document.Project, [document.Id], _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
@@ -68,7 +67,7 @@ internal sealed partial class CodeFixService
             // Get all diagnostics for the entire project, including document diagnostics.
             var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetDiagnosticsForIdsAsync(
-                project, documentId: null, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
+                project, documentIds: default, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
             return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }
 

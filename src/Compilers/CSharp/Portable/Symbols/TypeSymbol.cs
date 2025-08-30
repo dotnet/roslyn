@@ -2520,6 +2520,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         SpecialType ITypeSymbolInternal.SpecialType => this.SpecialType;
 
+        ExtendedSpecialType ITypeSymbolInternal.ExtendedSpecialType => this.ExtendedSpecialType;
+
         bool ITypeSymbolInternal.IsReferenceType => this.IsReferenceType;
 
         bool ITypeSymbolInternal.IsValueType => this.IsValueType;

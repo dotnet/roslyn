@@ -33867,6 +33867,12 @@ public static class E1
         var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
         CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
 
+        source = """
+E1.M(42, 43);
+""";
+        var comp3 = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp3, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
+
         static void verify(ModuleSymbol m)
         {
             var implementations = m.ContainingAssembly.GetTypeByMetadataName("E1").GetMembers().OfType<MethodSymbol>().ToArray();
@@ -44242,12 +44248,15 @@ static class E
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, @"[System.Runtime.CompilerServices.CallerMemberName] string name = """"").WithLocation(5, 15));
     }
 
-    [Fact]
-    public void ConditionalAttribute_01()
+    [Theory, CombinatorialData]
+    public void ConditionalAttribute_01(bool withDebug)
     {
-        var src = """
+        var src = $$"""
+{{(withDebug ? "#define DEBUG" : "")}}
+
 42.M();
 42.M2();
+E.M(42);
 
 static class E
 {
@@ -44258,34 +44267,12 @@ static class E
     }
 
     [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
+    public static void M2(this int i) { System.Console.Write("ran "); }
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "");
-
-        src = """
-#define DEBUG
-
-42.M();
-42.M2();
-
-static class E
-{
-    extension(int i)
-    {
-        [System.Diagnostics.Conditional("DEBUG")]
-        public void M() { System.Console.Write("ran "); }
-    }
-
-    [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
-}
-""";
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: withDebug ? "ran ran ran" : "");
     }
 
     [Fact]
