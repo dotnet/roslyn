@@ -120,6 +120,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 throw new Exception($"BuildHost process exited immediately with {process.ExitCode}");
             }
 
+            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_globalMSBuildProperties, _binaryLogPathProvider.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
+
             if (buildHostKind != BuildHostProcessKind.NetCore
                 || projectOrSolutionFilePath is null
                 || dotnetPath is not null)
@@ -236,7 +238,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, netCoreBuildHostPath);
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -254,7 +256,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = netFrameworkBuildHost,
         };
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -268,7 +270,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, GetDotNetFrameworkBuildHostPath());
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -305,22 +307,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return buildHostPath;
     }
 
-    private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
+    private static void AppendBuildHostCommandLineArgumentsAndConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
     {
         AddArgument(processStartInfo, "--pipe");
         AddArgument(processStartInfo, pipeName);
-
-        foreach (var globalMSBuildProperty in _globalMSBuildProperties)
-        {
-            AddArgument(processStartInfo, "--property");
-            AddArgument(processStartInfo, globalMSBuildProperty.Key + '=' + globalMSBuildProperty.Value);
-        }
-
-        if (_binaryLogPathProvider?.GetNewLogPath() is string binaryLogPath)
-        {
-            AddArgument(processStartInfo, "--binlog");
-            AddArgument(processStartInfo, binaryLogPath);
-        }
 
         AddArgument(processStartInfo, "--locale");
         AddArgument(processStartInfo, System.Globalization.CultureInfo.CurrentUICulture.Name);
