@@ -238,7 +238,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, netCoreBuildHostPath);
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -256,7 +256,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = netFrameworkBuildHost,
         };
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -270,7 +270,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, GetDotNetFrameworkBuildHostPath());
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -307,7 +307,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return buildHostPath;
     }
 
-    private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
+    private static void AppendBuildHostCommandLineArgumentsAndConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
     {
         AddArgument(processStartInfo, "--pipe");
         AddArgument(processStartInfo, pipeName);
