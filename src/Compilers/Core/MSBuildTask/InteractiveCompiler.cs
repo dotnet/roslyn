@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class InteractiveCompiler : ManagedToolTask
     {
-        internal readonly PropertyDictionary _store = new PropertyDictionary();
-
         public InteractiveCompiler()
             : base(ErrorString.ResourceManager)
         {
@@ -184,14 +182,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
+        protected sealed override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, object? logger)
         {
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
             }
 
-            return (SkipInteractiveExecution) ? 0 : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            return (SkipInteractiveExecution) ? 0 : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
 
         #endregion

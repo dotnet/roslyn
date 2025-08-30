@@ -26,7 +26,7 @@ internal static class TaskTestUtil
         Assert.Equal(expected, task.GenerateCommandLineArgsTaskItems(rsp).Select(x => x.ItemSpec));
 
 #if NET
-        Assert.Equal($"exec \"{task.PathToBuiltInTool}\"", task.GenerateCommandLineContents().Trim());
+        Assert.Empty(task.GenerateCommandLineContents().Trim());
 
         // Can only run the Execute path on .NET Core presently. The internal workings of ToolTask 
         // will fail if it can't find the tool exe and we don't have csc.exe, vbc.exe, etc ... 
@@ -40,7 +40,7 @@ internal static class TaskTestUtil
 
             var message = engine.BuildMessages.OfType<TaskCommandLineEventArgs>().Single();
             var commandLine = message.CommandLine.Replace("  ", " ").Trim();
-            Assert.Equal($@"{RuntimeHostInfo.GetDotNetPathOrDefault()} exec ""{task.PathToBuiltInTool}"" {line}", commandLine);
+            AssertEx.Equal($@"{task.PathToBuiltInTool} {line}", commandLine);
 
             compilerTask.NoConfig = true;
             Assert.Equal("/noconfig", compilerTask.GenerateToolArguments());

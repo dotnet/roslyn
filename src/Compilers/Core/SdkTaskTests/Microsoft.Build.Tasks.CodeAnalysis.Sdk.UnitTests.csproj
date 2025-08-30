@@ -58,5 +58,6 @@
     <ItemGroup>
       <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
+    <RemoveDir Directories="$(OutDir)..\bincore" Condition="'$(DesignTimeBuild)' != 'true' and '$(BuildingProject)' == 'true'" />
   </Target>
 </Project>
