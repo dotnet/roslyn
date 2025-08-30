@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -157,15 +156,6 @@ namespace Analyzer.Utilities.Extensions
                      messageArgs: args);
         }
 
-        /// <summary>
-        /// TODO: Revert this reflection based workaround once we move to Microsoft.CodeAnalysis version 3.0
-        /// </summary>
-        private static readonly PropertyInfo? s_syntaxTreeDiagnosticOptionsProperty =
-            typeof(SyntaxTree).GetTypeInfo().GetDeclaredProperty("DiagnosticOptions");
-
-        private static readonly PropertyInfo? s_compilationOptionsSyntaxTreeOptionsProviderProperty =
-            typeof(CompilationOptions).GetTypeInfo().GetDeclaredProperty("SyntaxTreeOptionsProvider");
-
         public static void ReportNoLocationDiagnostic(
             this CompilationAnalysisContext context,
             DiagnosticDescriptor rule,
@@ -203,53 +193,12 @@ namespace Analyzer.Utilities.Extensions
                 // Microsoft.CodeAnalysis version >= 3.7 exposes options through 'CompilationOptions.SyntaxTreeOptionsProvider.TryGetDiagnosticValue'
                 // Microsoft.CodeAnalysis version 3.3 - 3.7 exposes options through 'SyntaxTree.DiagnosticOptions'. This API is deprecated in 3.7.
 
-                var syntaxTreeOptionsProvider = s_compilationOptionsSyntaxTreeOptionsProviderProperty?.GetValue(compilation.Options);
-                var syntaxTreeOptionsProviderTryGetDiagnosticValueMethod = syntaxTreeOptionsProvider?.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetDiagnosticValue");
-                if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod == null && s_syntaxTreeDiagnosticOptionsProperty == null)
-                {
-                    return rule.DefaultSeverity;
-                }
+                var syntaxTreeOptionsProvider = compilation.Options.SyntaxTreeOptionsProvider;
 
                 ReportDiagnostic? overriddenSeverity = null;
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    ReportDiagnostic? configuredValue = null;
-
-                    // Prefer 'CompilationOptions.SyntaxTreeOptionsProvider', if available.
-                    if (s_compilationOptionsSyntaxTreeOptionsProviderProperty != null)
-                    {
-                        if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod != null)
-                        {
-                            // public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, out ReportDiagnostic severity);
-                            // public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
-                            object?[] parameters;
-                            if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.GetParameters().Length == 3)
-                            {
-                                parameters = [tree, rule.Id, null];
-                            }
-                            else
-                            {
-                                parameters = [tree, rule.Id, CancellationToken.None, null];
-                            }
-
-                            if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.Invoke(syntaxTreeOptionsProvider, parameters) is true &&
-                                parameters.Last() is ReportDiagnostic value)
-                            {
-                                configuredValue = value;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        RoslynDebug.Assert(s_syntaxTreeDiagnosticOptionsProperty != null);
-                        var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree)!;
-                        if (options.TryGetValue(rule.Id, out var value))
-                        {
-                            configuredValue = value;
-                        }
-                    }
-
-                    if (configuredValue == null)
+                    if (syntaxTreeOptionsProvider?.TryGetDiagnosticValue(tree, rule.Id, CancellationToken.None, out var configuredValue) != true)
                     {
                         continue;
                     }
@@ -264,7 +213,7 @@ namespace Analyzer.Utilities.Extensions
                     {
                         overriddenSeverity = configuredValue;
                     }
-                    else if (overriddenSeverity.Value.IsLessSevereThan(configuredValue.Value))
+                    else if (overriddenSeverity.Value.IsLessSevereThan(configuredValue))
                     {
                         // Choose the most severe value for conflicts.
                         overriddenSeverity = configuredValue;
