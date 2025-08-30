@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return wrapper;
         }
 
+        /// <remarks>Any new usage of this method will need a similar update in <see cref="RuntimeAsyncRewriter"/></remarks>
         private bool TryReplaceWithProxy(Symbol parameterOrLocal, SyntaxNode syntax, [NotNullWhen(true)] out BoundNode? replacement)
         {
             if (proxies.TryGetValue(parameterOrLocal, out CapturedSymbolReplacement? proxy))
