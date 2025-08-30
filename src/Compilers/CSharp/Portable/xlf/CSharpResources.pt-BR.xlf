@@ -1252,11 +1252,6 @@
         <target state="translated">Não é possível interceptar: a compilação não contém um arquivo com caminho '{0}'. Você quis usar o caminho '{1}'?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">Não é possível interceptar: O caminho '{0}' não está mapeado. Caminho mapeado esperado '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">O número de linha e caracteres fornecido não se refere a um nome de método interceptável, mas sim ao token '{0}'.</target>
@@ -3055,16 +3050,6 @@
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">O argumento deve ser passado com a palavra-chave 'ref' ou 'in'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">O tipo '{0}' não pode ser usado neste contexto porque ele não pode ser representado em metadados.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">O tipo não pode ser usado neste contexto porque ele não pode ser representado em metadados.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -6469,11 +6454,6 @@
         <target state="translated">Uma expressão de switch ou um rótulo case deve ser um bool, char, cadeia, integral ou um tipo que permite valor nulo correspondente em C# 6 e anterior.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">Um valor de tipo integral é esperado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
         <source>The switch statement contains multiple cases with the label value '{0}'</source>
         <target state="translated">A instrução switch contém vários casos com o valor de rótulo "{0}"</target>
@@ -9342,11 +9322,6 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <target state="translated">'{0}' não tem um método 'Main' estático adequado</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">Não é possível usar "{0}" para o método Main porque ele é importado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
         <source>Outputs without source must have the /out option specified</source>
         <target state="translated">Saídas sem origem devem ter a opção /out especificada</target>
@@ -10077,21 +10052,6 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <target state="translated">Este aviso ocorre quando você tentar chamar um método, propriedade ou indexador em um membro de uma classe que é derivada de MarshalByRefObject, e o membro é um tipo de valor. Objetos herdados de MarshalByRefObject geralmente são destinados a ser empacotado por referência em um domínio de aplicativo. Se um código tentar acessar o membro de tipo de valor de tal objeto diretamente em um domínio de aplicativo, ocorrerá uma exceção de tempo de execução. Para resolver o aviso, primeiro copie o membro em uma variável local e chame o método nessa variável.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">"{0}" não é um número de aviso válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">Este não um número de aviso válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">Um número que foi passado para a diretiva de pré-processador de aviso #pragma não era um número de aviso válido. Verifique se o número representa um aviso, não um erro.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">Número inválido</target>
@@ -10100,16 +10060,6 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">Número inválido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">Nome de arquivo inválido especificado para a diretiva de pré-processamento. O nome de arquivo é muito longo ou não é um nome válido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">Nome de arquivo inválido especificado para diretiva de pré-processamento</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10550,11 +10500,6 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">Uma árvore de expressão da expressão lambda não pode conter um método com argumentos variáveis</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">Uma árvore de expressão da expressão lambda não pode conter um grupo de métodos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -12623,11 +12568,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">Delimitador de fechamento ausente '}' para expressão interpolada iniciada com '{'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">Um comentário de uma linha não pode ser usado em uma cadeia de caracteres interpolada.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">

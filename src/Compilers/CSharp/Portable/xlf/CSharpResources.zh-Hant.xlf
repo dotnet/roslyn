@@ -1252,11 +1252,6 @@
         <target state="translated">無法攔截: 編譯未包含路徑為 '{0}' 的檔案。是否要使用 '{1}'?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">無法攔截:路徑 '{0}' 未對應。預期的對應路徑 '{1}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">提供的行數和字元數並未參照可攔截的方法名稱，而是指權杖 '{0}'。</target>
@@ -3055,16 +3050,6 @@
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">引數應該以 'ref' 或 'in' 的關鍵字傳遞</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">無法在此內容中使用類型 '{0}'，因為它無法在中繼資料中表示。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">無法在此內容中使用類型，因為它無法在中繼資料中表示。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -6469,11 +6454,6 @@ strument:TestCoverage      產生檢測要收集
         <target state="translated">Switch 運算式或 case 標籤必須是 bool、char、string、integral、enum 或 C# 6 及舊版中對應的可為 Null 類型。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">必須是整數類型的值</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
         <source>The switch statement contains multiple cases with the label value '{0}'</source>
         <target state="translated">switch 陳述式包含多個標籤值為 '{0}' 的情況</target>
@@ -9342,11 +9322,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">'{0}' 沒有適合的靜態 Main 方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">無法為 Main 方法使用 '{0}'，因為其為匯入物件</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
         <source>Outputs without source must have the /out option specified</source>
         <target state="translated">沒有來源的輸出必須有指定的 /out 選項</target>
@@ -10077,21 +10052,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">如果嘗試在類別衍生自 MarshalByRefObject 的成員上呼叫方法、屬性或索引子，而且成員是實值類型，則會發生此警告。繼承自 MarshalByRefObject 的物件通常是要透過參考跨應用程式定義域進行封送處理。如果任何程式碼曾經嘗試跨應用程式定義域直接存取這類物件的 value-type 成員，則會發生執行階段例外狀況。若要解決此警告，請先將成員複製至區域變數，並對該變數呼叫此方法。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'{0}' 不是有效的警告編號</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">不是有效的警告號碼</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">傳遞給 #pragma 警告前置處理器指示詞的號碼不是有效的警告號碼。請驗證號碼代表警告，而不是錯誤。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">數字無效</target>
@@ -10100,16 +10060,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">數字無效</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">對前置處理器指示詞指定了無效的檔名。檔名太長或者不是有效的檔名。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">針對前置處理器指示詞所指定的檔名無效</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10550,11 +10500,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">運算式樹狀架構 Lambda 不可包含具有變數引數的方法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">運算式樹狀架構 Lambda 不可包含方法群組</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -12623,11 +12568,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">以 '{' 開頭的插入運算式遺漏結束分隔符號 '}' </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">差補字串中不能使用單行註解。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">

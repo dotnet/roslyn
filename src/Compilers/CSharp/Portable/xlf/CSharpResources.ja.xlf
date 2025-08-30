@@ -1252,11 +1252,6 @@
         <target state="translated">インターセプトできません。コンパイルにパス '{0}' のファイルが含まれていません。パス '{1}' を使うつもりでしたか?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">インターセプトできません。パス '{0}' がマップされていません。マップされたパス '{1}' が必要です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">指定された行番号と文字番号は、インターセプト可能なメソッド名ではなく、トークン '{0}' を参照しています。</target>
@@ -3055,16 +3050,6 @@
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">引数は 'ref' キーワードまたは 'in' キーワードと共に渡す必要があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">型 '{0}' は、メタデータで表現できないため、このコンテキストでは使用できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">型は、メタデータで表現できないため、このコンテキストで使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -6469,11 +6454,6 @@
         <target state="translated">C# 6 以前のものにおいて、switch 式または case ラベルには、bool、char、string、integral、enum、または対応する null 許容型を使用する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">整数型の値が必要です</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
         <source>The switch statement contains multiple cases with the label value '{0}'</source>
         <target state="translated">switch ステートメントに、ラベル値が '{0}' の case が複数含まれています</target>
@@ -9342,11 +9322,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <target state="translated">'{0}' は適切な静的 Main メソッドを含んでいません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">'{0}' はインポートされているため、Main メソッドに対して使うことはできません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
         <source>Outputs without source must have the /out option specified</source>
         <target state="translated">ソースのない出力には、/out オプションを指定しなければなりません</target>
@@ -10077,21 +10052,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <target state="translated">この警告は、MarshalByRefObject から派生したクラスのメンバーにあるメソッド、プロパティ、またはインデクサーを呼び出し、かつメンバーが値の型である場合に発生します。MarshalByRefObject から継承するオブジェクトは、通常はアプリケーション ドメイン間の参照渡しによってマーシャリングされることになっています。コードがこのようなアプリケーション ドメイン間のオブジェクトの値の型のメンバーに直接アクセスすると、ランタイム例外が発生します。警告を解決するには、まずメンバーをローカル変数にコピーしてから、その変数でメソッドを呼び出します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'{0}' は有効な警告番号ではありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">無効な警告番号です</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">#pragma 警告のプリプロセッサ ディレクティブに渡された番号は無効な警告番号です。番号がエラー番号ではなく警告番号を表していることを確認してください。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">無効な数字です</target>
@@ -10100,16 +10060,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">無効な数字です</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">プリプロセッサ ディレクティブに対して無効なファイル名が指定されました。ファイル名は長すぎるか、または有効なファイル名ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">プリプロセッサ ディレクティブに対して無効なファイル名が指定されました</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10550,11 +10500,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">式ツリーのラムダは、可変引数があるメソッドを含むことはできません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">式ツリーのラムダには、メソッド グループを含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -12623,11 +12568,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">{' で始まる挿入式の終了区切り文字 '}' がありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">補間された文字列の中で単一行コメントを使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">
