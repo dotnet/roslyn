@@ -288,7 +288,7 @@ internal sealed partial class DiagnosticComputer
     private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
     {
         var cacheEntry = await GetOrCreateCacheEntryAsync().ConfigureAwait(false);
-        return (cacheEntry.CompilationWithAnalyzers, cacheEntry.AnalyzerToIdMap);//, cacheEntry.HostAnalyzerToIdMap);
+        return (cacheEntry.CompilationWithAnalyzers, cacheEntry.AnalyzerToIdMap);
 
         async Task<CompilationWithAnalyzersCacheEntry> GetOrCreateCacheEntryAsync()
         {
@@ -370,7 +370,7 @@ internal sealed partial class DiagnosticComputer
             : null;
         var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
-        return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);//, hostAnalyzerToIdMap);
+        return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);
 
         static bool ShouldRedirectAnalyzers(Project project, AnalyzerReference reference)
         {
