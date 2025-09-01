@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -50,6 +51,9 @@ internal static class AnalyzerOptionsUtilities
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
                 // Lookup in project options first.  Editor config should override the values from the host.
                 => projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
+
+            public override IEnumerable<string> Keys
+                => projectOptions.Keys.Concat(hostOptions.Keys).Distinct();
         }
     }
 }
