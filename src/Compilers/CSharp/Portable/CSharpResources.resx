@@ -783,9 +783,6 @@
   <data name="ERR_V6SwitchGoverningTypeValueExpected" xml:space="preserve">
     <value>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.</value>
   </data>
-  <data name="ERR_IntegralTypeValueExpected" xml:space="preserve">
-    <value>A value of an integral type expected</value>
-  </data>
   <data name="ERR_DuplicateCaseLabel" xml:space="preserve">
     <value>The switch statement contains multiple cases with the label value '{0}'</value>
   </data>
@@ -1328,12 +1325,6 @@
   </data>
   <data name="ERR_AttrTypeArgCannotBeTypeVar" xml:space="preserve">
     <value>'{0}': an attribute type argument cannot use type parameters</value>
-  </data>
-  <data name="WRN_AttrDependentTypeNotAllowed" xml:space="preserve">
-    <value>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</value>
-  </data>
-  <data name="WRN_AttrDependentTypeNotAllowed_Title" xml:space="preserve">
-    <value>Type cannot be used in this context because it cannot be represented in metadata.</value>
   </data>
   <data name="ERR_AttrDependentTypeNotAllowed" xml:space="preserve">
     <value>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</value>
@@ -2677,9 +2668,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_NoMainInClass" xml:space="preserve">
     <value>'{0}' does not have a suitable static 'Main' method</value>
   </data>
-  <data name="ERR_MainClassIsImport" xml:space="preserve">
-    <value>Cannot use '{0}' for Main method because it is imported</value>
-  </data>
   <data name="ERR_OutputNeedsName" xml:space="preserve">
     <value>Outputs without source must have the /out option specified</value>
   </data>
@@ -3193,26 +3181,11 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="WRN_CallOnNonAgileField_Description" xml:space="preserve">
     <value>This warning occurs when you try to call a method, property, or indexer on a member of a class that derives from MarshalByRefObject, and the member is a value type. Objects that inherit from MarshalByRefObject are typically intended to be marshaled by reference across an application domain. If any code ever attempts to directly access the value-type member of such an object across an application domain, a runtime exception will occur. To resolve the warning, first copy the member into a local variable and call the method on that variable.</value>
   </data>
-  <data name="WRN_BadWarningNumber" xml:space="preserve">
-    <value>'{0}' is not a valid warning number</value>
-  </data>
-  <data name="WRN_BadWarningNumber_Title" xml:space="preserve">
-    <value>Not a valid warning number</value>
-  </data>
-  <data name="WRN_BadWarningNumber_Description" xml:space="preserve">
-    <value>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</value>
-  </data>
   <data name="WRN_InvalidNumber" xml:space="preserve">
     <value>Invalid number</value>
   </data>
   <data name="WRN_InvalidNumber_Title" xml:space="preserve">
     <value>Invalid number</value>
-  </data>
-  <data name="WRN_FileNameTooLong" xml:space="preserve">
-    <value>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</value>
-  </data>
-  <data name="WRN_FileNameTooLong_Title" xml:space="preserve">
-    <value>Invalid filename specified for preprocessor directive</value>
   </data>
   <data name="WRN_IllegalPPChecksum" xml:space="preserve">
     <value>Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."</value>
@@ -3480,9 +3453,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_VarArgsInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a method with variable arguments</value>
-  </data>
-  <data name="ERR_MemGroupInExpressionTree" xml:space="preserve">
-    <value>An expression tree lambda may not contain a method group</value>
   </data>
   <data name="ERR_InitializerAddHasParamModifiers" xml:space="preserve">
     <value>The best overloaded method match '{0}' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.</value>
@@ -4825,6 +4795,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               each error
 -preferreduilang              Specify the preferred output language name.
 -nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -4943,9 +4914,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_UnclosedExpressionHole" xml:space="preserve">
     <value>Missing close delimiter '}' for interpolated expression started with '{'.</value>
-  </data>
-  <data name="ERR_SingleLineCommentInExpressionHole" xml:space="preserve">
-    <value>A single-line comment may not be used in an interpolated string.</value>
   </data>
   <data name="ERR_InsufficientStack" xml:space="preserve">
     <value>An expression is too long or complex to compile</value>
@@ -7665,9 +7633,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorPathNotInCompilationWithCandidate" xml:space="preserve">
     <value>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</value>
   </data>
-  <data name="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate" xml:space="preserve">
-    <value>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</value>
-  </data>
   <data name="ERR_InterceptorLineOutOfRange" xml:space="preserve">
     <value>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</value>
   </data>
@@ -8221,7 +8186,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MemberNameSameAsExtendedType" xml:space="preserve">
     <value>'{0}': extension member names cannot be the same as their extended type</value>
   </data>
+  <data name="ERR_UnsupportedFeatureInRuntimeAsync" xml:space="preserve">
+    <value>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</value>
+  </data>
   <data name="ERR_ExtensionBlockCollision" xml:space="preserve">
     <value>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</value>
+  </data>
+  <data name="ERR_MethodImplAttributeAsyncCannotBeUsed" xml:space="preserve">
+    <value>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</value>
+    <remarks>'MethodImplAttribute.Async' and 'async' are not localizable.</remarks>
   </data>
 </root>

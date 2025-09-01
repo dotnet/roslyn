@@ -17616,8 +17616,8 @@ public class C
             Diagnostic(ErrorCode.ERR_BadDynamicQuery, "where i is not null").WithLocation(2, 9));
     }
 
-    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/78968 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
-    public void ResolveAll_Query_Cast()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+    public void ResolveAll_Query_Cast_StaticProperty()
     {
         var source = """
 using System.Linq;
@@ -17643,10 +17643,48 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
-        AssertEx.Equal("System.Object[] E.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }",
+            model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
-        AssertEx.Equal("System.Object[] E.M2", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }",
+            model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+    public void ResolveAll_Query_Cast_InstanceProperty()
+    {
+        var source = """
+using System.Linq;
+
+var o = new object();
+var r = from string s in o.M from string s2 in o.M2 select s.ToString();
+foreach (var x in r)
+{
+    System.Console.Write(x.ToString());
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public object[] M => ["ran"];
+        public object[] M2 => [""];
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M");
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }",
+            model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M2");
+        AssertEx.Equal("System.Object[] E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2 { get; }",
+            model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -23377,6 +23415,9 @@ static class E
             // (6,12): error CS8352: Cannot use variable 'new MyStruct() { i = ref i }' in this context because it may expose referenced variables outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
             Diagnostic(ErrorCode.ERR_EscapeVariable, "new MyStruct() { i = ref i }").WithArguments("new MyStruct() { i = ref i }").WithLocation(6, 12),
+            // (6,12): error CS8347: Cannot use a result of 'E.extension(scoped MyStruct).M(InterpolationHandler)' in this context because it may expose variables referenced by parameter 'h' outside of their declaration scope
+            //     return new MyStruct() { i = ref i }.M($"");
+            Diagnostic(ErrorCode.ERR_EscapeCall, @"new MyStruct() { i = ref i }.M($"""")").WithArguments("E.extension(scoped MyStruct).M(InterpolationHandler)", "h").WithLocation(6, 12),
             // (6,43): error CS8347: Cannot use a result of 'InterpolationHandler.InterpolationHandler(int, int, MyStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
             //     return new MyStruct() { i = ref i }.M($"");
             Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""").WithArguments("InterpolationHandler.InterpolationHandler(int, int, MyStruct)", "s2").WithLocation(6, 43)
@@ -25536,19 +25577,20 @@ static class E
     }
 }
 """;
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
-        try
-        {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
+        src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
 
-        Debug.Assert(false);
+static class E
+{
+    public static void Deconstruct(this System.Span<int> s, out int i, out int j) { i = 42; j = 43; }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
@@ -25576,7 +25618,6 @@ namespace System
     }
 }
 """;
-#if RELEASE
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
@@ -25585,22 +25626,6 @@ namespace System
             // (8,22): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
             //     extension(System.Span<int> s)
             Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(8, 22));
-#endif
-
-#if DEBUG
-        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
-        try
-        {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            comp.VerifyEmitDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-
-        Debug.Assert(false);
-#endif
     }
 
     [Fact]
@@ -33842,6 +33867,12 @@ public static class E1
         var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
         CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
 
+        source = """
+E1.M(42, 43);
+""";
+        var comp3 = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp3, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
+
         static void verify(ModuleSymbol m)
         {
             var implementations = m.ContainingAssembly.GetTypeByMetadataName("E1").GetMembers().OfType<MethodSymbol>().ToArray();
@@ -36378,12 +36409,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<U>(U).M<T>(T)' requires a receiver of type 'U'
+            // (2,1): error CS1973: 'object' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // object.M(d);
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension<U>(U).M<T>(T)", "U").WithLocation(2, 1),
-            // (3,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<U>(U).M<T>(T)' requires a receiver of type 'U'
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "object.M(d)").WithArguments("object", "M").WithLocation(2, 1),
+            // (3,1): error CS0176: Member 'E.extension<U>(U).M<T>(T)' cannot be accessed with an instance reference; qualify it with a type name instead
             // new object().M(d);
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M", "E.extension<U>(U).M<T>(T)", "U").WithLocation(3, 1));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().M").WithArguments("E.extension<U>(U).M<T>(T)").WithLocation(3, 1));
     }
 
     [Fact]
@@ -36432,9 +36463,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<U>(U).M(object)' requires a receiver of type 'U'
+            // (2,1): error CS1973: 'object' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // object.M(d);
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension<U>(U).M(object)", "U").WithLocation(2, 1),
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "object.M(d)").WithArguments("object", "M").WithLocation(2, 1),
             // (3,1): error CS1973: 'object' has no applicable method named 'M2' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // new object().M2(d);
             Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new object().M2(d)").WithArguments("object", "M2").WithLocation(3, 1));
@@ -44217,12 +44248,15 @@ static class E
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, @"[System.Runtime.CompilerServices.CallerMemberName] string name = """"").WithLocation(5, 15));
     }
 
-    [Fact]
-    public void ConditionalAttribute_01()
+    [Theory, CombinatorialData]
+    public void ConditionalAttribute_01(bool withDebug)
     {
-        var src = """
+        var src = $$"""
+{{(withDebug ? "#define DEBUG" : "")}}
+
 42.M();
 42.M2();
+E.M(42);
 
 static class E
 {
@@ -44233,34 +44267,12 @@ static class E
     }
 
     [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
+    public static void M2(this int i) { System.Console.Write("ran "); }
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "");
-
-        src = """
-#define DEBUG
-
-42.M();
-42.M2();
-
-static class E
-{
-    extension(int i)
-    {
-        [System.Diagnostics.Conditional("DEBUG")]
-        public void M() { System.Console.Write("ran "); }
-    }
-
-    [System.Diagnostics.Conditional("DEBUG")]
-    public static void M2(this int i) { System.Console.Write("ran"); }
-}
-""";
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: withDebug ? "ran ran ran" : "");
     }
 
     [Fact]
@@ -48528,7 +48540,7 @@ static class E
 {
     extension<T>(MyCollection<T> c)
     {
-        public void Add(T o) { }
+        public void Add(T o) { System.Console.Write(o is null ? "True " : "False "); }
     }
 }
 
@@ -48538,15 +48550,31 @@ public class MyCollection<T> : IEnumerable<T>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
-        // https://github.com/dotnet/roslyn/issues/78960
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-                // (7,26): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                // MyCollection<object> c = [oNull, oNotNull];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[oNull, oNotNull]").WithArguments("MyCollection<object>").WithLocation(7, 26),
-                // (7,26): error CS1929: 'MyCollection<object>' does not contain a definition for 'Add' and the best extension method overload 'E.extension<T>(MyCollection<T>).Add(T)' requires a receiver of type 'MyCollection<T>'
-                // MyCollection<object> c = [oNull, oNotNull];
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "[oNull, oNotNull]").WithArguments("MyCollection<object>", "Add", "E.extension<T>(MyCollection<T>).Add(T)", "MyCollection<T>").WithLocation(7, 26));
+        CompileAndVerify(comp, expectedOutput: "True False").VerifyDiagnostics();
+
+        src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection<object> c = [oNull, oNotNull];
+
+static class E
+{
+    public static void Add<T>(this MyCollection<T> c, T o) { System.Console.Write(o is null ? "True " : "False ");  }
+}
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "True False").VerifyDiagnostics();
     }
 
     [Fact]

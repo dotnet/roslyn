@@ -338,7 +338,7 @@ public sealed class DiagnosticAnalyzerDriverTests
         var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None));
 
         var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics([analyzer]);
-        AssertEx.Any(diagnostics, d => d.Id == DocumentAnalysisExecutor.AnalyzerExceptionDiagnosticId);
+        AssertEx.Any(diagnostics, d => d.Id == DiagnosticAnalyzerService.AnalyzerExceptionDiagnosticId);
     }
 
     private sealed class InvalidSpanAnalyzer : DiagnosticAnalyzer

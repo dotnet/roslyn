@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap? typeMap1 = MemberSignatureComparer.GetTypeMap(extension1);
             TypeMap? typeMap2 = MemberSignatureComparer.GetTypeMap(extension2);
             if (extension1.Arity > 0
-                && !MemberSignatureComparer.HaveSameConstraints(extension1.TypeParameters, typeMap1, extension2.TypeParameters, typeMap2, TypeCompareKind.AllIgnoreOptions))
+                && !MemberSignatureComparer.HaveSameConstraints(extension1.TypeParameters, typeMap1, extension2.TypeParameters, typeMap2, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return false;
             }
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!MemberSignatureComparer.HaveSameParameterType(parameter1, typeMap1, parameter2, typeMap2,
                 refKindCompareMode: MemberSignatureComparer.RefKindCompareMode.IgnoreRefKind,
-                considerDefaultValues: false, TypeCompareKind.AllIgnoreOptions))
+                considerDefaultValues: false, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return false;
             }

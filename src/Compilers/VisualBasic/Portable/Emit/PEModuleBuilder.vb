@@ -325,10 +325,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New MethodInstrumentation() With {.Kinds = EmitOptions.InstrumentationKinds}
         End Function
 
-        Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray(Of AnonymousTypeKey).Empty
-        End Function
-
         Friend Overridable Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
             Return 0
         End Function

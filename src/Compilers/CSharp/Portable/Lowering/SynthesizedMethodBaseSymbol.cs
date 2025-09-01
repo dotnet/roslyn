@@ -130,9 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.ExplicitDefaultConstantValue,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    inheritAttributes ? p as SourceComplexParameterSymbolBase : null,
+                    baseParameterForAttributes: inheritAttributes ? p : null,
                     isParams: inheritParams && p.IsParams));
             }
+
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra), ordinal++, RefKind.Ref));
                 }
             }
+
             return builder.ToImmutableAndFree();
         }
 

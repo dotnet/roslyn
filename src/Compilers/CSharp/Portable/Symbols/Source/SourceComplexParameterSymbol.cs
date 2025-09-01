@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        protected ConstantValue _lazyDefaultSyntaxValue;
+#nullable enable
+        protected ConstantValue? _lazyDefaultSyntaxValue;
+#nullable disable
 
         protected SourceComplexParameterSymbolBase(
             Symbol owner,
@@ -88,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard => false;
 
-        internal sealed override ConstantValue ExplicitDefaultConstantValue
+#nullable enable
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -106,14 +109,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue? DefaultValueFromAttributes
         {
             get
             {
                 ParameterEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
-                return (data != null && data.DefaultParameterValue != ConstantValue.Unset) ? data.DefaultParameterValue : ConstantValue.NotAvailable;
+                return (data != null && data.DefaultParameterValue != ConstantValue.Unset) ? data.DefaultParameterValue : null;
             }
         }
+#nullable disable
 
         internal sealed override bool IsIDispatchConstant
             => GetDecodedWellKnownAttributeData()?.HasIDispatchConstantAttribute == true;
@@ -240,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameterEqualsValue;
         }
 
-        private ConstantValue DefaultSyntaxValue
+        private ConstantValue? DefaultSyntaxValue
         {
             get
             {
@@ -264,6 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics.DiagnosticBag);
                         }
+
+                        Debug.Assert(_lazyDefaultSyntaxValue is not null);
                         if (!_lazyDefaultSyntaxValue.IsBad)
                         {
                             VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
@@ -358,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // This method *must not* depend on attributes on the parameter symbol.
         // Otherwise we will have cycles when binding usage of attributes whose constructors have optional parameters
-        private ConstantValue MakeDefaultExpression(BindingDiagnosticBag diagnostics, out Binder? binder, out BoundParameterEqualsValue? parameterEqualsValue)
+        private ConstantValue? MakeDefaultExpression(BindingDiagnosticBag diagnostics, out Binder? binder, out BoundParameterEqualsValue? parameterEqualsValue)
         {
             binder = null;
             parameterEqualsValue = null;
@@ -366,13 +372,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterSyntax = this.ParameterSyntax;
             if (parameterSyntax == null)
             {
-                return ConstantValue.NotAvailable;
+                return null;
             }
 
             var defaultSyntax = parameterSyntax.Default;
             if (defaultSyntax == null)
             {
-                return ConstantValue.NotAvailable;
+                return null;
             }
 
             MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax.EqualsToken);

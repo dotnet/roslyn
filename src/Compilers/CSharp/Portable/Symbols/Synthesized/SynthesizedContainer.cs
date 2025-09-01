@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(name != null);
             Name = name;
             _constructedFromTypeParameters = typeParametersToAlphaRename;
-            TypeMap = TypeMap.Empty.WithAlphaRename(typeParametersToAlphaRename, this, out _typeParameters);
+            TypeMap = TypeMap.Empty.WithAlphaRename(typeParametersToAlphaRename, this, propagateAttributes: false, out _typeParameters);
         }
 
         protected SynthesizedContainer(string name)

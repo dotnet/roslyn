@@ -12325,20 +12325,24 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594"), WorkItem("https://github.com/dotnet/runtime/issues/118568")]
         public void Attribute_TypedParamsConstant_EnumArray_ConstructorArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
         {
+            var evalString = ExecutionConditionUtil.IsMonoCore
+                ? "Console.WriteLine(((((IEnumerable)arg.Value).Cast<object>().SingleOrDefault())) ?? \"null\");"
+                : "Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? \"null\");";
+            var includeString = ExecutionConditionUtil.IsMonoCore ? "" : "using System.Reflection;";
             var source = $$"""
                 using System;
                 using System.Collections;
                 using System.Linq;
-                using System.Reflection;
+                {{includeString}}
 
                 var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
                 var arg = attr.ConstructorArguments.Single();
-                Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? "null");
+                {{evalString}}
 
                 class A : Attribute
                 {

@@ -129,6 +129,7 @@ This document provides guidance for thinking about language interactions and tes
 - COM interop
 - modopt and modreq
 - CompilerFeatureRequiredAttribute
+- CompilerLoweringPreserveAttribute
 - ref assemblies
 - extern alias
 - UnmanagedCallersOnly

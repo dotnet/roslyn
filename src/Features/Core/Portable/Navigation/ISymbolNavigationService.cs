@@ -18,7 +18,6 @@ internal interface ISymbolNavigationService : IWorkspaceService
     /// <param name="project">A project context with which to generate source for symbol
     /// if it has no source locations</param>
     /// <param name="symbol">The symbol to navigate to</param>
-    /// <param name="cancellationToken">The token to check for cancellation</param>
     Task<INavigableLocation?> GetNavigableLocationAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
     /// <returns>True if the navigation was handled, indicating that the caller should not 

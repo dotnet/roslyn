@@ -40,7 +40,7 @@ internal sealed class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeS
     }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);

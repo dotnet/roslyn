@@ -347,6 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
+            Debug.Assert(node.AwaitableInfo.RuntimeAsyncAwaitCall is null);
             BoundStatement preamble = MakeAwaitPreamble();
 
             var expression = (BoundExpression)Visit(node.Expression);

@@ -2,6 +2,7 @@
 trigger:
 - main
 - main-vs-deps
+- community
 - release/*
 - features/*
 - demos/*
@@ -12,6 +13,7 @@ pr:
     include:
     - main
     - main-vs-deps
+    - community
     - release/*
     - features/*
     - demos/*
@@ -55,10 +57,12 @@ variables:
       value: NetCore1ESPool-Internal
 
   - name: Vs2022PreviewQueueName
+    # As of 2025-06-12, the non-scouting queue does not have a new enough of an MSBuild to build Roslyn; use the scouting
+    # queue which is on 17.14. This likely can be removed by 2025-06-18 when the upgrade to 17.14 Preview 4 is scheduled to complete.
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022preview.amd64.open
+      value: windows.vs2022preview.scout.amd64.open
     ${{ else }}:
-      value: windows.vs2022preview.amd64
+      value: windows.vs2022preview.scout.amd64
 
   - name: Vs2022RegularQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -83,6 +87,12 @@ variables:
       value: Windows.10.Amd64.Open
     ${{ else }}:
       value: Windows.10.Amd64
+
+  - name: HelixWindowsVsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.amd64.vs2022.pre.open
+    ${{ else }}:
+      value: windows.amd64.vs2022.pre
 
   - name: HelixWindowsSpanishQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -198,7 +208,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
-        helixQueueName: $(HelixWindowsQueueName)
+        helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 
@@ -209,7 +219,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsQueueName)
+      helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -226,7 +236,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      helixQueueName: $(HelixWindowsQueueName)
+      helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -238,7 +248,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        helixQueueName: $(HelixWindowsQueueName)
+        helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 

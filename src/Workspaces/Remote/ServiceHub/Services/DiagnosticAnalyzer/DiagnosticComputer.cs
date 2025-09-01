@@ -79,7 +79,7 @@ internal sealed class DiagnosticComputer
         _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
     }
 
-    public static Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+    public static Task<DiagnosticAnalysisResults> GetDiagnosticsAsync(
         TextDocument? document,
         Project project,
         Checksum solutionChecksum,
@@ -120,7 +120,7 @@ internal sealed class DiagnosticComputer
             projectAnalyzerIds, hostAnalyzerIds, logPerformanceInfo, getTelemetryInfo, cancellationToken);
     }
 
-    private async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+    private async Task<DiagnosticAnalysisResults> GetDiagnosticsAsync(
         ImmutableArray<string> projectAnalyzerIds,
         ImmutableArray<string> hostAnalyzerIds,
         bool logPerformanceInfo,
@@ -129,15 +129,11 @@ internal sealed class DiagnosticComputer
     {
         var (compilationWithAnalyzers, projectAnalyzerToIdMap, hostAnalyzerToIdMap) = await GetOrCreateCompilationWithAnalyzersAsync(cancellationToken).ConfigureAwait(false);
         if (compilationWithAnalyzers == null)
-        {
-            return SerializableDiagnosticAnalysisResults.Empty;
-        }
+            return DiagnosticAnalysisResults.Empty;
 
         var (projectAnalyzers, hostAnalyzers) = GetAnalyzers(projectAnalyzerToIdMap, hostAnalyzerToIdMap, projectAnalyzerIds, hostAnalyzerIds);
         if (projectAnalyzers.IsEmpty && hostAnalyzers.IsEmpty)
-        {
-            return SerializableDiagnosticAnalysisResults.Empty;
-        }
+            return DiagnosticAnalysisResults.Empty;
 
         if (_document == null)
         {
@@ -169,7 +165,7 @@ internal sealed class DiagnosticComputer
             logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<SerializableDiagnosticAnalysisResults> AnalyzeAsync(
+    private async Task<DiagnosticAnalysisResults> AnalyzeAsync(
         CompilationWithAnalyzersPair compilationWithAnalyzers,
         BidirectionalMap<string, DiagnosticAnalyzer> projectAnalyzerToIdMap,
         BidirectionalMap<string, DiagnosticAnalyzer> hostAnalyzerToIdMap,
@@ -216,22 +212,22 @@ internal sealed class DiagnosticComputer
             ? GetTelemetryInfo(analysisResult, projectAnalyzers, hostAnalyzers, projectAnalyzerToIdMap, hostAnalyzerToIdMap)
             : [];
 
-        return new SerializableDiagnosticAnalysisResults(Dehydrate(builderMap, projectAnalyzerToIdMap, hostAnalyzerToIdMap), telemetry);
+        return new DiagnosticAnalysisResults(Dehydrate(builderMap, projectAnalyzerToIdMap, hostAnalyzerToIdMap), telemetry);
     }
 
-    private static ImmutableArray<(string analyzerId, SerializableDiagnosticMap diagnosticMap)> Dehydrate(
+    private static ImmutableArray<(string analyzerId, DiagnosticMap diagnosticMap)> Dehydrate(
         ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> builderMap,
         BidirectionalMap<string, DiagnosticAnalyzer> projectAnalyzerToIdMap,
         BidirectionalMap<string, DiagnosticAnalyzer> hostAnalyzerToIdMap)
     {
-        var diagnostics = new FixedSizeArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>(builderMap.Count);
+        var diagnostics = new FixedSizeArrayBuilder<(string analyzerId, DiagnosticMap diagnosticMap)>(builderMap.Count);
 
         foreach (var (analyzer, analyzerResults) in builderMap)
         {
             var analyzerId = GetAnalyzerId(projectAnalyzerToIdMap, hostAnalyzerToIdMap, analyzer);
 
             diagnostics.Add((analyzerId,
-                new SerializableDiagnosticMap(
+                new DiagnosticMap(
                     analyzerResults.SyntaxLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
                     analyzerResults.SemanticLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
                     analyzerResults.NonLocals.SelectAsArray(entry => (entry.Key, entry.Value)),

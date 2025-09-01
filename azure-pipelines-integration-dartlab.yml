@@ -22,7 +22,7 @@ resources:
     name: internal/dotnet-roslyn
     ref: $(Build.SourceBranch)
     trigger:
-    - main-vs-deps
+    - main
 
 parameters:
   - name: prNumber

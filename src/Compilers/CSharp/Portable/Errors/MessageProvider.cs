@@ -234,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // pseudo-custom attributes:
         public override int ERR_PermissionSetAttributeFileReadError => (int)ErrorCode.ERR_PermissionSetAttributeFileReadError;
+        public override int ERR_MethodImplAttributeAsyncCannotBeUsed => (int)ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed;
 
         // PDB Writer:
         public override int ERR_EncodinglessSyntaxTree => (int)ErrorCode.ERR_EncodinglessSyntaxTree;

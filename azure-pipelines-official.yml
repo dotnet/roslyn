@@ -3,6 +3,7 @@ trigger:
     include:
     - main
     - main-vs-deps
+    - community
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
@@ -111,7 +112,6 @@ extends:
   parameters:
     featureFlags:
       autoBaseline: true
-      incrementalSDLBinaryAnalysis: false
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
@@ -128,7 +128,7 @@ extends:
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
       name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022preview.amd64
+      image: windows.vs2022preview.scout.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -138,11 +138,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.13') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.14') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.13
+            MirrorBranch: release/dev17.14
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -291,6 +291,9 @@ extends:
             signType: $(SignType)
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
+            # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
+            ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
+              ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
           condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
         - download: profilingInputs
