@@ -148,7 +148,7 @@ internal sealed partial class DiagnosticComputer
         var skippedAnalyzersInfo = _project.Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(
             _project.State, _analyzerInfoCache);
 
-        return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap/*, hostAnalyzerToIdMap*/, analyzers/*, hostAnalyzers*/, skippedAnalyzersInfo,
+        return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
             logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
     }
 
