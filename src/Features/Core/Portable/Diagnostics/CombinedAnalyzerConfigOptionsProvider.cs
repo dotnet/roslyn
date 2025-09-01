@@ -7,16 +7,18 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal sealed class CombinedAnalyzerConfigOptionsProvider(AnalyzerOptions analyzerOptions, AnalyzerOptions hostAnalyzerOptions) : AnalyzerConfigOptionsProvider
+internal sealed class CombinedAnalyzerConfigOptionsProvider(
+    AnalyzerOptions projectAnalyzerOptions,
+    AnalyzerOptions hostAnalyzerOptions) : AnalyzerConfigOptionsProvider
 {
-    private readonly AnalyzerOptions _analyzerOptions = analyzerOptions;
+    private readonly AnalyzerOptions _analyzerOptions = projectAnalyzerOptions;
     private readonly AnalyzerOptions _hostAnalyzerOptions = hostAnalyzerOptions;
 
-    public static AnalyzerOptions Combine(AnalyzerOptions analyzerOptions, AnalyzerOptions hostAnalyzerOptions)
+    public static AnalyzerOptions Combine(AnalyzerOptions projectAnalyzerOptions, AnalyzerOptions hostAnalyzerOptions)
     {
         return new AnalyzerOptions(
-            analyzerOptions.AdditionalFiles.AddRange(hostAnalyzerOptions.AdditionalFiles).Distinct(),
-            new CombinedAnalyzerConfigOptionsProvider(analyzerOptions, hostAnalyzerOptions));
+            projectAnalyzerOptions.AdditionalFiles.AddRange(hostAnalyzerOptions.AdditionalFiles).Distinct(),
+            new CombinedAnalyzerConfigOptionsProvider(projectAnalyzerOptions, hostAnalyzerOptions));
     }
 
     public override AnalyzerConfigOptions GlobalOptions
@@ -35,10 +37,11 @@ internal sealed class CombinedAnalyzerConfigOptionsProvider(AnalyzerOptions anal
             _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile));
 
     private sealed class CombinedAnalyzerConfigOptions(
-        AnalyzerConfigOptions globalOptions1,
-        AnalyzerConfigOptions globalOptions2) : AnalyzerConfigOptions
+        AnalyzerConfigOptions projectOptions,
+        AnalyzerConfigOptions hostOptions) : AnalyzerConfigOptions
     {
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            => globalOptions1.TryGetValue(key, out value) || globalOptions2.TryGetValue(key, out value);
+            // Lookup in project options first.  Editor config should override the values from the host.
+            => projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
     }
 }
