@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 
-internal sealed class DiagnosticComputer
+internal sealed partial class DiagnosticComputer
 {
     /// <summary>
     /// Cache of <see cref="CompilationWithAnalyzers"/> and a map from analyzer IDs to <see cref="DiagnosticAnalyzer"/>s
@@ -401,9 +401,8 @@ internal sealed class DiagnosticComputer
         // This allows all client requests with or without performance data and/or suppressed diagnostics to be satisfied.
         // TODO: can we support analyzerExceptionFilter in remote host?
         //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
-        var options = new AnalyzerOptions(
-            _project.AnalyzerOptions.AdditionalFiles.Concat(_project.HostAnalyzerOptions.AdditionalFiles).Distinct(),
-            new CombinedAnalyzerConfigOptionsProvider(_project.AnalyzerOptions, _project.HostAnalyzerOptions));
+        var options = CombinedAnalyzerConfigOptionsProvider.Combine(
+            _project.AnalyzerOptions, _project.HostAnalyzerOptions);
 
         return compilation.WithAnalyzers(analyzers, options);
     }
@@ -425,41 +424,6 @@ internal sealed class DiagnosticComputer
             Project = project;
             CompilationWithAnalyzers = compilationWithAnalyzers;
             AnalyzerToIdMap = analyzerToIdMap;
-        }
-    }
-
-    private sealed class CombinedAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
-    {
-        private readonly AnalyzerOptions _analyzerOptions;
-        private readonly AnalyzerOptions _hostAnalyzerOptions;
-
-        public CombinedAnalyzerConfigOptionsProvider(AnalyzerOptions analyzerOptions, AnalyzerOptions hostAnalyzerOptions)
-        {
-            _analyzerOptions = analyzerOptions;
-            _hostAnalyzerOptions = hostAnalyzerOptions;
-        }
-
-        public override AnalyzerConfigOptions GlobalOptions
-            => new CombinedAnalyzerConfigOptions(
-                _analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions,
-                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions);
-
-        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-            => new CombinedAnalyzerConfigOptions(
-                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree),
-                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree));
-
-        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
-            => new CombinedAnalyzerConfigOptions(
-                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile),
-                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile));
-
-        private sealed class CombinedAnalyzerConfigOptions(
-            AnalyzerConfigOptions globalOptions1,
-            AnalyzerConfigOptions globalOptions2) : AnalyzerConfigOptions
-        {
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-                => globalOptions1.TryGetValue(key, out value) || globalOptions2.TryGetValue(key, out value);
         }
     }
 }

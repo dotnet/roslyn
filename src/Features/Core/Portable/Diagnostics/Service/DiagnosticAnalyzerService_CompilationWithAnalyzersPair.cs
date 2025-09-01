@@ -118,7 +118,11 @@ internal sealed partial class DiagnosticAnalyzerService
 
             // Create driver that holds onto compilation and associated analyzers
             return CreateCompilationWithAnalyzers(
-                compilation, filteredHostAnalyzers.Concat(filteredProjectAnalyzers), project.State.ProjectAnalyzerOptions, exceptionFilter);
+                compilation, filteredHostAnalyzers.Concat(filteredProjectAnalyzers),
+                CombinedAnalyzerConfigOptionsProvider.Combine(
+                    project.State.ProjectAnalyzerOptions,
+                    project.HostAnalyzerOptions),
+                exceptionFilter);
         }
 
         static CompilationWithAnalyzers? CreateCompilationWithAnalyzers(
