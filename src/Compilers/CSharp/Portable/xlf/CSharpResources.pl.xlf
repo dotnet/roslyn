@@ -1252,11 +1252,6 @@
         <target state="translated">Nie można przechwycić: kompilacja nie zawiera pliku ze ścieżką „{0}”. Czy chodziło o użycie ścieżki „{1}”?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">Nie można przechwycić: Ścieżka „{0}” jest niezmapowana. Oczekiwano zmapowanej ścieżki „{1}”.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">Podana liczba wierszy i znaków nie odwołuje się do nazwy metody możliwej do przechwycenia, ale do tokenu „{0}”.</target>
@@ -3055,16 +3050,6 @@
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">Argument powinien być przekazywany za pomocą słowa kluczowego „ref” lub „in”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">Typ „{0}” nie może być używany w tym kontekście, ponieważ nie może być reprezentowany w metadanych.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">Typ nie może być używany w tym kontekście, ponieważ nie może być reprezentowany w metadanych.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -6469,11 +6454,6 @@
         <target state="translated">Wyrażenie switch lub etykieta case musi być wartością logiczną, znakiem, ciągiem, liczbą całkowitą, wyliczeniem lub odpowiadającym typem dopuszczającym wartość null w języku C# 6 i wcześniejszych wersjach.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">Oczekiwano wartości typu całkowitoliczbowego</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
         <source>The switch statement contains multiple cases with the label value '{0}'</source>
         <target state="translated">Instrukcja switch zawiera wiele etykiet case o wartości „{0}”</target>
@@ -9342,11 +9322,6 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <target state="translated">Element „{0}” nie ma odpowiedniej statycznej metody „Main”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">Nie można użyć elementu „{0}” dla metody Main, ponieważ jest on zaimportowany</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
         <source>Outputs without source must have the /out option specified</source>
         <target state="translated">Dla wyjść bez źródła trzeba określić opcję /out.</target>
@@ -10077,21 +10052,6 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <target state="translated">To ostrzeżenie występuje, gdy w przypadku próby wywołania metody, właściwości lub indeksatora w składowej klasy pochodnej elementu MarshalByRefObject składowa jest typem wartości. Obiekty dziedziczące po elemencie MarshalByRefObject zwykle powinny być kierowane przez referencję w domenie aplikacji. Jeśli kod spróbuje bezpośrednio uzyskać dostęp do składowej typu wartości takiego obiektu w domenie aplikacji, wystąpi wyjątek czasu wykonywania. Aby rozwiązać problem podany w ostrzeżeniu, skopiuj składową do zmiennej lokalnej i wywołaj metodę w tej zmiennej.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">„{0}” to nie jest prawidłowy numer ostrzeżenia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">Nieprawidłowy numer ostrzeżenia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">Numer przekazany do dyrektywy preprocesora ostrzeżenia #pragma nie jest prawidłowym numerem ostrzeżenia. Upewnij się, że numer reprezentuje ostrzeżenie, a nie błąd.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">Nieprawidłowy numer</target>
@@ -10100,16 +10060,6 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">Nieprawidłowy numer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">Określono nieprawidłową nazwę pliku dla dyrektywy preprocesora. Nazwa pliku jest za długa lub nieprawidłowa.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">Określono nieprawidłową nazwę pliku dla dyrektywy preprocesora</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10550,11 +10500,6 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">Drzewo wyrażenia lambda nie może zawierać metody z argumentami zmiennych</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">Drzewo wyrażenia lambda nie może zawierać grupy metod</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -12623,11 +12568,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">Brak zamykającego znaku ograniczającego „}” dla interpolowanego wyrażenia rozpoczynającego się od znaku „{”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">W ciągu interpolowanym nie można użyć jednowierszowego komentarza.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">

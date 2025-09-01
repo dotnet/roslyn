@@ -1252,11 +1252,6 @@
         <target state="translated">Невозможно перехватить: компиляция не содержит файла с путем ' {0} '. Вы хотели использовать путь ' {1} '?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">Невозможно перехватить: Путь ' {0} ' не сопоставлен. Ожидаемый сопоставленный путь ' {1} '.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">Предоставленная строка и номер символа относятся не к имени перехватываемого метода, а скорее к токену ' {0} '.</target>
@@ -3055,16 +3050,6 @@
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">Аргумент должен передаваться с использованием ключевого слова "ref" или "in"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">Тип "{0}" нельзя использовать в этом контексте, так как он не может быть представлен в метаданных.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">Невозможно использовать тип в этом контексте, поскольку он не может быть представлен в метаданных.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -6470,11 +6455,6 @@
         <target state="translated">Выражение switch или метка case должны быть логическим значением, символом, строкой, целым числом, перечислением или соответствующим типом, принимающим значение NULL, в C# 6 и более ранних версиях.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">Требуется значение целочисленного типа.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
         <source>The switch statement contains multiple cases with the label value '{0}'</source>
         <target state="translated">Предложение Switch содержит несколько случаев со значением метки "{0}".</target>
@@ -9343,11 +9323,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">"{0}" не имеет подходящего статического метода Main.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">Не удается использовать "{0}" для метода Main, так как он импортирован.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
         <source>Outputs without source must have the /out option specified</source>
         <target state="translated">Для создания результирующего файла без исходных текстов должен быть задан параметр /out.</target>
@@ -10078,21 +10053,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">Это предупреждение возникает при попытке вызвать метод, свойство или индексатор в члене или классе, производном от MarshalByRefObject; при этом член является типом значения. Объекты, наследуемые от MarshalByRefObject, обычно упаковываются по ссылке в домене приложений. Если код пытается получить прямой доступ к члену типа значения такого объекта в домене приложений, возникнет исключение времени выполнения. Чтобы устранить предупреждение, сначала скопируйте член в локальную переменную и вызовите метод в этой переменной.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">"{0}" является недопустимым номером предупреждения.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">Недопустимый номер предупреждения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">Номер, переданный в директиву препроцессора предупреждений #pragma, не являлся допустимым номером предупреждения. Убедитесь, что номер соответствует предупреждению, а не ошибке.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">Недопустимое число</target>
@@ -10101,16 +10061,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">Недопустимое число</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">Недопустимое имя файла в директиве препроцессора. Слишком длинное имя файла, либо оно не является допустимым именем файла.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">Для директивы препроцессора указано недопустимое имя файла</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10551,11 +10501,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">Дерево лямбда-выражения не может содержать метод с изменяющимся числом аргументов.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">Дерево лямбда-выражения не может содержать группу методов.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -12624,11 +12569,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">Отсутствует закрывающий разделитель "}" для интерполированного выражения, начинающегося с "{".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">Однострочный комментарий нельзя использовать в качестве интерполированной строки.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">
