@@ -285,7 +285,7 @@ internal sealed partial class DiagnosticComputer
         return builder.ToImmutableAndFree();
     }
 
-    private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap/*, BidirectionalMap<string, DiagnosticAnalyzer> hostAnalyzerToIdMap*/)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
+    private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
     {
         var cacheEntry = await GetOrCreateCacheEntryAsync().ConfigureAwait(false);
         return (cacheEntry.CompilationWithAnalyzers, cacheEntry.AnalyzerToIdMap);//, cacheEntry.HostAnalyzerToIdMap);
