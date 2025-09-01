@@ -3561,8 +3561,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResult(withExpr, resultState, resultType);
             VisitObjectCreationInitializer(resultSlot, resultType.Type, withExpr.InitializerExpression, delayCompletionForType: false);
 
-            // Note: this does not account for the scenario where `Clone()` returns maybe-null and the with-expression has no initializers.
-            // Tracking in https://github.com/dotnet/roslyn/issues/44759
             return null;
         }
 
@@ -4408,18 +4406,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            static Symbol? getTargetMember(TypeSymbol containingType, BoundObjectInitializerMember objectInitializer)
+            Symbol? getTargetMember(TypeSymbol containingType, BoundObjectInitializerMember objectInitializer)
             {
                 var symbol = objectInitializer.MemberSymbol;
+                if (symbol == null)
+                    return null;
 
-                // https://github.com/dotnet/roslyn/issues/78828: adjust extension member based on new containing type
-                if (symbol != null && !symbol.GetIsNewExtensionMember())
+                if (!symbol.GetIsNewExtensionMember())
                 {
                     Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-                    symbol = AsMemberOfType(containingType, symbol);
+                    return AsMemberOfType(containingType, symbol);
                 }
 
-                return symbol;
+                var extension = symbol.OriginalDefinition.ContainingType;
+                if (extension.Arity == 0)
+                {
+                    return symbol;
+                }
+
+                if (symbol is not PropertySymbol { IsStatic: false } property
+                    || extension.ExtensionParameter is not { } extensionParameter)
+                {
+                    Debug.Assert(objectInitializer.HasErrors);
+                    return symbol;
+                }
+
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                // This may be incorrect for extension indexers.
+                // At that point we would maybe just want to gather arguments and visit the memberInitializer as an invocation of the indexer setter.
+                var inferenceResult = MethodTypeInferrer.Infer(
+                    _binder,
+                    _conversions,
+                    extension.TypeParameters,
+                    extension,
+                    formalParameterTypes: [extensionParameter.TypeWithAnnotations],
+                    formalParameterRefKinds: [extensionParameter.RefKind],
+                    [new BoundExpressionWithNullability(objectInitializer.Syntax, objectInitializer, nullableAnnotation: NullableAnnotation.NotAnnotated, containingType)],
+                    ref discardedUseSiteInfo,
+                    new MethodInferenceExtensions(this),
+                    ordinals: null);
+
+                if (inferenceResult.Success)
+                {
+                    extension = extension.Construct(inferenceResult.InferredTypeArguments);
+                    property = property.OriginalDefinition.AsMember(extension);
+                    SetUpdatedSymbol(objectInitializer, symbol, property);
+                }
+
+                return property;
             }
 
             int getOrCreateSlot(int containingSlot, Symbol symbol)
@@ -8332,6 +8367,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (TMember)(object)definition.ConstructIncludingExtension(result.InferredTypeArguments);
         }
 
+        /// <remarks>
+        /// <para>This type assists with nullable reinference of generic types used in expressions.</para>
+        ///
+        /// <para>
+        /// "Type argument inference" is the step we do during initial binding,
+        /// when producing the bound tree used as input to nullable analysis, lowering, and a bunch of other steps.
+        /// This inference is flow-independent, so, an expression used at any point in a method,
+        /// would get the same type arguments for the calls in it, assuming the stuff the expression is using is still in scope.
+        /// </para>
+        ///
+        /// <para>
+        /// "Reinference" is done during nullable analysis, in order to enrich the results of
+        /// the initial type argument inference, based on the flow state of expressions at the particular point of usage.
+        /// </para>
+        ///
+        /// <para>What it comes down to is scenarios like the following:</para>
+        ///
+        /// <code>
+        /// var str = GetStringOrNull();
+        ///
+        /// var arr1 = ImmutableArray.Create(str);
+        /// arr1[0].ToString(); // warning: possible null dereference
+        ///
+        /// if (str == null)
+        ///     return;
+        ///
+        /// var arr2 = ImmutableArray.Create(str);
+        /// arr2[0].ToString(); // ok
+        /// </code>
+        ///
+        /// <para>
+        /// For both calls to ImmutableArray.Create, initial binding will do a flow-independent type argument inference,
+        /// and both will receive type argument `string` (oblivious).
+        /// </para>
+        ///
+        /// <para>
+        /// During nullable analysis, we will do a reinference of the call. The first call will get type argument `string?`.
+        /// The second call will get type argument `string` (non-nullable), based on the flow state of `str` at that point.
+        /// That needs to propagate to the next points in the control flow and be surfaced in public API for the types of the expressions and so on.
+        /// </para>
+        ///
+        /// <para>
+        /// Reinference needs to be done on pretty much any expression which can represent a usage of either a generic method or a member of a generic type.
+        /// That ends up including calls (obviously) but also things like binary/unary operators, compound assignments, foreach statements, await-exprs, collection expression elements and so on.
+        /// </para>
+        /// </remarks>
         private sealed class MethodInferenceExtensions : MethodTypeInferrer.Extensions
         {
             private readonly NullableWalker _walker;
