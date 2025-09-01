@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static class AnalyzerOptionsUtilities
 {
+    /// <summary>
+    /// Combines two <see cref="AnalyzerOptions"/> instances into one.  The resulting instance will have the
+    /// options merged from both.  Options defined in <paramref name="projectAnalyzerOptions"/> ("EditorConfig options")
+    /// will take precedence over those in <paramref name="hostAnalyzerOptions"/> (VS UI options).
+    /// </summary>
     public static AnalyzerOptions Combine(AnalyzerOptions projectAnalyzerOptions, AnalyzerOptions hostAnalyzerOptions)
     {
         return new AnalyzerOptions(
