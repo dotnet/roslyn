@@ -7,13 +7,8 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal sealed class CombinedAnalyzerConfigOptionsProvider(
-    AnalyzerOptions projectAnalyzerOptions,
-    AnalyzerOptions hostAnalyzerOptions) : AnalyzerConfigOptionsProvider
+internal static class AnalyzerOptionsUtilities
 {
-    private readonly AnalyzerOptions _analyzerOptions = projectAnalyzerOptions;
-    private readonly AnalyzerOptions _hostAnalyzerOptions = hostAnalyzerOptions;
-
     public static AnalyzerOptions Combine(AnalyzerOptions projectAnalyzerOptions, AnalyzerOptions hostAnalyzerOptions)
     {
         return new AnalyzerOptions(
@@ -21,27 +16,35 @@ internal sealed class CombinedAnalyzerConfigOptionsProvider(
             new CombinedAnalyzerConfigOptionsProvider(projectAnalyzerOptions, hostAnalyzerOptions));
     }
 
-    public override AnalyzerConfigOptions GlobalOptions
-        => new CombinedAnalyzerConfigOptions(
-            _analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions,
-            _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions);
-
-    public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-        => new CombinedAnalyzerConfigOptions(
-            _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree),
-            _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree));
-
-    public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
-        => new CombinedAnalyzerConfigOptions(
-            _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile),
-            _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile));
-
-    private sealed class CombinedAnalyzerConfigOptions(
-        AnalyzerConfigOptions projectOptions,
-        AnalyzerConfigOptions hostOptions) : AnalyzerConfigOptions
+    private sealed class CombinedAnalyzerConfigOptionsProvider(
+        AnalyzerOptions projectAnalyzerOptions,
+        AnalyzerOptions hostAnalyzerOptions) : AnalyzerConfigOptionsProvider
     {
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            // Lookup in project options first.  Editor config should override the values from the host.
-            => projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
+        private readonly AnalyzerOptions _analyzerOptions = projectAnalyzerOptions;
+        private readonly AnalyzerOptions _hostAnalyzerOptions = hostAnalyzerOptions;
+
+        public override AnalyzerConfigOptions GlobalOptions
+            => new CombinedAnalyzerConfigOptions(
+                _analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions,
+                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions);
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
+            => new CombinedAnalyzerConfigOptions(
+                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree),
+                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree));
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+            => new CombinedAnalyzerConfigOptions(
+                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile),
+                _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile));
+
+        private sealed class CombinedAnalyzerConfigOptions(
+            AnalyzerConfigOptions projectOptions,
+            AnalyzerConfigOptions hostOptions) : AnalyzerConfigOptions
+        {
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+                // Lookup in project options first.  Editor config should override the values from the host.
+                => projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
+        }
     }
 }

@@ -401,10 +401,9 @@ internal sealed partial class DiagnosticComputer
         // This allows all client requests with or without performance data and/or suppressed diagnostics to be satisfied.
         // TODO: can we support analyzerExceptionFilter in remote host?
         //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
-        var options = CombinedAnalyzerConfigOptionsProvider.Combine(
-            _project.AnalyzerOptions, _project.HostAnalyzerOptions);
-
-        return compilation.WithAnalyzers(analyzers, options);
+        return compilation.WithAnalyzers(
+            analyzers,
+            AnalyzerOptionsUtilities.Combine(_project.AnalyzerOptions, _project.HostAnalyzerOptions));
     }
 
     private sealed class CompilationWithAnalyzersCacheEntry
