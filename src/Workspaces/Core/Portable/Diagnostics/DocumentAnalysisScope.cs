@@ -57,6 +57,6 @@ internal sealed class DocumentAnalysisScope
     public DocumentAnalysisScope WithSpan(TextSpan? span)
         => new(TextDocument, span, Analyzers, Kind);
 
-    public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)//, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
+    public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
         => new(TextDocument, Span, analyzers, Kind);
 }
