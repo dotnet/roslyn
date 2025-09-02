@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -46,7 +47,7 @@ internal static class AnalyzerOptionsUtilities
 
         private sealed class CombinedAnalyzerConfigOptions(
             AnalyzerConfigOptions projectOptions,
-            AnalyzerConfigOptions hostOptions) : AnalyzerConfigOptions
+            AnalyzerConfigOptions hostOptions) : StructuredAnalyzerConfigOptions
         {
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
                 // Lookup in project options first.  Editor config should override the values from the host.
@@ -54,6 +55,19 @@ internal static class AnalyzerOptionsUtilities
 
             public override IEnumerable<string> Keys
                 => projectOptions.Keys.Concat(hostOptions.Keys).Distinct();
+
+            public override NamingStylePreferences GetNamingStylePreferences()
+            {
+                var preferences = (projectOptions as StructuredAnalyzerConfigOptions)?.GetNamingStylePreferences();
+                if (preferences is { IsEmpty: false })
+                    return preferences;
+
+                preferences = (hostOptions as StructuredAnalyzerConfigOptions)?.GetNamingStylePreferences();
+                if (preferences is { IsEmpty: false })
+                    return preferences;
+
+                return NamingStylePreferences.Empty;
+            }
         }
     }
 }
