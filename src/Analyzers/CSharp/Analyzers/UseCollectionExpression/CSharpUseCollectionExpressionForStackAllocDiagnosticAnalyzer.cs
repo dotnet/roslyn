@@ -46,7 +46,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
-        var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCollectionExpression;
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -88,7 +88,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
-        var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCollectionExpression;
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 

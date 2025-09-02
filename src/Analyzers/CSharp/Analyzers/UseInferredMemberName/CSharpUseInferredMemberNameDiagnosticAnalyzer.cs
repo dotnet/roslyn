@@ -38,7 +38,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
 
         var syntaxTree = context.Node.SyntaxTree;
         var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-        var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
+        var preference = context.GetAnalyzerOptions(this).PreferInferredTupleNames;
         if (!preference.Value
             || ShouldSkipAnalysis(context, preference.Notification)
             || !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
@@ -65,7 +65,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
             return;
         }
 
-        var preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames;
+        var preference = context.GetAnalyzerOptions(this).PreferInferredAnonymousTypeMemberNames;
         if (!preference.Value ||
             !CSharpInferredMemberNameSimplifier.CanSimplifyAnonymousTypeMemberName(anonCtor))
         {

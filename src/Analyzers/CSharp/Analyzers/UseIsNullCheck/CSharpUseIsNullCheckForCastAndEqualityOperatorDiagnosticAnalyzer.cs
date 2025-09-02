@@ -43,7 +43,7 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAn
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
+        var option = context.GetAnalyzerOptions(this).PreferIsNullCheckOverReferenceEqualityMethod;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             return;

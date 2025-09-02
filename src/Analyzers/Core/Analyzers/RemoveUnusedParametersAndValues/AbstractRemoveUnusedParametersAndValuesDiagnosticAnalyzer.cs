@@ -205,7 +205,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
     {
         options = null;
 
-        var optionsProvider = analyzerOptions.GetAnalyzerOptions(syntaxTree);
+        var optionsProvider = analyzerOptions.GetAnalyzerOptions(syntaxTree, this);
 
         var unusedParametersOption = optionsProvider.UnusedParameters;
         var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(GetUnusedValueExpressionStatementOption(optionsProvider));

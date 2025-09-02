@@ -53,7 +53,7 @@ internal sealed class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
 
         var coalesceExpression = (BinaryExpressionSyntax)context.Node;
 
-        var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
+        var option = context.GetAnalyzerOptions(this).PreferCompoundAssignment;
 
         // Bail immediately if the user has disabled this feature.
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
@@ -119,7 +119,7 @@ internal sealed class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
 
         var ifStatement = (IfStatementSyntax)context.Node;
 
-        var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
+        var option = context.GetAnalyzerOptions(this).PreferCompoundAssignment;
 
         // Bail immediately if the user has disabled this feature.
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))

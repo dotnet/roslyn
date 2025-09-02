@@ -38,7 +38,7 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
     {
         var analyzerOptions = context.Options;
         var syntaxTree = context.SemanticModel.SyntaxTree;
-        var optionValue = UseExpressionBodyForLambdaHelpers.GetCodeStyleOption(analyzerOptions.GetAnalyzerOptions(syntaxTree));
+        var optionValue = UseExpressionBodyForLambdaHelpers.GetCodeStyleOption(analyzerOptions.GetAnalyzerOptions(syntaxTree, this));
         if (ShouldSkipAnalysis(context, optionValue.Notification))
             return;
 
