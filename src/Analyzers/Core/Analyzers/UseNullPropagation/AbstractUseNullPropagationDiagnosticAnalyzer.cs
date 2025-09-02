@@ -132,7 +132,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         var cancellationToken = context.CancellationToken;
         var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-        var option = context.GetAnalyzerOptions().PreferNullPropagation;
+        var option = context.GetAnalyzerOptions(this).PreferNullPropagation;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

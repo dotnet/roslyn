@@ -59,7 +59,7 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyz
 
         var semanticModel = context.SemanticModel;
 
-        var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
+        var option = context.GetAnalyzerOptions(this).PreferIsNullCheckOverReferenceEqualityMethod;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             return;

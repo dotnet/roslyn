@@ -39,7 +39,7 @@ internal abstract class AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
 
     public void Analyze(SemanticModelAnalysisContext context)
     {
-        if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.DetectAndOfferEditorFeaturesForProbableJsonStrings) ||
+        if (!context.GetAnalyzerOptions(this).GetOption(JsonDetectionOptionsStorage.DetectAndOfferEditorFeaturesForProbableJsonStrings) ||
             ShouldSkipAnalysis(context, notification: null))
         {
             return;

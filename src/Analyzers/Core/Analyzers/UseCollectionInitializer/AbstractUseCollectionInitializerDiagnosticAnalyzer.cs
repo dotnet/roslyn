@@ -129,8 +129,9 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         var language = objectCreationExpression.Language;
         var cancellationToken = context.CancellationToken;
 
-        var preferInitializerOption = context.GetAnalyzerOptions().PreferCollectionInitializer;
-        var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
+        var analyzerOptions = context.GetAnalyzerOptions(this);
+        var preferInitializerOption = analyzerOptions.PreferCollectionInitializer;
+        var preferExpressionOption = analyzerOptions.PreferCollectionExpression;
 
         // not point in analyzing if both options are off.
         if (!preferInitializerOption.Value

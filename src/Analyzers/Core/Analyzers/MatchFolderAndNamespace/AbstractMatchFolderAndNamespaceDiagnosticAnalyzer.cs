@@ -51,7 +51,7 @@ internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSynta
 
     private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetAnalyzerOptions().PreferNamespaceAndFolderMatchStructure;
+        var option = context.GetAnalyzerOptions(this).PreferNamespaceAndFolderMatchStructure;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             return;

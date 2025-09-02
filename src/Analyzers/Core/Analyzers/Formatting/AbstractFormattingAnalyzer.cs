@@ -50,7 +50,7 @@ internal abstract class AbstractFormattingAnalyzer
         var root = tree.GetRoot(cancellationToken);
         var span = context.FilterSpan.HasValue ? context.FilterSpan.GetValueOrDefault() : root.FullSpan;
         var spans = SpecializedCollections.SingletonEnumerable(span);
-        var formattingOptions = context.GetAnalyzerOptions().GetSyntaxFormattingOptions(SyntaxFormatting);
+        var formattingOptions = context.GetAnalyzerOptions(this).GetSyntaxFormattingOptions(SyntaxFormatting);
         var formattingChanges = SyntaxFormatting.GetFormattingResult(root, spans, formattingOptions, rules: default, cancellationToken).GetTextChanges(cancellationToken);
 
         // formattingChanges could include changes that impact a larger section of the original document than

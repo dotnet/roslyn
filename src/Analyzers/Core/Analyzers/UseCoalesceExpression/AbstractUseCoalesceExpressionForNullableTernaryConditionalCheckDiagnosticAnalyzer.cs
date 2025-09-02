@@ -55,7 +55,7 @@ internal abstract class AbstractUseCoalesceExpressionForNullableTernaryCondition
 
         var cancellationToken = context.CancellationToken;
 
-        var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCoalesceExpression;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

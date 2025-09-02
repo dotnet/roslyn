@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
@@ -83,21 +84,24 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
 
 internal static partial class AnalyzerOptionsProviders
 {
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree)
-        => new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), syntaxTree.Options.Language);
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, DiagnosticAnalyzer diagnosticAnalyzer)
+    {
+        throw new NotImplementedException();
+        return new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), syntaxTree.Options.Language);
+    }
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SemanticModelAnalysisContext context)
-        => GetAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SemanticModelAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree, diagnosticAnalyzer);
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxNodeAnalysisContext context)
-        => GetAnalyzerOptions(context.Options, context.Node.SyntaxTree);
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxNodeAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetAnalyzerOptions(context.Options, context.Node.SyntaxTree, diagnosticAnalyzer);
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxTreeAnalysisContext context)
-        => GetAnalyzerOptions(context.Options, context.Tree);
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxTreeAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetAnalyzerOptions(context.Options, context.Tree, diagnosticAnalyzer);
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this OperationAnalysisContext context)
-        => GetAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this OperationAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree, diagnosticAnalyzer);
 
-    public static AnalyzerOptionsProvider GetAnalyzerOptions(this CodeBlockAnalysisContext context)
-        => GetAnalyzerOptions(context.Options, context.CodeBlock.SyntaxTree);
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this CodeBlockAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetAnalyzerOptions(context.Options, context.CodeBlock.SyntaxTree, diagnosticAnalyzer);
 }

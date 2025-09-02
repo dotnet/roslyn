@@ -370,7 +370,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (!CanExplicitInterfaceImplementationsBeFixed && property.ExplicitInterfaceImplementations.Length != 0)
             return;
 
-        var preferAutoProps = context.GetAnalyzerOptions().PreferAutoProperties;
+        var preferAutoProps = context.GetAnalyzerOptions(this).PreferAutoProperties;
         if (!preferAutoProps.Value)
             return;
 

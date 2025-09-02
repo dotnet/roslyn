@@ -95,7 +95,7 @@ internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
         if (GetPrecedence(binaryLike) == GetPrecedence(parentBinaryLike))
             return;
 
-        var options = context.GetAnalyzerOptions();
+        var options = context.GetAnalyzerOptions(this);
         var childPrecedenceKind = _precedenceService.GetPrecedenceKind(binaryLike);
         var parentPrecedenceKind = _precedenceService.GetPrecedenceKind(parentBinaryLike);
 

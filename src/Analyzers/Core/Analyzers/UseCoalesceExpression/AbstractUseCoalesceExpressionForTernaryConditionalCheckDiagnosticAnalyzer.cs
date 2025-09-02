@@ -49,7 +49,7 @@ internal abstract class AbstractUseCoalesceExpressionForTernaryConditionalCheckD
         var cancellationToken = context.CancellationToken;
         var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-        var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCoalesceExpression;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

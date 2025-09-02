@@ -130,7 +130,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             }
 
             var location = parameter.Locations[0];
-            var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree!).UnusedParameters;
+            var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree!, _compilationAnalyzer).UnusedParameters;
             if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                 !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
             {

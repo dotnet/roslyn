@@ -37,7 +37,7 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
 
     public void Analyze(SemanticModelAnalysisContext context)
     {
-        if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns) ||
+        if (!context.GetAnalyzerOptions(this).GetOption(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns) ||
             ShouldSkipAnalysis(context, notification: null))
         {
             return;

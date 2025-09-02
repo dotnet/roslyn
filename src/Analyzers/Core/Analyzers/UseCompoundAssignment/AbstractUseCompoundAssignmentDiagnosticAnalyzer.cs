@@ -77,7 +77,7 @@ internal abstract class AbstractUseCompoundAssignmentDiagnosticAnalyzer<
         var cancellationToken = context.CancellationToken;
 
         var syntaxTree = assignment.SyntaxTree;
-        var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
+        var option = context.GetAnalyzerOptions(this).PreferCompoundAssignment;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             // Bail immediately if the user has disabled this feature.

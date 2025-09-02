@@ -62,7 +62,7 @@ internal abstract class AbstractSimplifyConditionalDiagnosticAnalyzer<
 
     private void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
     {
-        var styleOption = context.GetAnalyzerOptions().PreferSimplifiedBooleanExpressions;
+        var styleOption = context.GetAnalyzerOptions(this).PreferSimplifiedBooleanExpressions;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // Bail immediately if the user has disabled this feature.

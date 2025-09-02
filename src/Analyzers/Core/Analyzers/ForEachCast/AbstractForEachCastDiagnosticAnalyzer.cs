@@ -54,7 +54,7 @@ internal abstract class AbstractForEachCastDiagnosticAnalyzer<TSyntaxKind, TForE
         if (context.Node is not TForEachStatementSyntax node)
             return;
 
-        var option = context.GetAnalyzerOptions().ForEachExplicitCastInSource;
+        var option = context.GetAnalyzerOptions(this).ForEachExplicitCastInSource;
         Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.WhenStronglyTyped);
 
         if (ShouldSkipAnalysis(context, option.Notification))

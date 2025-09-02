@@ -44,7 +44,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         INamedTypeSymbol? formattableStringType,
         ImmutableDictionary<IMethodSymbol, string> knownToStringFormats)
     {
-        var option = context.GetAnalyzerOptions().PreferSimplifiedInterpolation;
+        var option = context.GetAnalyzerOptions(this).PreferSimplifiedInterpolation;
 
         // No point in analyzing if the option is off.
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))

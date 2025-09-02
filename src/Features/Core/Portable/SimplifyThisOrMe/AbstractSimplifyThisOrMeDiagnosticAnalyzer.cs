@@ -57,7 +57,7 @@ internal abstract class AbstractSimplifyThisOrMeDiagnosticAnalyzer<
         if (node.Parent is not TMemberAccessExpressionSyntax memberAccessExpression)
             return;
 
-        var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
+        var simplifierOptions = context.GetAnalyzerOptions(this).GetSimplifierOptions(Simplification);
         if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(
                 memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var notification, cancellationToken)
             || ShouldSkipAnalysis(context, notification))

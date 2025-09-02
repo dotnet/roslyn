@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -84,8 +85,8 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
 
     protected abstract void InitializeWorker(AnalysisContext context);
 
-    protected static bool IsAnalysisLevelGreaterThanOrEquals(int minAnalysisLevel, AnalyzerOptions analyzerOptions)
-        => analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions.IsAnalysisLevelGreaterThanOrEquals(minAnalysisLevel);
+    protected static bool IsAnalysisLevelGreaterThanOrEquals(int minAnalysisLevel, AnalyzerConfigOptionsProvider analyzerOptions)
+        => analyzerOptions.GlobalOptions.IsAnalysisLevelGreaterThanOrEquals(minAnalysisLevel);
 
     protected bool ShouldSkipAnalysis(SemanticModelAnalysisContext context, NotificationOption2? notification)
         => ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, notification, context.CancellationToken);
@@ -111,7 +112,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         CompilationOptions compilationOptions,
         NotificationOption2? notification,
         CancellationToken cancellationToken)
-        => ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, performDescriptorsCheck: true, cancellationToken);
+        => ShouldSkipAnalysis(tree, analyzerOptions.AnalyzerConfigOptionsProvider, compilationOptions, notification, performDescriptorsCheck: true, cancellationToken);
 
     protected bool ShouldSkipAnalysis(
         SyntaxTree tree,
@@ -133,7 +134,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         // Check if any of the notifications are enabled, if so we need to execute analysis.
         foreach (var notification in notifications)
         {
-            if (!ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, performDescriptorsCheck, cancellationToken))
+            if (!ShouldSkipAnalysis(tree, analyzerOptions.AnalyzerConfigOptionsProvider, compilationOptions, notification, performDescriptorsCheck, cancellationToken))
                 return false;
 
             if (performDescriptorsCheck)
@@ -145,7 +146,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
 
     private bool ShouldSkipAnalysis(
         SyntaxTree tree,
-        AnalyzerOptions analyzerOptions,
+        AnalyzerConfigOptionsProvider analyzerConfigOptions,
         CompilationOptions compilationOptions,
         NotificationOption2? notification,
         bool performDescriptorsCheck,
@@ -157,6 +158,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         // that analysis cannot be skipped. For the latter, we perform descriptor-based checks.
         // Descriptors check verifies if any of the diagnostic IDs reported by this analyzer
         // have been escalated to a severity that they must be executed.
+        analyzerConfigOptions = DetermineOptionsProvider(analyzerConfigOptions);
 
         Debug.Assert(_minimumReportedSeverity != null);
 
@@ -172,7 +174,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         // Additionally, notification based severity configuration is respected on build only for AnalysisLevel >= 9.
         if (notification.HasValue
             && notification.Value.IsExplicitlySpecified
-            && IsAnalysisLevelGreaterThanOrEquals(9, analyzerOptions))
+            && IsAnalysisLevelGreaterThanOrEquals(9, analyzerConfigOptions))
         {
             return notification.Value.Severity.ToDiagnosticSeverity() < _minimumReportedSeverity.Value;
         }
@@ -189,8 +191,8 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         // or all analyzer rule IDs.
 
         var severityOptionsProvider = compilationOptions.SyntaxTreeOptionsProvider!;
-        var globalOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
-        var treeOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
+        var globalOptions = analyzerConfigOptions.GlobalOptions;
+        var treeOptions = analyzerConfigOptions.GetOptions(tree);
 
         // See https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#scope
         // for supported analyzer bulk configuration formats.
@@ -252,5 +254,10 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         }
 
         return true;
+    }
+
+    private AnalyzerConfigOptionsProvider DetermineOptionsProvider(AnalyzerConfigOptionsProvider analyzerConfigOptions)
+    {
+        throw new NotImplementedException();
     }
 }

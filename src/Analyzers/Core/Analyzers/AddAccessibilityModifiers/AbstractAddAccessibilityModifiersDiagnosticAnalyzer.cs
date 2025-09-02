@@ -42,7 +42,7 @@ internal abstract class AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnaly
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
+        var option = context.GetAnalyzerOptions(this).RequireAccessibilityModifiers;
         if (option.Value == AccessibilityModifiersRequired.Never
             || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
         {

@@ -133,7 +133,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
             return null;
         }
 
-        var namingPreferences = options.GetAnalyzerOptions(sourceTree).NamingPreferences;
+        var namingPreferences = options.GetAnalyzerOptions(sourceTree, this).NamingPreferences;
         var namingStyleRules = namingPreferences.Rules;
 
         if (!namingStyleRules.TryGetApplicableRule(symbol, out var applicableRule) ||

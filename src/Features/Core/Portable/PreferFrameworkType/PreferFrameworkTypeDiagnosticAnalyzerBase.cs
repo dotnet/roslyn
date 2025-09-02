@@ -48,7 +48,7 @@ internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<
     protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
-        var options = context.GetAnalyzerOptions();
+        var options = context.GetAnalyzerOptions(this);
         var cancellationToken = context.CancellationToken;
 
         // if the user never prefers this style, do not analyze at all.
