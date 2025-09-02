@@ -5418,7 +5418,8 @@ static class Program
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
                 targetFramework: TargetFramework.Net90,
-                expectedOutput: "[Derived 0, Derived 1, Derived 2], [Derived 0, Derived 1, Derived 2], ");
+                expectedOutput: IncludeExpectedOutput("[Derived 0, Derived 1, Derived 2], [Derived 0, Derived 1, Derived 2], "),
+                verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M", $$"""
@@ -5461,7 +5462,8 @@ static class Program
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
                 targetFramework: TargetFramework.Net90,
-                expectedOutput: "[1, 2, 3], [1, 2, 3], ");
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3], "),
+                verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M", $$"""
@@ -5501,7 +5503,8 @@ static class Program
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
                 targetFramework: TargetFramework.Net90,
-                expectedOutput: "[1, 2, 3], [1, 2, 3], ");
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3], "),
+                verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M", $$"""
@@ -35211,7 +35214,11 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, expectedOutput: "a");
+            var verifier = CompileAndVerify(source,
+                targetFramework: TargetFramework.Net80,
+                expectedOutput: IncludeExpectedOutput("a"),
+                verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
+
             verifier.VerifyIL("C.M", """
                 {
                   // Code size        7 (0x7)
@@ -35337,7 +35344,11 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, expectedOutput: "a");
+            var verifier = CompileAndVerify(source,
+                targetFramework: TargetFramework.Net80,
+                expectedOutput: IncludeExpectedOutput("a"),
+                verify: RuntimeUtilities.IsCoreClrRuntime ? Verification.Passes : Verification.Fails);
+
             verifier.VerifyIL("C.M", """
                 {
                   // Code size       12 (0xc)
