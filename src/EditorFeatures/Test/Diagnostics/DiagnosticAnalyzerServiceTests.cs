@@ -747,10 +747,8 @@ public sealed class DiagnosticAnalyzerServiceTests
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
-        // In this case, the analyzers are ran twice. This appears to be a bug in SkippedHostAnalyzersInfo.Create, because it calls
-        // HostDiagnosticAnalyzers.CreateProjectDiagnosticAnalyzersPerReference which already filters out references, it doesn't return any
-        // references to skip.
-        Assert.Equal(2, diagnosticsMapResults.Diagnostics.Length);
+        // The analyzers are only run once since we detect this duplicated analyzer.  So we only get one diagnostic.
+        Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
 
         static AnalyzerReference CreateAnalyzerReferenceWithSameId(DiagnosticAnalyzer analyzer)
         {
