@@ -54,7 +54,7 @@ internal static class AnalyzerOptionsUtilities
                 => projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
 
             public override IEnumerable<string> Keys
-                => projectOptions.Keys.Concat(hostOptions.Keys).Distinct();
+                => projectOptions.Keys.Union(hostOptions.Keys);
 
             public override NamingStylePreferences GetNamingStylePreferences()
             {
