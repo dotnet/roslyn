@@ -182,14 +182,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        protected sealed override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, object? logger)
+        protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
             }
 
-            return (SkipInteractiveExecution) ? 0 : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+            return (SkipInteractiveExecution) ? 0 : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }
 
         #endregion

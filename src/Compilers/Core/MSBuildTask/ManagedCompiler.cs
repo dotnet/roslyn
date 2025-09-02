@@ -503,16 +503,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateFullPathToTool();
         }
 
-        protected override object? CreateServerLogger()
+        protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
-            return new TaskCompilerServerLogger(Log, innerLogger);
-        }
-
-        protected sealed override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, object? logger)
-        {
-            Debug.Assert(logger is ICompilerServerLogger);
-            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, (ICompilerServerLogger)logger);
+            var logger = new TaskCompilerServerLogger(Log, innerLogger);
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
 
         internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
@@ -539,7 +534,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
                 _sharedCompileCts = new CancellationTokenSource();
@@ -550,7 +545,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (clientDirectory is null || tempDirectory is null)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToBuiltInTool}'");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
                 // Note: using ToolArguments here (the property) since
@@ -687,7 +682,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (response is null)
             {
                 LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, "could not launch server");
-                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
 
             switch (response.Type)
@@ -700,30 +695,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 case BuildResponse.ResponseType.MismatchedVersion:
                     LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different protocol version than build task");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
                     LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different hash version than build task");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.CannotConnect:
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"cannot connect to the server");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
                     var rejectedResponse = (RejectedBuildResponse)response;
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request '{rejectedResponse.Reason}'");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     var analyzerResponse = (AnalyzerInconsistencyBuildResponse)response;
                     var combinedMessage = string.Join(", ", analyzerResponse.ErrorMessages.ToArray());
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request due to analyzer / generator issues '{combinedMessage}'");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server gave an unrecognized response");
-                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
         }
 

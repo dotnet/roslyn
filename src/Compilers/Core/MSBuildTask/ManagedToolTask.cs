@@ -197,28 +197,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return buildTaskDirectory;
         }
 
-        protected sealed override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
+        protected override bool ValidateParameters()
         {
-            var logger = CreateServerLogger();
-
             // Set DOTNET_ROOT so that the apphost executables launch properly.
             if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
-                (logger as ICompilerServerLogger)?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+                Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables = [.. EnvironmentVariables ?? [], $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}"];
             }
 
-            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
-        }
-
-        protected virtual object? CreateServerLogger()
-        {
-            return null;
-        }
-
-        protected virtual int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, object? logger)
-        {
-            return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            return base.ValidateParameters();
         }
     }
 }
