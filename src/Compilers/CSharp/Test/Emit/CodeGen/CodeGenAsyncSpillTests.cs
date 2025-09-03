@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Async)]
     public class CodeGenAsyncSpillTests : EmitMetadataTestBase
     {
         public CodeGenAsyncSpillTests()
@@ -1536,85 +1537,98 @@ public class Test
         public void SpillSequencesInConditionalExpression1()
         {
             var source = @"
+using System;
 using System.Threading.Tasks;
 
 public class Test
 {
     public static int H(int a, int b, int c)
     {
+        Console.Write($""H{a},{b},{c};"");
         return a;
     }
 
-    public static Task<int> G()
+    public static Task<int> G(int i)
     {
-        return null;
+        Console.Write($""G{i}"");
+        return Task.FromResult(i);
     }
 
     public static async Task<int> F(int[] array)
     {
-        H(0, (1 == await G()) ? array[3] += await G() : 1, 4);
+        H(0, (1 == await G(1)) ? array[3] += await G(2) : 1, 4);
         return 1;
+    }
+
+    public static async Task Main()
+    {
+        await F(new int[4]);
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            var expectedOutput = "G1G2H0,2,4;";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Return value missing on the stack. { Offset = 0x11 }
                     """
             });
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.F(int[])", """
                 {
-                  // Code size       66 (0x42)
+                  // Code size       68 (0x44)
                   .maxstack  3
                   .locals init (int V_0,
                                 int V_1,
                                 int V_2,
                                 int V_3,
                                 int V_4)
-                  IL_0000:  call       "System.Threading.Tasks.Task<int> Test.G()"
-                  IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_000a:  stloc.0
-                  IL_000b:  ldc.i4.1
-                  IL_000c:  ldloc.0
-                  IL_000d:  bne.un.s   IL_0035
-                  IL_000f:  ldarg.0
-                  IL_0010:  dup
-                  IL_0011:  ldc.i4.3
-                  IL_0012:  ldelem.i4
-                  IL_0013:  pop
-                  IL_0014:  dup
-                  IL_0015:  ldc.i4.3
-                  IL_0016:  ldelem.i4
-                  IL_0017:  stloc.2
-                  IL_0018:  call       "System.Threading.Tasks.Task<int> Test.G()"
-                  IL_001d:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0022:  stloc.3
-                  IL_0023:  ldc.i4.3
-                  IL_0024:  ldelema    "int"
-                  IL_0029:  ldloc.2
-                  IL_002a:  ldloc.3
-                  IL_002b:  add
-                  IL_002c:  dup
-                  IL_002d:  stloc.s    V_4
-                  IL_002f:  stind.i4
-                  IL_0030:  ldloc.s    V_4
-                  IL_0032:  stloc.1
-                  IL_0033:  br.s       IL_0037
-                  IL_0035:  ldc.i4.1
-                  IL_0036:  stloc.1
-                  IL_0037:  ldc.i4.0
-                  IL_0038:  ldloc.1
-                  IL_0039:  ldc.i4.4
-                  IL_003a:  call       "int Test.H(int, int, int)"
-                  IL_003f:  pop
-                  IL_0040:  ldc.i4.1
-                  IL_0041:  ret
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "System.Threading.Tasks.Task<int> Test.G(int)"
+                  IL_0006:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldc.i4.1
+                  IL_000d:  ldloc.0
+                  IL_000e:  bne.un.s   IL_0037
+                  IL_0010:  ldarg.0
+                  IL_0011:  dup
+                  IL_0012:  ldc.i4.3
+                  IL_0013:  ldelem.i4
+                  IL_0014:  pop
+                  IL_0015:  dup
+                  IL_0016:  ldc.i4.3
+                  IL_0017:  ldelem.i4
+                  IL_0018:  stloc.2
+                  IL_0019:  ldc.i4.2
+                  IL_001a:  call       "System.Threading.Tasks.Task<int> Test.G(int)"
+                  IL_001f:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0024:  stloc.3
+                  IL_0025:  ldc.i4.3
+                  IL_0026:  ldelema    "int"
+                  IL_002b:  ldloc.2
+                  IL_002c:  ldloc.3
+                  IL_002d:  add
+                  IL_002e:  dup
+                  IL_002f:  stloc.s    V_4
+                  IL_0031:  stind.i4
+                  IL_0032:  ldloc.s    V_4
+                  IL_0034:  stloc.1
+                  IL_0035:  br.s       IL_0039
+                  IL_0037:  ldc.i4.1
+                  IL_0038:  stloc.1
+                  IL_0039:  ldc.i4.0
+                  IL_003a:  ldloc.1
+                  IL_003b:  ldc.i4.4
+                  IL_003c:  call       "int Test.H(int, int, int)"
+                  IL_0041:  pop
+                  IL_0042:  ldc.i4.1
+                  IL_0043:  ret
                 }
                 """);
         }
@@ -1623,12 +1637,14 @@ public class Test
         public void SpillSequencesInNullCoalescingOperator1()
         {
             var source = @"
+using System;
 using System.Threading.Tasks;
 
 public class C
 {
     public static int H(int a, object b, int c)
     {
+        Console.Write($""H{a},{b},{c};"");
         return a;
     }
 
@@ -1637,19 +1653,27 @@ public class C
         return null;
     }
 
-    public static Task<int> G()
+    public static Task<int> G(int i)
     {
-        return null;
+        Console.Write($""G{i};"");
+        return Task.FromResult(i);
     }
 
     public static async Task<int> F(int[] array)
     {
-        H(0, O(array[0] += await G()) ?? (array[1] += await G()), 4);
+        H(0, O(array[0] += await G(1)) ?? (array[1] += await G(2)), 4);
         return 1;
+    }
+
+    public static async Task Main()
+    {
+        await F(new int[4]);
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+
+            var expectedOutput = "G1;G2;H0,2,4;";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expectedOutput, symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1664,7 +1688,7 @@ public class C
                 }, module.GetFieldNames("C.<F>d__3"));
             });
 
-            CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expectedOutput, symbolValidator: module =>
              {
                  AssertEx.Equal(new[]
                  {
@@ -1684,17 +1708,18 @@ public class C
              });
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F]: Unexpected type on the stack. { Offset = 0x5f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x61, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Main]: Return value missing on the stack. { Offset = 0x11 }
                     """
             });
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.F(int[])", """
                 {
-                  // Code size       96 (0x60)
+                  // Code size       98 (0x62)
                   .maxstack  3
                   .locals init (int V_0,
                                 int V_1,
@@ -1711,52 +1736,54 @@ public class C
                   IL_0006:  ldc.i4.0
                   IL_0007:  ldelem.i4
                   IL_0008:  stloc.0
-                  IL_0009:  call       "System.Threading.Tasks.Task<int> C.G()"
-                  IL_000e:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0013:  stloc.1
-                  IL_0014:  ldc.i4.0
-                  IL_0015:  ldelema    "int"
-                  IL_001a:  ldloc.0
-                  IL_001b:  ldloc.1
-                  IL_001c:  add
-                  IL_001d:  dup
-                  IL_001e:  stloc.3
-                  IL_001f:  stind.i4
-                  IL_0020:  ldloc.3
-                  IL_0021:  call       "object C.O(int)"
-                  IL_0026:  stloc.2
-                  IL_0027:  ldloc.2
-                  IL_0028:  brtrue.s   IL_0055
-                  IL_002a:  ldarg.0
-                  IL_002b:  dup
-                  IL_002c:  ldc.i4.1
-                  IL_002d:  ldelem.i4
-                  IL_002e:  pop
-                  IL_002f:  dup
-                  IL_0030:  ldc.i4.1
-                  IL_0031:  ldelem.i4
-                  IL_0032:  stloc.3
-                  IL_0033:  call       "System.Threading.Tasks.Task<int> C.G()"
-                  IL_0038:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_003d:  stloc.s    V_4
-                  IL_003f:  ldc.i4.1
-                  IL_0040:  ldelema    "int"
-                  IL_0045:  ldloc.3
-                  IL_0046:  ldloc.s    V_4
-                  IL_0048:  add
-                  IL_0049:  dup
-                  IL_004a:  stloc.s    V_5
-                  IL_004c:  stind.i4
-                  IL_004d:  ldloc.s    V_5
-                  IL_004f:  box        "int"
-                  IL_0054:  stloc.2
-                  IL_0055:  ldc.i4.0
-                  IL_0056:  ldloc.2
-                  IL_0057:  ldc.i4.4
-                  IL_0058:  call       "int C.H(int, object, int)"
-                  IL_005d:  pop
-                  IL_005e:  ldc.i4.1
-                  IL_005f:  ret
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  call       "System.Threading.Tasks.Task<int> C.G(int)"
+                  IL_000f:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0014:  stloc.1
+                  IL_0015:  ldc.i4.0
+                  IL_0016:  ldelema    "int"
+                  IL_001b:  ldloc.0
+                  IL_001c:  ldloc.1
+                  IL_001d:  add
+                  IL_001e:  dup
+                  IL_001f:  stloc.3
+                  IL_0020:  stind.i4
+                  IL_0021:  ldloc.3
+                  IL_0022:  call       "object C.O(int)"
+                  IL_0027:  stloc.2
+                  IL_0028:  ldloc.2
+                  IL_0029:  brtrue.s   IL_0057
+                  IL_002b:  ldarg.0
+                  IL_002c:  dup
+                  IL_002d:  ldc.i4.1
+                  IL_002e:  ldelem.i4
+                  IL_002f:  pop
+                  IL_0030:  dup
+                  IL_0031:  ldc.i4.1
+                  IL_0032:  ldelem.i4
+                  IL_0033:  stloc.3
+                  IL_0034:  ldc.i4.2
+                  IL_0035:  call       "System.Threading.Tasks.Task<int> C.G(int)"
+                  IL_003a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_003f:  stloc.s    V_4
+                  IL_0041:  ldc.i4.1
+                  IL_0042:  ldelema    "int"
+                  IL_0047:  ldloc.3
+                  IL_0048:  ldloc.s    V_4
+                  IL_004a:  add
+                  IL_004b:  dup
+                  IL_004c:  stloc.s    V_5
+                  IL_004e:  stind.i4
+                  IL_004f:  ldloc.s    V_5
+                  IL_0051:  box        "int"
+                  IL_0056:  stloc.2
+                  IL_0057:  ldc.i4.0
+                  IL_0058:  ldloc.2
+                  IL_0059:  ldc.i4.4
+                  IL_005a:  call       "int C.H(int, object, int)"
+                  IL_005f:  pop
+                  IL_0060:  ldc.i4.1
+                  IL_0061:  ret
                 }
                 """);
         }
@@ -8305,6 +8332,247 @@ struct S
         }
 
         [Fact]
+        public void SpillAssignmentToThisStruct_01()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                struct S
+                {
+                    int i;
+
+                    async Task M()
+                    {
+                        i = 1; // Not observable outside of the method
+                        return;
+                    }
+
+                    static async Task Main()
+                    {
+                        S s = default;
+                        await s.M();
+                        Console.Write(s.i);
+                    }
+
+                    static Task<int> GetInt() => Task.FromResult(1);
+                }
+                """;
+
+            var expectedOutput = "0";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [M]: Return value missing on the stack. { Offset = 0xf }
+                    [Main]: Return value missing on the stack. { Offset = 0x1f }
+                    """
+            });
+
+            verifier.VerifyDiagnostics(
+                // (7,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(7, 16)
+            );
+            verifier.VerifyIL("S.M()", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldobj      "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  stfld      "int S.i"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpillAssignmentToThisStruct_02()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                struct S : I
+                {
+                    public int P { get; set; }
+
+                    static async Task Main()
+                    {
+                        S s = default;
+                        await s.M();
+                        Console.Write(s.P);
+                    }
+
+                    static Task<int> GetInt() => Task.FromResult(1);
+                }
+
+                interface I
+                {
+                    public int P { get; set; }
+                }
+
+                static class Extensions
+                {
+                    extension<T>(T t) where T : I
+                    {
+                        public async Task M()
+                        {
+                            t.P = 1;
+                            return;
+                        }
+                    }
+                }
+                """;
+
+            var expectedOutput = "0";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x1f }
+                    [M]: Return value missing on the stack. { Offset = 0xe }
+                    """
+            });
+
+            verifier.VerifyDiagnostics(
+                // (26,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         public async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(26, 27)
+            );
+            verifier.VerifyIL("Extensions.M<T>(this T)", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  ldc.i4.1
+                  IL_0003:  constrained. "T"
+                  IL_0009:  callvirt   "void I.P.set"
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpillAssignmentToThisStruct_03()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                struct S : I
+                {
+                    public int P { get; set; }
+
+                    static async Task Main()
+                    {
+                        S s = default;
+                        await s.M();
+                        Console.Write(s.P);
+                    }
+
+                    static Task<int> GetInt() => Task.FromResult(1);
+                }
+
+                interface I
+                {
+                    public int P { get; set; }
+                }
+
+                static class Extensions
+                {
+                    extension<T>(ref T t) where T : struct, I
+                    {
+                        public async Task M()
+                        {
+                            t.P = 1;
+                            return;
+                        }
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[] {
+                // (26,27): error CS1988: Async methods cannot have ref, in or out parameters
+                //         public async Task M()
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "M").WithLocation(26, 27),
+                // (26,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         public async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(26, 27)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void SpillAssignmentToThisStruct_04()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                struct S : I
+                {
+                    public int P { get; set; }
+
+                    static async Task Main()
+                    {
+                        S s = default;
+                        await s.M();
+                        Console.Write(s.P);
+                    }
+
+                    static Task<int> GetInt() => Task.FromResult(1);
+                }
+
+                interface I
+                {
+                    public int P { get; set; }
+                }
+
+                static class Extensions
+                {
+                    extension<T>(ref T t) where T : I
+                    {
+                        public async Task M()
+                        {
+                            t.P = 1;
+                            return;
+                        }
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[] {
+                // (24,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension<T>(ref T t) where T : I
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "T").WithLocation(24, 22),
+                // (26,27): error CS1988: Async methods cannot have ref, in or out parameters
+                //         public async Task M()
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "M").WithLocation(26, 27),
+                // (26,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         public async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(26, 27)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
         public void SpillCompoundAssignmentToThisStruct_01()
         {
             var source = """
@@ -9239,9 +9507,11 @@ class C
     static async Task<int> F2()
     {
         int[] x = new int[1] { 21 };
-        x = null;
+        ClearX();
         F1(ref x[0], F0(), await Task.Factory.StartNew(() => 21));
         return x[0];
+
+        void ClearX() => x = null;
     }
 
     public static void Main()
@@ -9266,53 +9536,59 @@ class C
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [F2]: Unexpected type on the stack. { Offset = 0x56, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [F2]: Unexpected type on the stack. { Offset = 0x6d, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.F2()", """
                 {
-                  // Code size       87 (0x57)
+                  // Code size      110 (0x6e)
                   .maxstack  5
-                  .locals init (int V_0,
-                                int V_1)
-                  IL_0000:  ldc.i4.1
-                  IL_0001:  newarr     "int"
-                  IL_0006:  dup
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldc.i4.s   21
-                  IL_000a:  stelem.i4
-                  IL_000b:  pop
-                  IL_000c:  ldnull
-                  IL_000d:  dup
-                  IL_000e:  dup
-                  IL_000f:  ldc.i4.0
-                  IL_0010:  ldelem.i4
-                  IL_0011:  pop
-                  IL_0012:  call       "int C.F0()"
-                  IL_0017:  stloc.0
-                  IL_0018:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
-                  IL_001d:  ldsfld     "System.Func<int> C.<>c.<>9__2_0"
-                  IL_0022:  dup
-                  IL_0023:  brtrue.s   IL_003c
-                  IL_0025:  pop
-                  IL_0026:  ldsfld     "C.<>c C.<>c.<>9"
-                  IL_002b:  ldftn      "int C.<>c.<F2>b__2_0()"
-                  IL_0031:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
-                  IL_0036:  dup
-                  IL_0037:  stsfld     "System.Func<int> C.<>c.<>9__2_0"
-                  IL_003c:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
-                  IL_0041:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0046:  stloc.1
-                  IL_0047:  ldc.i4.0
-                  IL_0048:  ldelema    "int"
-                  IL_004d:  ldloc.0
-                  IL_004e:  ldloc.1
-                  IL_004f:  call       "void C.F1(ref int, int, int)"
-                  IL_0054:  ldc.i4.0
-                  IL_0055:  ldelem.i4
-                  IL_0056:  ret
+                  .locals init (C.<>c__DisplayClass2_0 V_0, //CS$<>8__locals0
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.1
+                  IL_0003:  newarr     "int"
+                  IL_0008:  dup
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  ldc.i4.s   21
+                  IL_000c:  stelem.i4
+                  IL_000d:  stfld      "int[] C.<>c__DisplayClass2_0.x"
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  call       "void C.<F2>g__ClearX|2_0(ref C.<>c__DisplayClass2_0)"
+                  IL_0019:  ldloc.0
+                  IL_001a:  ldfld      "int[] C.<>c__DisplayClass2_0.x"
+                  IL_001f:  dup
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  ldelem.i4
+                  IL_0022:  pop
+                  IL_0023:  call       "int C.F0()"
+                  IL_0028:  stloc.1
+                  IL_0029:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_002e:  ldsfld     "System.Func<int> C.<>c.<>9__2_1"
+                  IL_0033:  dup
+                  IL_0034:  brtrue.s   IL_004d
+                  IL_0036:  pop
+                  IL_0037:  ldsfld     "C.<>c C.<>c.<>9"
+                  IL_003c:  ldftn      "int C.<>c.<F2>b__2_1()"
+                  IL_0042:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0047:  dup
+                  IL_0048:  stsfld     "System.Func<int> C.<>c.<>9__2_1"
+                  IL_004d:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0052:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0057:  stloc.2
+                  IL_0058:  ldc.i4.0
+                  IL_0059:  ldelema    "int"
+                  IL_005e:  ldloc.1
+                  IL_005f:  ldloc.2
+                  IL_0060:  call       "void C.F1(ref int, int, int)"
+                  IL_0065:  ldloc.0
+                  IL_0066:  ldfld      "int[] C.<>c__DisplayClass2_0.x"
+                  IL_006b:  ldc.i4.0
+                  IL_006c:  ldelem.i4
+                  IL_006d:  ret
                 }
                 """);
         }
@@ -9847,12 +10123,16 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics(
+            var expected =
                 // (18,28): error CS8178: A reference returned by a call to 'C.P.get' cannot be preserved across 'await' or 'yield' boundary.
                 //         Assign(second: ref P, first: await t);
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "P").WithArguments("C.P.get").WithLocation(18, 28)
-                );
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "P").WithArguments("C.P.get").WithLocation(18, 28);
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

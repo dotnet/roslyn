@@ -18,6 +18,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
     private readonly SyntheticBoundNodeFactory _factory = f;
     private readonly MethodSymbol _originalMethod = originalMethod;
     private readonly TypeMap _typeMap = typeMap;
+    private bool _reportedError;
 
     internal BoundExpression? HoistRefInitialization<TArg>(
         LocalSymbol local,
@@ -81,7 +82,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
         ArrayBuilder<BoundExpression> sideEffects,
         ArrayBuilder<THoistedSymbolType> hoistedSymbols,
         ref bool needsSacrificialEvaluation,
-        Func<TypeSymbol, TArg, LocalSymbol, THoistedSymbolType> hoister,
+        Func<TypeSymbol, TArg, LocalSymbol, THoistedSymbolType> createHoistedSymbol,
         Func<THoistedSymbolType, TArg, THoistedAccess> createHoistedAccess,
         TArg arg,
         bool isRuntimeAsync,
@@ -99,7 +100,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                         sideEffects,
                         hoistedSymbols,
                         ref needsSacrificialEvaluation,
-                        hoister,
+                        createHoistedSymbol,
                         createHoistedAccess,
                         arg,
                         isRuntimeAsync,
@@ -115,7 +116,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                             sideEffects,
                             hoistedSymbols,
                             ref needsSacrificialEvaluation,
-                            hoister,
+                            createHoistedSymbol,
                             createHoistedAccess,
                             arg,
                             isRuntimeAsync,
@@ -151,7 +152,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                         sideEffects,
                         hoistedSymbols,
                         ref needsSacrificialEvaluation,
-                        hoister,
+                        createHoistedSymbol,
                         createHoistedAccess,
                         arg,
                         isRuntimeAsync,
@@ -182,6 +183,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                     Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.Out);
                     Debug.Assert(call.Method.RefKind != RefKind.None);
                     _factory.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _factory.Syntax.Location, call.Method);
+                    _reportedError = true;
                 }
                 // method call is not referentially transparent, we can only spill the result value.
                 refKind = RefKind.None;
@@ -200,6 +202,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                     Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.In);
                     Debug.Assert(conditional.IsRef);
                     _factory.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, _factory.Syntax.Location);
+                    _reportedError = true;
                 }
                 // conditional expr is not referentially transparent, we can only spill the result value.
                 refKind = RefKind.None;
@@ -215,12 +218,14 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                 {
                     if (isRuntimeAsync)
                     {
+                        // If an error was reported about ref escaping earlier, there could be illegal ref accesses later in the method,
+                        // so we track that to ensure that we don't see unexpected cases here.
                         // This is an access to a field of a struct, or parameter or local of a type parameter, both of which happen by reference.
                         // The receiver should be a non-ref local or parameter.
                         // This is safe to hoist into a proxy as the original local will be accessed directly.
-                        Debug.Assert(isFieldAccessOfStruct || expr.Type!.IsTypeParameter());
-                        Debug.Assert(expr is BoundLocal { LocalSymbol.RefKind: RefKind.None }
-                                    or BoundParameter { ParameterSymbol.RefKind: RefKind.None });
+                        Debug.Assert(_reportedError || isFieldAccessOfStruct || expr.Type!.IsTypeParameter());
+                        Debug.Assert(_reportedError || expr is BoundLocal { LocalSymbol.RefKind: RefKind.None }
+                                                            or BoundParameter { ParameterSymbol.RefKind: RefKind.None });
                     }
                     else
                     {
@@ -229,7 +234,7 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                 }
 
                 Debug.Assert(expr.Type is not null);
-                var hoistedSymbol = hoister(expr.Type, arg, assignedLocal);
+                var hoistedSymbol = createHoistedSymbol(expr.Type, arg, assignedLocal);
                 hoistedSymbols.Add(hoistedSymbol);
 
                 var replacement = createHoistedAccess(hoistedSymbol, arg);

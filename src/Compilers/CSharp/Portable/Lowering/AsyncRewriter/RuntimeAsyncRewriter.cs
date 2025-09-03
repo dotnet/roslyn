@@ -28,7 +28,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var hoistedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
         var factory = new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics);
         var rewriter = new RuntimeAsyncRewriter(factory, variablesToHoist, hoistedLocals);
-        var thisStore = cacheThisIfNeeded(rewriter);
+        var thisStore = hoistThisIfNeeded(rewriter);
         var result = (BoundStatement)rewriter.Visit(node);
 
         if (thisStore is not null)
@@ -49,15 +49,14 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
         return SpillSequenceSpiller.Rewrite(result, method, compilationState, diagnostics);
 
-        static BoundAssignmentOperator? cacheThisIfNeeded(RuntimeAsyncRewriter rewriter)
+        static BoundAssignmentOperator? hoistThisIfNeeded(RuntimeAsyncRewriter rewriter)
         {
             Debug.Assert(rewriter._factory.CurrentFunction is not null);
             var thisParameter = rewriter._factory.CurrentFunction.ThisParameter;
-            if (rewriter._variablesToHoist.Contains(thisParameter))
+            if (thisParameter is { Type.IsValueType: true, RefKind: RefKind.Ref })
             {
-                // This is a struct or a type parameter, and accessed across an await. We need to replace it with a hoisted local to preserve behavior,
-                // as `this` is a ref
-                Debug.Assert(thisParameter is { Type.IsReferenceType: false, RefKind: RefKind.Ref });
+                // This is a struct or a type parameter, and accessed across an await. We need to replace it with a hoisted local to preserve behavior from
+                // compiler-generated state machines; `this` is a ref, but results are not observable outside of the method.
                 var hoistedThis = rewriter._factory.StoreToTemp(rewriter._factory.This(), out BoundAssignmentOperator store, kind: SynthesizedLocalKind.AwaitByRefSpill);
                 rewriter._hoistedLocals.Add(hoistedThis.LocalSymbol);
                 rewriter._proxies.Add(thisParameter, new CapturedToExpressionSymbolReplacement<ParameterSymbol>(hoistedThis, hoistedFields: [], isReusable: true));
@@ -83,6 +82,17 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         _variablesToHoist = variablesToHoist;
         _refInitializationHoister = new RefInitializationHoister<LocalSymbol, BoundLocal>(_factory, _factory.CurrentFunction, TypeMap.Empty);
         _hoistedLocals = hoistedLocals;
+    }
+
+    [return: NotNullIfNotNull(nameof(node))]
+    public override BoundNode? Visit(BoundNode? node)
+    {
+        if (node == null) return node;
+        var oldSyntax = _factory.Syntax;
+        _factory.Syntax = node.Syntax;
+        var result = base.Visit(node);
+        _factory.Syntax = oldSyntax;
+        return result;
     }
 
     [return: NotNullIfNotNull(nameof(node))]
@@ -206,11 +216,13 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             return base.VisitAssignmentOperator(node);
         }
 
-        BoundExpression originalRight = node.Right;
         BoundExpression visitedRight;
 
         if (_variablesToHoist.Contains(leftLocal.LocalSymbol) && !_proxies.ContainsKey(leftLocal.LocalSymbol))
         {
+            Debug.Assert(leftLocal.LocalSymbol.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (leftLocal.LocalSymbol.SynthesizedKind == SynthesizedLocalKind.ForEachArray && leftLocal.LocalSymbol.Type.HasInlineArrayAttribute(out _) && leftLocal.LocalSymbol.Type.TryGetInlineArrayElementField() is object));
+            Debug.Assert(node.IsRef);
             visitedRight = VisitExpression(node.Right);
             return _refInitializationHoister.HoistRefInitialization(
                 leftLocal.LocalSymbol,
@@ -259,7 +271,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         return false;
     }
 
-    public sealed override BoundNode VisitLocal(BoundLocal node)
+    public override BoundNode VisitLocal(BoundLocal node)
     {
         if (TryReplaceWithProxy(node.LocalSymbol, node.Syntax, out BoundNode? replacement))
         {
@@ -293,7 +305,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             return replacement;
         }
 
-        Debug.Assert(!_variablesToHoist.Contains(thisParameter));
+        Debug.Assert(thisParameter is not { Type.IsValueType: true, RefKind: RefKind.Ref });
         return base.VisitThisReference(node);
     }
 }
