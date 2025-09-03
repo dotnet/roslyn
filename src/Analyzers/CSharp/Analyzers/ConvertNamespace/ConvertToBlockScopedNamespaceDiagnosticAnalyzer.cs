@@ -39,7 +39,7 @@ internal sealed class ConvertToBlockScopedNamespaceDiagnosticAnalyzer : Abstract
 
     private Diagnostic? AnalyzeNamespace(SyntaxNodeAnalysisContext context, FileScopedNamespaceDeclarationSyntax declaration)
     {
-        var option = context.GetCSharpAnalyzerOptions().NamespaceDeclarations;
+        var option = context.GetCSharpAnalyzerOptions(this).NamespaceDeclarations;
         if (ShouldSkipAnalysis(context, option.Notification)
             || !ConvertNamespaceAnalysis.CanOfferUseBlockScoped(option, declaration, forAnalyzer: true))
         {

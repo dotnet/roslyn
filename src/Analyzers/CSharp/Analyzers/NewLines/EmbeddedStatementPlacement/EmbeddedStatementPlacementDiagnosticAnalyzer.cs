@@ -31,7 +31,7 @@ internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer()
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetCSharpAnalyzerOptions().AllowEmbeddedStatementsOnSameLine;
+        var option = context.GetCSharpAnalyzerOptions(this).AllowEmbeddedStatementsOnSameLine;
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 

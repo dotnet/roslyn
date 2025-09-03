@@ -59,7 +59,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
 
-        var preference = context.GetCSharpAnalyzerOptions().PreferMethodGroupConversion;
+        var preference = context.GetCSharpAnalyzerOptions(this).PreferMethodGroupConversion;
         if (ShouldSkipAnalysis(context, preference.Notification))
         {
             // User doesn't care about this rule.

@@ -36,7 +36,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
 
     private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
     {
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferConditionalDelegateCall;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferConditionalDelegateCall;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
         {
             // Bail if the user has disabled this feature.

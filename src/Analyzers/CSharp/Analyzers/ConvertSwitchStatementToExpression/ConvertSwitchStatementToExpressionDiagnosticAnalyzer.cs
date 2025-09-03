@@ -39,7 +39,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
+        var styleOption = context.GetCSharpAnalyzerOptions(this).PreferSwitchExpression;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // User has disabled this feature.

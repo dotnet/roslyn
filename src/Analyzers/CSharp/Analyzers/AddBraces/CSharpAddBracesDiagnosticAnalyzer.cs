@@ -47,7 +47,7 @@ internal sealed class CSharpAddBracesDiagnosticAnalyzer :
     {
         var statement = context.Node;
 
-        var option = context.GetCSharpAnalyzerOptions().PreferBraces;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferBraces;
         if (option.Value == PreferBracesPreference.None ||
             ShouldSkipAnalysis(context, option.Notification))
         {

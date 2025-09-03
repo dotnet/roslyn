@@ -43,7 +43,7 @@ internal sealed class ConvertToFileScopedNamespaceDiagnosticAnalyzer : AbstractB
 
     private Diagnostic? AnalyzeNamespace(SyntaxNodeAnalysisContext context, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration)
     {
-        var option = context.GetCSharpAnalyzerOptions().NamespaceDeclarations;
+        var option = context.GetCSharpAnalyzerOptions(this).NamespaceDeclarations;
         if (ShouldSkipAnalysis(context, option.Notification)
             || !ConvertNamespaceAnalysis.CanOfferUseFileScoped(option, root, declaration, forAnalyzer: true))
         {

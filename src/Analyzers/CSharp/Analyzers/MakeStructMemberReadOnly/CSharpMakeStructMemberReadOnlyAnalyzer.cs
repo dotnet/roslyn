@@ -66,7 +66,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
                 var cancellationToken = context.CancellationToken;
                 var declaration = reference.GetSyntax(cancellationToken);
-                var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
+                var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree, this);
                 option = options.PreferReadOnlyStructMember;
                 if (!option.Value || ShouldSkipAnalysis(declaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
                     return false;

@@ -42,7 +42,7 @@ internal sealed class ConvertToProgramMainDiagnosticAnalyzer : AbstractBuiltInCo
     private void ProcessCompilationUnit(SyntaxNodeAnalysisContext context)
     {
         var root = (CompilationUnitSyntax)context.Node;
-        var option = context.GetCSharpAnalyzerOptions().PreferTopLevelStatements;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferTopLevelStatements;
 
         if (ShouldSkipAnalysis(context, option.Notification)
             || !CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))

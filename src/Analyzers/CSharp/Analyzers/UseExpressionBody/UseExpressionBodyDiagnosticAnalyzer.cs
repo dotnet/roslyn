@@ -48,7 +48,7 @@ internal sealed class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeS
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
         var cancellationToken = context.CancellationToken;
-        var options = context.GetCSharpAnalyzerOptions().GetCodeGenerationOptions();
+        var options = context.GetCSharpAnalyzerOptions(this).GetCodeGenerationOptions();
 
         var nodeKind = context.Node.Kind();
 

@@ -40,7 +40,8 @@ internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
         if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
             return;
 
-        var styleOption = context.GetCSharpAnalyzerOptions().ImplicitObjectCreationWhenTypeIsApparent;
+        var analyzerOptions = context.GetCSharpAnalyzerOptions(this);
+        var styleOption = analyzerOptions.ImplicitObjectCreationWhenTypeIsApparent;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // Bail immediately if the user has disabled this feature.
@@ -48,7 +49,7 @@ internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
         }
 
         var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
-        if (!Analyze(semanticModel, context.GetCSharpAnalyzerOptions().GetSimplifierOptions(), objectCreation, cancellationToken))
+        if (!Analyze(semanticModel, analyzerOptions.GetSimplifierOptions(), objectCreation, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(

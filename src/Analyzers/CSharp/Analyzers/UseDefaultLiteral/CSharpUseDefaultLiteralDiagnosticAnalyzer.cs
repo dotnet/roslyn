@@ -32,7 +32,7 @@ internal sealed class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltI
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var preference = context.GetCSharpAnalyzerOptions().PreferSimpleDefaultExpression;
+        var preference = context.GetCSharpAnalyzerOptions(this).PreferSimpleDefaultExpression;
         if (ShouldSkipAnalysis(context, preference.Notification))
             return;
 

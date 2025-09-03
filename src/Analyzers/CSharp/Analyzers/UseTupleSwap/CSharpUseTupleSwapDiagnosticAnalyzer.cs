@@ -62,7 +62,7 @@ internal sealed class CSharpUseTupleSwapDiagnosticAnalyzer : AbstractBuiltInCode
     private void AnalyzeLocalDeclarationStatement(SyntaxNodeAnalysisContext syntaxContext)
     {
         var cancellationToken = syntaxContext.CancellationToken;
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferTupleSwap;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferTupleSwap;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             return;
 

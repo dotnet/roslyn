@@ -102,7 +102,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
             {
                 currentSyntaxTree = fieldSyntaxTree;
 
-                currentOption = context.GetCSharpAnalyzerOptions(currentSyntaxTree).PreferSystemThreadingLock;
+                currentOption = context.GetCSharpAnalyzerOptions(currentSyntaxTree, this).PreferSystemThreadingLock;
 
                 // Ignore this field if it is is in a file that should be skipped.
                 if (!currentOption.Value || ShouldSkipAnalysis(currentSyntaxTree, context.Options, context.Compilation.Options, currentOption.Notification, cancellationToken))

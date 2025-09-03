@@ -48,7 +48,7 @@ internal sealed class ConvertToTopLevelStatementsDiagnosticAnalyzer : AbstractBu
     private void ProcessCompilationUnit(SyntaxNodeAnalysisContext context)
     {
         // Don't want to suggest moving if the user doesn't have a preference for top-level-statements.
-        var option = context.GetCSharpAnalyzerOptions().PreferTopLevelStatements;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferTopLevelStatements;
         if (ShouldSkipAnalysis(context, option.Notification)
             || !CanOfferUseTopLevelStatements(option, forAnalyzer: true))
         {

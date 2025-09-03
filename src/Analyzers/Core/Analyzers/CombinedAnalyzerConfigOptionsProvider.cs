@@ -77,6 +77,9 @@ internal static class AnalyzerOptionsUtilities
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             // Lookup in project options first.  Editor config should override the values from the host.
             {
+                if (key is "generated_code")
+                    return projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
+
                 throw new NotImplementedException();
                 return projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
             }

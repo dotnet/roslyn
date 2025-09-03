@@ -77,7 +77,7 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
 
     private void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
+        var option = context.GetCSharpAnalyzerOptions(this).UsingDirectivePlacement;
         var compilationUnit = (CompilationUnitSyntax)context.Node;
 
         if (option.Value != AddImportPlacement.InsideNamespace

@@ -34,7 +34,7 @@ internal sealed class ConditionalExpressionPlacementDiagnosticAnalyzer : Abstrac
 
     private void ProcessConditionalExpression(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInConditionalExpression;
+        var option = context.GetCSharpAnalyzerOptions(this).AllowBlankLineAfterTokenInConditionalExpression;
         if (option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

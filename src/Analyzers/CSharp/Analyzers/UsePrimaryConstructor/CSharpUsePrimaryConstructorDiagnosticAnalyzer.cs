@@ -263,7 +263,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                 if (namedType.DeclaringSyntaxReferences is not [var reference, ..])
                     return null;
 
-                var styleOption = options.GetCSharpAnalyzerOptions(reference.SyntaxTree).PreferPrimaryConstructors;
+                var styleOption = options.GetCSharpAnalyzerOptions(reference.SyntaxTree, this).PreferPrimaryConstructors;
                 if (!styleOption.Value
                     || diagnosticAnalyzer.ShouldSkipAnalysis(reference.SyntaxTree, context.Options, context.Compilation.Options, styleOption.Notification, cancellationToken))
                 {

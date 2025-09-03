@@ -70,7 +70,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
     private void AnalyzeInvocation(OperationAnalysisContext context, InfoCache infoCache)
     {
         // Check if the user wants these operators.
-        var option = context.GetCSharpAnalyzerOptions().PreferRangeOperator;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferRangeOperator;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

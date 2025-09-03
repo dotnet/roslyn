@@ -41,7 +41,7 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
 
     private void AnalyzeNode(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().PreferDeconstructedVariableDeclaration;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferDeconstructedVariableDeclaration;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

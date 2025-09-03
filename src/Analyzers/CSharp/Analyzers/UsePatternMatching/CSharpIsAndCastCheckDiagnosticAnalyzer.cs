@@ -63,7 +63,7 @@ internal sealed class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCo
 
     private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
     {
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferPatternMatchingOverIsWithCastCheck;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
         {
             // Bail immediately if the user has disabled this feature.

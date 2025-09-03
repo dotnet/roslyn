@@ -61,7 +61,7 @@ internal sealed class UseUtf8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCo
         var arrayCreationOperation = (IArrayCreationOperation)context.Operation;
 
         // Don't offer if the user doesn't want it
-        var option = context.GetCSharpAnalyzerOptions().PreferUtf8StringLiterals;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferUtf8StringLiterals;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

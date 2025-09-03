@@ -96,24 +96,27 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options)
 
 internal static class CSharpAnalyzerOptionsProviders
 {
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this AnalyzerOptions options, SyntaxTree syntaxTree)
-        => new(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader());
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this AnalyzerOptions options, SyntaxTree syntaxTree, DiagnosticAnalyzer diagnosticAnalyzer)
+    {
+        options = AnalyzerOptionsUtilities.GetSpecificOptions(options, diagnosticAnalyzer);
+        return new(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader());
+    }
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SemanticModelAnalysisContext context)
-        => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SemanticModelAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree, diagnosticAnalyzer);
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxNodeAnalysisContext context)
-        => GetCSharpAnalyzerOptions(context.Options, context.Node.SyntaxTree);
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxNodeAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetCSharpAnalyzerOptions(context.Options, context.Node.SyntaxTree, diagnosticAnalyzer);
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxTreeAnalysisContext context)
-        => GetCSharpAnalyzerOptions(context.Options, context.Tree);
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxTreeAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetCSharpAnalyzerOptions(context.Options, context.Tree, diagnosticAnalyzer);
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this CodeBlockAnalysisContext context)
-        => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this CodeBlockAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree, diagnosticAnalyzer);
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this OperationAnalysisContext context)
-        => GetCSharpAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this OperationAnalysisContext context, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetCSharpAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree, diagnosticAnalyzer);
 
-    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SymbolStartAnalysisContext context, SyntaxTree syntaxTree)
-        => GetCSharpAnalyzerOptions(context.Options, syntaxTree);
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SymbolStartAnalysisContext context, SyntaxTree syntaxTree, DiagnosticAnalyzer diagnosticAnalyzer)
+        => GetCSharpAnalyzerOptions(context.Options, syntaxTree, diagnosticAnalyzer);
 }

@@ -87,7 +87,6 @@ internal static partial class AnalyzerOptionsProviders
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, DiagnosticAnalyzer diagnosticAnalyzer)
     {
         analyzerOptions = AnalyzerOptionsUtilities.GetSpecificOptions(analyzerOptions, diagnosticAnalyzer);
-
         return new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), syntaxTree.Options.Language);
     }
 

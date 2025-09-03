@@ -76,7 +76,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
 
     private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
     {
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferLocalOverAnonymousFunction;
         // Bail immediately if the user has disabled this feature.
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             return;

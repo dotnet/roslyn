@@ -71,33 +71,34 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
 
     Friend Module VisualBasicAnalyzerOptionsProviders
         <Extension>
-        Public Function GetVisualBasicAnalyzerOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicAnalyzerOptionsProvider
+        Public Function GetVisualBasicAnalyzerOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider        analyzerOptions = AnalyzerOptionsUtilities.GetSpecificOptions(analyzerOptions, diagnosticAnalyzer);
+            options = AnalyzerOptionsUtilities.GetSpecificOptions(options, diagnosticAnalyzer)
             Return New VisualBasicAnalyzerOptionsProvider(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader())
         End Function
 
         <Extension>
-        Public Function GetVisualBasicAnalyzerOptions(context As SemanticModelAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return GetVisualBasicAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree)
+        Public Function GetVisualBasicAnalyzerOptions(context As SemanticModelAnalysisContext, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree, diagnosticAnalyzer)
         End Function
 
         <Extension>
-        Public Function GetVisualBasicAnalyzerOptions(context As SyntaxNodeAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return GetVisualBasicAnalyzerOptions(context.Options, context.Node.SyntaxTree)
+        Public Function GetVisualBasicAnalyzerOptions(context As SyntaxNodeAnalysisContext, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.Node.SyntaxTree, diagnosticAnalyzer)
         End Function
 
         <Extension>
-        Public Function GetVisualBasicAnalyzerOptions(context As SyntaxTreeAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return GetVisualBasicAnalyzerOptions(context.Options, context.Tree)
+        Public Function GetVisualBasicAnalyzerOptions(context As SyntaxTreeAnalysisContext, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.Tree, diagnosticAnalyzer)
         End Function
 
         <Extension>
-        Public Function GetVisualBasicAnalyzerOptions(context As OperationAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return GetVisualBasicAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree)
+        Public Function GetVisualBasicAnalyzerOptions(context As OperationAnalysisContext, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree, diagnosticAnalyzer)
         End Function
 
         <Extension>
-        Public Function GetVisualBasicAnalyzerOptions(context As CodeBlockAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return GetVisualBasicAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree)
+        Public Function GetVisualBasicAnalyzerOptions(context As CodeBlockAnalysisContext, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree, diagnosticAnalyzer)
         End Function
     End Module
 End Namespace
