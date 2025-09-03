@@ -34811,6 +34811,7 @@ static class E2
     [Fact]
     public void MethodInvocation_RemoveWorseMembers_05()
     {
+        // by-value vs. in, instance method
         var src = """
 42.M();
 
@@ -34838,9 +34839,10 @@ static class E2
         AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
     public void MethodInvocation_RemoveWorseMembers_06()
     {
+        // by-value vs. in, static method
         var src = """
 int.M();
 
@@ -34860,12 +34862,15 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M()' and 'E2.extension(in int).M()'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M()", "E2.extension(in int).M()").WithLocation(1, 5));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]
@@ -34927,6 +34932,73 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
         AssertEx.Equal("void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+    public void MethodInvocation_RemoveWorseMembers_09()
+    {
+        // by-value vs. in, static method, instance receiver
+        var src = """
+42.M();
+
+static class E1
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+static class E2
+{
+    extension(in int i)
+    {
+        public static void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0176: Member 'E1.extension(int).M()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // 42.M();
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "42.M").WithArguments("E1.extension(int).M()").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+    public void MethodInvocation_RemoveWorseMembers_10()
+    {
+        var src = """
+int.M();
+
+static class E1
+{
+    extension(int)
+    {
+        public static void M() => throw null;
+    }
+}
+static class E2
+{
+    extension(params int[])
+    {
+        public static void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (12,15): error CS1670: params is not valid in this context
+            //     extension(params int[])
+            Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(12, 15));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -36159,7 +36231,7 @@ static class E
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
     public void PropertyAccess_RemoveWorseMembers_05()
     {
         var src = """
@@ -36213,13 +36285,20 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way
+        comp.VerifyEmitDiagnostics(
+            // (1,22): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // System.Console.Write(int.P);
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "int.P").WithArguments("int", "P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
-        AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        AssertEx.Equal([
+            "System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }",
+            "System.Int32 E2.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }"
+            ], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36252,6 +36331,142 @@ static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
         AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveWorseMembers_08()
+    {
+        // In COM import scenarios, better conversion from expression considers ref kind,
+        // but we can't cause such a difference with static extension members
+        string src = @"
+using System;
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+struct S { }
+
+static class E1
+{
+    extension(in S s)
+    {
+        public static int P => 42;
+    }
+}
+
+static class E2
+{
+    extension(S)
+    {
+        public static int P => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (5,2): error CS0592: Attribute 'ComImport' is not valid on this declaration type. It is only valid on 'class, interface' declarations.
+            // [ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ComImport").WithArguments("ComImport", "class, interface").WithLocation(5, 2));
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveWorseMembers_09()
+    {
+        // In COM import scenarios, better conversion from expression considers ref kind,
+        // but we can't cause such a difference with static extension members
+        string src = @"
+using System;
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M<T>() where T : struct, I
+    {
+        _ = T.P;
+    }
+}
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+interface I { }
+
+static class E1
+{
+    extension<T>(ref T t) where T : struct, I
+    {
+        public static int P => 42;
+    }
+}
+
+static class E2
+{
+    extension<T>(T t) where T : struct, I
+    {
+        public static int P => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (9,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         _ = T.P;
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(9, 13));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.P");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveWorseMembers_10()
+    {
+        // In COM import scenarios, better conversion from expression considers ref kind,
+        // but we can't cause such a difference with static extension members
+        string src = @"
+using System;
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M<T>(T t) where T : struct, I
+    {
+        _ = t.P; // Note: T is not COM import type...
+    }
+}
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+interface I { }
+
+static class E1
+{
+    extension<T>(ref T t) where T : struct, I
+    {
+        public static int P => 42;
+    }
+}
+
+static class E2
+{
+    extension<T>(T t) where T : struct, I
+    {
+        public static int P => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (9,13): error CS9286: 'T' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'T' could be found (are you missing a using directive or an assembly reference?)
+            //         _ = t.P; // Note: T is not COM import type...
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "t.P").WithArguments("T", "P").WithLocation(9, 13));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.P");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([
+            "System.Int32 E1.<G>$650CAC53424D6B2378EC6C39C3E99C6C<T>.P { get; }",
+            "System.Int32 E2.<G>$650CAC53424D6B2378EC6C39C3E99C6C<T>.P { get; }"
+            ], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
