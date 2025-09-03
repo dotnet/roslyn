@@ -36254,6 +36254,7 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way
         comp.VerifyEmitDiagnostics(
             // (1,22): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(int.P);
