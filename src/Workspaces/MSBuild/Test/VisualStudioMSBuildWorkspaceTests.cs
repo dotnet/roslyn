@@ -2320,7 +2320,6 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
     public async Task TestAnalyzerWithLaterCompilerDependency_HasError()
     {
         string[] projPaths = [@"AnalyzerSolution\CSharp_AnalyzerWithLaterCompilerDependency.csproj", @"AnalyzerSolution\VisualBasic_AnalyzerWithLaterCompilerDependency.vbproj"];
