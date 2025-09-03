@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -15,5 +16,5 @@ internal interface IRemoteInitializationService
     /// Called as soon as the remote process is created.
     /// </summary>
     /// <returns>Process ID of the remote process and an error message if the server encountered initialization issues.</returns>
-    ValueTask<(int processId, string? errorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken);
+    ValueTask<(int processId, string? errorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, ImmutableArray<string> oopMefComponentPaths, CancellationToken cancellationToken);
 }

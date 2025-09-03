@@ -23,7 +23,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 
-    internal const string RazorContentTypeName = "Microsoft.VisualStudio.RazorAssembly";
+    internal const string RoslynOopMefContentName = "Microsoft.VisualStudio.RoslynOopMefComponent";
 
     /// <summary>
     /// Loader for VSIX-based analyzers.
@@ -35,6 +35,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 
     private readonly Lazy<ImmutableArray<(AnalyzerFileReference reference, string extensionId)>> _lazyAnalyzerReferences;
 
+    private readonly Lazy<ImmutableArray<(string path, string extensionId)>> _lazyOopMefComponents;
+
     // internal for testing
     internal VisualStudioDiagnosticAnalyzerProvider(object extensionManager, Type typeIExtensionContent)
     {
@@ -44,10 +46,14 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
         _extensionManager = extensionManager;
         _typeIExtensionContent = typeIExtensionContent;
         _lazyAnalyzerReferences = new Lazy<ImmutableArray<(AnalyzerFileReference, string)>>(() => GetExtensionContent(AnalyzerContentTypeName).SelectAsArray(c => (new AnalyzerFileReference(c.path, AnalyzerAssemblyLoader), c.extensionId)));
+        _lazyOopMefComponents = new Lazy<ImmutableArray<(string path, string extensionId)>>(() => GetExtensionContent(RoslynOopMefContentName));
     }
 
     public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
         => _lazyAnalyzerReferences.Value;
+
+    public ImmutableArray<(string path, string extensionId)> GetOopMefComponentsInExtensions()
+        => _lazyOopMefComponents.Value;
 
     private ImmutableArray<(string path, string extensionId)> GetExtensionContent(string contentTypeName)
     {
