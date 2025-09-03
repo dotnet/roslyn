@@ -24,7 +24,7 @@ internal sealed class RemoteInitializationService(
     {
         // Performed before RunServiceAsync to ensure that the export provider is initialized before the RemoteWorkspaceManager is created
         // as part of the RunServiceAsync call.
-        var errorMessage = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+        var errorMessage = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, TraceLogger, cancellationToken).ConfigureAwait(false);
 
         var processId = await RunServiceAsync(cancellationToken =>
         {
