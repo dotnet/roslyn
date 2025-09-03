@@ -34,7 +34,7 @@ internal sealed class ArrowExpressionClausePlacementDiagnosticAnalyzer : Abstrac
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInArrowExpressionClause;
+        var option = context.GetCSharpAnalyzerOptions(this).AllowBlankLineAfterTokenInArrowExpressionClause;
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 

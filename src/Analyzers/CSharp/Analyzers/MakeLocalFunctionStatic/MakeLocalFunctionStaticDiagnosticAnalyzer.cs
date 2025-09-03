@@ -40,7 +40,7 @@ internal sealed class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltI
             return;
         }
 
-        var option = context.thisGetCSharpAnalyzerOptions(this).PreferStaticLocalFunction;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferStaticLocalFunction;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             return;

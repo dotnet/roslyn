@@ -39,7 +39,7 @@ internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase(
         if (declaredType == null)
             return;
 
-        var simplifierOptions = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+        var simplifierOptions = context.GetCSharpAnalyzerOptions(this).GetSimplifierOptions();
 
         var typeStyle = Helper.AnalyzeTypeName(
             declaredType, semanticModel, simplifierOptions, cancellationToken);

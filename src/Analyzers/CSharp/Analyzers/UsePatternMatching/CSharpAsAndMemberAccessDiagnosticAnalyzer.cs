@@ -51,7 +51,7 @@ internal sealed partial class CSharpAsAndMemberAccessDiagnosticAnalyzer : Abstra
 
     private void AnalyzeAsExpression(SyntaxNodeAnalysisContext context)
     {
-        var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatchingOverAsWithNullCheck;
+        var styleOption = context.GetCSharpAnalyzerOptions(this).PreferPatternMatchingOverAsWithNullCheck;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // Bail immediately if the user has disabled this feature.

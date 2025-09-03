@@ -38,7 +38,7 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
         var cancellationToken = context.CancellationToken;
         var analyzerOptions = context.Options;
         var semanticModel = context.SemanticModel;
-        var option = analyzerOptions.GetCSharpAnalyzerOptions(semanticModel.SyntaxTree).PreferImplicitlyTypedLambdaExpression;
+        var option = analyzerOptions.GetCSharpAnalyzerOptions(semanticModel.SyntaxTree, this).PreferImplicitlyTypedLambdaExpression;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

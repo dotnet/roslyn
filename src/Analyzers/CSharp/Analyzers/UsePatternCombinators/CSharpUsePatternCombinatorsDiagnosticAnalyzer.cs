@@ -60,7 +60,7 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer() :
             return;
 
         var cancellationToken = context.CancellationToken;
-        var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatching;
+        var styleOption = context.GetCSharpAnalyzerOptions(this).PreferPatternMatching;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             return;
 

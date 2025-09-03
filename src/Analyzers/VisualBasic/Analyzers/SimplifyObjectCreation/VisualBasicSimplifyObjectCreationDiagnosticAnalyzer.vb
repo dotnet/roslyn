@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             ' which can be simplified to
             ' Dim x As New SomeType()
 
-            Dim styleOption = context.GetVisualBasicAnalyzerOptions().PreferSimplifiedObjectCreation
+            Dim styleOption = context.GetVisualBasicAnalyzerOptions(Me).PreferSimplifiedObjectCreation
             If Not styleOption.Value OrElse ShouldSkipAnalysis(context, styleOption.Notification) Then
                 Return
             End If

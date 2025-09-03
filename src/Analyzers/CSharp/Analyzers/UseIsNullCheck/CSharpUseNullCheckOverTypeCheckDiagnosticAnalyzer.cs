@@ -43,7 +43,7 @@ internal sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer : Abstra
 
     private bool ShouldAnalyze(OperationAnalysisContext context, out NotificationOption2 notificationOption)
     {
-        var option = context.GetCSharpAnalyzerOptions().PreferNullCheckOverTypeCheck;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferNullCheckOverTypeCheck;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             notificationOption = NotificationOption2.Silent;

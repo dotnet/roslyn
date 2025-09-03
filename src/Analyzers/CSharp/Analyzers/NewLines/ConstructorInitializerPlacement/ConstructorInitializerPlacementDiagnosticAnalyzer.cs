@@ -34,7 +34,7 @@ internal sealed class ConstructorInitializerPlacementDiagnosticAnalyzer : Abstra
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterColonInConstructorInitializer;
+        var option = context.GetCSharpAnalyzerOptions(this).AllowBlankLineAfterColonInConstructorInitializer;
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 

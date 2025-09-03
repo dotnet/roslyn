@@ -56,7 +56,7 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
 
     private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
+        var option = context.GetCSharpAnalyzerOptions(this).UsingDirectivePlacement;
         if (option.Value == AddImportPlacement.InsideNamespace
             || ShouldSkipAnalysis(context, option.Notification))
         {

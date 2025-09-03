@@ -54,7 +54,7 @@ internal sealed class CSharpUseNotPatternDiagnosticAnalyzer()
         var cancellationToken = context.CancellationToken;
 
         // Bail immediately if the user has disabled this feature.
-        var styleOption = context.GetCSharpAnalyzerOptions().PreferNotPattern;
+        var styleOption = context.GetCSharpAnalyzerOptions(this).PreferNotPattern;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             return;
 

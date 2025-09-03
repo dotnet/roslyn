@@ -19,7 +19,7 @@ internal sealed class CSharpUseThrowExpressionDiagnosticAnalyzer()
         => CSharpSemanticFacts.Instance;
 
     protected override CodeStyleOption2<bool> PreferThrowExpressionStyle(OperationAnalysisContext context)
-        => context.GetCSharpAnalyzerOptions().PreferThrowExpression;
+        => context.GetCSharpAnalyzerOptions(this).PreferThrowExpression;
 
     protected override bool IsSupported(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp7;

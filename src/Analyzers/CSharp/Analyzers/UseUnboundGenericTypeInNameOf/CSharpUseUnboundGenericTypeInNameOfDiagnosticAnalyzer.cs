@@ -57,7 +57,7 @@ internal sealed class CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer()
     private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext syntaxContext)
     {
         var cancellationToken = syntaxContext.CancellationToken;
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferUnboundGenericTypeInNameOf;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferUnboundGenericTypeInNameOf;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             return;
 

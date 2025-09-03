@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
 
     Friend Module VisualBasicAnalyzerOptionsProviders
         <Extension>
-        Public Function GetVisualBasicAnalyzerOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider        analyzerOptions = AnalyzerOptionsUtilities.GetSpecificOptions(analyzerOptions, diagnosticAnalyzer);
+        Public Function GetVisualBasicAnalyzerOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree, diagnosticAnalyzer As DiagnosticAnalyzer) As VisualBasicAnalyzerOptionsProvider
             options = AnalyzerOptionsUtilities.GetSpecificOptions(options, diagnosticAnalyzer)
             Return New VisualBasicAnalyzerOptionsProvider(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader())
         End Function
