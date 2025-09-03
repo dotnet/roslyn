@@ -1006,7 +1006,27 @@ internal static class CastSimplifier
             if (!outerConversion.IsImplicit)
                 return false;
 
-            return rewrittenConditionalConvertedType.Equals(conversionOperation.Type);
+            if (!rewrittenConditionalConvertedType.Equals(conversionOperation.Type))
+                return false;
+
+            // There's one case where this is still not safe.  If we started with `x ? (Span<...>)inline_array : ...` and now
+            // have `x ? inline_array : ...` then this is not safe to remove.  This is because the outer Span conversion is
+            // is not legal when dealing with a 'value' (vs variable) as per: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/inline-arrays.md#conversions
+            //
+            // ```
+            // A new conversion, an inline array conversion, from expression will be added. The inline array conversion is a standard conversion.
+            //
+            // There is an implicit conversion from expression of an inline array type to the following types:  System.Span<T>, System.ReadOnlySpan<T>
+            //
+            // However, converting a readonly variable to System.Span<T> or converting *a value* to either type is an error.
+            // ```
+            if (conversionOperation.Type.IsSpanOrReadOnlySpan() &&
+                conversionOperation.GetConversion().IsInlineArray)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 
