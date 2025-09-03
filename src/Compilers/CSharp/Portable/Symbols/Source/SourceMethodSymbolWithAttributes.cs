@@ -1519,6 +1519,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            // Report error if MetadataUpdateDeletedAttribute is explicitly applied
+            if (symbolPart != AttributeLocation.Return)
+            {
+                int metadataUpdateDeletedIndex = boundAttributes.IndexOfAttribute(AttributeDescription.MetadataUpdateDeletedAttribute);
+                if (metadataUpdateDeletedIndex >= 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, allAttributeSyntaxNodes[metadataUpdateDeletedIndex].Location);
+                }
+            }
+
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 

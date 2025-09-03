@@ -1720,6 +1720,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
+            // Report error if MetadataUpdateDeletedAttribute is explicitly applied
+            int metadataUpdateDeletedIndex = boundAttributes.IndexOfAttribute(AttributeDescription.MetadataUpdateDeletedAttribute);
+            if (metadataUpdateDeletedIndex >= 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, allAttributeSyntaxNodes[metadataUpdateDeletedIndex].Location);
+            }
+
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 

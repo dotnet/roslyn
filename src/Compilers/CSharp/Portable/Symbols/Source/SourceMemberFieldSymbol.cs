@@ -141,6 +141,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
+            // Report error if MetadataUpdateDeletedAttribute is explicitly applied
+            int metadataUpdateDeletedIndex = boundAttributes.IndexOfAttribute(AttributeDescription.MetadataUpdateDeletedAttribute);
+            if (metadataUpdateDeletedIndex >= 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, allAttributeSyntaxNodes[metadataUpdateDeletedIndex].Location);
+            }
+
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
 
             // Ensure availability of `DecimalConstantAttribute`.

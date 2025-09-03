@@ -1665,6 +1665,13 @@ next:;
                 diagnostics.Add(ErrorCode.ERR_DefaultMemberOnIndexedType, allAttributeSyntaxNodes[index].Name.Location);
             }
 
+            // Report error if MetadataUpdateDeletedAttribute is explicitly applied
+            int metadataUpdateDeletedIndex = boundAttributes.IndexOfAttribute(AttributeDescription.MetadataUpdateDeletedAttribute);
+            if (metadataUpdateDeletedIndex >= 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, allAttributeSyntaxNodes[metadataUpdateDeletedIndex].Location);
+            }
+
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 

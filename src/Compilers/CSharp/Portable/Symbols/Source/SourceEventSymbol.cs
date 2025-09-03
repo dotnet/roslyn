@@ -371,6 +371,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            Debug.Assert(!boundAttributes.IsDefault);
+            Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
+            Debug.Assert(boundAttributes.Length == allAttributeSyntaxNodes.Length);
+            Debug.Assert(symbolPart == AttributeLocation.None);
+
+            // Report error if MetadataUpdateDeletedAttribute is explicitly applied
+            int metadataUpdateDeletedIndex = boundAttributes.IndexOfAttribute(AttributeDescription.MetadataUpdateDeletedAttribute);
+            if (metadataUpdateDeletedIndex >= 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, allAttributeSyntaxNodes[metadataUpdateDeletedIndex].Location);
+            }
+
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData>? attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
