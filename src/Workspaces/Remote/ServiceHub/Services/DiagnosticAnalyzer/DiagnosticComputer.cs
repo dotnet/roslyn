@@ -355,7 +355,6 @@ internal sealed partial class DiagnosticComputer
         // Clear the set -- we want these two loops to be independent
         referenceSet.Clear();
 
-        var projectAnalyzers = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
         foreach (var reference in _project.AnalyzerReferences)
         {
             if (!referenceSet.Add(reference.Id))
