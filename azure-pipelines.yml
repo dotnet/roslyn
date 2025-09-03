@@ -125,6 +125,10 @@ parameters:
     default:
       name: $(PoolName)
       demands: ImageOverride -equals $(WindowsQueueName)
+  - name: macOSPool
+    type: object
+    default:
+      vmImage: macOS-15
   - name: vs2022PreviewPool
     type: object
     default:
@@ -169,6 +173,16 @@ stages:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       poolParameters: ${{ parameters.ubuntuPool }}
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - stage: MacOS_Build
+    dependsOn: []
+    jobs:
+    - template: eng/pipelines/build-unix-job.yml
+      parameters:
+        jobName: Build_macOS_Debug
+        testArtifactName: Transport_Artifacts_macOS_Debug
+        poolParameters: ${{ parameters.macOSPool }}
 
 - stage: Source_Build
   dependsOn: []
@@ -370,14 +384,19 @@ stages:
         testArguments: --testCoreClr
         poolParameters: ${{ parameters.ubuntuPool }}
 
-  # https://github.com/dotnet/runtime/issues/97186
-  # Disabled until runtime can track down the crash
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - stage: MacOS_Debug_CoreClr
+    dependsOn: MacOS_Build
+    variables:
+    - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      - group: DotNet-HelixApi-Access
+    jobs:
+    # https://github.com/dotnet/runtime/issues/97186
     - template: eng/pipelines/test-unix-job.yml
       parameters:
         testRunName: 'Test macOS Debug'
         jobName: Test_macOS_Debug
-        testArtifactName: Transport_Artifacts_Unix_Debug
+        testArtifactName: Transport_Artifacts_macOS_Debug
         configuration: Debug
         testArguments: --testCoreClr 
         helixQueueName: $(HelixMacOsQueueName)
