@@ -69,7 +69,7 @@ internal abstract class ExportProviderBuilder(
         catch (Exception ex)
         {
             // Log the error, and move on to recover by recreating the MEF composition.
-            LogError($"Loading cached MEF composition failed", ex);
+            LogError("Loading cached MEF composition failed", ex);
         }
 
         LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", AssemblyPaths)}.");
@@ -165,7 +165,7 @@ internal abstract class ExportProviderBuilder(
         }
         catch (Exception ex)
         {
-            LogError($"Failed to save MEF cache", ex);
+            LogError("Failed to save MEF cache", ex);
         }
     }
 
