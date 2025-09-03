@@ -16,6 +16,9 @@ internal static class MinimizeUtil
 {
     internal record FilePathInfo(string RelativeDirectory, string Directory, string RelativePath, string FullPath);
 
+    /// <summary>
+    /// Special group for collecting files which need <c>chmod +x</c>.
+    /// </summary>
     private static readonly Guid s_executablesGroup = new Guid("2665eb42-0a7d-4ea2-bb92-e4251d48df44");
 
     internal static void Run(string sourceDirectory, string destinationDirectory, bool isUnix)
