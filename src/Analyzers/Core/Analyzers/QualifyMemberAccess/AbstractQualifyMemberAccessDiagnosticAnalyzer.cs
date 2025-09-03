@@ -123,6 +123,7 @@ internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
         if (!IsAlreadyQualifiedMemberAccess(simpleName))
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 GetLocation(operation),
                 optionValue.Notification,

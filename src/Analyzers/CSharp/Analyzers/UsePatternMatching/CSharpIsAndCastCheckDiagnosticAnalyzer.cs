@@ -150,6 +150,7 @@ internal sealed class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCo
 
         // Put a diagnostic with the appropriate severity on the declaration-statement itself.
         syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             localDeclarationStatement.GetLocation(),
             styleOption.Notification,

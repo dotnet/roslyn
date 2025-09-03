@@ -57,6 +57,7 @@ internal sealed class ConvertToFileScopedNamespaceDiagnosticAnalyzer : AbstractB
             : declaration.SyntaxTree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, declaration.Name.Span.End));
 
         return DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             diagnosticLocation,
             option.Notification,

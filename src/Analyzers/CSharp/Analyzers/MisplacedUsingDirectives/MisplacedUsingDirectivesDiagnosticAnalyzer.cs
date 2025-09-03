@@ -103,13 +103,14 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
             t => t.Kind() is not (SyntaxKind.UsingDirective or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration));
     }
 
-    private static void ReportDiagnostics(
+    private void ReportDiagnostics(
        SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor,
        IEnumerable<UsingDirectiveSyntax> usingDirectives, CodeStyleOption2<AddImportPlacement> option)
     {
         foreach (var usingDirective in usingDirectives)
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 descriptor,
                 usingDirective.GetLocation(),
                 option.Notification,

@@ -78,6 +78,7 @@ internal sealed partial class CSharpAsAndMemberAccessDiagnosticAnalyzer : Abstra
 
         // Put a diagnostic with the appropriate severity on the declaration-statement itself.
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             asExpression.GetLocation(),
             styleOption.Notification,

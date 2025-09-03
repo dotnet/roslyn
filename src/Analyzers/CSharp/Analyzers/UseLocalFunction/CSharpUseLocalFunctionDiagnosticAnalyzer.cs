@@ -141,6 +141,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
             // If the diagnostic is not hidden, then just place the user visible part
             // on the local being initialized with the lambda.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
                 styleOption.Notification,
@@ -152,6 +153,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
         {
             // If the diagnostic is hidden, place it on the entire construct.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 localDeclaration.GetLocation(),
                 styleOption.Notification,
@@ -162,6 +164,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
             if (shouldReportOnAnonymousFunctionStatement)
             {
                 syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                    this,
                     Descriptor,
                     anonymousFunctionStatement!.GetLocation(),
                     styleOption.Notification,

@@ -104,6 +104,7 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
         }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             GetDiagnosticLocation(block),
             notificationOption,

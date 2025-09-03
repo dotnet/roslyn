@@ -319,6 +319,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
             TextSpan.FromBounds(arguments.First().SpanStart, arguments.Last().Span.End));
 
         return DiagnosticHelper.Create(
+            this,
             Descriptor,
             location,
             notificationOption,

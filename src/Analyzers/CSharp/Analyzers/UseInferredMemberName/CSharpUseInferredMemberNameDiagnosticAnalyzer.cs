@@ -50,6 +50,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
         var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
         context.ReportDiagnostic(
             DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 nameColon.GetLocation(),
                 preference.Notification,
@@ -76,6 +77,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
         var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
         context.ReportDiagnostic(
             DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 nameEquals.GetLocation(),
                 preference.Notification,

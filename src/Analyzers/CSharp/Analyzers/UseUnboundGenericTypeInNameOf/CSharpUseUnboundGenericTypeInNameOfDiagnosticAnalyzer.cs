@@ -72,6 +72,7 @@ internal sealed class CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer()
                 if (argument.Kind() != SyntaxKind.OmittedTypeArgument)
                 {
                     syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        this,
                         Descriptor,
                         invocation.GetFirstToken().GetLocation(),
                         styleOption.Notification,

@@ -57,6 +57,7 @@ internal sealed class ConditionalExpressionPlacementDiagnosticAnalyzer : Abstrac
         }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             conditionalExpression.QuestionToken.GetLocation(),
             option.Notification,

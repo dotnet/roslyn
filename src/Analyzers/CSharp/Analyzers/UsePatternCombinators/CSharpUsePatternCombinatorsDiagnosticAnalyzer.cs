@@ -92,6 +92,7 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer() :
         var isSafe = pattern.Target.UnwrapImplicitConversion() is not Operations.IInvocationOperation;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
             expression.GetLocation(),
             styleOption.Notification,

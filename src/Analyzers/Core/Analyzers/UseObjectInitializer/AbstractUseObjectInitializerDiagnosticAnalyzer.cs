@@ -126,6 +126,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         var unnecessaryLocations = FadeOutCode(context, matches);
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             option.Notification,

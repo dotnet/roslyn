@@ -62,6 +62,7 @@ internal sealed class CSharpSimplifyPropertyPatternDiagnosticAnalyzer : Abstract
         // If the diagnostic is not hidden, then just place the user visible part
         // on the local being initialized with the lambda.
         syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             expressionColon.GetLocation(),
             styleOption.Notification,

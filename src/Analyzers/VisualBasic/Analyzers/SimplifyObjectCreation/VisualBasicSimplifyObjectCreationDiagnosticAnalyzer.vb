@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             Dim cancellationToken = context.CancellationToken
             Dim symbolInfo = context.SemanticModel.GetTypeInfo(objectCreation, cancellationToken)
             If symbolInfo.Type IsNot Nothing AndAlso symbolInfo.Type.Equals(symbolInfo.ConvertedType, SymbolEqualityComparer.Default) Then
-                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, variableDeclarator.GetLocation(), styleOption.Notification,
+                context.ReportDiagnostic(DiagnosticHelper.Create(Me, Descriptor, variableDeclarator.GetLocation(), styleOption.Notification,
                     context.Options, additionalLocations:=Nothing,
                     properties:=Nothing))
             End If

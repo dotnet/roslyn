@@ -118,6 +118,7 @@ internal sealed class CSharpUseTupleSwapDiagnosticAnalyzer : AbstractBuiltInCode
         // If the diagnostic is not hidden, then just place the user visible part
         // on the local being initialized with the lambda.
         syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             localDeclarationStatement.GetFirstToken().GetLocation(),
             styleOption.Notification,

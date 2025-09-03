@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
             context.ReportDiagnostic(
                 DiagnosticHelper.CreateWithLocationTags(
+                    Me,
                     Descriptor,
                     nameColonEquals.GetLocation(),
                     preference.Notification,
@@ -76,6 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim syntaxTree = context.Node.SyntaxTree
             context.ReportDiagnostic(
                 DiagnosticHelper.CreateWithLocationTags(
+                    Me,
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
                     preference.Notification,

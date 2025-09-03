@@ -203,6 +203,7 @@ internal sealed partial class CSharpUseIndexOperatorDiagnosticAnalyzer : Abstrac
         // Everything looks good.  We can update this to use the System.Index member instead.
         context.ReportDiagnostic(
             DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 binaryExpression.GetLocation(),
                 option.Notification,

@@ -65,7 +65,8 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
         additionalLocations.Add(switchStatement.GetLocation());
         additionalLocations.AddIfNotNull(declaratorToRemoveOpt?.GetLocation());
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            this, Descriptor,
             // Report the diagnostic on the "switch" keyword.
             location: switchStatement.GetFirstToken().GetLocation(),
             notificationOption: styleOption.Notification,

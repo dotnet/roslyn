@@ -52,6 +52,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,

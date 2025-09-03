@@ -157,6 +157,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
         lock (methodToDiagnostic)
         {
             methodToDiagnostic[owningMethod] = DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 location,
                 notificationOption,

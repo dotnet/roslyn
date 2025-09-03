@@ -73,6 +73,7 @@ internal sealed class ConvertToTopLevelStatementsDiagnosticAnalyzer : AbstractBu
                 {
                     // Looks good.  Let the user know this type/method can be converted to a top level program.
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         this.Descriptor,
                         GetUseTopLevelStatementsDiagnosticLocation(
                             methodDeclaration, isHidden: option.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),

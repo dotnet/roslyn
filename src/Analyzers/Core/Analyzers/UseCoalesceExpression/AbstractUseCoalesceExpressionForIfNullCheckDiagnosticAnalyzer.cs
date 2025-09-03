@@ -110,6 +110,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
         }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,

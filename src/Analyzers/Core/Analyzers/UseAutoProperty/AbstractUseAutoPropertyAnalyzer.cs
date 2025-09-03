@@ -658,6 +658,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
             // Place the appropriate marker on the field depending on the user option.
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 fieldNode.GetLocation(),
                 result.Notification,

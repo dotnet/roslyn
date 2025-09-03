@@ -98,6 +98,7 @@ internal sealed class CSharpUseNameofInAttributeDiagnosticAnalyzer : AbstractBui
                 MatchesParameterOnContainer(attribute, stringValue))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
+                    this,
                     this.Descriptor,
                     argument.Expression.GetLocation(),
                     NotificationOption2.Suggestion,

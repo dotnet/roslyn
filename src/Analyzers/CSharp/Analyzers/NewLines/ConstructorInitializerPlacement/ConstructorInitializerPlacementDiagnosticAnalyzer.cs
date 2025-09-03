@@ -88,6 +88,7 @@ internal sealed class ConstructorInitializerPlacementDiagnosticAnalyzer : Abstra
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             colonToken.GetLocation(),
             notificationOption,

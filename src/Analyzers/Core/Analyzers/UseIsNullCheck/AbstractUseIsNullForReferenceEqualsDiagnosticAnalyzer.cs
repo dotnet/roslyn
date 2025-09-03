@@ -139,7 +139,7 @@ internal abstract class AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyz
 
         context.ReportDiagnostic(
             DiagnosticHelper.Create(
-                Descriptor, nameNode.GetLocation(),
+                this, Descriptor, nameNode.GetLocation(),
                 option.Notification,
                 context.Options,
                 additionalLocations, properties));

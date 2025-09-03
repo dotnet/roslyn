@@ -97,6 +97,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,

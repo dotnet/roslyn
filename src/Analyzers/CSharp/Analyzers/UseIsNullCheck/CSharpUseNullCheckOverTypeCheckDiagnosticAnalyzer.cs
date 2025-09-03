@@ -77,7 +77,7 @@ internal sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer : Abstra
         {
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    Descriptor, context.Operation.Syntax.GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
+                    this, Descriptor, context.Operation.Syntax.GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
         }
     }
 
@@ -107,7 +107,7 @@ internal sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer : Abstra
         {
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    Descriptor, syntax.GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
+                    this, Descriptor, syntax.GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
         }
     }
 }

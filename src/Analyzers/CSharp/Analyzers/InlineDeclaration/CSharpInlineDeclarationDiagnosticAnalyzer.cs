@@ -238,6 +238,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
             : localDeclarator;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             reportNode.GetLocation(),
             option.Notification,

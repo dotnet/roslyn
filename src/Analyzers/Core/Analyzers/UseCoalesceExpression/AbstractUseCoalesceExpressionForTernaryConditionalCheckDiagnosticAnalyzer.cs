@@ -126,6 +126,7 @@ internal abstract class AbstractUseCoalesceExpressionForTernaryConditionalCheckD
             whenPartToCheck.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             conditionalExpression.GetLocation(),
             option.Notification,

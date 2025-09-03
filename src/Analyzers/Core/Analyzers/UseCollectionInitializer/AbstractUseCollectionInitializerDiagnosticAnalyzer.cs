@@ -185,6 +185,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             notification,
@@ -255,6 +256,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             // Report the diagnostic at the first unnecessary location. This is the location where the code fix
             // will be offered.
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                this,
                 s_unnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
                 NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),

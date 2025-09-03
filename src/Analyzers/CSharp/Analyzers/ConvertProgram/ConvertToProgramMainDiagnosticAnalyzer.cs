@@ -53,6 +53,7 @@ internal sealed class ConvertToProgramMainDiagnosticAnalyzer : AbstractBuiltInCo
         var severity = option.Notification.Severity;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             GetUseProgramMainDiagnosticLocation(
                 root, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),

@@ -76,6 +76,7 @@ internal sealed class ArrowExpressionClausePlacementDiagnosticAnalyzer : Abstrac
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             arrowExpressionClause.ArrowToken.GetLocation(),
             notificationOption,

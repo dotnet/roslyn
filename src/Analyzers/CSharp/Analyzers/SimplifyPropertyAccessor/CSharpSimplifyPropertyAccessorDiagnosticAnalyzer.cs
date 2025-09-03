@@ -90,6 +90,7 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
             }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 accessorDeclaration.GetLocation(),
                 option.Notification,

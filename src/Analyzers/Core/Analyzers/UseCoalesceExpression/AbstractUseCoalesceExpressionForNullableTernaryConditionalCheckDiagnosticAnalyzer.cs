@@ -122,6 +122,7 @@ internal abstract class AbstractUseCoalesceExpressionForNullableTernaryCondition
             whenPartToKeep.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             conditionalExpression.GetLocation(),
             option.Notification,

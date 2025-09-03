@@ -119,7 +119,7 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
         return true;
     }
 
-    internal static Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, AnalyzerOptions analyzerOptions, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
+    internal Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, AnalyzerOptions analyzerOptions, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
     {
         DiagnosticDescriptor descriptor;
         NotificationOption2 notificationOption;
@@ -151,7 +151,8 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
         var builder = ImmutableDictionary.CreateBuilder<string, string?>();
         builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
         builder["OptionLanguage"] = model.Language;
-        var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), notificationOption, analyzerOptions, additionalLocations: null, builder.ToImmutable());
+        var diagnostic = DiagnosticHelper.Create(
+            this, descriptor, tree.GetLocation(issueSpan), notificationOption, analyzerOptions, additionalLocations: null, builder.ToImmutable());
 
 #if LOG
         var sourceText = tree.GetText();

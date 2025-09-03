@@ -80,6 +80,7 @@ internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSynta
             RoslynDebug.AssertNotNull(nameSyntax);
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 nameSyntax.GetLocation(),
                 option.Notification,

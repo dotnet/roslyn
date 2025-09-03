@@ -231,6 +231,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         var endReportSpan = TextSpan.FromBounds(invokedExpression.Span.End, anonymousFunction.Span.End);
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             Descriptor,
             syntaxTree.GetLocation(startReportSpan),
             preference.Notification,

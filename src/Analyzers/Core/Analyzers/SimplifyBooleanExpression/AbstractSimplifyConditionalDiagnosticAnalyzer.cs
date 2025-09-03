@@ -137,6 +137,7 @@ internal abstract class AbstractSimplifyConditionalDiagnosticAnalyzer<
 
         void ReportDiagnostic(ImmutableDictionary<string, string?> properties)
             => context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 conditionalExpression.GetLocation(),
                 styleOption.Notification,

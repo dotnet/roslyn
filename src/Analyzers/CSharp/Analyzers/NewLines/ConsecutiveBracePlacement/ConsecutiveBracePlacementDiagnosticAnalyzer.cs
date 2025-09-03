@@ -80,6 +80,7 @@ internal sealed class ConsecutiveBracePlacementDiagnosticAnalyzer : AbstractBuil
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             secondBrace.GetLocation(),
             notificationOption,

@@ -91,6 +91,7 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
         var properties = GetDiagnosticProperties(unwrapArgument, useSpread, changesSemantics);
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             objectCreationExpression.NewKeyword.GetLocation(),
             option.Notification,
@@ -105,6 +106,7 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
             objectCreationExpression.ArgumentList.CloseParenToken.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),

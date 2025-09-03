@@ -142,6 +142,7 @@ internal abstract class AbstractForEachCastDiagnosticAnalyzer<TSyntaxKind, TForE
             semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             node.GetFirstToken().GetLocation(),
             option.Notification,

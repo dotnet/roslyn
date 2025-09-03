@@ -75,6 +75,7 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
                         foreach (var diag in tree.Diagnostics)
                         {
                             context.ReportDiagnostic(DiagnosticHelper.Create(
+                                this,
                                 this.Descriptor,
                                 Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
                                 NotificationOption2.Warning,

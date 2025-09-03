@@ -61,6 +61,7 @@ internal sealed class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCo
                         var properties = ImmutableDictionary<string, string?>.Empty.Add(
                             nameof(ElementName), namedField.Name);
                         context.ReportDiagnostic(DiagnosticHelper.Create(
+                            this,
                             Descriptor,
                             nameNode.GetLocation(),
                             option.Notification,

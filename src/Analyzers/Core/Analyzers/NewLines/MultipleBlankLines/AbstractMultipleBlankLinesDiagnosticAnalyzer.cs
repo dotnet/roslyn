@@ -74,6 +74,7 @@ internal abstract class AbstractMultipleBlankLinesDiagnosticAnalyzer : AbstractB
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             Location.Create(badTrivia.SyntaxTree!, new TextSpan(badTrivia.SpanStart, 0)),
             notificationOption,

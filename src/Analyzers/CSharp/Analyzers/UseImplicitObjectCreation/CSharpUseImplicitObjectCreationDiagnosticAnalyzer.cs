@@ -53,6 +53,7 @@ internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             // Place the suggestion on the 'new' keyword.  This is both the earliest part of the object creation
             // expression, and it also matches the location we place the 'use collection expression' analyzer,

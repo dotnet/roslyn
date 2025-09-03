@@ -69,6 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
 
             ' Put a diagnostic with the appropriate severity on `is` keyword.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Me,
                 Descriptor,
                 isKeyword.GetLocation(),
                 styleOption.Notification,

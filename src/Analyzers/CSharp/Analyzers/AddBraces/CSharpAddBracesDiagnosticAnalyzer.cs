@@ -107,6 +107,7 @@ internal sealed class CSharpAddBracesDiagnosticAnalyzer :
 
         var firstToken = statement.GetFirstToken();
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             firstToken.GetLocation(),
             option.Notification,

@@ -257,6 +257,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
 
         // Put a diagnostic with the appropriate severity on the declaration-statement itself.
         syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             localStatement.GetLocation(),
             styleOption.Notification,

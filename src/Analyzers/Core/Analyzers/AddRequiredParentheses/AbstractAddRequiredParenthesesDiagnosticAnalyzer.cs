@@ -175,6 +175,7 @@ internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             var properties = GetProperties(includeInFixAll, equivalenceKey);
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 operatorToken.GetLocation(),
                 notificationOption,

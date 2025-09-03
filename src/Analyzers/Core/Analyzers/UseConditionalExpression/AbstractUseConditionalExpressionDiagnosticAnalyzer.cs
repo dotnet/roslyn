@@ -50,6 +50,7 @@ internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfSt
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,

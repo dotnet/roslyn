@@ -50,6 +50,7 @@ internal sealed class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltI
         if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticBecauseNoCaptures(localFunction, semanticModel))
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 localFunction.Identifier.GetLocation(),
                 option.Notification,

@@ -72,6 +72,7 @@ internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer()
 
         var additionalLocations = ImmutableArray.Create(statement.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             statement.GetFirstToken().GetLocation(),
             notificationOption,

@@ -45,6 +45,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,

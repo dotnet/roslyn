@@ -63,6 +63,7 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             variableDeclaration.Variables[0].Identifier.GetLocation(),
             notificationOption,
@@ -78,6 +79,7 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             forEachStatement.Identifier.GetLocation(),
             notificationOption,

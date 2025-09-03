@@ -80,6 +80,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         var remainingUnnecessaryLocations = unnecessaryLocations.RemoveAt(0);
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             Descriptor,
             firstUnnecessaryLocation,
             option.Notification,

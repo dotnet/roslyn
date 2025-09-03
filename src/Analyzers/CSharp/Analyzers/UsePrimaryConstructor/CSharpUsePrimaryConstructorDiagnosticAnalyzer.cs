@@ -185,6 +185,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
             }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                _diagnosticAnalyzer,
                 _diagnosticAnalyzer.Descriptor,
                 _primaryConstructorDeclaration.Identifier.GetLocation(),
                 _styleOption.Notification,

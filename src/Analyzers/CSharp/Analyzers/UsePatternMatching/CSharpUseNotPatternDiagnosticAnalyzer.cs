@@ -93,6 +93,7 @@ internal sealed class CSharpUseNotPatternDiagnosticAnalyzer()
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             isKeyword.GetLocation(),
             styleOption.Notification,

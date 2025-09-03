@@ -156,11 +156,12 @@ internal abstract class AbstractUseCompoundAssignmentDiagnosticAnalyzer<
                     operation.OperatorMethod.ContainingType.GetMembers(WellKnownMemberNames.IncrementOperatorName).Length > 0)
                 {
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         _incrementDescriptor,
                         assignmentToken.GetLocation(),
                         option.Notification,
                         context.Options,
-            additionalLocations: [assignment.GetLocation()],
+                        additionalLocations: [assignment.GetLocation()],
                         properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
                     return;
@@ -176,6 +177,7 @@ internal abstract class AbstractUseCompoundAssignmentDiagnosticAnalyzer<
                     operation.OperatorMethod.ContainingType.GetMembers(WellKnownMemberNames.DecrementOperatorName).Length > 0)
                 {
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         _decrementDescriptor,
                         assignmentToken.GetLocation(),
                         option.Notification,
@@ -189,6 +191,7 @@ internal abstract class AbstractUseCompoundAssignmentDiagnosticAnalyzer<
         }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             assignmentToken.GetLocation(),
             option.Notification,

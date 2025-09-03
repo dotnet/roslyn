@@ -39,6 +39,7 @@ internal sealed class CSharpRemoveConfusingSuppressionDiagnosticAnalyzer : Abstr
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             ((PostfixUnaryExpressionSyntax)left).OperatorToken.GetLocation(),
             NotificationOption2.Warning,

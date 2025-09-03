@@ -57,6 +57,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
                         return;
 
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         Descriptor,
                         location,
                         option.Notification,

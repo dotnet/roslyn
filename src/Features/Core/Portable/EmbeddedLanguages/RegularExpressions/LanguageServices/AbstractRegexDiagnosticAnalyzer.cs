@@ -88,6 +88,7 @@ internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeSty
                 foreach (var diag in tree.Diagnostics)
                 {
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         Descriptor,
                         Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
                         NotificationOption2.Warning,

@@ -143,8 +143,8 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 isPublicApiParameter: parameter.ContainingSymbol.HasPublicResultantVisibility(),
                 isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
 
-            var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
-                option.Notification, analyzerOptions, additionalLocations: null, properties: null, message);
+            var diagnostic = DiagnosticHelper.CreateWithMessage(
+                _compilationAnalyzer, s_unusedParameterRule, location, option.Notification, analyzerOptions, additionalLocations: null, properties: null, message);
             reportDiagnostic(diagnostic);
         }
 

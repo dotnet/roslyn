@@ -121,6 +121,7 @@ internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
 
         // Good to go!
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             outermostUsing.UsingKeyword.GetLocation(),
             option.Notification,

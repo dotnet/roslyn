@@ -47,6 +47,7 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             explicitLambda.ParameterList.OpenParenToken.GetLocation(),
             option.Notification,

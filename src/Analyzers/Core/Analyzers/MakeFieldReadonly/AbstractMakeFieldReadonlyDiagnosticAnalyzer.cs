@@ -124,6 +124,7 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
                         {
                             var option = GetCodeStyleOption(field, symbolEndContext.Options, out var location);
                             var diagnostic = DiagnosticHelper.Create(
+                                this,
                                 Descriptor,
                                 location,
                                 option.Notification,

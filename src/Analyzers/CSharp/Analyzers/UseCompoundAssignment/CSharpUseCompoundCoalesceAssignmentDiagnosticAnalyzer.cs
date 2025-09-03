@@ -88,6 +88,7 @@ internal sealed class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
 
         // Good match.
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             coalesceExpression.OperatorToken.GetLocation(),
             option.Notification,
@@ -161,6 +162,7 @@ internal sealed class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
 
         // Good match.
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             ifStatement.IfKeyword.GetLocation(),
             option.Notification,

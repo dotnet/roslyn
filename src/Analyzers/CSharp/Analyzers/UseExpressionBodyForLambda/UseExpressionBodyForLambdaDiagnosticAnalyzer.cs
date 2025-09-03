@@ -57,7 +57,7 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
         AnalyzeSyntax(context, optionValue);
     }
 
-    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context, CodeStyleOption2<ExpressionBodyPreference> option)
+    private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, CodeStyleOption2<ExpressionBodyPreference> option)
     {
         var declaration = (LambdaExpressionSyntax)context.Node;
         var diagnostic = AnalyzeSyntax(context.SemanticModel, option, declaration, context.Options, context.CancellationToken);
@@ -67,7 +67,7 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
         }
     }
 
-    private static Diagnostic? AnalyzeSyntax(
+    private Diagnostic? AnalyzeSyntax(
         SemanticModel semanticModel, CodeStyleOption2<ExpressionBodyPreference> option,
         LambdaExpressionSyntax declaration, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
     {
@@ -75,6 +75,7 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
                 semanticModel, option.Value, declaration, declaration.GetLanguageVersion(), cancellationToken))
         {
             return DiagnosticHelper.Create(
+                this,
                 s_useExpressionBodyForLambda,
                 GetDiagnosticLocation(declaration),
                 option.Notification,
@@ -89,6 +90,7 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
             // They have an expression body.  Create a diagnostic to convert it to a block
             // if they don't want expression bodies for this member.  
             return DiagnosticHelper.Create(
+                this,
                 s_useBlockBodyForLambda,
                  GetDiagnosticLocation(declaration),
                 option.Notification,

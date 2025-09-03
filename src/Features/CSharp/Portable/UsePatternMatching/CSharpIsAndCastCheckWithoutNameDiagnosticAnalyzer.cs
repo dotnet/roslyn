@@ -95,7 +95,7 @@ internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
 
         context.ReportDiagnostic(
             DiagnosticHelper.Create(
-                Descriptor, isExpression.GetLocation(),
+                this, Descriptor, isExpression.GetLocation(),
                 styleOption.Notification,
                 context.Options,
                 additionalLocations: [],

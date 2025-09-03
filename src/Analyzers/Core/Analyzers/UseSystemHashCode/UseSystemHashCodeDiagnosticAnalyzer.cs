@@ -77,6 +77,7 @@ internal sealed class UseSystemHashCodeDiagnosticAnalyzer : AbstractBuiltInCodeS
         var operationLocation = operation.Syntax.GetLocation();
         var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             diagnosticLocation,
             option.Notification,

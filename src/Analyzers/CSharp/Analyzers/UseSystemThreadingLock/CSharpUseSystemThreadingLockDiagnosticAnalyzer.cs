@@ -231,6 +231,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                     continue;
 
                 context.ReportDiagnostic(DiagnosticHelper.Create(
+                    this,
                     Descriptor,
                     declarator.Identifier.GetLocation(),
                     option.Notification,

@@ -92,6 +92,7 @@ internal abstract class AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
                     // Show this as a hidden diagnostic so the user can enable json features explicitly if they
                     // want, but do not spam them with a ... notification if they don't want it.
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         this.Descriptor,
                         token.GetLocation(),
                         NotificationOption2.Silent,

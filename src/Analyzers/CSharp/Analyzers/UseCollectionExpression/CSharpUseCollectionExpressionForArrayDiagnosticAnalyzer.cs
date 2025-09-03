@@ -192,6 +192,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             //
             // In this case, we always have a target type, so it should always be valid to convert this to a collection expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 initializer.OpenBraceToken.GetLocation(),
                 option.Notification,
@@ -207,6 +208,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var properties = changesSemantics ? ChangesSemantics : null;
         var locations = ImmutableArray.Create(expression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             notification,
@@ -222,6 +224,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                     : ((ImplicitArrayCreationExpressionSyntax)expression).CloseBracketToken.Span.End)));
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),

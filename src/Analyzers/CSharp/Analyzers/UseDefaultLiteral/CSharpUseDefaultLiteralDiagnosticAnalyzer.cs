@@ -48,6 +48,7 @@ internal sealed class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltI
         // Create a normal diagnostic that covers the entire default expression.
         context.ReportDiagnostic(
             DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 defaultExpression.GetLocation(),
                 preference.Notification,

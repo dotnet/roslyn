@@ -52,6 +52,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
         var properties = analysisResult.ChangesSemantics ? ChangesSemantics : null;
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             analysisResult.DiagnosticLocation,
             option.Notification,
@@ -69,6 +70,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                 analysisResult.LocalDeclarationStatement.GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                this,
                 UnnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
                 NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
@@ -87,6 +89,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                 // Report the diagnostic at the first unnecessary location. This is the location where the code fix
                 // will be offered.
                 context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    this,
                     UnnecessaryCodeDescriptor,
                     additionalUnnecessaryLocations[0],
                     NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),

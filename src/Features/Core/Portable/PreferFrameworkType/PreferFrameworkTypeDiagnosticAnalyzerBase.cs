@@ -98,7 +98,7 @@ internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<
         if (IsFrameworkTypePreferred(optionValue))
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor, typeNode.GetLocation(),
+                this, Descriptor, typeNode.GetLocation(),
                 optionValue.Notification, context.Options, additionalLocations: null,
                 PreferFrameworkTypeConstants.Properties));
         }

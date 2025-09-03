@@ -73,7 +73,7 @@ internal abstract class AbstractSimplifyThisOrMeDiagnosticAnalyzer<
         builder["OptionLanguage"] = semanticModel.Language;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor, thisExpression.GetLocation(), notification,
+            this, Descriptor, thisExpression.GetLocation(), notification,
             context.Options,
             [memberAccessExpression.GetLocation()],
             builder.ToImmutable()));
