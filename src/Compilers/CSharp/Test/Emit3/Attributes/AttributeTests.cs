@@ -11649,5 +11649,58 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'I
             Assert.Equal("System.Int32", model.GetTypeInfo(thirdArgument.Expression).Type.ToTestDisplayString());
         }
         #endregion
+
+        [Fact]
+        public void TestMetadataUpdateDeletedAttributeExplicitlyApplied()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+// Test applying MetadataUpdateDeletedAttribute to various targets
+
+[MetadataUpdateDeleted]  // Should error - type
+class TestClass
+{
+    [MetadataUpdateDeleted]  // Should error - field
+    public int field;
+    
+    [MetadataUpdateDeleted]  // Should error - property
+    public int Property { get; set; }
+    
+    [MetadataUpdateDeleted]  // Should error - method
+    public void Method() { }
+    
+    [MetadataUpdateDeleted]  // Should error - event
+    public event Action Event;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class MetadataUpdateDeletedAttribute : Attribute
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,2): error CS9331: 'MetadataUpdateDeletedAttribute' can only be applied by the compiler, not by user code.
+                // [MetadataUpdateDeleted]  // Should error - type
+                Diagnostic(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, "MetadataUpdateDeleted").WithLocation(7, 2),
+                // (10,5): error CS9331: 'MetadataUpdateDeletedAttribute' can only be applied by the compiler, not by user code.
+                //     [MetadataUpdateDeleted]  // Should error - field
+                Diagnostic(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, "MetadataUpdateDeleted").WithLocation(10, 5),
+                // (13,5): error CS9331: 'MetadataUpdateDeletedAttribute' can only be applied by the compiler, not by user code.
+                //     [MetadataUpdateDeleted]  // Should error - property
+                Diagnostic(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, "MetadataUpdateDeleted").WithLocation(13, 5),
+                // (16,5): error CS9331: 'MetadataUpdateDeletedAttribute' can only be applied by the compiler, not by user code.
+                //     [MetadataUpdateDeleted]  // Should error - method
+                Diagnostic(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, "MetadataUpdateDeleted").WithLocation(16, 5),
+                // (19,5): error CS9331: 'MetadataUpdateDeletedAttribute' can only be applied by the compiler, not by user code.
+                //     [MetadataUpdateDeleted]  // Should error - event
+                Diagnostic(ErrorCode.ERR_ExplicitlyAppliedMetadataUpdateDeletedAttribute, "MetadataUpdateDeleted").WithLocation(19, 5)
+            );
+        }
     }
 }
