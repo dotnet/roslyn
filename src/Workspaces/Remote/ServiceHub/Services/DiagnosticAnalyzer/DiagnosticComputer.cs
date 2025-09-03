@@ -327,7 +327,8 @@ internal sealed partial class DiagnosticComputer
         var analyzerMapBuilder = pooledMapAnalyzerMap.Object;
 
         // This follows what we do in DiagnosticAnalyzerInfoCache.CheckAnalyzerReferenceIdentity
-        using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var analyzerBuilder);
+        using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var projectAnalyzerBuilder);
+        using var _2 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var hostAnalyzerBuilder);
         foreach (var reference in _project.Solution.AnalyzerReferences)
         {
             if (!referenceSet.Add(reference.Id))
@@ -336,14 +337,25 @@ internal sealed partial class DiagnosticComputer
             }
 
             var analyzers = reference.GetAnalyzers(_project.Language);
-
-            analyzerBuilder.AddRange(analyzers);
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
+
+            // At times some Host analyzers should be treated as project analyzers and
+            // not be given access to the Host fallback options. In particular when we
+            // replace SDK CodeStyle analyzers with the Features analyzers.
+            if (ShouldRedirectAnalyzers(_project, reference))
+            {
+                projectAnalyzerBuilder.AddRange(analyzers);
+            }
+            else
+            {
+                hostAnalyzerBuilder.AddRange(analyzers);
+            }
         }
 
         // Clear the set -- we want these two loops to be independent
         referenceSet.Clear();
 
+        var projectAnalyzers = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
         foreach (var reference in _project.AnalyzerReferences)
         {
             if (!referenceSet.Add(reference.Id))
@@ -352,21 +364,22 @@ internal sealed partial class DiagnosticComputer
             }
 
             var analyzers = reference.GetAnalyzers(_project.Language);
-
-            // We do not want to run SDK 'features' analyzers.  We always defer to what is in VS for that.
-            if (ShouldRedirectAnalyzers(_project, reference))
-            {
-                continue;
-            }
-
-            analyzerBuilder.AddRange(analyzers);
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
+
+            projectAnalyzerBuilder.AddRange(analyzers);
+
+            var projectSuppressors = analyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            // Make sure to remove any project suppressors already in the host analyzer array so we don't end up with
+            // duplicates.
+            hostAnalyzerBuilder.RemoveRange(projectSuppressors);
+            hostAnalyzerBuilder.AddRange(projectSuppressors);
         }
 
-        analyzerBuilder.RemoveDuplicates();
+        var allAnalyzers = projectAnalyzerBuilder.Concat(hostAnalyzerBuilder).Distinct().ToImmutableArray();
 
-        var compilationWithAnalyzers = analyzerBuilder.Count > 0
-            ? await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false)
+        var compilationWithAnalyzers = allAnalyzers.Length > 0
+            ? await CreateCompilationWithAnalyzerAsync(
+                allAnalyzers, projectAnalyzerBuilder.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false)
             : null;
         var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
@@ -381,7 +394,9 @@ internal sealed partial class DiagnosticComputer
     }
 
     private async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzerAsync(
-        ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        ImmutableHashSet<DiagnosticAnalyzer> projectAnalyzers,
+        CancellationToken cancellationToken)
     {
         if (analyzers.IsEmpty)
             return null;
@@ -403,7 +418,12 @@ internal sealed partial class DiagnosticComputer
         //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
         return compilation.WithAnalyzers(
             analyzers,
-            AnalyzerOptionsUtilities.Combine(_project.AnalyzerOptions, _project.HostAnalyzerOptions));
+            AnalyzerOptionsUtilities.Combine(
+                _project.AnalyzerOptions,
+                _project.HostAnalyzerOptions,
+                diagnosticAnalyzer => projectAnalyzers.Contains(diagnosticAnalyzer)
+                    ? _project.AnalyzerOptions
+                    : _project.HostAnalyzerOptions));
     }
 
     private sealed class CompilationWithAnalyzersCacheEntry

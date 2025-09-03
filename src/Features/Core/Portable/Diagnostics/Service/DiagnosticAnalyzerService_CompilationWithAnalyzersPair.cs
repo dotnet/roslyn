@@ -122,7 +122,10 @@ internal sealed partial class DiagnosticAnalyzerService
                 filteredHostAnalyzers.Concat(filteredProjectAnalyzers).Distinct(),
                 AnalyzerOptionsUtilities.Combine(
                     project.State.ProjectAnalyzerOptions,
-                    project.HostAnalyzerOptions),
+                    project.HostAnalyzerOptions,
+                    analyzer => filteredProjectAnalyzers.Contains(analyzer)
+                        ? project.State.ProjectAnalyzerOptions
+                        : project.HostAnalyzerOptions),
                 exceptionFilter);
         }
 

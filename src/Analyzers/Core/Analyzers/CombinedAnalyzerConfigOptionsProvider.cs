@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -16,33 +18,48 @@ internal static class AnalyzerOptionsUtilities
     /// options merged from both.  Options defined in <paramref name="projectAnalyzerOptions"/> ("EditorConfig options")
     /// will take precedence over those in <paramref name="hostAnalyzerOptions"/> (VS UI options).
     /// </summary>
-    public static AnalyzerOptions Combine(AnalyzerOptions projectAnalyzerOptions, AnalyzerOptions hostAnalyzerOptions)
+    public static AnalyzerOptions Combine(
+        AnalyzerOptions projectAnalyzerOptions,
+        AnalyzerOptions hostAnalyzerOptions,
+        Func<DiagnosticAnalyzer, AnalyzerOptions> pickAnalyzerOptions)
     {
         return new AnalyzerOptions(
             projectAnalyzerOptions.AdditionalFiles.AddRange(hostAnalyzerOptions.AdditionalFiles).Distinct(),
-            new CombinedAnalyzerConfigOptionsProvider(projectAnalyzerOptions, hostAnalyzerOptions));
+            new CombinedAnalyzerConfigOptionsProvider(
+                projectAnalyzerOptions, hostAnalyzerOptions, pickAnalyzerOptions));
+    }
+
+    public static AnalyzerOptions GetSpecificOptions(
+        AnalyzerOptions analyzerOptions,
+        DiagnosticAnalyzer diagnosticAnalyzer)
+    {
+        return analyzerOptions.AnalyzerConfigOptionsProvider is CombinedAnalyzerConfigOptionsProvider combinedProvider
+            ? combinedProvider._pickOptionsProvider(diagnosticAnalyzer)
+            : analyzerOptions;
     }
 
     private sealed class CombinedAnalyzerConfigOptionsProvider(
         AnalyzerOptions projectAnalyzerOptions,
-        AnalyzerOptions hostAnalyzerOptions) : AnalyzerConfigOptionsProvider
+        AnalyzerOptions hostAnalyzerOptions,
+        Func<DiagnosticAnalyzer, AnalyzerOptions> pickOptionsProvider) : AnalyzerConfigOptionsProvider
     {
-        private readonly AnalyzerOptions _analyzerOptions = projectAnalyzerOptions;
+        private readonly AnalyzerOptions _projectAnalyzerOptions = projectAnalyzerOptions;
         private readonly AnalyzerOptions _hostAnalyzerOptions = hostAnalyzerOptions;
+        public readonly Func<DiagnosticAnalyzer, AnalyzerOptions> _pickOptionsProvider = pickOptionsProvider;
 
         public override AnalyzerConfigOptions GlobalOptions
             => new CombinedAnalyzerConfigOptions(
-                _analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions,
+                _projectAnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions,
                 _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions);
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
             => new CombinedAnalyzerConfigOptions(
-                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree),
+                _projectAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree),
                 _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree));
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             => new CombinedAnalyzerConfigOptions(
-                _analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile),
+                _projectAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile),
                 _hostAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(textFile));
 
         private sealed class CombinedAnalyzerConfigOptions(

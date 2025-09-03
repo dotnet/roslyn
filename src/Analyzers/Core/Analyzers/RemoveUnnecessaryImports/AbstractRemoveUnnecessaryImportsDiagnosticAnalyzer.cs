@@ -121,7 +121,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         // in their project file to enable IDE0005 on build.
 
         var compilation = context.Compilation;
-        if (!IsAnalysisLevelGreaterThanOrEquals(8, context.Options.AnalyzerConfigOptionsProvider))
+        if (!IsAnalysisLevelGreaterThanOrEquals(8, context.Options))
             return;
 
         var tree = compilation.SyntaxTrees.FirstOrDefault(tree => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, context.CancellationToken));
