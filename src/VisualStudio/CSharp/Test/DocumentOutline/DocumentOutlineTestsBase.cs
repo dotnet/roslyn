@@ -17,6 +17,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
@@ -39,7 +40,7 @@ public abstract class DocumentOutlineTestsBase
         private readonly IAsyncDisposable _disposable;
 
         internal DocumentOutlineTestMocks(
-            LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> languageServiceBrokerCallback,
+            LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>> languageServiceBrokerCallback,
             IThreadingContext threadingContext,
             EditorTestWorkspace workspace,
             IAsyncDisposable disposable)
@@ -51,7 +52,7 @@ public abstract class DocumentOutlineTestsBase
             TextBuffer = workspace.Documents.Single().GetTextBuffer();
         }
 
-        internal LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> LanguageServiceBrokerCallback { get; }
+        internal LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>> LanguageServiceBrokerCallback { get; }
 
         internal IThreadingContext ThreadingContext { get; }
 
@@ -79,11 +80,11 @@ public abstract class DocumentOutlineTestsBase
         var mocks = new DocumentOutlineTestMocks(RequestAsync, threadingContext, workspace, testLspServer);
         return mocks;
 
-        async Task<RoslynDocumentSymbol[]?> RequestAsync(Request<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> request, CancellationToken cancellationToken)
+        async Task<SumType<RoslynDocumentSymbol[], SymbolInformation[]>> RequestAsync(Request<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>> request, CancellationToken cancellationToken)
         {
-            var docRequest = (DocumentRequest<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>)request;
+            var docRequest = (DocumentRequest<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>>)request;
             var parameters = docRequest.ParameterFactory(docRequest.TextBuffer.CurrentSnapshot);
-            var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>(request.Method, parameters, cancellationToken);
+            var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>>(request.Method, parameters, cancellationToken);
 
             return response;
         }

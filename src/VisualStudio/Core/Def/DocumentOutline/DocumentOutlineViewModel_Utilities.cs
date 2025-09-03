@@ -29,13 +29,13 @@ internal sealed partial class DocumentOutlineViewModel
     /// </summary>
     public static async Task<(RoslynDocumentSymbol[] response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
         ITextBuffer textBuffer,
-        LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> callbackAsync,
+        LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>> callbackAsync,
         string textViewFilePath,
         CancellationToken cancellationToken)
     {
         ITextSnapshot? requestSnapshot = null;
 
-        var request = new DocumentRequest<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>()
+        var request = new DocumentRequest<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>>()
         {
             Method = Methods.TextDocumentDocumentSymbolName,
             LanguageServerName = WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
@@ -58,7 +58,7 @@ internal sealed partial class DocumentOutlineViewModel
 
         // The request snapshot or response can be null if there is no LSP server implementation for
         // the document symbol request for that language.
-        return requestSnapshot is null || response is null ? null : (response, requestSnapshot);
+        return requestSnapshot is null || response.First is null ? null : (response.First, requestSnapshot);
     }
 
     /// <summary>

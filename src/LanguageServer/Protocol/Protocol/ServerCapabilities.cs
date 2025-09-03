@@ -35,22 +35,23 @@ internal class ServerCapabilities
     /// Gets or sets the value which indicates how text document are synced.
     /// </summary>
     [JsonPropertyName("textDocumentSync")]
-    [JsonConverter(typeof(TextDocumentSyncConverter))]
+    //[JsonConverter(typeof(TextDocumentSyncConverter))]
     [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
     [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
-    public TextDocumentSyncOptions? TextDocumentSync
+    public SumType<TextDocumentSyncOptions, TextDocumentSyncKind>? TextDocumentSync
     {
         get;
         set;
-    } = new TextDocumentSyncOptions
-    {
-        OpenClose = true,
-        Change = TextDocumentSyncKind.None,
-        Save = new SaveOptions
-        {
-            IncludeText = false,
-        },
-    };
+    } = new SumType<TextDocumentSyncOptions, TextDocumentSyncKind>(
+            new TextDocumentSyncOptions
+                {
+                    OpenClose = true,
+                    Change = TextDocumentSyncKind.None,
+                    Save = new SaveOptions
+                    {
+                        IncludeText = false,
+                    },
+                });
 
     /// <summary>
     /// Defines how notebook documents are synced.
