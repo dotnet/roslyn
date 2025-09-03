@@ -98,7 +98,7 @@ internal static class MinimizeUtil
                     var destFilePath = Path.Combine(currentOutputDirectory, fileName);
                     CreateHardLink(destFilePath, sourceFilePath);
 
-                    if (isUnix && OperatingSystem.IsLinux() && File.GetUnixFileMode(sourceFilePath).HasFlag(UnixFileMode.UserExecute))
+                    if (isUnix && !OperatingSystem.IsWindows() && File.GetUnixFileMode(sourceFilePath).HasFlag(UnixFileMode.UserExecute))
                     {
                         yield return (s_executablesGroup, new FilePathInfo(
                             RelativeDirectory: currentRelativeDirectory,
