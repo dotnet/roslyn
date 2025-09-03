@@ -195,7 +195,7 @@ internal abstract class ExportProviderBuilder(
         }
 
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
-        var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
+        var erroredParts = configuration.CompositionErrors.SelectMany(c => c).SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name);
 
         if (ContainsUnexpectedErrors(erroredParts))
         {
