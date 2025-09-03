@@ -180,7 +180,11 @@ public partial class MSBuildProjectLoader
             SetSolutionProperties(absoluteSolutionPath);
         }
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+        var binLogPathProvider = msbuildLogger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger"
+            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
+            : null;
+
+        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var worker = new Worker(
@@ -241,7 +245,11 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+        var binLogPathProvider = msbuildLogger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger"
+            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
+            : null;
+
+        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var worker = new Worker(
@@ -259,5 +267,10 @@ public partial class MSBuildProjectLoader
             this.LoadMetadataForReferencedProjects);
 
         return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private sealed class DefaultBinLogPathProvider(string? logFilePath) : IBinLogPathProvider
+    {
+        public string? GetNewLogPath() => logFilePath;
     }
 }
