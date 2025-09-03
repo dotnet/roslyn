@@ -49,7 +49,7 @@ internal class LocalSettings
         catch (Exception e)
         {
             // If no tokens were passed as arguments then we inform the user they need to authenticate, otherwise we assume they know what they are doing.
-            if (githubToken is null && devdivAzDOToken is null && dncengAzDOToken is null)
+            if (githubToken is "" && devdivAzDOToken is "" && dncengAzDOToken is "")
             {
                 logger.LogWarning(e, "Failed to load the roslyn-tools settings. File may be corrupted or missing. Run `roslyn-tools authenticate` to regenerate.");
             }
