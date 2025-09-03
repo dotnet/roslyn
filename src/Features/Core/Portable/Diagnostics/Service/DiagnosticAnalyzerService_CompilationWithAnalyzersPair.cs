@@ -117,13 +117,14 @@ internal sealed partial class DiagnosticAnalyzerService
             };
 
             // Create driver that holds onto compilation and associated analyzers
+            var projectAnalyzersSet = filteredProjectAnalyzers.ToImmutableHashSet();
             return CreateCompilationWithAnalyzers(
                 compilation,
                 filteredHostAnalyzers.Concat(filteredProjectAnalyzers).Distinct(),
                 AnalyzerOptionsUtilities.Combine(
                     project.State.ProjectAnalyzerOptions,
                     project.HostAnalyzerOptions,
-                    analyzer => filteredProjectAnalyzers.Contains(analyzer)
+                    analyzer => projectAnalyzersSet.Contains(analyzer)
                         ? project.State.ProjectAnalyzerOptions
                         : project.HostAnalyzerOptions),
                 exceptionFilter);
