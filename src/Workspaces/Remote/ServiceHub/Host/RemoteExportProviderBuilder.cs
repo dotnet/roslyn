@@ -79,11 +79,13 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
         return builder._errorMessages?.ToString();
     }
 
-    protected override void LogError(string message)
+    protected override void LogError(string message, Exception exception)
     {
+        // We'll log just the message to _errorMessages (since that gets displayed to the user in a gold bar), but we'll log the
+        // full exception to the logger.
         _errorMessages ??= new StringBuilder();
-        _errorMessages.AppendLine(message);
-        _traceLogger.TraceEvent(TraceEventType.Error, 0, message);
+        _errorMessages.AppendLine($"{message}: {exception.Message}");
+        _traceLogger.TraceEvent(TraceEventType.Error, 0, $"{message}: {exception}");
     }
 
     protected override void LogTrace(string message)
