@@ -157,9 +157,7 @@ public partial class MSBuildProjectLoader
     public async Task<SolutionInfo> LoadSolutionInfoAsync(
         string solutionFilePath,
         IProgress<ProjectLoadProgress>? progress = null,
-#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
         ILogger? msbuildLogger = null,
-#pragma warning restore IDE0060
         CancellationToken cancellationToken = default)
     {
         if (solutionFilePath == null)
@@ -228,9 +226,7 @@ public partial class MSBuildProjectLoader
         string projectFilePath,
         ProjectMap? projectMap = null,
         IProgress<ProjectLoadProgress>? progress = null,
-#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
         ILogger? msbuildLogger = null,
-#pragma warning restore IDE0060
         CancellationToken cancellationToken = default)
     {
         if (projectFilePath == null)
