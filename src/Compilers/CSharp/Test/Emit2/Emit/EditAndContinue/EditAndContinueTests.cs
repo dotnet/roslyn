@@ -17546,19 +17546,120 @@ class C
         }
 
         [Theory]
+        [InlineData("int M1(C c) { return 0; }")]
+        [InlineData("C M1(C c) { return default; }")]
+        [InlineData("C M1() { return default; }")]
+        [InlineData("N M1() { return default; }")]
+        [InlineData("T M1<T>() { return default; }")]
+        [InlineData("T M1<T>() where T : C { return default; }")]
+        public void Method_Delete_ReturnValue(string methodDef)
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            {{methodDef}}
+                        }
+
+                        class N
+                        {
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "N");
+                        g.VerifyMethodDefNames("M1", ".ctor", ".ctor");
+                    })
+
+                .AddGeneration(// 1
+                    source: """
+                        class C
+                        {
+                        }
+
+                        class N
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig)
+                        ]);
+
+                        g.VerifyIL("""
+                            M1
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
+        [Theory]
         [InlineData("void M1() { }")]
         [InlineData("void M1(string s) { }")]
         [InlineData("void M1(C c) { }")]
-        [InlineData("C M1(C c) { return default; }")]
         [InlineData("void M1(N n) { }")]
-        [InlineData("C M1() { return default; }")]
-        [InlineData("N M1() { return default; }")]
-        [InlineData("int M1(C c) { return 0; }")]
         [InlineData("void M1<T>(T t) { }")]
         [InlineData("void M1<T>(T t) where T : C { }")]
-        [InlineData("T M1<T>() { return default; }")]
-        [InlineData("T M1<T>() where T : C { return default; }")]
-        public void Method_Delete(string methodDef)
+        public void Method_Delete_Void(string methodDef)
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
