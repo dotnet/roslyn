@@ -49,11 +49,17 @@ internal sealed partial class VisualStudioErrorReportingService : IErrorReportin
         LogGlobalErrorToActivityLog(message, stackTrace);
         _infoBar.ShowInfoBarMessageFromAnyThread(message, items);
 
-        Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
+        Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, (m, args) =>
         {
             var (message, featureName) = args;
             m["Message"] = message;
             m["FeatureName"] = featureName.ToString();
+
+            if (exception is not null)
+            {
+                m["ExceptionType"] = exception.GetType().Name;
+                m["ExceptionStackTrace"] = stackTrace;
+            }
         }, (message, featureName)));
     }
 
