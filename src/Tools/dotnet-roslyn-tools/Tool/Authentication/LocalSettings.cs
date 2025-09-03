@@ -48,7 +48,11 @@ internal class LocalSettings
         }
         catch (Exception e)
         {
-            logger.LogWarning(e, "Failed to load the roslyn-tools settings. File may be corrupted or missing. Run `roslyn-tools authenticate` to regenerate.");
+            // If no tokens were passed as arguments then we inform the user they need to authenticate, otherwise we assume they know what they are doing.
+            if (githubToken is null && devdivAzDOToken is null && dncengAzDOToken is null)
+            {
+                logger.LogWarning(e, "Failed to load the roslyn-tools settings. File may be corrupted or missing. Run `roslyn-tools authenticate` to regenerate.");
+            }
         }
 
         // Override if non-empty on command line
