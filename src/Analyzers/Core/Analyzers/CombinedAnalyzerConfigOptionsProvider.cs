@@ -75,27 +75,40 @@ internal static class AnalyzerOptionsUtilities
             AnalyzerConfigOptions hostOptions) : StructuredAnalyzerConfigOptions
         {
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            // Lookup in project options first.  Editor config should override the values from the host.
             {
+                // In debug builds, we want to make sure that we never accidentally call through this api without
+                // calling GetSpecificOptions first.
+#if DEBUG
                 if (key is "generated_code")
                     return projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
 
                 throw new NotImplementedException();
+#else
                 return projectOptions.TryGetValue(key, out value) || hostOptions.TryGetValue(key, out value);
+#endif
             }
 
             public override IEnumerable<string> Keys
             {
                 get
                 {
+                    // In debug builds, we want to make sure that we never accidentally call through this api without
+                    // calling GetSpecificOptions first.
+#if DEBUG
                     throw new NotImplementedException();
+#else
                     return projectOptions.Keys.Union(hostOptions.Keys);
+#endif
                 }
             }
 
             public override NamingStylePreferences GetNamingStylePreferences()
             {
+                // In debug builds, we want to make sure that we never accidentally call through this api without
+                // calling GetSpecificOptions first.
+#if DEBUG
                 throw new NotImplementedException();
+#else
                 var preferences = (projectOptions as StructuredAnalyzerConfigOptions)?.GetNamingStylePreferences();
                 if (preferences is { IsEmpty: false })
                     return preferences;
@@ -105,6 +118,7 @@ internal static class AnalyzerOptionsUtilities
                     return preferences;
 
                 return NamingStylePreferences.Empty;
+#endif
             }
         }
     }
