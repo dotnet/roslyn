@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,7 +181,7 @@ public partial class MSBuildProjectLoader
             SetSolutionProperties(absoluteSolutionPath);
         }
 
-        var binLogPathProvider = msbuildLogger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger"
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger)
             ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
             : null;
 
@@ -245,7 +246,7 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var binLogPathProvider = msbuildLogger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger"
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger)
             ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
             : null;
 
@@ -267,6 +268,11 @@ public partial class MSBuildProjectLoader
             this.LoadMetadataForReferencedProjects);
 
         return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private static bool IsBinaryLogger([NotNullWhen(returnValue: true)] ILogger? logger)
+    {
+        return logger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger";
     }
 
     private sealed class DefaultBinLogPathProvider(string? logFilePath) : IBinLogPathProvider
