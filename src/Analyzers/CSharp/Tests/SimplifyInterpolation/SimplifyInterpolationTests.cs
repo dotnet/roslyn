@@ -1057,7 +1057,7 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
-    public Task ToStringSimplificationIsNotOfferedOnRefStructIfInterpolatedStringHandlersUnavailavable()
+    public Task ToStringSimplificationIsNotOfferedOnRefStructIfInterpolatedStringHandlersUnavailable()
         => TestMissingInRegularAndScriptAsync(
             """
             class C
@@ -1072,12 +1072,47 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
-    public Task ToStringSimplificationIsOfferedOnRefStructIfInterpolatedStringHandlersAvailavable()
-        => TestInRegularAndScriptAsync(
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanIfInterpolatedStringHandlersUnavailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            class C
+            {
+                string M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanIfInterpolatedStringHandlersUnavailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            class C
+            {
+                string M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnRefStructIfInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace System.Runtime.CompilerServices
             {
-                public ref struct DefaultInterpolatedStringHandler { }
+                public class InterpolatedStringHandlerAttribute { }
             }
 
             class C
@@ -1089,21 +1124,132 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
             {
                 public override string ToString() => "A";
             }
-            """,
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsOfferedOnReadOnlySpanOfCharIfInterpolatedStringHandlersAvailable()
+        => TestInRegularAndScriptAsync(
             """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+
             namespace System.Runtime.CompilerServices
             {
-                public ref struct DefaultInterpolatedStringHandler { }
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """,
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
             }
             
             class C
             {
-                string M(RefStruct someValue) => $"Test: {someValue}";
+                string M(ReadOnlySpan<char> span) => $"Test: {span}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsOfferedOnSpanOfCharIfInterpolatedStringHandlersAvailable()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
             }
 
-            ref struct RefStruct
+            namespace System.Runtime.CompilerServices
             {
-                public override string ToString() => "A";
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """,
+            """
+            using System;
+            
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+            
+            class C
+            {
+                string M(Span<char> span) => $"Test: {span}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanOfIntIfInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(ReadOnlySpan<int> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanOfIntIfInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                string M(Span<int> span) => $"Test: {span[||].ToString()}";
             }
             """);
 

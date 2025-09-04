@@ -65,6 +65,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         ISyntaxFacts syntaxFacts,
         IInterpolationOperation interpolation,
         ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
+        INamedTypeSymbol? readOnlySpanOfCharType,
         bool handlersAvailable,
         out TExpressionSyntax? unwrapped,
         out TExpressionSyntax? alignment,
@@ -83,7 +84,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
             UnwrapAlignmentPadding(expression, out expression, out alignment, out negate, unnecessarySpans);
 
         if (interpolation.FormatString == null)
-            UnwrapFormatString(virtualCharService, syntaxFacts, expression, knownToStringFormats, handlersAvailable, out expression, out formatString, unnecessarySpans);
+            UnwrapFormatString(virtualCharService, syntaxFacts, expression, knownToStringFormats, readOnlySpanOfCharType, handlersAvailable, out expression, out formatString, unnecessarySpans);
 
         unwrapped = GetPreservedInterpolationExpressionSyntax(expression) as TExpressionSyntax;
 
@@ -119,6 +120,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         ISyntaxFacts syntaxFacts,
         IOperation expression,
         ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
+        INamedTypeSymbol? readOnlySpanOfCharType,
         bool handlersAvailable,
         out IOperation unwrapped,
         out string? formatString,
@@ -132,7 +134,9 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         {
             if (targetMethod.Name == nameof(ToString))
             {
-                if (handlersAvailable || instance.Type?.IsRefLikeType == false)
+                var compilation = expression.SemanticModel.Compilation;
+
+                if (instance.Type?.IsRefLikeType == false || (handlersAvailable && compilation.HasImplicitConversion(instance?.Type, readOnlySpanOfCharType)))
                 {
                     if (invocation.Arguments.Length == 1
                         || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
