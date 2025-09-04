@@ -12075,7 +12075,7 @@ namespace System.Reflection
 }
 ";
 
-    var expectedIL =
+            var expectedIL =
 @"
 {
   // Code size       30 (0x1e)
