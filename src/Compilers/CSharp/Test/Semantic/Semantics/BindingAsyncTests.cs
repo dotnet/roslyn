@@ -711,10 +711,7 @@ class Test
             CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,49): error CS4005: Async methods cannot have pointer type parameters
                 //     unsafe async static Task M1(delegate*<void> i) { }
-                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(6, 49),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     unsafe async static Task M1(delegate*<void> i) { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(6, 49)
                 );
         }
 
@@ -761,10 +758,7 @@ class Test
             CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,42): error CS1988: Async methods cannot have ref, in or out parameters
                 //     unsafe async static Task M1(ref int* i)
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     unsafe async static Task M1(ref int* i)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1"));
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"));
         }
 
         [Fact]
@@ -1597,25 +1591,8 @@ class Test
         Func<Task<int>> f5 = async delegate () { return 1; };
     }
 }";
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(7, 23),
-                // (13,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action f1 = async () => new Action(() => { })();
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(13, 30),
-                // (14,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action f2 = async () => { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(14, 30),
-                // (15,39): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> f3 = async () => { return 1; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(15, 39),
-                // (16,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action f4 = async delegate () { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(16, 27),
-                // (17,36): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> f5 = async delegate () { return 1; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(17, 36));
+            // CS1998 warning has been removed - async methods without await no longer produce warnings
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
