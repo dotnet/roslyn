@@ -554,13 +554,6 @@ function EnablePreviewSdks() {
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net9.0\VSIXExpInstaller\VSIXExpInstaller.exe"
-  Write-Host "VSIX EXE path: " $vsixExe
-  if (-not (Test-Path $vsixExe)) {
-    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
-    ExitWithExitCode 1
-  }
-
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
@@ -573,7 +566,7 @@ function Deploy-VsixViaTool() {
 
   $hive = "RoslynDev"
   Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
-  $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
+  $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses"
 
   Write-Host "Uninstalling old Roslyn VSIX"
 
@@ -602,9 +595,10 @@ function Deploy-VsixViaTool() {
 
   foreach ($vsixFileName in $orderedVsixFileNames) {
     $vsixFile = Join-Path $VSSetupDir $vsixFileName
+    $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
-    Exec-Command $vsixExe $fullArg
+    Exec-Command $vsixInstallerExe $fullArg
   }
 
   # Set up registry
