@@ -115,11 +115,7 @@ internal sealed partial class DiagnosticAnalyzerService
             var filteredAnalyzers = filteredHostAnalyzers.Concat(filteredProjectAnalyzers).Distinct();
             Contract.ThrowIfTrue(filteredAnalyzers.IsEmpty);
 
-            var (options, analyzerSpecificOptionsFactory) = GetOptions();
-
-            var sharedOptions = AnalyzerOptionsUtilities.Combine(
-                project.State.ProjectAnalyzerOptions,
-                project.HostAnalyzerOptions);
+            var (sharedOptions, analyzerSpecificOptionsFactory) = GetOptions();
 
             return compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(
                 options: sharedOptions,
@@ -132,7 +128,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 analyzerExceptionFilter: exceptionFilter,
                 analyzerSpecificOptionsFactory));
 
-            (AnalyzerOptions analyzerOptions, Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory) GetOptions()
+            (AnalyzerOptions sharedOptions, Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory) GetOptions()
             {
                 // Checked above before this is called.
                 Contract.ThrowIfTrue(hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty);
@@ -147,7 +143,19 @@ internal sealed partial class DiagnosticAnalyzerService
                 if (hostAnalyzers.IsEmpty && !projectAnalyzers.IsEmpty)
                     return (project.State.ProjectAnalyzerOptions, null);
 
-                // Ok, we have both host analyzers and project analyzers.
+                // Ok, we have both host analyzers and project analyzers.  in that case, we want to provide
+                // specific options for the project analyzers. Specifically, these options will be whatever
+                // is in EditorConfig for the project, *without* falling back to host options.  That way
+                // they don't accidentally pick up options users set for their VS instance for other solutions.
+                // instead, they'll only get what is in editorconfig for the project, which is what the command
+                // line will do as well.
+                return (project.State.HostAnalyzerOptions, analyzer =>
+                {
+                    return projectAnalyzers.Contains(analyzer)
+                        ? project.State.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider
+                        : project.State.HostAnalyzerOptions.AnalyzerConfigOptionsProvider;
+                }
+                );
             }
         }
     }
