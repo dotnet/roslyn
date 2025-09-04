@@ -132,13 +132,18 @@ internal sealed partial class DiagnosticAnalyzerService
                 // Checked above before this is called.
                 Contract.ThrowIfTrue(hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty);
 
-                // If we're all host analyzers and no project analyzers, we can just return the options for host analyzers
-                // and not need any special logic.
+                // If we're all host analyzers and no project analyzers, we can just return the options for host
+                // analyzers and not need any special logic.  Similarly, If we're all project analyzers and no host
+                // analyzers, then just return the project analyzer specific options.
+                //
+                // We want to do this (as opposed to passing back the lambda below in either of these cases) as
+                // the compiler optimizes this in src\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerExecutor.cs
+                // to effectively no-op this and only add the cost of a null-check (which will then should be
+                // optimized out by branch 
                 if (!hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty)
                     return (project.State.HostAnalyzerOptions, null);
 
-                // Same in reverse.  If we're all project analyzers and no host analyzers, then just return the project
-                // analyzer specific options.
+                // Same in reverse.  
                 if (hostAnalyzers.IsEmpty && !projectAnalyzers.IsEmpty)
                     return (project.State.ProjectAnalyzerOptions, null);
 

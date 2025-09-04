@@ -4443,7 +4443,7 @@ partial class B
             diagnostics.Verify(Diagnostic("ID0001", "B").WithLocation(1, 8));
         }
 
-        private sealed class OptionsOverrideDiagnosticAnalyzer(AnalyzerOptions customOptions) : DiagnosticAnalyzer
+        private sealed class OptionsOverrideDiagnosticAnalyzer(AnalyzerConfigOptionsProvider customOptions) : DiagnosticAnalyzer
         {
             private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
                 id: "ID0001",
@@ -4453,7 +4453,7 @@ partial class B
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 
-            private readonly AnalyzerOptions _customOptions = customOptions;
+            private readonly AnalyzerConfigOptionsProvider _customOptions = customOptions;
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_descriptor];
 
@@ -4475,47 +4475,52 @@ partial class B
             public bool RegisterSymbolStartActionInvoked { get; private set; }
             public bool RegisterSymbolEndActionInvoked { get; private set; }
 
+            private void AssertSame(AnalyzerOptions options)
+            {
+                Assert.Same(options.AnalyzerConfigOptionsProvider, _customOptions);
+            }
+
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterAdditionalFileAction(context => { Assert.Same(_customOptions, context.Options); RegisterAdditionalFileActionInvoked = true; });
-                context.RegisterCodeBlockAction(context => { Assert.Same(_customOptions, context.Options); RegisterCodeBlockActionInvoked = true; });
-                context.RegisterCodeBlockStartAction<SyntaxKind>(context => { Assert.Same(_customOptions, context.Options); RegisterCodeBlockStartActionInvoked = true; });
-                context.RegisterCompilationAction(context => { Assert.Same(_customOptions, context.Options); RegisterCompilationActionInvoked = true; });
-                context.RegisterOperationAction(context => { Assert.Same(_customOptions, context.Options); RegisterOperationActionInvoked = true; }, OperationKind.Block);
-                context.RegisterOperationBlockAction(context => { Assert.Same(_customOptions, context.Options); RegisterOperationBlockActionInvoked = true; });
-                context.RegisterSemanticModelAction(context => { Assert.Same(_customOptions, context.Options); RegisterSemanticModelActionInvoked = true; });
-                context.RegisterSymbolAction(context => { Assert.Same(_customOptions, context.Options); RegisterSymbolActionInvoked = true; }, SymbolKind.NamedType);
-                context.RegisterSyntaxNodeAction(context => { Assert.Same(_customOptions, context.Options); RegisterSyntaxNodeActionInvoked = true; }, SyntaxKind.ClassDeclaration);
-                context.RegisterSyntaxTreeAction(context => { Assert.Same(_customOptions, context.Options); RegisterSyntaxTreeActionInvoked = true; });
+                context.RegisterAdditionalFileAction(context => { AssertSame(context.Options); RegisterAdditionalFileActionInvoked = true; });
+                context.RegisterCodeBlockAction(context => { AssertSame(context.Options); RegisterCodeBlockActionInvoked = true; });
+                context.RegisterCodeBlockStartAction<SyntaxKind>(context => { AssertSame(context.Options); RegisterCodeBlockStartActionInvoked = true; });
+                context.RegisterCompilationAction(context => { AssertSame(context.Options); RegisterCompilationActionInvoked = true; });
+                context.RegisterOperationAction(context => { AssertSame(context.Options); RegisterOperationActionInvoked = true; }, OperationKind.Block);
+                context.RegisterOperationBlockAction(context => { AssertSame(context.Options); RegisterOperationBlockActionInvoked = true; });
+                context.RegisterSemanticModelAction(context => { AssertSame(context.Options); RegisterSemanticModelActionInvoked = true; });
+                context.RegisterSymbolAction(context => { AssertSame(context.Options); RegisterSymbolActionInvoked = true; }, SymbolKind.NamedType);
+                context.RegisterSyntaxNodeAction(context => { AssertSame(context.Options); RegisterSyntaxNodeActionInvoked = true; }, SyntaxKind.ClassDeclaration);
+                context.RegisterSyntaxTreeAction(context => { AssertSame(context.Options); RegisterSyntaxTreeActionInvoked = true; });
 
                 context.RegisterOperationBlockStartAction(context =>
                 {
-                    Assert.Same(_customOptions, context.Options);
+                    AssertSame(context.Options);
                     RegisterOperationBlockStartActionInvoked = true;
                     context.RegisterOperationBlockEndAction(context =>
                     {
-                        Assert.Same(_customOptions, context.Options);
+                        AssertSame(context.Options);
                         RegisterOperationBlockEndActionInvoked = true;
                     });
                 });
 
                 context.RegisterCompilationStartAction(context =>
                 {
-                    Assert.Same(_customOptions, context.Options);
+                    AssertSame(context.Options);
                     RegisterCompilationStartActionInvoked = true;
                     context.RegisterCompilationEndAction(context =>
                     {
-                        Assert.Same(_customOptions, context.Options);
+                        AssertSame(context.Options);
                         RegisterCompilationEndActionInvoked = true;
                     });
                 });
                 context.RegisterSymbolStartAction(context =>
                 {
-                    Assert.Same(_customOptions, context.Options);
+                    AssertSame(context.Options);
                     RegisterSymbolStartActionInvoked = true;
                     context.RegisterSymbolEndAction(context =>
                     {
-                        Assert.Same(_customOptions, context.Options);
+                        AssertSame(context.Options);
                         RegisterSymbolEndActionInvoked = true;
                     });
                 }, SymbolKind.NamedType);
@@ -4547,7 +4552,10 @@ partial class B
 
             // Ensure that the analyzer only sees the custom options passed to the callbacks, and never the shared options.
             var sharedOptions = new AnalyzerOptions([additionalText]);
-            var customOptions = new AnalyzerOptions([additionalText]);
+            var customOptions = new CompilerAnalyzerConfigOptionsProvider(
+                ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                new DictionaryAnalyzerConfigOptions(
+                    ImmutableDictionary<string, string>.Empty));
             Assert.NotSame(sharedOptions, customOptions);
 
             var analyzer = new OptionsOverrideDiagnosticAnalyzer(customOptions);
