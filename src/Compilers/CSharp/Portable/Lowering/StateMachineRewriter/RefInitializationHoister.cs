@@ -11,6 +11,20 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
+/// <summary>
+/// Helper used during state machine lowering (async / iterator) to "hoist" the initialization of
+/// synthesized ref locals whose right-hand side may contain <c>await</c> or otherwise needs to be
+/// evaluated before suspension points.
+/// <para>
+/// A ref local whose initializer contains side effects (invocations, indexing, field dereference with
+/// a non-trivial receiver, etc.) must be rewritten so that:
+/// <list type="number">
+/// <item><description>All side effects are performed exactly once and in the original left-to-right order.</description></item>
+/// <item><description>Potential exceptions (null dereference, bounds checks, etc.) occur before the first suspension (e.g. an <c>await</c> inside the method) just as they would have in the original code.</description></item>
+/// <item><description>The resulting stored reference (the value of the ref local) remains stable across suspension (i.e. subsequent uses of the ref local after rewrites refer to a syntactically simple expression comprised only of the hoisted symbols and stable primitives).</description></item>
+/// </list>
+/// </para>
+/// </summary>
 internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(SyntheticBoundNodeFactory f, MethodSymbol originalMethod, TypeMap typeMap)
     where THoistedSymbolType : Symbol
     where THoistedAccess : BoundExpression
@@ -20,6 +34,27 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
     private readonly TypeMap _typeMap = typeMap;
     private bool _reportedError;
 
+    /// <summary>
+    /// Hoists the right-hand side of a ref local (or similar synthesized local) initialization.
+    /// </summary>
+    /// <typeparam name="TArg">Additional context type passed through to creation callbacks.</typeparam>
+    /// <param name="local">The synthesized local whose initialization is being processed. Must be of a supported synthesized kind.</param>
+    /// <param name="visitedRight">The (already recursively visited by the enclosing rewriter) original right-hand side expression.</param>
+    /// <param name="proxies">Dictionary receiving a proxy replacement mapping from <paramref name="local"/> to a stable expression assembled from hoisted components.</param>
+    /// <param name="createHoistedSymbol">Factory that creates a new hoisted symbol for a sub-expression value of a given <see cref="TypeSymbol"/>.</param>
+    /// <param name="createHoistedAccess">Factory that produces an access expression to a previously created hoisted symbol.</param>
+    /// <param name="arg">Additional context forwarded to the factories (typically state machine specific info).</param>
+    /// <param name="isRuntimeAsync">True when performing lowered transformation for runtime-async (MoveNext-like) method body; affects some validation / debug assertions.</param>
+    /// <returns>
+    /// A sequence expression containing the side-effect assignments (and possibly a sacrificial evaluation)
+    /// whose value is the final replacement expression used to initialize the ref local, or <c>null</c>
+    /// if no side effects needed hoisting.
+    /// </returns>
+    /// <remarks>
+    /// On success a <see cref="CapturedToExpressionSymbolReplacement{TSymbol}"/> entry is added for the local.
+    /// Subsequent usages of the local are rewritten (elsewhere) to the replacement expression so the
+    /// state machine no longer needs to track the original local.
+    /// </remarks>
     internal BoundExpression? HoistRefInitialization<TArg>(
         LocalSymbol local,
         BoundExpression visitedRight,
@@ -75,6 +110,27 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
         return _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, sideEffects.ToImmutableAndFree(), last);
     }
 
+    /// <summary>
+    /// Recursively processes <paramref name="expr"/>, hoisting side-effecting / non-stable sub-expressions into
+    /// separate symbols and returning a (syntactically) simpler expression tree composed only of:
+    /// <list type="bullet">
+    /// <item><description>Original stable nodes (e.g. constants, <c>this</c>, static readonly field access when allowed).</description></item>
+    /// <item><description>Accesses to hoisted symbols created for previous sub-expressions.</description></item>
+    /// </list>
+    /// </summary>
+    /// <typeparam name="TArg">Additional context argument type.</typeparam>
+    /// <param name="expr">Expression to transform.</param>
+    /// <param name="assignedLocal">The local being initialized ultimately (used for diagnostics and to associate hoisted symbols).</param>
+    /// <param name="refKind">The desired ref kind of the full expression result (propagated selectively when it impacts legality of hoisting).</param>
+    /// <param name="sideEffects">Builder collecting assignment expressions that realize side effects exactly once.</param>
+    /// <param name="hoistedSymbols">Builder receiving the created hoisted symbols (parallel to <paramref name="sideEffects"/> order).</param>
+    /// <param name="needsSacrificialEvaluation">Flag that is set if the final composed expression must still be evaluated once now (to force exceptions / checks) even though the reference itself is stable.</param>
+    /// <param name="createHoistedSymbol">Callback that creates a hoisted symbol.</param>
+    /// <param name="createHoistedAccess">Callback that creates an access to a hoisted symbol.</param>
+    /// <param name="arg">Additional callback context.</param>
+    /// <param name="isRuntimeAsync">Indicates we are in runtime-async lowering path; changes certain debug-time invariants.</param>
+    /// <param name="isFieldAccessOfStruct">Whether the current expression is a field access whose receiver is a struct (important for reference preservation rules).</param>
+    /// <returns>The replacement (side-effect free / stable) expression that can stand in for <paramref name="expr"/> after the collected side effects execute.</returns>
     private BoundExpression HoistExpression<TArg>(
         BoundExpression expr,
         LocalSymbol assignedLocal,
@@ -159,7 +215,8 @@ internal class RefInitializationHoister<THoistedSymbolType, THoistedAccess>(Synt
                         isFieldAccessOfStruct: isFieldOfStruct);
                     if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
                     {
-                        needsSacrificialEvaluation = true; // need the null check in field receiver
+                        // Make sure that any potential NRE on the receiver happens before the await.
+                        needsSacrificialEvaluation = true;
                     }
 
                     return _factory.Field(receiver, field.FieldSymbol);

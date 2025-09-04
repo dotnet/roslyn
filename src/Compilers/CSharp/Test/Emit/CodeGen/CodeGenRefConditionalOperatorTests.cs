@@ -573,7 +573,6 @@ class C
 
         return 1;
     }
-
 }";
 
             var expected =

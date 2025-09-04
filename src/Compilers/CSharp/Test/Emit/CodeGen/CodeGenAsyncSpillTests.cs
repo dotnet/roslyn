@@ -1120,6 +1120,8 @@ public class Test
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
+            // https://github.com/dotnet/roslyn/issues/80147 - There's an extra unneeded array
+            // load before the await that could be removed
             v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"{
   // Code size      273 (0x111)
@@ -6576,10 +6578,12 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0");
+
+            var expectedOutput = "0";
+            CompileAndVerify(source, expectedOutput);
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<T0>' }
@@ -7596,10 +7600,12 @@ static class Driver
         Console.WriteLine(t.Result);
     }
 }";
-            CompileAndVerify(source, "42");
+
+            var expectedOutput = "42";
+            CompileAndVerify(source, expectedOutput);
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Run]: Unexpected type on the stack. { Offset = 0x47, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -9530,10 +9536,11 @@ class C
         Console.WriteLine(-1);
     }
 }";
-            CompileAndVerify(source, "0");
+            var expectedOutput = "0";
+            CompileAndVerify(source, expectedOutput);
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F2]: Unexpected type on the stack. { Offset = 0x6d, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -10063,10 +10070,11 @@ public class C
 }
 ";
 
-            var v = CompileAndVerify(source, "42");
+            var expectedOutput = "42";
+            var v = CompileAndVerify(source, expectedOutput);
 
             var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [M]: Return value missing on the stack. { Offset = 0x12 }
@@ -11904,6 +11912,7 @@ class Program
         Console.WriteLine(""Before Assignment"");
         try
         {
+            // Sacrificial read should ensure that `await` never happens
             await Assign(a);
         }
         catch (NullReferenceException)
@@ -12139,6 +12148,7 @@ class Program
         Console.WriteLine(""Before Assignment"");
         try
         {
+            // Sacrificial read should ensure that `await` never happens
             await Assign(a);
         }
         catch (NullReferenceException)

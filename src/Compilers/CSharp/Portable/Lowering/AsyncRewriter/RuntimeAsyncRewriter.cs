@@ -59,7 +59,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
                 // compiler-generated state machines; `this` is a ref, but results are not observable outside of the method.
                 var hoistedThis = rewriter._factory.StoreToTemp(rewriter._factory.This(), out BoundAssignmentOperator store, kind: SynthesizedLocalKind.AwaitByRefSpill);
                 rewriter._hoistedLocals.Add(hoistedThis.LocalSymbol);
-                rewriter._proxies.Add(thisParameter, new CapturedToExpressionSymbolReplacement<ParameterSymbol>(hoistedThis, hoistedFields: [], isReusable: true));
+                rewriter._proxies.Add(thisParameter, new CapturedToExpressionSymbolReplacement<ParameterSymbol>(hoistedThis, hoistedSymbols: [], isReusable: true));
                 return store;
             }
 
@@ -307,5 +307,18 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
         Debug.Assert(thisParameter is not { Type.IsValueType: true, RefKind: RefKind.Ref });
         return base.VisitThisReference(node);
+    }
+
+    public override BoundNode? VisitExpressionStatement(BoundExpressionStatement node)
+    {
+        var expr = VisitExpression(node.Expression);
+        if (expr is null)
+        {
+            // Happens when the node is a hoisted expression that has no side effects.
+            // The generated proxy will have the original content from this node and we can drop it.
+            return _factory.StatementList();
+        }
+
+        return node.Update(expr);
     }
 }

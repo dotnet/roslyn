@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 StateMachineFieldSymbol hoistedSymbol;
 
-                // https://github.com/dotnet/roslyn/issues/79793 - consider whether runtime async will need some of these optimizations
+                // https://github.com/dotnet/roslyn/issues/79793 - consider whether runtime async will need some of this work for enc
                 if (@this.F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
                 {
                     const SynthesizedLocalKind kind = SynthesizedLocalKind.AwaitByRefSpill;
