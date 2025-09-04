@@ -5978,9 +5978,6 @@ class C
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16));
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
@@ -5989,9 +5986,6 @@ class C
                 // (4,16): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
                 //     async void M() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 16),
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16));
         }
 
         [Fact, WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
@@ -6006,9 +6000,6 @@ class C
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
             CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
-                // (4,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 23));
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
@@ -6016,9 +6007,6 @@ class C
                 // (4,23): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
                 //     async static void M() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "M").WithArguments("async function", "5").WithLocation(4, 23),
-                // (4,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 23));
         }
 
         [Fact]
@@ -6042,9 +6030,6 @@ class C
                 // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
                 //         Func<int, Task<int>> f = async x => x;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
-                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async x => x;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42));
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
@@ -6058,9 +6043,6 @@ class C
                 // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async x => x;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34),
-                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async x => x;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42));
         }
 
         [Fact]
@@ -6084,9 +6066,6 @@ class C
                 // (6,19): error CS0246: The type or namespace name 'Task<>' could not be found (are you missing a using directive or an assembly reference?)
                 //         Func<int, Task<int>> f = async delegate (int x) { return x; };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task<int>").WithArguments("Task<>").WithLocation(6, 19),
-                // (6,40): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 40));
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
@@ -6100,9 +6079,6 @@ class C
                 // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async delegate (int x) { return x; };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5").WithLocation(6, 34),
-                // (6,40): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int, Task<int>> f = async delegate (int x) { return x; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 40));
         }
 
         [Fact]

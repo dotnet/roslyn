@@ -1997,9 +1997,6 @@ Not Valid!
                 // (23,17): warning CS8073: The result of the expression is always 'true' since a value of type 'Guid' is never equal to 'null' of type 'Guid?'
                 //             if (item.Item2 != null || await IsValid(item.Item2))
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "item.Item2 != null").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(23, 17),
-                // (29,41): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         private static async Task<bool> IsValid(Guid id)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "IsValid").WithLocation(29, 41)
             );
             verifier.VerifyIL("AsyncConditionalBug.Program.DoSomething(System.Tuple<string, System.Guid>)", """
                 {
@@ -8192,9 +8189,6 @@ struct S
                 // (16,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         M();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "M()").WithLocation(16, 9),
-                // (14,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(14, 23)
             );
             // https://github.com/dotnet/roslyn/issues/79763
             // var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
@@ -8207,55 +8201,6 @@ struct S
 
             // verifier.VerifyDiagnostics(
             //     // (14,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //     //     static async Task Main()
-            //     Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(14, 23),
-            //     // (16,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-            //     //         M();
-            //     Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "M()").WithLocation(16, 9)
-            // );
-            // verifier.VerifyIL("S.M(S)", """
-            //     {
-            //       // Code size      100 (0x64)
-            //       .maxstack  3
-            //       .locals init (int? V_0,
-            //                     int? V_1,
-            //                     int? V_2)
-            //       IL_0000:  ldarga.s   V_0
-            //       IL_0002:  initobj    "S"
-            //       IL_0008:  ldarga.s   V_0
-            //       IL_000a:  ldflda     "int? S.i"
-            //       IL_000f:  dup
-            //       IL_0010:  ldobj      "int?"
-            //       IL_0015:  stloc.0
-            //       IL_0016:  call       "System.Threading.Tasks.Task<int?> S.GetInt()"
-            //       IL_001b:  call       "int? System.Runtime.CompilerServices.AsyncHelpers.Await<int?>(System.Threading.Tasks.Task<int?>)"
-            //       IL_0020:  stloc.1
-            //       IL_0021:  ldloca.s   V_0
-            //       IL_0023:  call       "readonly bool int?.HasValue.get"
-            //       IL_0028:  ldloca.s   V_1
-            //       IL_002a:  call       "readonly bool int?.HasValue.get"
-            //       IL_002f:  and
-            //       IL_0030:  brtrue.s   IL_003d
-            //       IL_0032:  ldloca.s   V_2
-            //       IL_0034:  initobj    "int?"
-            //       IL_003a:  ldloc.2
-            //       IL_003b:  br.s       IL_0051
-            //       IL_003d:  ldloca.s   V_0
-            //       IL_003f:  call       "readonly int int?.GetValueOrDefault()"
-            //       IL_0044:  ldloca.s   V_1
-            //       IL_0046:  call       "readonly int int?.GetValueOrDefault()"
-            //       IL_004b:  add
-            //       IL_004c:  newobj     "int?..ctor(int)"
-            //       IL_0051:  dup
-            //       IL_0052:  stloc.2
-            //       IL_0053:  stobj      "int?"
-            //       IL_0058:  ldloc.2
-            //       IL_0059:  box        "int?"
-            //       IL_005e:  call       "void System.Console.WriteLine(object)"
-            //       IL_0063:  ret
-            //     }
-            //     """);
-        }
 
         [Fact]
         public void SpillSacrificialRead()

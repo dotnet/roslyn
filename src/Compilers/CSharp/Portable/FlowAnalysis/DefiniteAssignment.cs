@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatDiagnostics.Free();
             foreach (var diagnostic in strictDiagnostics.AsEnumerable())
             {
-                // If it is a warning (e.g. WRN_AsyncLacksAwaits), or an error that would be reported by the compatible analysis, just report it.
+                // If it is a warning, or an error that would be reported by the compatible analysis, just report it.
                 if (diagnostic.Severity != DiagnosticSeverity.Error || compatDiagnosticSet.Contains(diagnostic))
                 {
                     diagnostics.Add(diagnostic);
