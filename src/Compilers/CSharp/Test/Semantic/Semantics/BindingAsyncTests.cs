@@ -595,10 +595,8 @@ class C
     {
     }
 }";
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F"));
+            // CS1998 warning has been removed - async methods without await no longer produce warnings
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -697,10 +695,7 @@ class Test
             CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,38): error CS4005: Async methods cannot have pointer type parameters
                 //     unsafe async static Task M1(int* i)
-                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i"),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     unsafe async static Task M1(ref int* i)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1"));
+                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i"));
         }
 
         [Fact]

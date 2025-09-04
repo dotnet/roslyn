@@ -407,49 +407,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.RemoveReturns();
 
-            if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
-            {
-                var foundAwait = result.Any(static pending => HasAwait(pending));
-                if (!foundAwait)
-                {
-                    // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
-                    // much better than using its 'Location' (which is the entire span of the lambda).
-                    var diagnosticLocation = CurrentSymbol is LambdaSymbol lambda
-                        ? lambda.DiagnosticLocation
-                        : CurrentSymbol.GetFirstLocationOrNone();
-
-                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
-                }
-            }
+            // CS1998 (WRN_AsyncLacksAwaits) warning has been removed entirely.
+            // Previously this would warn about async methods that lack 'await' operators,
+            // but this warning is no longer emitted.
 
             return result;
-        }
-
-        private static bool HasAwait(PendingBranch pending)
-        {
-            var pendingBranch = pending.Branch;
-            if (pendingBranch is null)
-            {
-                return false;
-            }
-
-            BoundKind kind = pendingBranch.Kind;
-            switch (kind)
-            {
-                case BoundKind.AwaitExpression:
-                    return true;
-                case BoundKind.UsingStatement:
-                    var usingStatement = (BoundUsingStatement)pendingBranch;
-                    return usingStatement.AwaitOpt != null;
-                case BoundKind.ForEachStatement:
-                    var foreachStatement = (BoundForEachStatement)pendingBranch;
-                    return foreachStatement.AwaitOpt != null;
-                case BoundKind.UsingLocalDeclarations:
-                    var localDeclaration = (BoundUsingLocalDeclarations)pendingBranch;
-                    return localDeclaration.AwaitOpt != null;
-                default:
-                    return false;
-            }
         }
 
         // For purpose of definite assignment analysis, awaits create pending branches, so async usings and foreachs do too
