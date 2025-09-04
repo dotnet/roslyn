@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<Exception, bool>? _analyzerExceptionFilter;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
-        private readonly Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? _analyzerSpecificOptionsFactory;
         private readonly Func<DiagnosticAnalyzer, object?> _getAnalyzerGate;
         private readonly Func<SyntaxTree, SemanticModel> _getSemanticModel;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
@@ -52,8 +51,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? _analyzerExecutionTimeMap;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
 
-
-        private readonly ConcurrentDictionary<DiagnosticAnalyzer, AnalyzerOptions> _analyzerToCachedOptions = [];
+        /// <summary>
+        /// Cache of analyzer to analyzer specific options.  If <see langword="null"/> there are no specific
+        /// options, and the shared options should be used for all analyzers.
+        /// </summary>
+        private readonly Dictionary<DiagnosticAnalyzer, AnalyzerOptions>? _analyzerToCachedOptions;
 
         private Func<IOperation, ControlFlowGraph>? _lazyGetControlFlowGraph;
 
@@ -108,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
             Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerExecutionTimeMap = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>() : null;
 
             return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnostic, onAnalyzerException, analyzerExceptionFilter,
-                isCompilerAnalyzer, analyzerSpecificOptionsFactory, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
+                isCompilerAnalyzer, diagnosticAnalyzers, analyzerSpecificOptionsFactory, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
                 isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, severityFilter, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
                 addSuppression);
         }
@@ -141,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
             Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
@@ -161,7 +165,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OnAnalyzerException = onAnalyzerException;
             _analyzerExceptionFilter = analyzerExceptionFilter;
             _isCompilerAnalyzer = isCompilerAnalyzer;
-            _analyzerSpecificOptionsFactory = analyzerSpecificOptionsFactory;
             _analyzerManager = analyzerManager;
             _shouldSkipAnalysisOnGeneratedCode = shouldSkipAnalysisOnGeneratedCode;
             _shouldSuppressGeneratedCodeDiagnostic = shouldSuppressGeneratedCodeDiagnostic;
@@ -176,6 +179,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _addSuppression = addSuppression;
 
             _compilationAnalysisValueProviderFactory = new CompilationAnalysisValueProviderFactory();
+
+            if (analyzerSpecificOptionsFactory != null)
+            {
+                var hasDifferentOptions = false;
+                var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>();
+
+                // In practice, even if different analyzers have specific options providers, they will often share
+                // the same instance.  In that case, ensure we use the same analyzer options instance in that case
+                // as well.
+                var optionsProviderToOptions = new Dictionary<AnalyzerConfigOptionsProvider, AnalyzerOptions>();
+
+                foreach (var analyzer in diagnosticAnalyzers)
+                {
+                    var optionsProvider = analyzerSpecificOptionsFactory(analyzer);
+                    var specificOptions = optionsProviderToOptions.GetOrAdd(
+                        optionsProvider, () => analyzerOptions.WithAnalyzerConfigOptionsProvider(optionsProvider));
+
+                    map[analyzer] = specificOptions;
+
+                    if (specificOptions != analyzerOptions)
+                        hasDifferentOptions = true;
+                }
+
+                // Only if there is at least one analyzer with specific options, we need to maintain the map.
+                // Otherwise, we can just toss it and use the shared options for all analyzers.
+                if (hasDifferentOptions)
+                    _analyzerToCachedOptions = map;
+            }
         }
 
         internal Compilation Compilation { get; }
@@ -253,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<TAnalysisContext, AnalyzerOptions, TAnalysisContext> withOptions)
         {
             // No specific options factory.  Can use the shared context.
-            if (_analyzerSpecificOptionsFactory is null)
+            if (_analyzerToCachedOptions is null)
                 return context;
 
             return withOptions(context, GetAnalyzerSpecificOptions(analyzer));
@@ -263,19 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Given an analyzer, returns any specific options for it, or the shared options if none.
         /// </summary>
         private AnalyzerOptions GetAnalyzerSpecificOptions(DiagnosticAnalyzer analyzer)
-        {
-            if (_analyzerSpecificOptionsFactory is null)
-                return AnalyzerOptions;
-
-            if (_analyzerToCachedOptions.TryGetValue(analyzer, out var cachedOptions))
-                return cachedOptions;
-
-            var optionsProvider = _analyzerSpecificOptionsFactory(analyzer);
-            var newOptions = this.AnalyzerOptions.WithAnalyzerConfigOptionsProvider(optionsProvider);
-            _analyzerToCachedOptions.TryAdd(analyzer, newOptions);
-
-            return _analyzerToCachedOptions[analyzer];
-        }
+            => _analyzerToCachedOptions?[analyzer] ?? AnalyzerOptions;
 
         /// <summary>
         /// Executes the symbol start actions.
@@ -828,9 +847,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var (@this, startActions, executableCodeBlocks, declaredNode, getKind, ephemeralActions) = args;
 
                     var scope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(startAction.Analyzer);
+                    var options = @this.GetAnalyzerSpecificOptions(startAction.Analyzer);
                     var startContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
                         scope, declaredNode, executionData.DeclaredSymbol, executionData.SemanticModel,
-                        @this.AnalyzerOptions, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
+                        options, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
                     @this.ExecuteAndCatchIfThrows(
@@ -922,6 +942,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // The actions we discover in 'addActions' and then execute in 'executeActions'.
             var ephemeralActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
+
             ExecuteBlockActionsCore(
                 startActions,
                 actions,
@@ -932,8 +953,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var (@this, startActions, declaredNode, operationBlocks, operations, ephemeralActions) = args;
                     var scope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
+                    var options = @this.GetAnalyzerSpecificOptions(startAction.Analyzer);
                     var startContext = new AnalyzerOperationBlockStartAnalysisContext(
-                        scope, operationBlocks, executionData.DeclaredSymbol, executionData.SemanticModel.Compilation, @this.AnalyzerOptions,
+                        scope, operationBlocks, executionData.DeclaredSymbol, executionData.SemanticModel.Compilation, options,
                         @this.GetControlFlowGraph, declaredNode.SyntaxTree, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
