@@ -28,7 +28,7 @@ public sealed class OptionSerializerTests
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             InheritanceMarginOptionsStorage.ShowInheritanceMargin,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
-            CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
+            CompletionOptionsStorage.ShowNewSnippetExperience,
             CompletionOptionsStorage.TriggerOnDeletion,
         };
 
