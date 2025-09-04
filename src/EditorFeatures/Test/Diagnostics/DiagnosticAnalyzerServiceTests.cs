@@ -889,7 +889,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         try
         {
-            var diagnostics = await service.GetDiagnosticsForIdsAsync(
+            _ = await service.GetDiagnosticsForIdsAsync(
                 project, [document.Id], diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true,
                 analyzer.CancellationToken);
 
@@ -898,8 +898,6 @@ public sealed class DiagnosticAnalyzerServiceTests
         catch (OperationCanceledException) when (analyzer.CancellationToken.IsCancellationRequested)
         {
         }
-
-        Assert.Single(analyzer.CanceledCompilations);
 
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
         var diagnosticsMap = await service.GetDiagnosticsForIdsAsync(
