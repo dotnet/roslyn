@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzerSpecificOptionsFactory != null)
             {
                 var hasDifferentOptions = false;
-                var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>();
+                var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>(ReferenceEqualityComparer.Instance);
 
                 foreach (var analyzer in diagnosticAnalyzers)
                 {
