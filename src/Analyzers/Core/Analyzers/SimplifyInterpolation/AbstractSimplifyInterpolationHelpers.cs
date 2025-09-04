@@ -136,14 +136,14 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
             {
                 var compilation = expression.SemanticModel.Compilation;
 
-                if (instance.Type?.IsRefLikeType == false || (handlersAvailable && compilation.HasImplicitConversion(instance?.Type, readOnlySpanOfCharType)))
+                if (instance.Type?.IsRefLikeType == false || (handlersAvailable && compilation.HasImplicitConversion(instance.Type, readOnlySpanOfCharType)))
                 {
                     if (invocation.Arguments.Length == 1
                         || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                     {
                         if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
                             FindType<IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
-                            instance.Type.Implements(systemIFormattable))
+                            instance.Type?.Implements(systemIFormattable) == true)
                         {
                             unwrapped = instance;
                             formatString = value;
