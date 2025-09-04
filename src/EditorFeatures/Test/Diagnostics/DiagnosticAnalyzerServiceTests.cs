@@ -634,7 +634,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
-            project, [document.Id], [analyzer1.Descriptor.Id], shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            project, documentIds: default, [analyzer1.Descriptor.Id], shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.False(analyzer2.ReceivedSymbolCallback);
 
         Assert.Equal(1, diagnosticsMapResults.Length);
@@ -676,6 +676,8 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var analyzerHost = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
         var analyzerHostReference = new AnalyzerImageReference([analyzerHost]);
+
+        SerializerService.TestAccessor.AddAnalyzerImageReferences([analyzerProjectReference, analyzerHostReference]);
 
         // AnalyzerImageReference will create a separate AnalyzerImageReference.Id for each instance created, so these will be different.
         Assert.NotEqual(analyzerProjectReference.Id, analyzerHostReference.Id);
@@ -806,6 +808,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var analyzer = new FilterSpanTestAnalyzer(kind);
         var analyzerReference = new AnalyzerImageReference([analyzer]);
+        SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference);
         project = project.AddAnalyzerReference(analyzerReference);
 
         workspace.TryApplyChanges(project.Solution);
@@ -878,7 +881,6 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var project = workspace.CurrentSolution.Projects.Single();
         var document = project.Documents.Single();
-        var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
         var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
 
@@ -887,8 +889,9 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         try
         {
-            _ = service.GetDiagnosticsForIdsAsync(
-                project, [document.Id], diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            var diagnostics = await service.GetDiagnosticsForIdsAsync(
+                project, [document.Id], diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true,
+                analyzer.CancellationToken);
 
             throw ExceptionUtilities.Unreachable();
         }
