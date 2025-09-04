@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class CompilationWithAnalyzersOptions
     {
         private readonly AnalyzerOptions? _options;
-        private readonly Func<DiagnosticAnalyzer, AnalyzerOptions>? _analyzerSpecificOptionsFactory;
+        private readonly Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? _analyzerSpecificOptionsFactory;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic>? _onAnalyzerException;
         private readonly Func<Exception, bool>? _analyzerExceptionFilter;
         private readonly bool _concurrentAnalysis;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// from the shared instance provided in <see cref="Options"/>.  If <see langword="null"/> then <see cref="Options"/>
         /// will be used for all analyzers.
         /// </summary>
-        public Func<DiagnosticAnalyzer, AnalyzerOptions>? AnalyzerSpecificOptionsFactory
+        public Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? AnalyzerSpecificOptionsFactory
             => _analyzerSpecificOptionsFactory;
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            bool logAnalyzerExecutionTime,
            bool reportSuppressedDiagnostics,
            Func<Exception, bool>? analyzerExceptionFilter,
-           Func<DiagnosticAnalyzer, AnalyzerOptions>? analyzerSpecificOptionsFactory)
+           Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory)
         {
             _options = options;
             _onAnalyzerException = onAnalyzerException;
