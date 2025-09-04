@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Mime;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
@@ -4440,6 +4441,87 @@ partial class B
                 new AnalyzerOptions([]));
             var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
             diagnostics.Verify(Diagnostic("ID0001", "B").WithLocation(1, 8));
+        }
+
+        private sealed class OptionsOverrideDiagnosticAnalyzer(AnalyzerOptions customOptions) : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                id: "ID0001",
+                title: "Title",
+                messageFormat: "Message",
+                category: "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            private readonly AnalyzerOptions _customOptions = customOptions;
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_descriptor];
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterAdditionalFileAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterCodeBlockAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterCodeBlockStartAction<SyntaxKind>(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterCompilationAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterOperationAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterOperationBlockAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterOperationBlockStartAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterSemanticModelAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterSymbolAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterSyntaxNodeAction(context => Assert.Same(_customOptions, context.Options), SyntaxKind.ClassDeclaration);
+                context.RegisterSyntaxTreeAction(context => Assert.Same(_customOptions, context.Options));
+
+                context.RegisterCompilationStartAction(context =>
+                {
+                    Assert.Same(_customOptions, context.Options);
+                    context.RegisterCompilationEndAction(context =>
+                    {
+                        Assert.Same(_customOptions, context.Options);
+                    });
+                });
+                context.RegisterSymbolStartAction(context =>
+                {
+                    Assert.Same(_customOptions, context.Options);
+                    context.RegisterSymbolEndAction(context =>
+                    {
+                        Assert.Same(_customOptions, context.Options);
+                    });
+                }, SymbolKind.NamedType);
+            }
+        }
+
+        [Fact]
+        public async Task TestOptionsOverride()
+        {
+            // lang=C#-Test
+            string source = """
+                class C
+                {
+                    void M()
+                    {
+                        int x = 0;
+                    }
+                }
+                """;
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithCSharp(new[] { tree, CSharpSyntaxTree.ParseText(IsExternalInitTypeDefinition) });
+            compilation.VerifyDiagnostics(
+                // (5,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(5, 13));
+
+            var sharedOptions = new AnalyzerOptions([]);
+            var customOptions = new AnalyzerOptions([]);
+            var compWithAnalyzers = new CompilationWithAnalyzers(
+                compilation,
+                [new OptionsOverrideDiagnosticAnalyzer(customOptions)],
+                new CompilationWithAnalyzersOptions(
+                    sharedOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false, analyzerExceptionFilter: null,
+                    _ => customOptions));
+
+            var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
+            Assert.Empty(diagnostics);
         }
     }
 }
