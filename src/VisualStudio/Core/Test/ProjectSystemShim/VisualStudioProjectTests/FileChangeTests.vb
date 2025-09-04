@@ -16,13 +16,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <CombinatorialData>
         Public Async Function FileChangeAfterRemovalInUncommittedBatchIgnored(withDirectoryWatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim projectInfo = New VisualStudioProjectCreationInfo
-
                 ' If we have a project directory, then we'll also have a watch for the entire directory;
                 ' test both cases
-                If withDirectoryWatch Then
-                    projectInfo.FilePath = "Z:\Project.csproj"
-                End If
+
+                Dim projectInfo = New VisualStudioProjectCreationInfo With {
+                    .FilePath = If(withDirectoryWatch, "Z:\Project.csproj", Nothing)
+                }
 
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, projectInfo, CancellationToken.None)
@@ -40,13 +39,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <CombinatorialData>
         Public Async Function FileChangeAfterRemoveOfProjectIgnored(withDirectoryWatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim projectInfo = New VisualStudioProjectCreationInfo
 
                 ' If we have a project directory, then we'll also have a watch for the entire directory;
                 ' test both cases
-                If withDirectoryWatch Then
-                    projectInfo.FilePath = "Z:\Project.csproj"
-                End If
+                Dim projectInfo = New VisualStudioProjectCreationInfo With {
+                    .FilePath = If(withDirectoryWatch, "Z:\Project.csproj", Nothing)
+                }
 
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, projectInfo, CancellationToken.None)
