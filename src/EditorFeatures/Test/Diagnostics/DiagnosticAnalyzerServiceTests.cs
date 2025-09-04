@@ -736,11 +736,13 @@ public sealed class DiagnosticAnalyzerServiceTests
             return new TestAnalyzerReferenceByLanguage(map);
         }
 
-        static ImmutableArray<AnalyzerReference> AddExtraReferenceIfNeeded(AnalyzerReference mainReference, bool addExtraReference)
+        ImmutableArray<AnalyzerReference> AddExtraReferenceIfNeeded(AnalyzerReference mainReference, bool addExtraReference)
         {
             if (addExtraReference)
             {
-                return [mainReference, new AnalyzerImageReference([new FieldAnalyzer("FA1234", syntaxTreeAction: false)])];
+                var imageReference = new AnalyzerImageReference([new FieldAnalyzer("FA1234", syntaxTreeAction: false)]);
+                SerializerService.TestAccessor.AddAnalyzerImageReference(imageReference);
+                return [mainReference, imageReference];
             }
             else
             {
