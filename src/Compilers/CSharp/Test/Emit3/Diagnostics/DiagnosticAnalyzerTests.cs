@@ -4475,19 +4475,19 @@ partial class B
             public bool RegisterSymbolStartActionInvoked { get; private set; }
             public bool RegisterSymbolEndActionInvoked { get; private set; }
 
-            private AnalyzerOptions _seenOptions;
+            public AnalyzerOptions SeenOptions;
 
             private void AssertSame(AnalyzerOptions options)
             {
                 // First, assert that the options provider we see is the custom one the test sets.
                 Assert.Same(options.AnalyzerConfigOptionsProvider, _customOptions);
 
-                if (_seenOptions is null)
-                    _seenOptions = options;
+                if (SeenOptions is null)
+                    SeenOptions = options;
 
                 // Also ensure that the compiler actually passes the same AnalyzerOptions wrapper around
                 // the options provider.  That ensures we're not accidentally creating new instances unnecessarily.
-                Assert.Same(_seenOptions, options);
+                Assert.Same(SeenOptions, options);
             }
 
             public override void Initialize(AnalysisContext context)
@@ -4535,10 +4535,35 @@ partial class B
                     });
                 }, SymbolKind.NamedType);
             }
+
+            public void AssertAllCallbacksInvoked()
+            {
+                Assert.NotNull(SeenOptions);
+
+                Assert.True(RegisterAdditionalFileActionInvoked);
+
+                Assert.True(RegisterAdditionalFileActionInvoked);
+                Assert.True(RegisterCodeBlockActionInvoked);
+                Assert.True(RegisterCodeBlockStartActionInvoked);
+                Assert.True(RegisterCompilationActionInvoked);
+                Assert.True(RegisterOperationActionInvoked);
+                Assert.True(RegisterOperationBlockActionInvoked);
+                Assert.True(RegisterSemanticModelActionInvoked);
+                Assert.True(RegisterSymbolActionInvoked);
+                Assert.True(RegisterSyntaxNodeActionInvoked);
+                Assert.True(RegisterSyntaxTreeActionInvoked);
+
+                Assert.True(RegisterOperationBlockStartActionInvoked);
+                Assert.True(RegisterOperationBlockEndActionInvoked);
+                Assert.True(RegisterCompilationStartActionInvoked);
+                Assert.True(RegisterCompilationEndActionInvoked);
+                Assert.True(RegisterSymbolStartActionInvoked);
+                Assert.True(RegisterSymbolEndActionInvoked);
+            }
         }
 
         [Fact]
-        public async Task TestOptionsOverride()
+        public async Task TestAnalyzerSpecificOptionsFactory()
         {
             // lang=C#-Test
             string source = """
@@ -4562,43 +4587,58 @@ partial class B
 
             // Ensure that the analyzer only sees the custom options passed to the callbacks, and never the shared options.
             var sharedOptions = new AnalyzerOptions([additionalText]);
-            var customOptions = new CompilerAnalyzerConfigOptionsProvider(
-                ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
-                new DictionaryAnalyzerConfigOptions(
-                    ImmutableDictionary<string, string>.Empty));
-            Assert.NotSame(sharedOptions, customOptions);
 
-            var analyzer = new OptionsOverrideDiagnosticAnalyzer(customOptions);
+            // Test1.  Just a single analyzer.  Ensure all callbacks get the custom options.
+            {
+                var customOptions = new CompilerAnalyzerConfigOptionsProvider(
+                    ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                    new DictionaryAnalyzerConfigOptions(
+                        ImmutableDictionary<string, string>.Empty));
+                Assert.NotSame(sharedOptions, customOptions);
 
-            var compWithAnalyzers = new CompilationWithAnalyzers(
-                compilation,
-                [analyzer],
-                new CompilationWithAnalyzersOptions(
-                    sharedOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false, analyzerExceptionFilter: null,
-                    _ => customOptions));
+                var analyzer = new OptionsOverrideDiagnosticAnalyzer(customOptions);
 
-            var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
-            Assert.Single(diagnostics);
+                var compWithAnalyzers = new CompilationWithAnalyzers(
+                    compilation,
+                    [analyzer],
+                    new CompilationWithAnalyzersOptions(
+                        sharedOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false, analyzerExceptionFilter: null,
+                        _ => customOptions));
 
-            Assert.True(analyzer.RegisterAdditionalFileActionInvoked);
+                var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
+                Assert.Single(diagnostics);
 
-            Assert.True(analyzer.RegisterAdditionalFileActionInvoked);
-            Assert.True(analyzer.RegisterCodeBlockActionInvoked);
-            Assert.True(analyzer.RegisterCodeBlockStartActionInvoked);
-            Assert.True(analyzer.RegisterCompilationActionInvoked);
-            Assert.True(analyzer.RegisterOperationActionInvoked);
-            Assert.True(analyzer.RegisterOperationBlockActionInvoked);
-            Assert.True(analyzer.RegisterSemanticModelActionInvoked);
-            Assert.True(analyzer.RegisterSymbolActionInvoked);
-            Assert.True(analyzer.RegisterSyntaxNodeActionInvoked);
-            Assert.True(analyzer.RegisterSyntaxTreeActionInvoked);
+                analyzer.AssertAllCallbacksInvoked();
+            }
 
-            Assert.True(analyzer.RegisterOperationBlockStartActionInvoked);
-            Assert.True(analyzer.RegisterOperationBlockEndActionInvoked);
-            Assert.True(analyzer.RegisterCompilationStartActionInvoked);
-            Assert.True(analyzer.RegisterCompilationEndActionInvoked);
-            Assert.True(analyzer.RegisterSymbolStartActionInvoked);
-            Assert.True(analyzer.RegisterSymbolEndActionInvoked);
+            // Test2. Two analyzers.  Ensure both gets the custom options across all callbacks.
+            // Also, ensure that across the analyzers we're getting the exact same AnalyzerOptions instance.
+            {
+                var customOptions = new CompilerAnalyzerConfigOptionsProvider(
+                    ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                    new DictionaryAnalyzerConfigOptions(
+                        ImmutableDictionary<string, string>.Empty));
+                Assert.NotSame(sharedOptions, customOptions);
+
+                var analyzer1 = new OptionsOverrideDiagnosticAnalyzer(customOptions);
+                var analyzer2 = new OptionsOverrideDiagnosticAnalyzer(customOptions);
+
+                var compWithAnalyzers = new CompilationWithAnalyzers(
+                    compilation,
+                    [analyzer1, analyzer2],
+                    new CompilationWithAnalyzersOptions(
+                        sharedOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false, analyzerExceptionFilter: null,
+                        _ => customOptions));
+
+                var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
+                Assert.Single(diagnostics);
+
+                analyzer1.AssertAllCallbacksInvoked();
+                analyzer2.AssertAllCallbacksInvoked();
+
+                // Both analyzers should get the exact same AnalyzerOptions instance since they used teh same customOptions.
+                Assert.Same(analyzer1.SeenOptions, analyzer2.SeenOptions);
+            }
         }
     }
 }
