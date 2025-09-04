@@ -396,7 +396,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
     internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
     {
-        var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+        var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]>(LSP.Methods.TextDocumentReferencesName,
             CreateReferenceParams(caret, progress), CancellationToken.None);
 
         // If we're using progress, return the results from that instead.
@@ -407,13 +407,13 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         }
 
         // Results are returned in a non-deterministic order, so we order them by location
-        var orderedResults = results?.OrderBy(r => r.Location, new OrderLocations()).ToArray();
+        var orderedResults = results?.Select(r => r.First).OrderBy(r => r.Location, new OrderLocations()).ToArray();
         return orderedResults;
     }
 
     internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
     {
-        var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.Location[]>(LSP.Methods.TextDocumentReferencesName,
+        var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]>(LSP.Methods.TextDocumentReferencesName,
             CreateReferenceParams(caret, progress), CancellationToken.None);
 
         // If we're using progress, return the results from that instead.
@@ -424,7 +424,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         }
 
         // Results are returned in a non-deterministic order, so we order them by location
-        var orderedResults = results.OrderBy(r => r, new OrderLocations()).ToArray();
+        var orderedResults = results.Select(r => r.Second).OrderBy(r => r, new OrderLocations()).ToArray();
         return orderedResults;
     }
 
