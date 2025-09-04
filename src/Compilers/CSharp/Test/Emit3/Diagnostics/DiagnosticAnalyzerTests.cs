@@ -4475,9 +4475,19 @@ partial class B
             public bool RegisterSymbolStartActionInvoked { get; private set; }
             public bool RegisterSymbolEndActionInvoked { get; private set; }
 
+            private AnalyzerOptions _seenOptions;
+
             private void AssertSame(AnalyzerOptions options)
             {
+                // First, assert that the options provider we see is the custom one the test sets.
                 Assert.Same(options.AnalyzerConfigOptionsProvider, _customOptions);
+
+                if (_seenOptions is null)
+                    _seenOptions = options;
+
+                // Also ensure that the compiler actually passes the same AnalyzerOptions wrapper around
+                // the options provider.  That ensures we're not accidentally creating new instances unnecessarily.
+                Assert.Same(_seenOptions, options);
             }
 
             public override void Initialize(AnalysisContext context)
