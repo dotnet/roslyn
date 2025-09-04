@@ -92,15 +92,11 @@ internal sealed partial class DiagnosticAnalyzerService
             // Create driver that holds onto compilation and associated analyzers
             var filteredProjectAnalyzers = projectAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
             var filteredHostAnalyzers = hostAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
-            var filteredProjectSuppressors = filteredProjectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
-            filteredHostAnalyzers = filteredHostAnalyzers.AddRange(filteredProjectSuppressors);
 
             // PERF: there is no analyzers for this compilation.
             //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
             if (filteredProjectAnalyzers.IsEmpty && filteredHostAnalyzers.IsEmpty)
-            {
                 return null;
-            }
 
             var exceptionFilter = (Exception ex) =>
             {
@@ -116,34 +112,43 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
             };
 
-            // Create driver that holds onto compilation and associated analyzers
-            return CreateCompilationWithAnalyzers(
-                compilation,
-                filteredHostAnalyzers.Concat(filteredProjectAnalyzers).Distinct(),
-                AnalyzerOptionsUtilities.Combine(
-                    project.State.ProjectAnalyzerOptions,
-                    project.HostAnalyzerOptions),
-                exceptionFilter);
-        }
+            var filteredAnalyzers = filteredHostAnalyzers.Concat(filteredProjectAnalyzers).Distinct();
+            Contract.ThrowIfTrue(filteredAnalyzers.IsEmpty);
 
-        static CompilationWithAnalyzers? CreateCompilationWithAnalyzers(
-            Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalyzerOptions? options,
-            Func<Exception, bool> exceptionFilter)
-        {
-            if (analyzers.Length == 0)
-                return null;
+            var (options, analyzerSpecificOptionsFactory) = GetOptions();
+
+            var sharedOptions = AnalyzerOptionsUtilities.Combine(
+                project.State.ProjectAnalyzerOptions,
+                project.HostAnalyzerOptions);
 
             return compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(
-                options: options,
+                options: sharedOptions,
                 onAnalyzerException: null,
-                analyzerExceptionFilter: exceptionFilter,
                 // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
                 // async being used with synchronous blocking concurrency.
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: true));
+                reportSuppressedDiagnostics: true,
+                analyzerExceptionFilter: exceptionFilter,
+                analyzerSpecificOptionsFactory));
+
+            (AnalyzerOptions analyzerOptions, Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory) GetOptions()
+            {
+                // Checked above before this is called.
+                Contract.ThrowIfTrue(hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty);
+
+                // If we're all host analyzers and no project analyzers, we can just return the options for host analyzers
+                // and not need any special logic.
+                if (!hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty)
+                    return (project.State.HostAnalyzerOptions, null);
+
+                // Same in reverse.  If we're all project analyzers and no host analyzers, then just return the project
+                // analyzer specific options.
+                if (hostAnalyzers.IsEmpty && !projectAnalyzers.IsEmpty)
+                    return (project.State.ProjectAnalyzerOptions, null);
+
+                // Ok, we have both host analyzers and project analyzers.
+            }
         }
     }
 }
