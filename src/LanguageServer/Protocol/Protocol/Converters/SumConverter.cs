@@ -355,6 +355,8 @@ internal sealed class SumConverter<T> : JsonConverter<T>
                    type == typeof(float),
             JsonTokenType.String
                 => type == typeof(string) ||
+                   type == typeof(DocumentUri) ||
+                   type == typeof(Uri) ||
                    typeof(IStringEnum).IsAssignableFrom(type),
             _ => true
         };
