@@ -635,7 +635,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [], analyzerIdsToRequestDiagnostics,
+            document, project, Checksum.Null, span: null, analyzerIdsToRequestDiagnostics,
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
@@ -671,7 +671,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
+            document, project, Checksum.Null, span: null, [analyzerId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
@@ -707,7 +707,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
+            document, project, Checksum.Null, span: null, [analyzerHostId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
@@ -742,15 +742,13 @@ public sealed class DiagnosticAnalyzerServiceTests
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
+            document, project, Checksum.Null, span: null, [analyzerHostId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
 
-        // In this case, the analyzers are ran twice. This appears to be a bug in SkippedHostAnalyzersInfo.Create, because it calls
-        // HostDiagnosticAnalyzers.CreateProjectDiagnosticAnalyzersPerReference which already filters out references, it doesn't return any
-        // references to skip.
-        Assert.Equal(2, diagnosticsMapResults.Diagnostics.Length);
+        // The analyzers are only run once since we detect this duplicated analyzer.  So we only get one diagnostic.
+        Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
 
         static AnalyzerReference CreateAnalyzerReferenceWithSameId(DiagnosticAnalyzer analyzer)
         {
@@ -796,7 +794,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
+            document, project, Checksum.Null, span: null, [analyzerId],
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
@@ -862,7 +860,7 @@ public sealed class DiagnosticAnalyzerServiceTests
                 : AnalysisKind.Semantic;
             var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
             _ = await DiagnosticComputer.GetDiagnosticsAsync(
-                documentToAnalyze, project, Checksum.Null, filterSpan, analyzerIdsToRequestDiagnostics, hostAnalyzerIds: [],
+                documentToAnalyze, project, Checksum.Null, filterSpan, analyzerIdsToRequestDiagnostics,
                 analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
                 logPerformanceInfo: false, getTelemetryInfo: false,
                 CancellationToken.None);
@@ -919,7 +917,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         try
         {
             _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-                projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
+                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
             throw ExceptionUtilities.Unreachable();
@@ -932,7 +930,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
         var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-            projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
+            analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
         var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
         var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
