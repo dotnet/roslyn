@@ -4545,6 +4545,8 @@ partial class B
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(5, 13));
 
             var additionalText = new InMemoryAdditionalText("path", "content");
+
+            // Ensure that the analyzer only sees the custom options passed to the callbacks, and never the shared options.
             var sharedOptions = new AnalyzerOptions([additionalText]);
             var customOptions = new AnalyzerOptions([additionalText]);
             Assert.NotSame(sharedOptions, customOptions);
